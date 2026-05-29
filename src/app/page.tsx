@@ -198,7 +198,6 @@ export default function Home() {
           <span>WhiteoutSurvival.dev Tools &amp; Guides</span>
         </div>
         <p>Built for WOS community - By MAGNUS</p>
-        <p>Made with <span className="heart">♥</span> by MAGNUS</p>
       </footer>
 
       {layoutOpen && (
