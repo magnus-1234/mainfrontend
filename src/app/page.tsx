@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 
 const menuItems = [
   { label: "Browse", icon: "grid" },
@@ -10,7 +12,51 @@ const menuItems = [
   { label: "More", icon: "book" },
 ];
 
+const sidebarItems = [
+  { label: "Home", icon: "home", href: "#home" },
+  { label: "Professional", icon: "briefcase", href: "#professional" },
+];
+
 function Icon({ name }: { name: string }) {
+  if (name === "home") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m3 11 9-8 9 8" />
+        <path d="M5 10v10h14V10" />
+        <path d="M9 20v-6h6v6" />
+      </svg>
+    );
+  }
+
+  if (name === "briefcase") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="20" height="14" x="2" y="7" rx="2" />
+        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+        <path d="M2 13h20" />
+        <path d="M12 12v2" />
+      </svg>
+    );
+  }
+
+  if (name === "panel") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="18" height="16" x="3" y="4" rx="2" />
+        <path d="M9 4v16" />
+      </svg>
+    );
+  }
+
+  if (name === "x") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </svg>
+    );
+  }
+
   if (name === "grid") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -137,19 +183,54 @@ export default function Home() {
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
   const [hideTopNav, setHideTopNav] = useState(false);
   const [sidebarPosition, setSidebarPosition] = useState<"left" | "right">("left");
+  const [sidebarWidth, setSidebarWidth] = useState(256);
+  const [resizingSidebar, setResizingSidebar] = useState(false);
   const [contentWidth, setContentWidth] = useState<"centered" | "full">("centered");
   const [loginOpen, setLoginOpen] = useState(false);
+  const effectiveSidebarWidth = collapsedSidebar ? 48 : sidebarWidth;
+
+  useEffect(() => {
+    if (!resizingSidebar || collapsedSidebar) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const nextWidth =
+        sidebarPosition === "right"
+          ? window.innerWidth - event.clientX
+          : event.clientX;
+
+      setSidebarWidth(Math.min(380, Math.max(176, nextWidth)));
+    };
+
+    const stopResizing = () => setResizingSidebar(false);
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopResizing, { once: true });
+    document.body.classList.add("is-resizing-sidebar");
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopResizing);
+      document.body.classList.remove("is-resizing-sidebar");
+    };
+  }, [collapsedSidebar, resizingSidebar, sidebarPosition]);
+
+  const shellStyle = {
+    "--sidebar-width": `${effectiveSidebarWidth}px`,
+  } as CSSProperties;
 
   return (
-    <main className={`app-shell ${theme === "dark" ? "dark" : "light"} ${collapsedSidebar ? "collapsed-sidebar" : ""} ${hideTopNav ? "hide-top-nav" : ""} sidebar-${sidebarPosition} width-${contentWidth}`}>
+    <main
+      className={`app-shell ${theme === "dark" ? "dark" : "light"} ${collapsedSidebar ? "collapsed-sidebar" : ""} ${hideTopNav ? "hide-top-nav" : ""} sidebar-${sidebarPosition} width-${contentWidth} ${resizingSidebar ? "resizing-sidebar" : ""}`}
+      style={shellStyle}
+    >
       <header className="ks-header">
         <div className="ks-header-inner">
-          <button className="icon-button menu-button" type="button" aria-label="Toggle sidebar">
-            <Icon name="menu" />
-          </button>
-
           <a className="brand" href="#home" aria-label="WhiteoutSurvival.dev Home">
-            <span className="brand-icon">W</span>
+            <span className="brand-icon">
+              <Image src="/wos-logo.png" alt="" width={24} height={24} />
+            </span>
             <span>WhiteoutSurvival.dev</span>
           </a>
 
@@ -167,11 +248,23 @@ export default function Home() {
             <button className="icon-button" type="button" aria-label="Change language" disabled>
               <Icon name="globe" />
             </button>
-            <button className="icon-button" type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Toggle theme">
-              <Icon name="sun" />
-            </button>
-            <button className="icon-button plain-action" type="button" onClick={() => setLayoutOpen(true)} aria-label="Layout settings">
-              <Icon name="sliders" />
+            <button
+              className="theme-toggle"
+              type="button"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label="Toggle dark theme"
+              aria-pressed={theme === "dark"}
+            >
+              <span className="theme-track">
+                <span className="theme-cloud cloud-a" />
+                <span className="theme-cloud cloud-b" />
+                <span className="theme-star star-a" />
+                <span className="theme-star star-b" />
+                <span className="theme-star star-c" />
+                <span className="theme-sun" />
+                <span className="theme-moon" />
+                <span className="theme-thumb" />
+              </span>
             </button>
             <a className="feedback-link" href="#feedback">Feedback</a>
             <button className="sign-in" type="button" onClick={() => setLoginOpen(true)}>
@@ -185,34 +278,74 @@ export default function Home() {
       <div className="app-body">
         <aside className="sidebar" aria-label="Sidebar">
           <div className="sidebar-content">
-            <a className="sidebar-item active" href="#home">Home</a>
+            {sidebarItems.map((item) => (
+              <a className={`sidebar-item ${item.label === "Home" ? "active" : ""}`} href={item.href} key={item.label}>
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </a>
+            ))}
           </div>
+          <div className="sidebar-tools" aria-label="Sidebar controls">
+            <button
+              className="sidebar-tool-button"
+              type="button"
+              aria-label={collapsedSidebar ? "Expand sidebar" : "Collapse sidebar"}
+              aria-pressed={collapsedSidebar}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                setCollapsedSidebar((value) => !value);
+              }}
+            >
+              <Icon name="panel" />
+            </button>
+            <button
+              className="sidebar-tool-button"
+              type="button"
+              aria-label="Layout settings"
+              aria-expanded={layoutOpen}
+              onClick={() => setLayoutOpen((value) => !value)}
+            >
+              <Icon name="sliders" />
+            </button>
+          </div>
+          <button
+            className="sidebar-resizer"
+            type="button"
+            aria-label="Resize sidebar"
+            disabled={collapsedSidebar}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              setResizingSidebar(true);
+            }}
+          />
         </aside>
 
-        <section className="empty-page" id="home" aria-label="Home page" />
-      </div>
-
-      <footer className="site-footer">
-        <div className="footer-brand">
-          <span className="footer-icon">W</span>
-          <span>WhiteoutSurvival.dev Tools &amp; Guides</span>
+        <div className="content-column">
+          <section className="home-page" id="home" aria-label="Home page" />
+          <footer className="site-footer">
+        <p className="footer-credit">
+          <span>Built for WOS community - By</span>
+          <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
+        </p>
+          </footer>
         </div>
-        <p>Built for WOS community - By MAGNUS</p>
-      </footer>
+      </div>
 
       {layoutOpen && (
         <div className="settings-panel" role="dialog" aria-modal="false" aria-label="Layout Settings">
           <div className="settings-head">
             <div>
               <h2>Layout Settings</h2>
-              <p>Customize your experience</p>
+              <p>View controls</p>
             </div>
-            <button type="button" onClick={() => setLayoutOpen(false)} aria-label="Close layout settings">x</button>
+            <button className="settings-close" type="button" onClick={() => setLayoutOpen(false)} aria-label="Close layout settings">
+              <Icon name="x" />
+            </button>
           </div>
 
           <section className="settings-section">
             <h3>Theme</h3>
-            <div className="theme-grid">
+            <div className="theme-grid compact">
               {(["light", "dark", "system"] as const).map((item) => (
                 <button
                   className={theme === item ? "selected" : ""}
@@ -238,11 +371,23 @@ export default function Home() {
                 className={`switch ${collapsedSidebar ? "on" : ""}`}
                 type="button"
                 aria-pressed={collapsedSidebar}
-                onClick={() => setCollapsedSidebar(!collapsedSidebar)}
+                onClick={() => setCollapsedSidebar((value) => !value)}
               >
                 <span />
               </button>
             </div>
+            <label className="range-setting">
+              <span>Sidebar width</span>
+              <input
+                type="range"
+                min="176"
+                max="380"
+                value={sidebarWidth}
+                disabled={collapsedSidebar}
+                onChange={(event) => setSidebarWidth(Number(event.target.value))}
+              />
+              <output>{sidebarWidth}px</output>
+            </label>
             <div className="setting-row">
               <div>
                 <strong>Hide Top Nav</strong>
@@ -264,18 +409,31 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="settings-section">
-            <h3>Content Width</h3>
+          <section className="settings-section settings-section-last">
+            <h3>Content</h3>
             <div className="width-options">
               <button className={contentWidth === "centered" ? "selected" : ""} type="button" onClick={() => setContentWidth("centered")}>
                 <strong>Centered</strong>
-                <span>Content stays in a readable column</span>
+                <span>Readable max width</span>
               </button>
               <button className={contentWidth === "full" ? "selected" : ""} type="button" onClick={() => setContentWidth("full")}>
                 <strong>Full Width</strong>
-                <span>Stretches edge to edge, uses all screen space</span>
+                <span>Use all space</span>
               </button>
             </div>
+            <button
+              className="reset-layout"
+              type="button"
+              onClick={() => {
+                setCollapsedSidebar(false);
+                setHideTopNav(false);
+                setSidebarPosition("left");
+                setSidebarWidth(256);
+                setContentWidth("centered");
+              }}
+            >
+              Reset Layout
+            </button>
           </section>
         </div>
       )}
