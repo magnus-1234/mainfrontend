@@ -1549,11 +1549,47 @@ svg {
   }
 
   .app-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: 48px minmax(0, 1fr);
   }
 
   .sidebar {
+    display: flex;
+  }
+
+  .sidebar-content {
+    padding: 8px 6px;
+  }
+
+  .sidebar-item {
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .sidebar-item span {
     display: none;
+  }
+
+  .sidebar-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 8px 6px;
+  }
+
+  .sidebar-tool-button {
+    width: 36px;
+    min-width: 0;
+    max-width: 36px;
+    padding: 0;
+  }
+
+  .sidebar-resizer {
+    display: none;
+  }
+
+  .content-column {
+    min-width: 0;
   }
 
   .site-footer {
@@ -1566,7 +1602,7 @@ svg {
   }
 
   .home-page {
-    padding: 28px 16px 42px;
+    padding: 0;
   }
 
   .hero-copy h1 {
