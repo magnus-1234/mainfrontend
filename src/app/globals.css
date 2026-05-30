@@ -745,6 +745,184 @@ svg {
   min-height: calc(100vh - 118px);
 }
 
+.bot-page {
+  display: grid;
+  min-height: calc(100vh - 118px);
+  overflow: visible;
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.bot-ad {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(300px, 0.72fr);
+  gap: clamp(24px, 5vw, 62px);
+  align-items: center;
+  width: 100%;
+  min-height: min(650px, calc(100vh - 186px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(22px, 5vw, 54px);
+  background:
+    radial-gradient(circle at 76% 22%, rgba(88, 101, 242, 0.18), transparent 34%),
+    radial-gradient(circle at 18% 78%, rgba(244, 129, 32, 0.16), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card) 92%, transparent), color-mix(in srgb, var(--muted) 78%, transparent));
+  box-shadow: 0 26px 70px rgba(14, 12, 10, 0.14);
+}
+
+.bot-ad:hover {
+  border-color: var(--gold-line);
+}
+
+.bot-ad-copy h1 {
+  max-width: 780px;
+  margin: 18px 0 0;
+  color: var(--foreground);
+  font-size: clamp(42px, 6vw, 76px);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 0.96;
+}
+
+.bot-ad-copy p {
+  max-width: 620px;
+  margin: 22px 0 0;
+  color: var(--muted-foreground);
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.62;
+}
+
+.bot-ad-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  margin-top: 32px;
+  border: 1px solid color-mix(in srgb, var(--primary) 80%, #000);
+  border-radius: 6px;
+  padding: 0 18px;
+  background: var(--primary);
+  color: #111;
+  font-size: 14px;
+  font-weight: 900;
+  box-shadow: 0 14px 32px rgba(244, 129, 32, 0.25);
+}
+
+.bot-ad-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+.bot-ad-panel {
+  display: grid;
+  place-items: center;
+}
+
+.bot-ad-window {
+  width: min(100%, 440px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, #5865f2);
+  border-radius: 8px;
+  background: #0c111d;
+  color: #f6f7fb;
+  box-shadow: 0 24px 58px rgba(12, 17, 29, 0.32);
+}
+
+.bot-ad-window-bar {
+  display: flex;
+  gap: 7px;
+  height: 42px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.bot-ad-window-bar span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f48120;
+}
+
+.bot-ad-window-bar span:nth-child(2) {
+  background: #e8c547;
+}
+
+.bot-ad-window-bar span:nth-child(3) {
+  background: #57d68d;
+}
+
+.bot-ad-window-body {
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.bot-ad-logo {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: #5865f2;
+}
+
+.bot-ad-logo img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.bot-ad-window-body strong {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.bot-ad-lines {
+  display: grid;
+  gap: 10px;
+}
+
+.bot-ad-lines span {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bot-ad-lines span:nth-child(1) {
+  width: 86%;
+}
+
+.bot-ad-lines span:nth-child(2) {
+  width: 64%;
+}
+
+.bot-ad-lines span:nth-child(3) {
+  width: 76%;
+}
+
+.bot-ad-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bot-ad-stats span {
+  display: grid;
+  min-height: 54px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(246, 247, 251, 0.82);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .daybreak-hero {
   position: relative;
   z-index: 1;
@@ -2225,6 +2403,10 @@ svg {
     grid-template-columns: 1fr;
   }
 
+  .bot-ad {
+    grid-template-columns: 1fr;
+  }
+
   .island-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2303,6 +2485,28 @@ svg {
 
   .daybreak-page {
     padding: 14px;
+  }
+
+  .bot-page {
+    padding: 14px;
+  }
+
+  .bot-ad {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .bot-ad-copy h1 {
+    font-size: 38px;
+  }
+
+  .bot-ad-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bot-ad-stats {
+    grid-template-columns: 1fr;
   }
 
   .daybreak-hero {

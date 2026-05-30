@@ -38,6 +38,9 @@ const apiBase =
     ? "http://localhost:3001"
     : "http://140.245.201.209:3001");
 
+const botFrontendUrl =
+  process.env.NEXT_PUBLIC_BOT_FRONTEND_URL || "https://bot.whiteoutsurvival.dev/";
+
 const menuItems = [
   { label: "Browse", icon: "grid" },
   { label: "Calculators", icon: "calculator" },
@@ -49,6 +52,7 @@ const menuItems = [
 const sidebarItems = [
   { label: "Home", icon: "home", href: "#home" },
   { label: "Daybreak Island", icon: "island", href: "#daybreak" },
+  { label: "Discord Bot", icon: "bot", href: "#discord-bot" },
 ];
 
 const starterIslands: Island[] = [
@@ -100,6 +104,24 @@ function Icon({ name }: { name: string }) {
         <path d="M12 13V4" />
         <path d="M12 4c-2.5.5-4.2 1.8-5 4 2.5.2 4.2-1.1 5-4Z" />
         <path d="M12 4c2.5.5 4.2 1.8 5 4-2.5.2-4.2-1.1-5-4Z" />
+      </>
+    ),
+    bot: (
+      <>
+        <rect width="16" height="12" x="4" y="8" rx="3" />
+        <path d="M12 8V4" />
+        <path d="M8 4h8" />
+        <circle cx="9" cy="14" r="1" />
+        <circle cx="15" cy="14" r="1" />
+        <path d="M8 20v2" />
+        <path d="M16 20v2" />
+      </>
+    ),
+    external: (
+      <>
+        <path d="M15 3h6v6" />
+        <path d="M10 14 21 3" />
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       </>
     ),
     upload: (
@@ -205,12 +227,20 @@ export default function Home() {
   const [viewerImage, setViewerImage] = useState<Island | null>(null);
   const [shareIslandTarget, setShareIslandTarget] = useState<Island | null>(null);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
-  const [activeMenu, setActiveMenu] = useState<"home" | "daybreak">("home");
+  const [activeMenu, setActiveMenu] = useState<"home" | "daybreak" | "bot">("home");
   const [islands, setIslands] = useState<Island[]>(starterIslands);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [viewerId, setViewerId] = useState("");
+  const [viewerId] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const stored = localStorage.getItem("daybreak-viewer-id") || crypto.randomUUID();
+    localStorage.setItem("daybreak-viewer-id", stored);
+    return stored;
+  });
   const effectiveSidebarWidth = collapsedSidebar ? 48 : sidebarWidth;
 
   useEffect(() => {
@@ -218,9 +248,12 @@ export default function Home() {
       const params = new URLSearchParams(window.location.search);
       const hash = window.location.hash;
       const daybreakHashes = new Set(["#daybreak", "#showcase", "#upload"]);
+      const botHashes = new Set(["#discord-bot", "#bot"]);
       setActiveMenu(
         params.get("menu") === "daybreak" || daybreakHashes.has(hash) || hash.startsWith("#island-")
           ? "daybreak"
+          : params.get("menu") === "bot" || botHashes.has(hash)
+            ? "bot"
           : "home",
       );
     };
@@ -229,12 +262,6 @@ export default function Home() {
     window.addEventListener("hashchange", syncMenuFromHash);
 
     return () => window.removeEventListener("hashchange", syncMenuFromHash);
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("daybreak-viewer-id") || crypto.randomUUID();
-    localStorage.setItem("daybreak-viewer-id", stored);
-    setViewerId(stored);
   }, []);
 
   useEffect(() => {
@@ -454,10 +481,10 @@ export default function Home() {
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
-                className={`sidebar-item ${activeMenu === (item.label === "Home" ? "home" : "daybreak") ? "active" : ""}`}
+                className={`sidebar-item ${activeMenu === (item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : "daybreak") ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
-                onClick={() => setActiveMenu(item.label === "Home" ? "home" : "daybreak")}
+                onClick={() => setActiveMenu(item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : "daybreak")}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
@@ -478,6 +505,45 @@ export default function Home() {
         <div className="content-column">
           {activeMenu === "home" ? (
             <section className="home-page empty-home" id="home" aria-label="Home" />
+          ) : activeMenu === "bot" ? (
+            <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
+              <a className="bot-ad" href={botFrontendUrl} target="_blank" rel="noreferrer">
+                <div className="bot-ad-copy">
+                  <span className="section-kicker">WOS Discord Bot</span>
+                  <h1>Manage alliance automation from the bot dashboard.</h1>
+                  <p>Open the separate Whiteout Survival Bot frontend for gift codes, reminders, commands, chat, moderation, and web dashboard controls.</p>
+                  <span className="bot-ad-action">
+                    Open Bot Dashboard
+                    <Icon name="external" />
+                  </span>
+                </div>
+                <div className="bot-ad-panel" aria-hidden="true">
+                  <div className="bot-ad-window">
+                    <div className="bot-ad-window-bar">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                    <div className="bot-ad-window-body">
+                      <div className="bot-ad-logo">
+                        <Image src="/discord-logo.png" alt="" width={48} height={48} />
+                      </div>
+                      <strong>Whiteout Survival Bot</strong>
+                      <div className="bot-ad-lines">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                      <div className="bot-ad-stats">
+                        <span>Gift Codes</span>
+                        <span>Reminders</span>
+                        <span>Dashboard</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </section>
           ) : (
           <section className="home-page daybreak-page" id="daybreak" aria-label="Daybreak Island community showcase">
             <section className="daybreak-hero">
