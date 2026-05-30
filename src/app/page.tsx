@@ -19,6 +19,7 @@ type Island = {
     nickname: string;
     stateId?: string;
     furnaceLevel?: number;
+    furnaceLevelFormatted?: string;
     furnaceIcon?: string;
     avatarImage?: string;
   };
@@ -78,6 +79,7 @@ const starterIslands: Island[] = [
       nickname: "WhiteoutSurvival.dev",
       stateId: "Public",
       furnaceLevel: 30,
+      furnaceLevelFormatted: "30",
     },
     server: "Public",
     alliance: "Community",
@@ -542,6 +544,8 @@ export default function Home() {
     return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
   };
 
+  const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || (player.furnaceLevel ? String(player.furnaceLevel) : "N/A");
+
   return (
     <main
       className={`app-shell ${theme === "dark" ? "dark" : "light"} ${collapsedSidebar ? "collapsed-sidebar" : ""} ${hideTopNav ? "hide-top-nav" : ""} width-${contentWidth} ${resizingSidebar ? "resizing-sidebar" : ""}`}
@@ -707,7 +711,7 @@ export default function Home() {
                     </div>
                     <div className="compact-meta">
                       <span>S{island.player.stateId || island.server || "N/A"}</span>
-                      <span>{island.player.furnaceLevel ? `Furnace ${island.player.furnaceLevel}` : "Furnace N/A"}</span>
+                      <span>{`Furnace ${furnaceDisplay(island.player)}`}</span>
                       <span>X:{island.coordinates.x} Y:{island.coordinates.y}</span>
                     </div>
                     <div className="island-actions">
@@ -869,7 +873,7 @@ export default function Home() {
                     <strong>{playerLookup?.nickname || playerLookupStatus}</strong>
                     {playerLookup && (
                       <span>
-                        ID {playerLookup.playerId} | State {playerLookup.stateId || "N/A"} | Furnace {playerLookup.furnaceLevel || "N/A"}
+                        ID {playerLookup.playerId} | State {playerLookup.stateId || "N/A"} | Furnace {furnaceDisplay(playerLookup)}
                       </span>
                     )}
                   </div>
@@ -955,7 +959,7 @@ export default function Home() {
               </div>
               <div className="detail-meta-grid">
                 <span>State {viewerImage.player.stateId || viewerImage.server || "N/A"}</span>
-                <span>Furnace {viewerImage.player.furnaceLevel || "N/A"}</span>
+                <span>Furnace {furnaceDisplay(viewerImage.player)}</span>
                 <span>X:{viewerImage.coordinates.x} Y:{viewerImage.coordinates.y}</span>
                 <span>{viewerImage.likes} likes | {viewerImage.shares} shares</span>
               </div>
