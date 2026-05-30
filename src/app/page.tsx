@@ -1,7 +1,7 @@
 "use client";
-
+/* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
-import type { CSSProperties, FormEvent, ReactNode } from "react";
+import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 type Island = {
@@ -31,6 +31,16 @@ type Island = {
   commentsCount: number;
   createdAt: string;
 };
+
+type IslandComment = {
+  id: string;
+  islandId: string;
+  authorName: string;
+  message: string;
+  createdAt: string;
+};
+
+type PlayerProfile = Island["player"];
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -226,6 +236,12 @@ export default function Home() {
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState("");
   const [viewerImage, setViewerImage] = useState<Island | null>(null);
   const [shareIslandTarget, setShareIslandTarget] = useState<Island | null>(null);
+  const [comments, setComments] = useState<IslandComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [playerLookup, setPlayerLookup] = useState<PlayerProfile | null>(null);
+  const [playerLookupStatus, setPlayerLookupStatus] = useState("");
+  const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
   const [activeMenu, setActiveMenu] = useState<"home" | "daybreak" | "bot">("home");
   const [islands, setIslands] = useState<Island[]>(starterIslands);
@@ -311,6 +327,57 @@ export default function Home() {
     setIslands(data.islands.length ? data.islands : starterIslands);
   };
 
+  const loadComments = async (island: Island) => {
+    setViewerImage(island);
+    setComments([]);
+
+    if (island.id.startsWith("starter")) {
+      return;
+    }
+
+    setCommentsLoading(true);
+    try {
+      const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}/comments`);
+      if (!response.ok) {
+        throw new Error("Unable to load comments");
+      }
+
+      const data = (await response.json()) as { comments: IslandComment[] };
+      setComments(data.comments);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to load comments");
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const fetchPlayerDetails = async (playerId: string) => {
+    const cleanedPlayerId = playerId.replace(/\D/g, "");
+    if (!/^\d{8,9}$/.test(cleanedPlayerId)) {
+      setPlayerLookup(null);
+      setPlayerLookupStatus("Enter an 8 or 9 digit player ID first.");
+      return;
+    }
+
+    setFetchingPlayer(true);
+    setPlayerLookupStatus("");
+    try {
+      const response = await fetch(`${apiBase}/api/daybreak/players/${cleanedPlayerId}`);
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Player details could not be fetched.");
+      }
+
+      setPlayerLookup(data.player);
+      setPlayerLookupStatus("Player details loaded.");
+    } catch (error) {
+      setPlayerLookup(null);
+      setPlayerLookupStatus(error instanceof Error ? error.message : "Player details could not be fetched.");
+    } finally {
+      setFetchingPlayer(false);
+    }
+  };
+
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setUploading(true);
@@ -349,7 +416,7 @@ export default function Home() {
     }
   };
 
-  const handleUploadImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     if (!file) {
       setUploadImageLabel("No image selected");
@@ -361,7 +428,7 @@ export default function Home() {
     setUploadPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleUploadImageUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImageUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value.trim();
     if (!value) {
       setUploadImageLabel("No image selected");
@@ -375,10 +442,14 @@ export default function Home() {
 
   const closeUploadModal = () => {
     setUploadOpen(false);
+    setPlayerLookup(null);
+    setPlayerLookupStatus("");
   };
 
   const updateIsland = (next: Island) => {
     setIslands((current) => current.map((island) => (island.id === next.id ? next : island)));
+    setViewerImage((current) => (current?.id === next.id ? next : current));
+    setShareIslandTarget((current) => (current?.id === next.id ? next : current));
   };
 
   const likeIsland = async (island: Island) => {
@@ -402,10 +473,15 @@ export default function Home() {
 
   const shareIsland = async (island: Island) => {
     const shareUrl = shareUrlFor(island);
-    await navigator.clipboard?.writeText(shareUrl);
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(shareUrl);
+    } else {
+      window.prompt("Copy island link", shareUrl);
+    }
 
     if (island.id.startsWith("starter")) {
       updateIsland({ ...island, shares: island.shares + 1 });
+      setStatus("Share link copied.");
       return;
     }
 
@@ -413,6 +489,41 @@ export default function Home() {
     const data = (await response.json()) as { island?: Island };
     if (data.island) {
       updateIsland(data.island);
+    }
+
+    setStatus("Share link copied.");
+  };
+
+  const addComment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!viewerImage || viewerImage.id.startsWith("starter")) {
+      setStatus("Comments are available after an island is published.");
+      return;
+    }
+
+    setCommentSaving(true);
+    try {
+      const form = event.currentTarget;
+      const body = Object.fromEntries(new FormData(form).entries());
+      const response = await fetch(`${apiBase}/api/daybreak/islands/${viewerImage.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to add comment");
+      }
+
+      if (data.island) {
+        updateIsland(data.island);
+      }
+      setComments(data.comments || []);
+      form.reset();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to add comment");
+    } finally {
+      setCommentSaving(false);
     }
   };
 
@@ -576,7 +687,7 @@ export default function Home() {
             <section className="island-grid">
               {islands.map((island) => (
                 <article className="island-card" id={`island-${island.id}`} key={island.id}>
-                  <button className="island-image" type="button" onClick={() => setViewerImage(island)} aria-label={`Open ${island.title}`}>
+                  <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
                     <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
                   </button>
                   <div className="island-card-body">
@@ -584,7 +695,6 @@ export default function Home() {
                     <div className="player-strip">
                       <div className="player-avatar">
                         {island.player.avatarImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img src={island.player.avatarImage} alt="" />
                         ) : (
                           <Icon name="user" />
@@ -608,7 +718,7 @@ export default function Home() {
                       <button className="card-icon-action" type="button" onClick={() => setShareIslandTarget(island)} aria-label="Share island">
                         <Icon name="share" />
                       </button>
-                      <button className="card-icon-action" type="button" aria-label="Comment count">
+                      <button className="card-icon-action" type="button" onClick={() => loadComments(island)} aria-label="Open details and comments">
                         <Icon name="message" />
                         {island.commentsCount}
                       </button>
@@ -721,10 +831,50 @@ export default function Home() {
                 Island title
                 <input name="title" maxLength={90} placeholder="Tree of Life Plaza" required />
               </label>
-              <label>
-                Player ID
-                <input name="playerId" inputMode="numeric" pattern="[0-9]{8,9}" maxLength={9} placeholder="8 or 9 digit ID" required />
-              </label>
+              <div className="form-field">
+                <span>Player ID</span>
+                <div className="player-lookup-row">
+                  <input
+                    name="playerId"
+                    aria-label="Player ID"
+                    inputMode="numeric"
+                    pattern="[0-9]{8,9}"
+                    maxLength={9}
+                    placeholder="8 or 9 digit ID"
+                    required
+                    onChange={(event) => {
+                      setPlayerLookup(null);
+                      setPlayerLookupStatus("");
+                      if (event.currentTarget.value.replace(/\D/g, "").length >= 8) {
+                        void fetchPlayerDetails(event.currentTarget.value);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={fetchingPlayer}
+                    onClick={(event) => {
+                      const input = event.currentTarget.form?.elements.namedItem("playerId") as HTMLInputElement | null;
+                      void fetchPlayerDetails(input?.value || "");
+                    }}
+                  >
+                    {fetchingPlayer ? "Fetching..." : "Fetch Details"}
+                  </button>
+                </div>
+              </div>
+              {(playerLookup || playerLookupStatus) && (
+                <div className={`player-lookup-card ${playerLookup ? "loaded" : ""}`}>
+                  {playerLookup?.avatarImage && <img src={playerLookup.avatarImage} alt="" />}
+                  <div>
+                    <strong>{playerLookup?.nickname || playerLookupStatus}</strong>
+                    {playerLookup && (
+                      <span>
+                        ID {playerLookup.playerId} | State {playerLookup.stateId || "N/A"} | Furnace {playerLookup.furnaceLevel || "N/A"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="form-grid">
                 <label>
                   X Coordinate
@@ -746,7 +896,6 @@ export default function Home() {
               <section className="image-uploader" aria-label="Island image source">
                 <div className="image-uploader-preview">
                   {uploadPreviewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={uploadPreviewUrl} alt="Selected island preview" />
                   ) : (
                     <div className="preview-empty">
@@ -784,14 +933,65 @@ export default function Home() {
 
       {viewerImage && (
         <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={viewerImage.title}>
-          <div className="image-viewer">
+          <section className="island-detail-modal">
             <button className="close-button" type="button" onClick={() => setViewerImage(null)} aria-label="Close">x</button>
-            <img src={viewerImage.imageUrl} alt={viewerImage.title} />
-            <div>
-              <strong>{viewerImage.title}</strong>
-              <span>{viewerImage.player.nickname}</span>
+            <div className="island-detail-media">
+              <img src={viewerImage.imageUrl} alt={viewerImage.title} />
             </div>
-          </div>
+            <div className="island-detail-panel">
+              <div>
+                <span className="section-kicker">Island Details</span>
+                <h2>{viewerImage.title}</h2>
+                <p>{viewerImage.description}</p>
+              </div>
+              <div className="player-strip detail-player">
+                <div className="player-avatar">
+                  {viewerImage.player.avatarImage ? <img src={viewerImage.player.avatarImage} alt="" /> : <Icon name="user" />}
+                </div>
+                <div>
+                  <strong>{viewerImage.player.nickname}</strong>
+                  <span>ID {viewerImage.playerId}</span>
+                </div>
+              </div>
+              <div className="detail-meta-grid">
+                <span>State {viewerImage.player.stateId || viewerImage.server || "N/A"}</span>
+                <span>Furnace {viewerImage.player.furnaceLevel || "N/A"}</span>
+                <span>X:{viewerImage.coordinates.x} Y:{viewerImage.coordinates.y}</span>
+                <span>{viewerImage.likes} likes | {viewerImage.shares} shares</span>
+              </div>
+              {viewerImage.tags.length > 0 && (
+                <div className="tag-row">
+                  {viewerImage.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                </div>
+              )}
+              <div className="detail-actions">
+                <button type="button" onClick={() => likeIsland(viewerImage)}>Like</button>
+                <button type="button" onClick={() => setShareIslandTarget(viewerImage)}>Share Link</button>
+              </div>
+              <section className="comments-panel">
+                <h3>Comments</h3>
+                {commentsLoading ? (
+                  <p>Loading comments...</p>
+                ) : comments.length ? (
+                  <div className="comment-list">
+                    {comments.map((comment) => (
+                      <article key={comment.id}>
+                        <strong>{comment.authorName}</strong>
+                        <p>{comment.message}</p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p>No comments yet.</p>
+                )}
+                <form className="comment-form" onSubmit={addComment}>
+                  <input name="authorName" maxLength={60} placeholder="Name" required disabled={viewerImage.id.startsWith("starter")} />
+                  <textarea name="message" maxLength={360} placeholder="Add a comment" required disabled={viewerImage.id.startsWith("starter")} />
+                  <button type="submit" disabled={commentSaving || viewerImage.id.startsWith("starter")}>{commentSaving ? "Posting..." : "Post Comment"}</button>
+                </form>
+              </section>
+            </div>
+          </section>
         </div>
       )}
 
@@ -804,9 +1004,9 @@ export default function Home() {
             <div className="share-url-box">{shareUrlFor(shareIslandTarget)}</div>
             <div className="share-icon-row">
               <button type="button" onClick={() => shareIsland(shareIslandTarget)}>Copy</button>
-              <a href={socialShareUrl("discord", shareIslandTarget)} target="_blank" rel="noreferrer">Discord</a>
-              <a href={socialShareUrl("whatsapp", shareIslandTarget)} target="_blank" rel="noreferrer">WhatsApp</a>
-              <a href={socialShareUrl("x", shareIslandTarget)} target="_blank" rel="noreferrer">X</a>
+              <a href={socialShareUrl("discord", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Discord</a>
+              <a href={socialShareUrl("whatsapp", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>WhatsApp</a>
+              <a href={socialShareUrl("x", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>X</a>
             </div>
           </section>
         </div>

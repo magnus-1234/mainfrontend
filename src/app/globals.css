@@ -1304,7 +1304,8 @@ svg {
   gap: 12px;
 }
 
-.upload-form label {
+.upload-form label,
+.form-field {
   display: grid;
   gap: 6px;
   color: var(--muted-foreground);
@@ -1321,6 +1322,74 @@ svg {
   color: var(--foreground);
   padding: 10px 11px;
   font-size: 14px;
+}
+
+.player-lookup-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.player-lookup-row button,
+.detail-actions button,
+.comment-form button {
+  min-height: 40px;
+  border: 1px solid var(--gold-line);
+  border-radius: 7px;
+  padding: 0 12px;
+  background: var(--gold-soft);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.player-lookup-row button:disabled,
+.comment-form button:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.player-lookup-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--background);
+  color: var(--muted-foreground);
+}
+
+.player-lookup-card.loaded {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--foreground);
+}
+
+.player-lookup-card img {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.player-lookup-card strong,
+.player-lookup-card span {
+  display: block;
+}
+
+.player-lookup-card strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.player-lookup-card span {
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 12px;
 }
 
 .upload-form textarea {
@@ -1521,6 +1590,147 @@ svg {
   margin-top: 3px;
   color: var(--muted-foreground);
   font-size: 13px;
+}
+
+.island-detail-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  gap: 16px;
+  width: min(1180px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 24px 48px -12px rgba(12, 12, 13, 0.33);
+}
+
+.island-detail-media {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+}
+
+.island-detail-media img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 92px);
+  object-fit: contain;
+}
+
+.island-detail-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 4px 4px 4px 0;
+}
+
+.island-detail-panel h2,
+.island-detail-panel p,
+.comments-panel h3,
+.comments-panel p {
+  margin: 0;
+}
+
+.island-detail-panel h2 {
+  margin-top: 10px;
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1;
+}
+
+.island-detail-panel p,
+.comments-panel p {
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.detail-player {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--background);
+}
+
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.detail-meta-grid span,
+.tag-row span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 9px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.detail-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.comments-panel {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.comments-panel h3 {
+  font-size: 16px;
+}
+
+.comment-list {
+  display: grid;
+  gap: 8px;
+  max-height: 210px;
+  overflow: auto;
+}
+
+.comment-list article {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--background);
+}
+
+.comment-list strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.comment-form {
+  display: grid;
+  gap: 8px;
+}
+
+.comment-form input,
+.comment-form textarea {
+  width: 100%;
+  border: 1px solid var(--input);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.comment-form textarea {
+  min-height: 76px;
+  resize: vertical;
 }
 
 .share-modal {
@@ -2515,6 +2725,17 @@ svg {
 
   .image-uploader {
     grid-template-columns: 1fr;
+  }
+
+  .player-lookup-row,
+  .island-detail-modal,
+  .detail-meta-grid,
+  .detail-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .island-detail-media {
+    min-height: 240px;
   }
 
   .daybreak-hero-copy h1 {
