@@ -248,7 +248,7 @@ export default function Home() {
   const [activeMenu, setActiveMenu] = useState<"home" | "daybreak" | "bot">("home");
   const [islands, setIslands] = useState<Island[]>(starterIslands);
   const [linkedIslandId, setLinkedIslandId] = useState("");
-  const [footerVisible, setFooterVisible] = useState(true);
+  const [footerVisible, setFooterVisible] = useState(false);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -290,20 +290,29 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    let hideTimer: ReturnType<typeof setTimeout>;
-    const showFooter = () => {
-      setFooterVisible(true);
-      clearTimeout(hideTimer);
-      hideTimer = setTimeout(() => setFooterVisible(false), 2800);
+    let idleTimer: ReturnType<typeof setTimeout>;
+    const idleDelayMs = 5 * 60 * 1000;
+    const scheduleIdleFooter = () => {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => setFooterVisible(true), idleDelayMs);
     };
-    const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+    const updateFooterForActivity = (event: Event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const isSidebarActivity = Boolean(target?.closest(".sidebar, .settings-panel"));
 
-    showFooter();
-    events.forEach((eventName) => window.addEventListener(eventName, showFooter, { passive: true }));
+      setFooterVisible(isSidebarActivity);
+      if (!isSidebarActivity) {
+        scheduleIdleFooter();
+      }
+    };
+    const events = ["pointermove", "mousemove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+
+    scheduleIdleFooter();
+    events.forEach((eventName) => window.addEventListener(eventName, updateFooterForActivity, { passive: true }));
 
     return () => {
-      clearTimeout(hideTimer);
-      events.forEach((eventName) => window.removeEventListener(eventName, showFooter));
+      clearTimeout(idleTimer);
+      events.forEach((eventName) => window.removeEventListener(eventName, updateFooterForActivity));
     };
   }, []);
 
@@ -685,7 +694,16 @@ export default function Home() {
       </header>
 
       <div className="app-body">
-        <aside className="sidebar" aria-label="Sidebar">
+        <aside
+          className="sidebar"
+          aria-label="Sidebar"
+          onMouseEnter={() => setFooterVisible(true)}
+          onMouseLeave={() => setFooterVisible(false)}
+          onMouseMove={() => setFooterVisible(true)}
+          onPointerEnter={() => setFooterVisible(true)}
+          onPointerLeave={() => setFooterVisible(false)}
+          onPointerMove={() => setFooterVisible(true)}
+        >
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
