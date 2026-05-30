@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "WhiteoutSurvival.dev",
   description: "WhiteoutSurvival.dev",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/wos-logo.png",
+  },
 };
 
 export default function RootLayout({
