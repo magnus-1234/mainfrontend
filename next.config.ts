@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  async rewrites() {
+    return [
+      {
+        source: "/api/daybreak/:path*",
+        destination: "http://140.245.201.209:3001/api/daybreak/:path*",
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
