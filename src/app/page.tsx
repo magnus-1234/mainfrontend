@@ -43,6 +43,20 @@ type IslandComment = {
 
 type PlayerProfile = Island["player"];
 
+type LinkedPlayerAccount = PlayerProfile & {
+  linkedAt: string;
+};
+
+type AuthUser = {
+  id: string;
+  email?: string;
+  displayName: string;
+  avatarUrl?: string;
+  providers: ("google" | "discord")[];
+  playerAccounts: LinkedPlayerAccount[];
+  createdAt: string;
+};
+
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   (typeof window !== "undefined" && window.location.hostname === "localhost"
@@ -191,6 +205,53 @@ function Icon({ name }: { name: string }) {
         <circle cx="12" cy="7" r="4" />
       </>
     ),
+    gamepad: (
+      <>
+        <line x1="6" x2="10" y1="12" y2="12" />
+        <line x1="8" x2="8" y1="10" y2="14" />
+        <line x1="15" x2="15.01" y1="13" y2="13" />
+        <line x1="18" x2="18.01" y1="11" y2="11" />
+        <rect width="20" height="12" x="2" y="6" rx="4" />
+      </>
+    ),
+    crown: (
+      <>
+        <path d="m2 6 5 5 5-8 5 8 5-5-3 13H5L2 6Z" />
+        <path d="M5 19h14" />
+      </>
+    ),
+    calendar: (
+      <>
+        <path d="M8 2v4M16 2v4" />
+        <rect width="18" height="18" x="3" y="4" rx="2" />
+        <path d="M3 10h18" />
+      </>
+    ),
+    shield: (
+      <>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+        <path d="M12 8v4" />
+      </>
+    ),
+    plus: (
+      <>
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </>
+    ),
+    search: (
+      <>
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </>
+    ),
+    logout: (
+      <>
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <path d="m16 17 5-5-5-5" />
+        <path d="M21 12H9" />
+      </>
+    ),
     panel: (
       <>
         <rect width="18" height="16" x="3" y="4" rx="2" />
@@ -237,6 +298,17 @@ export default function Home() {
   const [resizingSidebar, setResizingSidebar] = useState(false);
   const [contentWidth, setContentWidth] = useState<"centered" | "full">("centered");
   const [loginOpen, setLoginOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authStatus, setAuthStatus] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return new URLSearchParams(window.location.search).get("auth_error") || "";
+  });
+  const [linkingPlayer, setLinkingPlayer] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadImageLabel, setUploadImageLabel] = useState("No image selected");
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState("");
@@ -376,6 +448,22 @@ export default function Home() {
       })
       .catch(() => setStatus(""));
   }, [sort]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("auth_error");
+    if (authError) {
+      params.delete("auth_error");
+      const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
+      window.history.replaceState(null, "", nextUrl);
+    }
+
+    fetch(`${apiBase}/api/auth/session`, { credentials: "include" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((data: { user: AuthUser | null }) => setAuthUser(data.user))
+      .catch(() => setAuthStatus(""))
+      .finally(() => setAuthLoading(false));
+  }, []);
 
   useEffect(() => {
     if (!resizingSidebar || collapsedSidebar) {
@@ -655,6 +743,52 @@ export default function Home() {
     }
   };
 
+  const signInWith = (provider: "google" | "discord") => {
+    const returnTo = typeof window === "undefined" ? "" : window.location.href;
+    window.location.href = `${apiBase}/api/auth/${provider}?returnTo=${encodeURIComponent(returnTo)}`;
+  };
+
+  const signOut = async () => {
+    await fetch(`${apiBase}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => null);
+    setAuthUser(null);
+    setProfileOpen(false);
+  };
+
+  const linkPlayerAccount = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLinkingPlayer(true);
+    setAuthStatus("");
+
+    try {
+      const form = event.currentTarget;
+      const body = Object.fromEntries(new FormData(form).entries());
+      const response = await fetch(`${apiBase}/api/profile/player-accounts`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to link player account");
+      }
+
+      setAuthUser(data.user);
+      setPlayerLookup(null);
+      setPlayerLookupStatus("");
+      form.reset();
+    } catch (error) {
+      setAuthStatus(error instanceof Error ? error.message : "Unable to link player account");
+    } finally {
+      setLinkingPlayer(false);
+    }
+  };
+
+  const memberSince = (value?: string) =>
+    value
+      ? new Intl.DateTimeFormat(undefined, { month: "numeric", day: "numeric", year: "numeric" }).format(new Date(value))
+      : "Today";
+
   const shareUrlFor = (island: Island) => `${window.location.origin}/daybreak/island/${encodeURIComponent(island.id)}`;
 
   const socialShareUrl = (platform: "discord" | "whatsapp" | "x", island: Island) => {
@@ -734,9 +868,9 @@ export default function Home() {
                 <span className="theme-thumb" />
               </span>
             </button>
-            <button className="sign-in" type="button" onClick={() => setLoginOpen(true)}>
-              <Icon name="user" />
-              Sign In
+            <button className="sign-in" type="button" onClick={() => (authUser ? setProfileOpen(true) : setLoginOpen(true))}>
+              {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+              {authLoading ? "Account" : authUser ? "Profile" : "Sign In"}
             </button>
           </div>
         </div>
@@ -970,16 +1104,130 @@ export default function Home() {
 
       {loginOpen && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Sign In">
-          <form className="login-modal" onSubmit={(event) => {
-            event.preventDefault();
-            setLoginOpen(false);
-          }}>
+          <section className="login-modal">
             <button className="close-button" type="button" onClick={() => setLoginOpen(false)} aria-label="Close">x</button>
-            <h2>Sign In</h2>
-            <label>Email<input type="email" required /></label>
-            <label>Password<input type="password" required /></label>
-            <button className="submit-button" type="submit">Sign In</button>
-          </form>
+            <div className="login-hero-mark">
+              <Image src="/wos-logo.png" alt="" width={46} height={46} />
+            </div>
+            <span className="section-kicker">Welcome back</span>
+            <h2>Sign in to WhiteoutSurvival.dev</h2>
+            <p>Use your community account to manage your profile and linked game accounts.</p>
+            {authStatus && <div className="auth-status">{authStatus}</div>}
+            <div className="social-login-stack">
+              <button className="social-login google" type="button" onClick={() => signInWith("google")}>
+                <span className="provider-mark">G</span>
+                Continue with Google
+              </button>
+              <div className="login-divider"><span>Or continue with</span></div>
+              <button className="social-login discord" type="button" onClick={() => signInWith("discord")}>
+                <span className="provider-mark">D</span>
+                Continue with Discord
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {profileOpen && authUser && (
+        <div className="modal-backdrop profile-backdrop" role="dialog" aria-modal="true" aria-label="Profile">
+          <section className="profile-modal">
+            <button className="close-button" type="button" onClick={() => setProfileOpen(false)} aria-label="Close">x</button>
+            <div className="profile-head">
+              <h2>Profile</h2>
+              <p>Manage your account and linked game accounts</p>
+            </div>
+            <div className="profile-layout">
+              <aside className="profile-card">
+                <div className="profile-banner" />
+                <div className="profile-avatar">
+                  {authUser.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                </div>
+                <h3>{authUser.displayName}</h3>
+                {authUser.email && <p>{authUser.email}</p>}
+                <div className="profile-stat">
+                  <span className="stat-icon"><Icon name="calendar" /></span>
+                  <span>Member Since<strong>{memberSince(authUser.createdAt)}</strong></span>
+                </div>
+                <button className="profile-signout" type="button" onClick={() => void signOut()}>
+                  <Icon name="logout" />
+                  Sign Out
+                </button>
+              </aside>
+
+              <section className="game-accounts-panel">
+                <div className="panel-title-row">
+                  <div>
+                    <h3><Icon name="gamepad" /> Game Accounts</h3>
+                    <p>Link and manage your Whiteout Survival game accounts for quick access across all tools</p>
+                  </div>
+                  <span>{authUser.playerAccounts.length} accounts</span>
+                </div>
+
+                <form className="link-account-box" onSubmit={linkPlayerAccount}>
+                  <h4><Icon name="plus" /> Link New Account</h4>
+                  <div className="player-lookup-row">
+                    <input
+                      name="playerId"
+                      aria-label="Player ID"
+                      inputMode="numeric"
+                      pattern="[0-9]{8,9}"
+                      maxLength={9}
+                      placeholder="Enter Player ID (e.g., 123456789)"
+                      required
+                      onChange={(event) => {
+                        setPlayerLookup(null);
+                        setPlayerLookupStatus("");
+                        if (event.currentTarget.value.replace(/\D/g, "").length >= 8) {
+                          void fetchPlayerDetails(event.currentTarget.value);
+                        }
+                      }}
+                    />
+                    <button type="submit" disabled={linkingPlayer}>
+                      <Icon name="search" />
+                      {linkingPlayer ? "Linking..." : "Link"}
+                    </button>
+                  </div>
+                  {(playerLookup || playerLookupStatus || authStatus) && (
+                    <div className={`player-lookup-card ${playerLookup ? "loaded" : ""}`}>
+                      {playerLookup?.avatarImage && <img src={playerLookup.avatarImage} alt="" />}
+                      <div>
+                        <strong>{playerLookup?.nickname || playerLookupStatus || authStatus}</strong>
+                        {playerLookup && (
+                          <span>
+                            ID {playerLookup.playerId} | State {playerLookup.stateId || "N/A"} | Furnace {furnaceDisplay(playerLookup)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </form>
+
+                <div className="linked-accounts">
+                  <h4><Icon name="crown" /> Linked Accounts</h4>
+                  {authUser.playerAccounts.length ? (
+                    <div className="linked-account-list">
+                      {authUser.playerAccounts.map((player) => (
+                        <article className="linked-account-card" key={player.playerId}>
+                          <div className="player-avatar">
+                            {player.avatarImage ? <img src={player.avatarImage} alt="" /> : <Icon name="user" />}
+                          </div>
+                          <div>
+                            <strong>{player.nickname}</strong>
+                            <span>ID {player.playerId} | State {player.stateId || "N/A"} | Furnace {furnaceDisplay(player)}</span>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-linked-accounts">
+                      <Icon name="gamepad" />
+                      <span>No linked game accounts yet</span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </section>
         </div>
       )}
 

@@ -486,6 +486,13 @@ svg {
   height: 16px;
 }
 
+.sign-in img {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
 .app-body {
   display: grid;
   flex: 1;
@@ -2571,50 +2578,344 @@ svg {
 
 .login-modal {
   position: relative;
-  width: min(100%, 380px);
+  width: min(100%, 430px);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 22px;
-  background: var(--card);
+  border-radius: 8px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--dot) 42%, transparent) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--card);
   color: var(--foreground);
-  box-shadow: 0 24px 48px -12px rgba(12, 12, 13, 0.33);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
+  text-align: center;
 }
 
 .login-modal h2 {
-  margin: 0 0 18px;
-  font-size: 22px;
+  margin: 8px 0 10px;
+  font-size: 27px;
+  letter-spacing: 0;
 }
 
-.login-modal label {
-  display: block;
-  margin-top: 12px;
+.login-modal p {
+  margin: 0 auto 20px;
   color: var(--muted-foreground);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-.login-modal input {
-  display: block;
-  width: 100%;
-  height: 40px;
-  margin-top: 6px;
+.login-hero-mark {
+  display: grid;
+  width: 66px;
+  height: 66px;
+  margin: 2px auto 16px;
+  place-items: center;
   border: 1px solid var(--input);
   border-radius: 8px;
-  padding: 0 12px;
   background: var(--background);
-  color: var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--gold-line);
 }
 
-.submit-button {
-  width: 100%;
-  height: 40px;
-  margin-top: 18px;
-  border: 0;
+.social-login-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.social-login {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--input);
   border-radius: 8px;
-  background: var(--primary);
-  color: white;
+  background: var(--background);
+  color: var(--foreground);
   cursor: pointer;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 800;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.social-login:hover {
+  border-color: var(--gold-line);
+  background: linear-gradient(135deg, var(--muted), var(--gold-soft));
+  transform: translateY(-1px);
+}
+
+.provider-mark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.discord .provider-mark {
+  background: #5865f2;
+  color: #fff;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.login-divider::before,
+.login-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+  content: "";
+}
+
+.auth-status {
+  margin: 0 0 14px;
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--gold-soft);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.profile-backdrop {
+  align-items: start;
+  overflow: auto;
+}
+
+.profile-modal {
+  position: relative;
+  width: min(100%, 1504px);
+  min-height: min(760px, calc(100vh - 32px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(22px, 3vw, 42px);
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
+}
+
+.profile-head {
+  margin-bottom: 36px;
+}
+
+.profile-head h2 {
+  margin: 0 0 10px;
+  font-size: 38px;
+  letter-spacing: 0;
+}
+
+.profile-head p,
+.panel-title-row p,
+.profile-card p {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 482px) minmax(0, 1fr);
+  gap: 28px;
+}
+
+.profile-card,
+.game-accounts-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.profile-card {
+  overflow: hidden;
+  padding: 0 20px 20px;
+  text-align: center;
+}
+
+.profile-banner {
+  height: 246px;
+  margin: 0 -20px;
+  background:
+    linear-gradient(180deg, rgba(38, 83, 93, 0.22), transparent),
+    var(--sidebar);
+}
+
+.profile-avatar {
+  display: grid;
+  width: 98px;
+  height: 98px;
+  margin: -50px auto 22px;
+  place-items: center;
+  border: 6px solid var(--background);
+  border-radius: 999px;
+  background: var(--muted);
+  box-shadow: 0 0 0 1px var(--border);
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-card h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.profile-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 50px 0 20px;
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--muted);
+  text-align: left;
+}
+
+.profile-stat span:last-child {
+  display: grid;
+  gap: 4px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+.profile-stat strong {
+  color: var(--foreground);
+  font-size: 16px;
+}
+
+.stat-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(46, 160, 67, 0.16);
+  color: #10b35b;
+}
+
+.profile-signout {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--input);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.game-accounts-panel {
+  padding: 26px 20px;
+}
+
+.panel-title-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.panel-title-row h3,
+.link-account-box h4,
+.linked-accounts h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.panel-title-row > span {
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(39, 156, 172, 0.14);
+  color: #5bc5da;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.link-account-box,
+.linked-accounts {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  background: color-mix(in srgb, var(--muted) 48%, transparent);
+}
+
+.linked-accounts {
+  margin-top: 30px;
+}
+
+.link-account-box .player-lookup-row {
+  margin-top: 18px;
+}
+
+.link-account-box .player-lookup-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linked-account-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.linked-account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--card);
+}
+
+.linked-account-card strong,
+.linked-account-card span {
+  display: block;
+}
+
+.linked-account-card span {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.empty-linked-accounts {
+  display: grid;
+  min-height: 170px;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.empty-linked-accounts svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.55;
 }
 
 .close-button {
@@ -2668,6 +2969,14 @@ svg {
 
   .bot-ad {
     grid-template-columns: 1fr;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-banner {
+    height: 180px;
   }
 
   .island-grid {
@@ -2770,6 +3079,22 @@ svg {
 
   .bot-ad-stats {
     grid-template-columns: 1fr;
+  }
+
+  .profile-modal {
+    padding: 20px 14px;
+  }
+
+  .profile-head {
+    margin-bottom: 20px;
+  }
+
+  .profile-head h2 {
+    font-size: 30px;
+  }
+
+  .panel-title-row {
+    display: grid;
   }
 
   .daybreak-hero {
