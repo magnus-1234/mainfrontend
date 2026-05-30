@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
 import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Island = {
   id: string;
@@ -51,6 +51,10 @@ const apiBase =
 
 const botFrontendUrl =
   process.env.NEXT_PUBLIC_BOT_FRONTEND_URL || "https://bot.whiteoutsurvival.dev/";
+
+const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
+const FOOTER_INTENT_DELAY_MS = 450;
+const FOOTER_HIDE_DELAY_MS = 900;
 
 const menuItems = [
   { label: "Browse", icon: "grid" },
@@ -253,6 +257,9 @@ export default function Home() {
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
   const openedSharedIslandRef = useRef("");
+  const footerIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const footerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const footerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewerId] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -263,6 +270,49 @@ export default function Home() {
     return stored;
   });
   const effectiveSidebarWidth = collapsedSidebar ? 48 : sidebarWidth;
+
+  const clearFooterIntentTimer = useCallback(() => {
+    if (footerIntentTimerRef.current) {
+      clearTimeout(footerIntentTimerRef.current);
+      footerIntentTimerRef.current = null;
+    }
+  }, []);
+
+  const clearFooterHideTimer = useCallback(() => {
+    if (footerHideTimerRef.current) {
+      clearTimeout(footerHideTimerRef.current);
+      footerHideTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleIdleFooter = useCallback(() => {
+    if (footerIdleTimerRef.current) {
+      clearTimeout(footerIdleTimerRef.current);
+    }
+    footerIdleTimerRef.current = setTimeout(() => setFooterVisible(true), FOOTER_IDLE_DELAY_MS);
+  }, []);
+
+  const showFooterWithIntent = useCallback(() => {
+    clearFooterHideTimer();
+    if (footerVisible || footerIntentTimerRef.current) {
+      return;
+    }
+
+    footerIntentTimerRef.current = setTimeout(() => {
+      setFooterVisible(true);
+      footerIntentTimerRef.current = null;
+    }, FOOTER_INTENT_DELAY_MS);
+  }, [clearFooterHideTimer, footerVisible]);
+
+  const hideFooterAfterInteraction = useCallback(() => {
+    clearFooterIntentTimer();
+    clearFooterHideTimer();
+    footerHideTimerRef.current = setTimeout(() => {
+      setFooterVisible(false);
+      footerHideTimerRef.current = null;
+    }, FOOTER_HIDE_DELAY_MS);
+    scheduleIdleFooter();
+  }, [clearFooterHideTimer, clearFooterIntentTimer, scheduleIdleFooter]);
 
   useEffect(() => {
     const syncMenuFromHash = () => {
@@ -290,19 +340,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    let idleTimer: ReturnType<typeof setTimeout>;
-    const idleDelayMs = 5 * 60 * 1000;
-    const scheduleIdleFooter = () => {
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => setFooterVisible(true), idleDelayMs);
-    };
     const updateFooterForActivity = (event: Event) => {
       const target = event.target instanceof Element ? event.target : null;
       const isSidebarActivity = Boolean(target?.closest(".sidebar, .settings-panel"));
 
-      setFooterVisible(isSidebarActivity);
-      if (!isSidebarActivity) {
-        scheduleIdleFooter();
+      if (isSidebarActivity) {
+        showFooterWithIntent();
+      } else {
+        hideFooterAfterInteraction();
       }
     };
     const events = ["pointermove", "mousemove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"];
@@ -311,10 +356,14 @@ export default function Home() {
     events.forEach((eventName) => window.addEventListener(eventName, updateFooterForActivity, { passive: true }));
 
     return () => {
-      clearTimeout(idleTimer);
+      clearFooterIntentTimer();
+      clearFooterHideTimer();
+      if (footerIdleTimerRef.current) {
+        clearTimeout(footerIdleTimerRef.current);
+      }
       events.forEach((eventName) => window.removeEventListener(eventName, updateFooterForActivity));
     };
-  }, []);
+  }, [clearFooterHideTimer, clearFooterIntentTimer, footerVisible, hideFooterAfterInteraction, scheduleIdleFooter, showFooterWithIntent]);
 
   useEffect(() => {
     fetch(`${apiBase}/api/daybreak/islands?sort=${sort}`)
@@ -697,12 +746,12 @@ export default function Home() {
         <aside
           className="sidebar"
           aria-label="Sidebar"
-          onMouseEnter={() => setFooterVisible(true)}
-          onMouseLeave={() => setFooterVisible(false)}
-          onMouseMove={() => setFooterVisible(true)}
-          onPointerEnter={() => setFooterVisible(true)}
-          onPointerLeave={() => setFooterVisible(false)}
-          onPointerMove={() => setFooterVisible(true)}
+          onMouseEnter={showFooterWithIntent}
+          onMouseLeave={hideFooterAfterInteraction}
+          onMouseMove={showFooterWithIntent}
+          onPointerEnter={showFooterWithIntent}
+          onPointerLeave={hideFooterAfterInteraction}
+          onPointerMove={showFooterWithIntent}
         >
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
