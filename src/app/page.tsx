@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
 import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Island = {
   id: string;
@@ -247,9 +247,12 @@ export default function Home() {
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
   const [activeMenu, setActiveMenu] = useState<"home" | "daybreak" | "bot">("home");
   const [islands, setIslands] = useState<Island[]>(starterIslands);
+  const [linkedIslandId, setLinkedIslandId] = useState("");
+  const [footerVisible, setFooterVisible] = useState(true);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
+  const openedSharedIslandRef = useRef("");
   const [viewerId] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -268,7 +271,11 @@ export default function Home() {
       const daybreakHashes = new Set(["#daybreak", "#showcase", "#upload"]);
       const botHashes = new Set(["#discord-bot", "#bot"]);
       setActiveMenu(
-        params.get("menu") === "daybreak" || daybreakHashes.has(hash) || hash.startsWith("#island-")
+        params.get("menu") === "daybreak" ||
+          params.has("island") ||
+          window.location.pathname.startsWith("/daybreak/island/") ||
+          daybreakHashes.has(hash) ||
+          hash.startsWith("#island-")
           ? "daybreak"
           : params.get("menu") === "bot" || botHashes.has(hash)
             ? "bot"
@@ -280,6 +287,24 @@ export default function Home() {
     window.addEventListener("hashchange", syncMenuFromHash);
 
     return () => window.removeEventListener("hashchange", syncMenuFromHash);
+  }, []);
+
+  useEffect(() => {
+    let hideTimer: ReturnType<typeof setTimeout>;
+    const showFooter = () => {
+      setFooterVisible(true);
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => setFooterVisible(false), 2800);
+    };
+    const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+
+    showFooter();
+    events.forEach((eventName) => window.addEventListener(eventName, showFooter, { passive: true }));
+
+    return () => {
+      clearTimeout(hideTimer);
+      events.forEach((eventName) => window.removeEventListener(eventName, showFooter));
+    };
   }, []);
 
   useEffect(() => {
@@ -352,6 +377,49 @@ export default function Home() {
       setCommentsLoading(false);
     }
   };
+
+  const sharedIslandIdFromLocation = () => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const pathMatch = window.location.pathname.match(/^\/daybreak\/island\/([^/]+)\/?$/);
+    if (pathMatch?.[1]) {
+      return decodeURIComponent(pathMatch[1]);
+    }
+
+    const islandParam = new URLSearchParams(window.location.search).get("island");
+    if (islandParam) {
+      return islandParam;
+    }
+
+    return window.location.hash.startsWith("#island-") ? window.location.hash.replace("#island-", "") : "";
+  };
+
+  useEffect(() => {
+    const targetId = sharedIslandIdFromLocation();
+    if (!targetId) {
+      return;
+    }
+
+    const targetIsland = islands.find((island) => island.id === targetId);
+    if (!targetIsland) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setLinkedIslandId(targetId);
+      setActiveMenu("daybreak");
+      document.getElementById(`island-${targetId}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+
+      if (openedSharedIslandRef.current !== targetId) {
+        openedSharedIslandRef.current = targetId;
+        void loadComments(targetIsland);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [islands]);
 
   const fetchPlayerDetails = async (playerId: string) => {
     const cleanedPlayerId = playerId.replace(/\D/g, "");
@@ -529,7 +597,7 @@ export default function Home() {
     }
   };
 
-  const shareUrlFor = (island: Island) => `${window.location.origin}/?menu=daybreak#island-${island.id}`;
+  const shareUrlFor = (island: Island) => `${window.location.origin}/daybreak/island/${encodeURIComponent(island.id)}`;
 
   const socialShareUrl = (platform: "discord" | "whatsapp" | "x", island: Island) => {
     const shareUrl = shareUrlFor(island);
@@ -715,7 +783,7 @@ export default function Home() {
 
             <section className="island-grid">
               {islands.map((island) => (
-                <article className="island-card" id={`island-${island.id}`} key={island.id}>
+                <article className={`island-card ${linkedIslandId === island.id ? "island-card-linked" : ""}`} id={`island-${island.id}`} key={island.id}>
                   <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
                     <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
                   </button>
@@ -746,6 +814,7 @@ export default function Home() {
                       </button>
                       <button className="card-icon-action" type="button" onClick={() => setShareIslandTarget(island)} aria-label="Share island">
                         <Icon name="share" />
+                        {island.shares}
                       </button>
                       <button className="card-icon-action" type="button" onClick={() => loadComments(island)} aria-label="Open details and comments">
                         <Icon name="message" />
@@ -760,7 +829,7 @@ export default function Home() {
           </section>
           )}
 
-          <footer className="site-footer">
+          <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
             <p className="footer-credit">
               <span>Built for WOS community - By</span>
               <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />

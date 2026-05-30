@@ -1087,22 +1087,32 @@ svg {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(188px, 1fr));
+  gap: 10px;
 }
 
 .island-card {
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   border-radius: 8px;
-  background: var(--card);
-  box-shadow: 0 10px 26px rgba(12, 18, 20, 0.08);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, white), var(--card)),
+    var(--card);
+  box-shadow: 0 8px 20px rgba(12, 18, 20, 0.07);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.island-card:hover,
+.island-card-linked {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--gold-line) 76%, var(--border));
+  box-shadow: 0 14px 30px rgba(12, 18, 20, 0.11);
 }
 
 .island-image {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border: 0;
   border-bottom: 1px solid var(--border);
@@ -1116,32 +1126,43 @@ svg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 220ms ease;
+}
+
+.island-card:hover .island-image img {
+  transform: scale(1.025);
 }
 
 .island-card-body {
   display: grid;
-  gap: 10px;
-  padding: 11px;
+  gap: 8px;
+  padding: 9px;
 }
 
 .compact-island-title {
   margin: 0;
   color: var(--foreground);
-  font-size: 16px;
-  line-height: 1.16;
+  display: -webkit-box;
+  min-height: 33px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 14px;
+  line-height: 1.18;
 }
 
 .player-strip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  min-width: 0;
 }
 
 .player-avatar {
   display: grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   place-items: center;
   overflow: hidden;
   border: 1px solid var(--gold-line);
@@ -1164,11 +1185,15 @@ svg {
 .player-strip strong,
 .player-strip span {
   display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .player-strip strong {
   color: var(--foreground);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.2;
 }
 
@@ -1216,15 +1241,27 @@ svg {
 }
 
 .compact-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
 }
 
 .compact-meta span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 6px;
+  padding: 0 4px;
+  background: color-mix(in srgb, var(--muted) 76%, transparent);
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .island-meta,
@@ -1243,23 +1280,24 @@ svg {
 
 .island-actions {
   align-items: center;
-  justify-content: space-between;
-  padding-top: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 0;
 }
 
 .card-icon-action {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-width: 38px;
-  height: 32px;
+  min-width: 0;
+  height: 30px;
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
   border-radius: 7px;
   background: var(--background);
   color: var(--foreground);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   transition: transform 150ms ease, border-color 150ms ease, background-color 150ms ease, color 150ms ease;
 }
@@ -2182,6 +2220,21 @@ svg {
   color: #b2aaa0;
   font-size: 16px;
   box-shadow: none;
+  opacity: 1;
+  transform: translateY(0);
+  transition: transform 260ms ease, opacity 220ms ease;
+  will-change: transform, opacity;
+}
+
+.site-footer.footer-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(100% + 2px));
+}
+
+.site-footer.footer-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dark .site-footer {

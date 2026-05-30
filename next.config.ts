@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/daybreak/island/:id",
+        destination: "/?menu=daybreak&island=:id",
+      },
+      {
         source: "/api/daybreak/:path*",
         destination: "http://140.245.201.209:3001/api/daybreak/:path*",
       },
