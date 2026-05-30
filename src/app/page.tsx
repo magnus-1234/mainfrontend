@@ -32,7 +32,11 @@ type Island = {
   createdAt: string;
 };
 
-const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const apiBase =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  (typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "http://140.245.201.209:3001");
 
 const menuItems = [
   { label: "Browse", icon: "grid" },
