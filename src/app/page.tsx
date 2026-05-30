@@ -544,7 +544,32 @@ export default function Home() {
     return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
   };
 
-  const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || (player.furnaceLevel ? String(player.furnaceLevel) : "N/A");
+  const formatFurnaceLevel = (value?: number | string) => {
+    if (value === undefined || value === null || value === "") {
+      return "N/A";
+    }
+
+    const level = Number(value);
+    if (!Number.isFinite(level)) {
+      return String(value);
+    }
+
+    const lv = Math.trunc(level);
+    if (lv <= 30) return String(lv);
+    if (lv >= 31 && lv <= 34) return `30-${lv - 30}`;
+    if (lv >= 35 && lv <= 39) return lv === 35 ? "1" : `1-${lv - 35}`;
+    if (lv === 40) return "2";
+    if (lv >= 41 && lv <= 43) return "2-1";
+    if (lv === 44) return "2-2";
+    if (lv === 45) return "3";
+
+    const relative = lv - 45;
+    const tier = Math.floor(relative / 5) + 3;
+    const stage = relative % 5;
+    return stage === 0 ? String(tier) : `${tier}-${stage}`;
+  };
+
+  const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
 
   return (
     <main
