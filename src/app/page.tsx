@@ -297,6 +297,62 @@ function Icon({ name }: { name: string }) {
         <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
       </>
     ),
+    copy: (
+      <>
+        <rect width="14" height="14" x="8" y="8" rx="2" />
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+      </>
+    ),
+    zoomIn: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="M21 21l-4.3-4.3" />
+        <path d="M11 8v6" />
+        <path d="M8 11h6" />
+      </>
+    ),
+    zoomOut: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="M21 21l-4.3-4.3" />
+        <path d="M8 11h6" />
+      </>
+    ),
+    expand: (
+      <>
+        <path d="M15 3h6v6" />
+        <path d="M9 21H3v-6" />
+        <path d="M21 3l-7 7" />
+        <path d="M3 21l7-7" />
+      </>
+    ),
+    download: (
+      <>
+        <path d="M12 3v12" />
+        <path d="m7 10 5 5 5-5" />
+        <path d="M5 21h14" />
+      </>
+    ),
+    flame: (
+      <>
+        <path d="M8.5 14.5A4.5 4.5 0 0 0 17 12c0-4-5-6-3.5-10-4 2-7 5-7 9a6 6 0 0 0 12 0" />
+      </>
+    ),
+    mapPin: (
+      <>
+        <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 0 1 16 0Z" />
+        <circle cx="12" cy="10" r="3" />
+      </>
+    ),
+    barChart: (
+      <>
+        <path d="M4 19V5" />
+        <path d="M4 19h16" />
+        <path d="M8 16V9" />
+        <path d="M12 16V6" />
+        <path d="M16 16v-4" />
+      </>
+    ),
     calculator: (
       <>
         <rect width="16" height="20" x="4" y="2" rx="2" />
@@ -429,9 +485,12 @@ export default function Home() {
   });
   const [linkingPlayer, setLinkingPlayer] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadPlayerMode, setUploadPlayerMode] = useState<"linked" | "manual">("manual");
+  const [selectedUploadPlayerId, setSelectedUploadPlayerId] = useState("");
   const [uploadImageLabel, setUploadImageLabel] = useState("No image selected");
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState("");
   const [viewerImage, setViewerImage] = useState<Island | null>(null);
+  const [imageZoom, setImageZoom] = useState(100);
   const [shareIslandTarget, setShareIslandTarget] = useState<Island | null>(null);
   const [comments, setComments] = useState<IslandComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -485,6 +544,12 @@ export default function Home() {
     return stored;
   });
   const effectiveSidebarWidth = collapsedSidebar ? 48 : sidebarWidth;
+  const linkedUploadPlayerIds = authUser?.playerAccounts.map((player) => player.playerId) || [];
+  const defaultUploadPlayerId = authUser?.playerAccounts[0]?.playerId || "";
+  const effectiveUploadPlayerId =
+    uploadPlayerMode === "linked" && linkedUploadPlayerIds.includes(selectedUploadPlayerId)
+      ? selectedUploadPlayerId
+      : defaultUploadPlayerId;
 
   const clearFooterIntentTimer = useCallback(() => {
     if (footerIntentTimerRef.current) {
@@ -648,6 +713,7 @@ export default function Home() {
 
   const loadComments = async (island: Island) => {
     setViewerImage(island);
+    setImageZoom(100);
     setComments([]);
 
     if (island.id.startsWith("starter")) {
@@ -742,6 +808,13 @@ export default function Home() {
 
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!authUser) {
+      setUploadOpen(false);
+      setLoginOpen(true);
+      setAuthStatus("Sign in before uploading a Daybreak Island showcase.");
+      return;
+    }
+
     setUploading(true);
     setStatus("");
 
@@ -757,6 +830,7 @@ export default function Home() {
 
       const response = await fetch(`${apiBase}/api/daybreak/islands`, {
         method: "POST",
+        credentials: "include",
         body,
       });
 
@@ -806,6 +880,21 @@ export default function Home() {
     setUploadOpen(false);
     setPlayerLookup(null);
     setPlayerLookupStatus("");
+  };
+
+  const openUploadModal = () => {
+    if (!authUser) {
+      setAuthStatus("Sign in before uploading a Daybreak Island showcase.");
+      setLoginOpen(true);
+      return;
+    }
+
+    const firstLinkedAccount = authUser.playerAccounts[0]?.playerId || "";
+    if (firstLinkedAccount && (!selectedUploadPlayerId || !authUser.playerAccounts.some((player) => player.playerId === selectedUploadPlayerId))) {
+      setSelectedUploadPlayerId(firstLinkedAccount);
+      setUploadPlayerMode("linked");
+    }
+    setUploadOpen(true);
   };
 
   const updateIsland = (next: Island) => {
@@ -858,6 +947,12 @@ export default function Home() {
 
   const addComment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!authUser) {
+      setLoginOpen(true);
+      setAuthStatus("Sign in before commenting on a Daybreak Island.");
+      return;
+    }
+
     if (!viewerImage || viewerImage.id.startsWith("starter")) {
       setStatus("Comments are available after an island is published.");
       return;
@@ -869,6 +964,7 @@ export default function Home() {
       const body = Object.fromEntries(new FormData(form).entries());
       const response = await fetch(`${apiBase}/api/daybreak/islands/${viewerImage.id}/comments`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
@@ -936,6 +1032,17 @@ export default function Home() {
       : "Today";
 
   const shareUrlFor = (island: Island) => `${window.location.origin}/daybreak/island/${encodeURIComponent(island.id)}`;
+
+  const downloadImage = async (island: Island) => {
+    const link = document.createElement("a");
+    link.href = island.imageUrl;
+    link.download = `${island.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "daybreak-island"}.jpg`;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   const socialShareUrl = (platform: "discord" | "whatsapp" | "x", island: Island) => {
     const shareUrl = shareUrlFor(island);
@@ -2218,9 +2325,9 @@ export default function Home() {
               <div className="daybreak-hero-copy">
                 <span className="section-kicker">Community Showcase</span>
                 <h1>Daybreak Island</h1>
-                <p>Browse community island layouts, save inspiration with likes, upload your own build, and share island links with your alliance.</p>
+                <p>Discover community island layouts, showcase your creations, and share your island with players across the Whiteout Survival community.</p>
                 <div className="hero-actions">
-                  <button className="primary-cta" type="button" onClick={() => setUploadOpen(true)}>Upload Island</button>
+                  <button className="primary-cta" type="button" onClick={openUploadModal}>Upload Island</button>
                   <a className="secondary-cta" href="#showcase">Explore Showcase</a>
                 </div>
               </div>
@@ -2247,9 +2354,9 @@ export default function Home() {
                   <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
                     <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
                   </button>
+                  <h3 className="compact-island-title">{island.title}</h3>
                   <div className="island-card-body">
-                    <h3 className="compact-island-title">{island.title}</h3>
-                    <div className="player-strip">
+                    <div className="player-strip card-player-strip">
                       <div className="player-avatar">
                         {island.player.avatarImage ? (
                           <img src={island.player.avatarImage} alt="" />
@@ -2262,11 +2369,23 @@ export default function Home() {
                         <span>ID {island.playerId}</span>
                       </div>
                     </div>
-                    <div className="compact-meta">
-                      <span>S{island.player.stateId || island.server || "N/A"}</span>
-                      <span>{`Furnace ${furnaceDisplay(island.player)}`}</span>
-                      <span>X:{island.coordinates.x} Y:{island.coordinates.y}</span>
+                    <div className="card-meta-row">
+                      <div className="account-mini-meta">
+                        <span>FC {furnaceDisplay(island.player)}</span>
+                      </div>
+                      <div className="card-right-meta">
+                        <span className="state-pill">S{island.player.stateId || island.server || "N/A"}</span>
+                        <div className="coordinate-pill" aria-label={`Coordinates X ${island.coordinates.x} Y ${island.coordinates.y}`}>
+                          <span>X <strong>{island.coordinates.x}</strong></span>
+                          <span>Y <strong>{island.coordinates.y}</strong></span>
+                        </div>
+                      </div>
                     </div>
+                    {island.description && island.description !== "Shared Daybreak Island layout." && (
+                      <p className="compact-island-description">{island.description}</p>
+                    )}
+                  </div>
+                  <div className="island-card-footer">
                     <div className="island-actions">
                       <button className={`card-icon-action ${likedIslands[island.id] ? "liked" : ""}`} type="button" onClick={() => likeIsland(island)} aria-label="Like island">
                         <Icon name="heart" />
@@ -2504,35 +2623,84 @@ export default function Home() {
                 <input name="title" maxLength={90} placeholder="Tree of Life Plaza" required />
               </label>
               <div className="form-field">
-                <span>Player ID</span>
-                <div className="player-lookup-row">
-                  <input
-                    name="playerId"
-                    aria-label="Player ID"
-                    inputMode="numeric"
-                    pattern="[0-9]{8,9}"
-                    maxLength={9}
-                    placeholder="8 or 9 digit ID"
-                    required
-                    onChange={(event) => {
-                      setPlayerLookup(null);
-                      setPlayerLookupStatus("");
-                      if (event.currentTarget.value.replace(/\D/g, "").length >= 8) {
-                        void fetchPlayerDetails(event.currentTarget.value);
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    disabled={fetchingPlayer}
-                    onClick={(event) => {
-                      const input = event.currentTarget.form?.elements.namedItem("playerId") as HTMLInputElement | null;
-                      void fetchPlayerDetails(input?.value || "");
-                    }}
-                  >
-                    {fetchingPlayer ? "Fetching..." : "Fetch Details"}
-                  </button>
-                </div>
+                <span>Whiteout Survival account</span>
+                {authUser?.playerAccounts.length ? (
+                  <div className="upload-account-picker" role="radiogroup" aria-label="Choose upload player account">
+                    {authUser.playerAccounts.map((player) => (
+                      <label className={`upload-account-option ${uploadPlayerMode === "linked" && effectiveUploadPlayerId === player.playerId ? "selected" : ""}`} key={player.playerId}>
+                        <input
+                          type="radio"
+                          name="uploadPlayerChoice"
+                          checked={uploadPlayerMode === "linked" && effectiveUploadPlayerId === player.playerId}
+                          onChange={() => {
+                            setUploadPlayerMode("linked");
+                            setSelectedUploadPlayerId(player.playerId);
+                            setPlayerLookup(player);
+                            setPlayerLookupStatus("");
+                          }}
+                        />
+                        <span className="player-avatar">
+                          {player.avatarImage ? <img src={player.avatarImage} alt="" /> : <Icon name="user" />}
+                        </span>
+                        <span>
+                          <strong>{player.nickname}</strong>
+                          <small>ID {player.playerId} | State {player.stateId || "N/A"} | Furnace {furnaceDisplay(player)}</small>
+                        </span>
+                      </label>
+                    ))}
+                    <label className={`upload-account-option ${uploadPlayerMode === "manual" ? "selected" : ""}`}>
+                      <input
+                        type="radio"
+                        name="uploadPlayerChoice"
+                        checked={uploadPlayerMode === "manual"}
+                        onChange={() => {
+                          setUploadPlayerMode("manual");
+                          setPlayerLookup(null);
+                          setPlayerLookupStatus("");
+                        }}
+                      />
+                      <span className="player-avatar"><Icon name="search" /></span>
+                      <span>
+                        <strong>Use another Player ID</strong>
+                        <small>Type a different 8 or 9 digit account ID for this upload.</small>
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="upload-account-empty">Link a game account from Profile later, or enter a Player ID for this upload.</div>
+                )}
+                {uploadPlayerMode === "linked" && effectiveUploadPlayerId ? (
+                  <input type="hidden" name="playerId" value={effectiveUploadPlayerId} />
+                ) : (
+                  <div className="player-lookup-row">
+                    <input
+                      name="playerId"
+                      aria-label="Player ID"
+                      inputMode="numeric"
+                      pattern="[0-9]{8,9}"
+                      maxLength={9}
+                      placeholder="8 or 9 digit ID"
+                      required
+                      onChange={(event) => {
+                        setPlayerLookup(null);
+                        setPlayerLookupStatus("");
+                        if (event.currentTarget.value.replace(/\D/g, "").length >= 8) {
+                          void fetchPlayerDetails(event.currentTarget.value);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={fetchingPlayer}
+                      onClick={(event) => {
+                        const input = event.currentTarget.form?.elements.namedItem("playerId") as HTMLInputElement | null;
+                        void fetchPlayerDetails(input?.value || "");
+                      }}
+                    >
+                      {fetchingPlayer ? "Fetching..." : "Fetch Details"}
+                    </button>
+                  </div>
+                )}
               </div>
               {(playerLookup || playerLookupStatus) && (
                 <div className={`player-lookup-card ${playerLookup ? "loaded" : ""}`}>
@@ -2608,10 +2776,25 @@ export default function Home() {
           <section className="island-detail-modal">
             <button className="close-button" type="button" onClick={() => setViewerImage(null)} aria-label="Close">x</button>
             <div className="island-detail-media">
-              <img src={viewerImage.imageUrl} alt={viewerImage.title} />
+              <div className="image-viewer-toolbar" aria-label="Image controls">
+                <button type="button" onClick={() => setImageZoom((value) => Math.min(240, value + 20))} aria-label="Zoom in">
+                  <Icon name="zoomIn" />
+                </button>
+                <button type="button" onClick={() => setImageZoom((value) => Math.max(60, value - 20))} aria-label="Zoom out">
+                  <Icon name="zoomOut" />
+                </button>
+                <button type="button" className="image-zoom-level" onClick={() => setImageZoom(100)} aria-label="Reset zoom">{imageZoom}%</button>
+                <a href={viewerImage.imageUrl} target="_blank" rel="noreferrer" aria-label="Open full image">
+                  <Icon name="expand" />
+                </a>
+                <button type="button" onClick={() => void downloadImage(viewerImage)} aria-label="Download image">
+                  <Icon name="download" />
+                </button>
+              </div>
+              <img src={viewerImage.imageUrl} alt={viewerImage.title} style={{ width: `${imageZoom}%` }} />
             </div>
             <div className="island-detail-panel">
-              <div>
+              <div className="detail-head-block">
                 <span className="section-kicker">Island Details</span>
                 <h2>{viewerImage.title}</h2>
                 <p>{viewerImage.description}</p>
@@ -2626,10 +2809,10 @@ export default function Home() {
                 </div>
               </div>
               <div className="detail-meta-grid">
-                <span>State {viewerImage.player.stateId || viewerImage.server || "N/A"}</span>
-                <span>Furnace {furnaceDisplay(viewerImage.player)}</span>
-                <span>X:{viewerImage.coordinates.x} Y:{viewerImage.coordinates.y}</span>
-                <span>{viewerImage.likes} likes | {viewerImage.shares} shares</span>
+                <span><Icon name="mapPin" />State <strong>{viewerImage.player.stateId || viewerImage.server || "N/A"}</strong></span>
+                <span><Icon name="flame" />Furnace <strong>{furnaceDisplay(viewerImage.player)}</strong></span>
+                <span><Icon name="mapPin" />X:{viewerImage.coordinates.x} Y:{viewerImage.coordinates.y}</span>
+                <span><Icon name="barChart" />{viewerImage.likes} likes | {viewerImage.shares} shares</span>
               </div>
               {viewerImage.tags.length > 0 && (
                 <div className="tag-row">
@@ -2637,11 +2820,11 @@ export default function Home() {
                 </div>
               )}
               <div className="detail-actions">
-                <button type="button" onClick={() => likeIsland(viewerImage)}>Like</button>
-                <button type="button" onClick={() => setShareIslandTarget(viewerImage)}>Share Link</button>
+                <button type="button" onClick={() => likeIsland(viewerImage)}><Icon name="heart" />Like</button>
+                <button type="button" onClick={() => setShareIslandTarget(viewerImage)}><Icon name="share" />Share</button>
               </div>
               <section className="comments-panel">
-                <h3>Comments</h3>
+                <h3><Icon name="message" />Comments</h3>
                 {commentsLoading ? (
                   <p>Loading comments...</p>
                 ) : comments.length ? (
@@ -2657,9 +2840,8 @@ export default function Home() {
                   <p>No comments yet.</p>
                 )}
                 <form className="comment-form" onSubmit={addComment}>
-                  <input name="authorName" maxLength={60} placeholder="Name" required disabled={viewerImage.id.startsWith("starter")} />
-                  <textarea name="message" maxLength={360} placeholder="Add a comment" required disabled={viewerImage.id.startsWith("starter")} />
-                  <button type="submit" disabled={commentSaving || viewerImage.id.startsWith("starter")}>{commentSaving ? "Posting..." : "Post Comment"}</button>
+                  <textarea name="message" maxLength={360} placeholder={authUser ? "Add a comment" : "Sign in to comment"} required disabled={viewerImage.id.startsWith("starter") || !authUser} />
+                  <button type="submit" disabled={commentSaving || viewerImage.id.startsWith("starter")}>{commentSaving ? "Posting..." : authUser ? "Post Comment" : "Sign In to Comment"}</button>
                 </form>
               </section>
             </div>
@@ -2673,9 +2855,14 @@ export default function Home() {
             <button className="close-button" type="button" onClick={() => setShareIslandTarget(null)} aria-label="Close">x</button>
             <h2>Share Island</h2>
             <p>{shareIslandTarget.title}</p>
-            <div className="share-url-box">{shareUrlFor(shareIslandTarget)}</div>
+            <div className="share-url-box">
+              <span>{shareUrlFor(shareIslandTarget)}</span>
+              <button type="button" onClick={() => shareIsland(shareIslandTarget)} aria-label="Copy island URL">
+                <Icon name="copy" />
+              </button>
+            </div>
             <div className="share-icon-row">
-              <button type="button" onClick={() => shareIsland(shareIslandTarget)}>Copy</button>
+              <button type="button" onClick={() => shareIsland(shareIslandTarget)}>Copy URL</button>
               <a href={socialShareUrl("discord", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Discord</a>
               <a href={socialShareUrl("whatsapp", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>WhatsApp</a>
               <a href={socialShareUrl("x", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>X</a>

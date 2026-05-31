@@ -114,7 +114,7 @@ a {
 .ks-header-inner {
   display: flex;
   height: 56px;
-  align-items: center;
+  align-items: safe center;
   gap: 12px;
   padding: 0 16px;
 }
@@ -2687,14 +2687,15 @@ svg {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
 }
 
 .island-card {
+  display: grid;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--card);
   box-shadow:
     0 4px 12px rgba(12, 18, 20, 0.06),
@@ -2721,10 +2722,13 @@ svg {
 }
 
 .island-image {
-  display: block;
+  display: flex;
   width: 100%;
-  aspect-ratio: 16 / 11;
-  overflow: hidden;
+  height: 190px;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 0;
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--muted) 80%, transparent);
@@ -2750,8 +2754,8 @@ svg {
 .island-image img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   transition: transform 280ms ease;
 }
 
@@ -2761,22 +2765,39 @@ svg {
 
 .island-card-body {
   display: grid;
-  gap: 10px;
-  padding: 12px 12px 10px;
+  align-content: start;
+  gap: 7px;
+  padding: 8px 10px;
 }
 
 .compact-island-title {
+  display: block;
   margin: 0;
-  color: var(--foreground);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold-line) 70%, var(--border));
+  padding: 7px 10px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 88%, transparent), color-mix(in srgb, var(--card) 78%, var(--gold-soft)));
+  color: var(--gold);
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.28;
+  letter-spacing: 0;
+  text-align: center;
+  text-shadow: 0 0 12px rgba(244, 129, 32, 0.18);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-island-description {
   display: -webkit-box;
-  min-height: 36px;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: 14px;
+  color: color-mix(in srgb, var(--foreground) 72%, var(--muted-foreground));
+  font-size: 12.5px !important;
   font-weight: 700;
-  line-height: 1.28;
-  letter-spacing: -0.01em;
+  line-height: 1.45 !important;
 }
 
 .player-strip {
@@ -2899,6 +2920,54 @@ svg {
   letter-spacing: 0.02em;
 }
 
+.account-mini-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.card-player-strip {
+  padding: 5px 6px;
+}
+
+.card-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-right-meta {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.account-mini-meta span,
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 72%, var(--border));
+  border-radius: 999px;
+  padding: 0 6px;
+  background: color-mix(in srgb, var(--gold-soft) 68%, transparent);
+  color: var(--gold);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.state-pill {
+  background: color-mix(in srgb, var(--gold-soft) 68%, transparent);
+  color: var(--gold);
+}
+
 .island-meta,
 .tag-row,
 .island-actions {
@@ -2919,6 +2988,45 @@ svg {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 5px;
   padding-top: 2px;
+}
+
+.island-card-footer {
+  display: grid;
+  gap: 6px;
+  padding: 0 10px 10px;
+}
+
+.coordinate-pill {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 76%, var(--border));
+  border-radius: 999px;
+  padding: 3px 4px;
+  background:
+    linear-gradient(135deg, var(--gold-soft), color-mix(in srgb, var(--background) 88%, var(--muted)));
+  color: var(--muted-foreground);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.coordinate-pill span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 1px 4px;
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.coordinate-pill strong {
+  color: var(--foreground);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
 }
 
 .card-icon-action {
@@ -3111,6 +3219,65 @@ svg {
   margin-top: 3px;
   color: var(--muted-foreground);
   font-size: 12px;
+}
+
+.upload-account-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.upload-account-option {
+  display: grid !important;
+  grid-template-columns: auto 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px !important;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px !important;
+  background: color-mix(in srgb, var(--background) 88%, var(--muted));
+  color: var(--foreground) !important;
+  cursor: pointer;
+}
+
+.upload-account-option.selected {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  box-shadow: 0 0 0 1px var(--gold-line);
+}
+
+.upload-account-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+}
+
+.upload-account-option strong,
+.upload-account-option small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-account-option strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.upload-account-option small,
+.upload-account-empty {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.upload-account-empty {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--background) 86%, var(--muted));
 }
 
 .upload-form textarea {
@@ -3320,7 +3487,7 @@ svg {
   gap: 0;
   width: min(1200px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0;
@@ -3333,10 +3500,12 @@ svg {
 }
 
 .island-detail-media {
+  position: relative;
   display: grid;
   min-height: 420px;
-  place-items: center;
-  overflow: hidden;
+  align-content: start;
+  justify-items: center;
+  overflow: auto;
   border-radius: 14px 0 0 14px;
   background:
     radial-gradient(ellipse at center, rgba(89, 166, 222, 0.1) 0%, transparent 70%),
@@ -3345,15 +3514,71 @@ svg {
 
 .island-detail-media img {
   display: block;
-  max-width: 100%;
-  max-height: calc(100vh - 64px);
+  min-width: 100%;
+  width: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: contain;
+}
+
+.image-viewer-toolbar {
+  position: sticky;
+  top: 10px;
+  justify-self: end;
+  margin: 10px 10px -48px 0;
+  z-index: 3;
+  display: flex;
+  width: fit-content;
+  max-width: calc(100% - 20px);
+  min-height: 36px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  padding: 4px 6px;
+  background: rgba(10, 15, 16, 0.78);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+}
+
+.image-viewer-toolbar button,
+.image-viewer-toolbar a {
+  display: inline-flex;
+  min-width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.image-viewer-toolbar button:hover,
+.image-viewer-toolbar a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.image-viewer-toolbar svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+.image-viewer-toolbar .image-zoom-level {
+  min-width: 50px;
+  font-size: 13px;
 }
 
 .island-detail-panel {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 14px;
   padding: 24px 22px 22px;
   border-left: 1px solid var(--border);
   min-width: 0;
@@ -3369,10 +3594,24 @@ svg {
 }
 
 .island-detail-panel h2 {
-  font-size: clamp(24px, 2.8vw, 34px);
-  font-weight: 800;
+  color: var(--gold);
+  font-size: clamp(24px, 2.8vw, 32px);
+  font-weight: 900;
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+}
+
+.detail-head-block .section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-head-block .section-kicker::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: var(--gold);
 }
 
 .island-detail-panel p,
@@ -3383,10 +3622,10 @@ svg {
 }
 
 .detail-player {
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   border-radius: 10px;
-  padding: 10px;
-  background: color-mix(in srgb, var(--background) 80%, var(--muted));
+  padding: 9px;
+  background: color-mix(in srgb, var(--background) 92%, var(--muted));
 }
 
 .detail-player .player-strip {
@@ -3405,15 +3644,26 @@ svg {
 .tag-row span {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 6px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 6px 9px;
-  background: color-mix(in srgb, var(--background) 80%, var(--muted));
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--background) 92%, var(--muted));
   color: var(--muted-foreground);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.detail-meta-grid svg {
+  width: 14px;
+  height: 14px;
+  color: var(--gold);
+}
+
+.detail-meta-grid strong {
+  color: var(--foreground);
 }
 
 .tag-row span {
@@ -3433,7 +3683,19 @@ svg {
 }
 
 .detail-actions button {
-  transition: transform 150ms ease, box-shadow 150ms ease !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-color: color-mix(in srgb, var(--gold-line) 70%, var(--border)) !important;
+  background: color-mix(in srgb, var(--background) 92%, var(--gold-soft)) !important;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease !important;
+}
+
+.detail-actions svg {
+  width: 15px;
+  height: 15px;
+  color: var(--gold);
 }
 
 .detail-actions button:hover {
@@ -3552,10 +3814,14 @@ svg {
 }
 
 .share-url-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 11px 12px;
+  padding: 7px 7px 7px 12px;
   background: color-mix(in srgb, var(--background) 90%, var(--muted));
   color: var(--muted-foreground);
   font-family: var(--font-geist-mono), monospace;
@@ -3565,6 +3831,38 @@ svg {
   border-color: var(--gold-line);
   background: var(--gold-soft);
   color: var(--foreground);
+}
+
+.share-url-box span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-url-box button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: #101010;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.share-url-box button:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: #171717;
+  color: #fff;
+}
+
+.share-url-box svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
 }
 
 .share-icon-row {
@@ -3617,6 +3915,11 @@ svg {
   background: rgba(37, 211, 102, 0.08);
   border-color: rgba(37, 211, 102, 0.5);
   box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
+}
+
+.island-detail-media .image-viewer-toolbar {
+  justify-self: end !important;
+  margin: 10px 10px -48px 0 !important;
 }
 
 .form-grid {
@@ -4832,7 +5135,7 @@ svg {
   }
 
   .island-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }
 
