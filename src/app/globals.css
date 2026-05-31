@@ -211,14 +211,14 @@ svg {
 }
 
 .menu-trigger {
-  display: inline-flex;
+  display: inline-grid;
   width: max-content;
-  height: 36px;
+  min-height: 42px;
   align-items: center;
   justify-content: center;
   border: 0;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 4px 9px;
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
@@ -226,6 +226,31 @@ svg {
   font-weight: 500;
   outline: none;
   transition: color 150ms ease, background-color 150ms ease;
+}
+
+.menu-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  line-height: 1;
+}
+
+.menu-status {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  border: 1px solid rgba(244, 129, 32, 0.42);
+  border-radius: 999px;
+  margin-bottom: 2px;
+  padding: 1px 5px;
+  background: color-mix(in srgb, var(--gold-soft) 78%, transparent);
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .menu-trigger:hover,
@@ -237,16 +262,16 @@ svg {
 .menu-trigger svg:first-child {
   width: 16px;
   height: 16px;
-  margin-right: 8px;
+  margin-right: 7px;
 }
 
 .menu-trigger .chevron,
-.menu-trigger svg:last-child {
+.menu-main svg:last-child {
   position: relative;
   top: 1px;
   width: 12px;
   height: 12px;
-  margin-left: 4px;
+  margin-left: 5px;
 }
 
 .actions {
@@ -2892,7 +2917,7 @@ svg {
 }
 
 .island-title-row span,
-.tag-row span {
+.tag-row button {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
@@ -2904,6 +2929,16 @@ svg {
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.tag-row button {
+  cursor: pointer;
+  transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.tag-row button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 129, 32, 0.16);
 }
 
 .island-card p {
@@ -3173,6 +3208,49 @@ svg {
   outline: none;
   border-color: var(--gold-line);
   box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+.hashtag-field {
+  position: relative;
+}
+
+.tag-suggestion-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-suggestion-row button,
+.active-tag-filter button {
+  border: 1px solid color-mix(in srgb, var(--gold-line) 75%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 88%, var(--gold-soft));
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.active-tag-filter {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 5px 6px 5px 12px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.active-tag-filter button {
+  padding: 4px 8px;
+  background: var(--card);
+  color: var(--foreground);
 }
 
 .submit-button {
@@ -3691,7 +3769,7 @@ svg {
 }
 
 .detail-meta-grid span,
-.tag-row span {
+.tag-row button {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
@@ -3716,11 +3794,12 @@ svg {
   color: var(--foreground);
 }
 
-.tag-row span {
+.tag-row button {
   border-radius: 999px;
   border-color: var(--gold-line);
   background: var(--gold-soft);
   color: var(--gold);
+  cursor: pointer;
   font-size: 11px;
   font-weight: 800;
   padding: 4px 10px;

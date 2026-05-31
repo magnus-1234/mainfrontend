@@ -136,11 +136,11 @@ const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
 
 const menuItems = [
-  { label: "Browse", icon: "grid" },
-  { label: "Calculators", icon: "calculator" },
-  { label: "Tools", icon: "wrench" },
-  { label: "Database", icon: "database" },
-  { label: "More", icon: "book" },
+  { label: "Browse", icon: "grid", status: "Soon" },
+  { label: "Calculators", icon: "calculator", status: "Soon" },
+  { label: "Tools", icon: "wrench", status: "Soon" },
+  { label: "Database", icon: "database", status: "Soon" },
+  { label: "More", icon: "book", status: "Soon" },
 ];
 
 const sidebarItems = [
@@ -228,6 +228,19 @@ const starterIslands: Island[] = [
     commentsCount: 2,
     createdAt: new Date().toISOString(),
   },
+];
+
+const defaultDaybreakTags = [
+  "TreeOfLife",
+  "Symmetry",
+  "Plaza",
+  "Compact",
+  "Decor",
+  "Resource",
+  "Pathing",
+  "Defense",
+  "Showcase",
+  "Minimal",
 ];
 
 function Icon({ name }: { name: string }) {
@@ -493,6 +506,7 @@ export default function Home() {
   const [selectedUploadPlayerId, setSelectedUploadPlayerId] = useState("");
   const [uploadImageLabel, setUploadImageLabel] = useState("No image selected");
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState("");
+  const [uploadTagsInput, setUploadTagsInput] = useState("");
   const [viewerImage, setViewerImage] = useState<Island | null>(null);
   const [imageZoom, setImageZoom] = useState(100);
   const [shareIslandTarget, setShareIslandTarget] = useState<Island | null>(null);
@@ -509,6 +523,7 @@ export default function Home() {
   const [footerVisible, setFooterVisible] = useState(false);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
   const [daybreakView, setDaybreakView] = useState<DaybreakView>("gallery");
+  const [selectedTag, setSelectedTag] = useState("");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
   const [plannerTool, setPlannerTool] = useState<PlannerTool>("select");
@@ -555,6 +570,22 @@ export default function Home() {
     uploadPlayerMode === "linked" && linkedUploadPlayerIds.includes(selectedUploadPlayerId)
       ? selectedUploadPlayerId
       : defaultUploadPlayerId;
+  const tagSuggestions = useMemo(() => {
+    const tags = new Map<string, string>();
+    [...defaultDaybreakTags, ...islands.flatMap((island) => island.tags)].forEach((tag) => {
+      const cleanTag = tag.trim().replace(/^#/, "").replace(/\s+/g, "");
+      if (cleanTag) {
+        tags.set(cleanTag.toLowerCase(), cleanTag);
+      }
+    });
+    return Array.from(tags.values()).slice(0, 18);
+  }, [islands]);
+  const activeTagQuery = uploadTagsInput.match(/(?:^|\s)#?([\w-]*)$/)?.[1].toLowerCase() || "";
+  const selectedUploadTags = uploadTagsInput.toLowerCase().split(/[\s,]+/).map((tag) => tag.replace(/^#/, ""));
+  const visibleTagSuggestions = tagSuggestions
+    .filter((tag) => tag.toLowerCase().includes(activeTagQuery))
+    .filter((tag) => !selectedUploadTags.includes(tag.toLowerCase()))
+    .slice(0, 6);
 
   const clearFooterIntentTimer = useCallback(() => {
     if (footerIntentTimerRef.current) {
@@ -659,7 +690,7 @@ export default function Home() {
         ? `${apiBase}/api/daybreak/me/uploads`
         : daybreakView === "favorites"
           ? `${apiBase}/api/daybreak/me/favorites`
-          : `${apiBase}/api/daybreak/islands?sort=${sort}`;
+          : `${apiBase}/api/daybreak/islands?sort=${sort}${selectedTag ? `&tag=${encodeURIComponent(selectedTag)}` : ""}`;
 
     if (daybreakView !== "gallery" && !authUser) {
       return;
@@ -676,7 +707,7 @@ export default function Home() {
         setStatus("");
       })
       .catch(() => setStatus(""));
-  }, [sort, daybreakView, authUser]);
+  }, [sort, daybreakView, authUser, selectedTag]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -739,7 +770,7 @@ export default function Home() {
         ? `${apiBase}/api/daybreak/me/uploads`
         : daybreakView === "favorites"
           ? `${apiBase}/api/daybreak/me/favorites`
-          : `${apiBase}/api/daybreak/islands?sort=${sort}`;
+          : `${apiBase}/api/daybreak/islands?sort=${sort}${selectedTag ? `&tag=${encodeURIComponent(selectedTag)}` : ""}`;
     const response = await fetch(endpoint, { credentials: "include" });
     if (!response.ok) {
       throw new Error("Unable to refresh islands");
@@ -884,6 +915,7 @@ export default function Home() {
       form.reset();
       setUploadImageLabel("No image selected");
       setUploadPreviewUrl("");
+      setUploadTagsInput("");
       await refreshIslands();
       setStatus("Island uploaded to the community showcase.");
       setUploadOpen(false);
@@ -981,6 +1013,25 @@ export default function Home() {
     }
 
     setDaybreakView(view);
+  };
+
+  const selectIslandTag = (tag: string) => {
+    setSelectedTag(tag.replace(/^#/, ""));
+    setDaybreakView("gallery");
+    setViewerImage(null);
+    document.getElementById("showcase")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const addUploadTagSuggestion = (tag: string) => {
+    const cleanTag = tag.trim().replace(/^#/, "").replace(/\s+/g, "");
+    if (!cleanTag) {
+      return;
+    }
+    setUploadTagsInput((current) => {
+      const withoutActiveToken = current.replace(/(?:^|\s)#?[\w-]*$/, "").trim();
+      const next = `${withoutActiveToken ? `${withoutActiveToken} ` : ""}#${cleanTag} `;
+      return next;
+    });
   };
 
   const shareIsland = async (island: Island) => {
@@ -1946,9 +1997,12 @@ export default function Home() {
           <nav className="top-menu" aria-label="Top menu">
             {menuItems.map((item) => (
               <button type="button" className="menu-trigger" key={item.label}>
-                <Icon name={item.icon} />
-                {item.label}
-                <Icon name="chevron" />
+                <span className="menu-status">{item.status}</span>
+                <span className="menu-main">
+                  <Icon name={item.icon} />
+                  <span>{item.label}</span>
+                  <Icon name="chevron" />
+                </span>
               </button>
             ))}
           </nav>
@@ -2436,6 +2490,7 @@ export default function Home() {
                     onClick={() => {
                       setSort("popular");
                       setDaybreakView("gallery");
+                      setSelectedTag("");
                     }}
                   >
                     Popular
@@ -2446,6 +2501,7 @@ export default function Home() {
                     onClick={() => {
                       setSort("recent");
                       setDaybreakView("gallery");
+                      setSelectedTag("");
                     }}
                   >
                     Recent
@@ -2453,6 +2509,13 @@ export default function Home() {
                 </div>
               </div>
             </section>
+
+            {selectedTag && daybreakView === "gallery" && (
+              <div className="active-tag-filter">
+                <span>#{selectedTag}</span>
+                <button type="button" onClick={() => setSelectedTag("")} aria-label="Clear tag filter">Clear</button>
+              </div>
+            )}
 
             {status && <p className="daybreak-status">{status}</p>}
 
@@ -2843,9 +2906,21 @@ export default function Home() {
                 Description optional
                 <textarea name="description" maxLength={420} placeholder="What makes this island useful or beautiful?" />
               </label>
-              <label>
+              <label className="hashtag-field">
                 Tags
-                <input name="tags" placeholder="Tree, Plaza, Symmetry" />
+                <input
+                  name="tags"
+                  placeholder="#TreeOfLife #Plaza #Symmetry"
+                  value={uploadTagsInput}
+                  onChange={(event) => setUploadTagsInput(event.currentTarget.value)}
+                />
+                {uploadTagsInput && visibleTagSuggestions.length > 0 && (
+                  <div className="tag-suggestion-row" aria-label="Tag suggestions">
+                    {visibleTagSuggestions.map((tag) => (
+                      <button type="button" key={tag} onClick={() => addUploadTagSuggestion(tag)}>#{tag}</button>
+                    ))}
+                  </div>
+                )}
               </label>
               <section className="image-uploader" aria-label="Island image source">
                 <div className="image-uploader-preview">
@@ -2930,7 +3005,9 @@ export default function Home() {
               </div>
               {viewerImage.tags.length > 0 && (
                 <div className="tag-row">
-                  {viewerImage.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                  {viewerImage.tags.map((tag) => (
+                    <button type="button" key={tag} onClick={() => selectIslandTag(tag)}>#{tag.replace(/^#/, "")}</button>
+                  ))}
                 </div>
               )}
               <div className="detail-actions">
