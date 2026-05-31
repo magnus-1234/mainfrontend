@@ -2623,9 +2623,19 @@ svg {
   line-height: 1;
 }
 
-.daybreak-sort {
-  width: min(220px, 100%);
+.daybreak-controls {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.daybreak-control-bar {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
   padding: 4px;
   background: var(--muted);
@@ -2633,8 +2643,9 @@ svg {
   border-radius: 10px;
 }
 
-.daybreak-sort button {
-  flex: 1;
+.daybreak-control-bar button {
+  flex: 0 0 auto;
+  min-width: 92px;
   height: 32px;
   border: none;
   border-radius: 7px;
@@ -2646,10 +2657,17 @@ svg {
   transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
-.daybreak-sort button.selected {
+.daybreak-control-bar button.selected {
   background: var(--card);
   color: var(--foreground);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--gold-line);
+}
+
+.daybreak-control-divider {
+  width: 1px;
+  height: 22px;
+  margin: 0 2px;
+  background: color-mix(in srgb, var(--border) 86%, transparent);
 }
 
 .daybreak-status {
@@ -3068,6 +3086,37 @@ svg {
 .island-actions svg {
   width: 14px;
   height: 14px;
+}
+
+.empty-island-state {
+  display: grid;
+  grid-column: 1 / -1;
+  min-height: 220px;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.empty-island-state svg {
+  width: 28px;
+  height: 28px;
+  color: var(--gold);
+}
+
+.empty-island-state strong {
+  color: var(--foreground);
+  font-size: 16px;
+}
+
+.empty-island-state span {
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 
@@ -3514,11 +3563,12 @@ svg {
 
 .island-detail-media img {
   display: block;
-  min-width: 100%;
+  min-width: 0;
   width: 100%;
   max-width: none;
   max-height: none;
   object-fit: contain;
+  transition: width 180ms ease;
 }
 
 .image-viewer-toolbar {
@@ -3678,7 +3728,7 @@ svg {
 
 .detail-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -3701,6 +3751,16 @@ svg {
 .detail-actions button:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(244, 129, 32, 0.22) !important;
+}
+
+.detail-actions button.liked {
+  border-color: rgba(220, 38, 38, 0.38) !important;
+  background: rgba(220, 38, 38, 0.08) !important;
+  color: #dc2626;
+}
+
+.detail-actions button.liked svg {
+  color: #dc2626;
 }
 
 .comments-panel {
@@ -5351,7 +5411,7 @@ svg {
     flex-direction: column;
   }
 
-  .daybreak-sort {
+  .daybreak-control-bar {
     width: 100%;
   }
 

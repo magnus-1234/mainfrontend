@@ -42,6 +42,7 @@ type IslandComment = {
 };
 
 type PlayerProfile = Island["player"];
+type DaybreakView = "gallery" | "uploads" | "favorites";
 
 type LinkedPlayerAccount = PlayerProfile & {
   linkedAt: string;
@@ -123,7 +124,7 @@ type PlannerLayoutPayload = {
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (typeof window !== "undefined" && window.location.hostname === "localhost"
+  (typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)
     ? "http://localhost:3001"
     : "");
 
@@ -282,6 +283,9 @@ function Icon({ name }: { name: string }) {
     ),
     heart: (
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+    ),
+    star: (
+      <path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2 2 9.3l6.9-1L12 2Z" />
     ),
     share: (
       <>
@@ -504,6 +508,7 @@ export default function Home() {
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
+  const [daybreakView, setDaybreakView] = useState<DaybreakView>("gallery");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
   const [plannerTool, setPlannerTool] = useState<PlannerTool>("select");
@@ -649,16 +654,29 @@ export default function Home() {
   }, [clearFooterHideTimer, clearFooterIntentTimer, footerVisible, hideFooterAfterInteraction, scheduleIdleFooter, showFooterWithIntent]);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/daybreak/islands?sort=${sort}`)
+    const endpoint =
+      daybreakView === "uploads"
+        ? `${apiBase}/api/daybreak/me/uploads`
+        : daybreakView === "favorites"
+          ? `${apiBase}/api/daybreak/me/favorites`
+          : `${apiBase}/api/daybreak/islands?sort=${sort}`;
+
+    if (daybreakView !== "gallery" && !authUser) {
+      return;
+    }
+
+    fetch(endpoint, { credentials: "include" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((data: { islands: Island[] }) => {
-        if (data.islands.length) {
-          setIslands(data.islands);
-          setStatus("");
+      .then((data: { islands: Island[]; favoriteIds?: string[] }) => {
+        setIslands(data.islands.length || daybreakView !== "gallery" ? data.islands : starterIslands);
+        const favoriteIds = data.favoriteIds;
+        if (favoriteIds) {
+          setLikedIslands((current) => ({ ...current, ...Object.fromEntries(favoriteIds.map((id) => [id, true])) }));
         }
+        setStatus("");
       })
       .catch(() => setStatus(""));
-  }, [sort]);
+  }, [sort, daybreakView, authUser]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -675,6 +693,20 @@ export default function Home() {
       .catch(() => setAuthStatus(""))
       .finally(() => setAuthLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!authUser) {
+      return;
+    }
+
+    fetch(`${apiBase}/api/daybreak/me/favorites?limit=60`, { credentials: "include" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((data: { favoriteIds?: string[] }) => {
+        const favoriteIds = data.favoriteIds || [];
+        setLikedIslands((current) => ({ ...current, ...Object.fromEntries(favoriteIds.map((id) => [id, true])) }));
+      })
+      .catch(() => null);
+  }, [authUser]);
 
   useEffect(() => {
     if (!resizingSidebar || collapsedSidebar) {
@@ -702,13 +734,23 @@ export default function Home() {
   } as CSSProperties;
 
   const refreshIslands = async () => {
-    const response = await fetch(`${apiBase}/api/daybreak/islands?sort=${sort}`);
+    const endpoint =
+      daybreakView === "uploads"
+        ? `${apiBase}/api/daybreak/me/uploads`
+        : daybreakView === "favorites"
+          ? `${apiBase}/api/daybreak/me/favorites`
+          : `${apiBase}/api/daybreak/islands?sort=${sort}`;
+    const response = await fetch(endpoint, { credentials: "include" });
     if (!response.ok) {
       throw new Error("Unable to refresh islands");
     }
 
-    const data = (await response.json()) as { islands: Island[] };
-    setIslands(data.islands.length ? data.islands : starterIslands);
+    const data = (await response.json()) as { islands: Island[]; favoriteIds?: string[] };
+    setIslands(data.islands.length || daybreakView !== "gallery" ? data.islands : starterIslands);
+    const favoriteIds = data.favoriteIds;
+    if (favoriteIds) {
+      setLikedIslands((current) => ({ ...current, ...Object.fromEntries(favoriteIds.map((id) => [id, true])) }));
+    }
   };
 
   const loadComments = async (island: Island) => {
@@ -904,6 +946,10 @@ export default function Home() {
   };
 
   const likeIsland = async (island: Island) => {
+    if (likedIslands[island.id]) {
+      return;
+    }
+
     if (island.id.startsWith("starter")) {
       setLikedIslands((current) => ({ ...current, [island.id]: true }));
       updateIsland({ ...island, likes: island.likes + 1 });
@@ -912,6 +958,7 @@ export default function Home() {
 
     const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}/like`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ viewerId }),
     });
@@ -920,6 +967,20 @@ export default function Home() {
       setLikedIslands((current) => ({ ...current, [island.id]: true }));
       updateIsland(data.island);
     }
+  };
+
+  const requireDaybreakSignIn = (message: string) => {
+    setAuthStatus(message);
+    setLoginOpen(true);
+  };
+
+  const setSignedInDaybreakView = (view: DaybreakView) => {
+    if (view !== "gallery" && !authUser) {
+      requireDaybreakSignIn("Sign in to use My Uploads and Favorites.");
+      return;
+    }
+
+    setDaybreakView(view);
   };
 
   const shareIsland = async (island: Island) => {
@@ -993,6 +1054,8 @@ export default function Home() {
   const signOut = async () => {
     await fetch(`${apiBase}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => null);
     setAuthUser(null);
+    setLikedIslands({});
+    setDaybreakView("gallery");
     setProfileOpen(false);
   };
 
@@ -1034,14 +1097,32 @@ export default function Home() {
   const shareUrlFor = (island: Island) => `${window.location.origin}/daybreak/island/${encodeURIComponent(island.id)}`;
 
   const downloadImage = async (island: Island) => {
-    const link = document.createElement("a");
-    link.href = island.imageUrl;
-    link.download = `${island.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "daybreak-island"}.jpg`;
-    link.target = "_blank";
-    link.rel = "noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    const fileName = `${island.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "daybreak-island"}.jpg`;
+    try {
+      const response = await fetch(island.imageUrl);
+      if (!response.ok) {
+        throw new Error("download blocked");
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch {
+      const link = document.createElement("a");
+      link.href = island.imageUrl;
+      link.download = fileName;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus("Image opened in a new tab because the host blocked direct download.");
+    }
   };
 
   const socialShareUrl = (platform: "discord" | "whatsapp" | "x", island: Island) => {
@@ -2338,18 +2419,45 @@ export default function Home() {
 
             <section className="showcase-head" id="showcase">
               <div>
-                <h2>Island Gallery</h2>
+                <h2>{daybreakView === "uploads" ? "My Uploads" : daybreakView === "favorites" ? "Favorites" : "Island Gallery"}</h2>
               </div>
-              <div className="segmented daybreak-sort" aria-label="Sort islands">
-                <button className={sort === "popular" ? "selected" : ""} type="button" onClick={() => setSort("popular")}>Popular</button>
-                <button className={sort === "recent" ? "selected" : ""} type="button" onClick={() => setSort("recent")}>Recent</button>
+              <div className="daybreak-controls">
+                <div className="daybreak-control-bar" aria-label="Daybreak showcase controls">
+                  {authUser && (
+                    <>
+                      <button className={daybreakView === "uploads" ? "selected" : ""} type="button" onClick={() => setSignedInDaybreakView("uploads")}>My Uploads</button>
+                      <button className={daybreakView === "favorites" ? "selected" : ""} type="button" onClick={() => setSignedInDaybreakView("favorites")}>Favorites</button>
+                      <span aria-hidden="true" className="daybreak-control-divider" />
+                    </>
+                  )}
+                  <button
+                    className={daybreakView === "gallery" && sort === "popular" ? "selected" : ""}
+                    type="button"
+                    onClick={() => {
+                      setSort("popular");
+                      setDaybreakView("gallery");
+                    }}
+                  >
+                    Popular
+                  </button>
+                  <button
+                    className={daybreakView === "gallery" && sort === "recent" ? "selected" : ""}
+                    type="button"
+                    onClick={() => {
+                      setSort("recent");
+                      setDaybreakView("gallery");
+                    }}
+                  >
+                    Recent
+                  </button>
+                </div>
               </div>
             </section>
 
             {status && <p className="daybreak-status">{status}</p>}
 
             <section className="island-grid">
-              {islands.map((island) => (
+              {islands.length ? islands.map((island) => (
                 <article className={`island-card ${linkedIslandId === island.id ? "island-card-linked" : ""}`} id={`island-${island.id}`} key={island.id}>
                   <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
                     <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
@@ -2402,7 +2510,13 @@ export default function Home() {
                     </div>
                   </div>
                 </article>
-              ))}
+              )) : (
+                <div className="empty-island-state">
+                  <Icon name={daybreakView === "favorites" ? "star" : "upload"} />
+                  <strong>{daybreakView === "favorites" ? "No favorites yet" : "No uploads yet"}</strong>
+                  <span>{daybreakView === "favorites" ? "Like islands from the gallery to save them here." : "Upload your first Daybreak Island to see it here."}</span>
+                </div>
+              )}
             </section>
 
           </section>
@@ -2820,7 +2934,7 @@ export default function Home() {
                 </div>
               )}
               <div className="detail-actions">
-                <button type="button" onClick={() => likeIsland(viewerImage)}><Icon name="heart" />Like</button>
+                <button className={likedIslands[viewerImage.id] ? "liked" : ""} type="button" onClick={() => likeIsland(viewerImage)}><Icon name="heart" />{likedIslands[viewerImage.id] ? "Liked" : "Like"}</button>
                 <button type="button" onClick={() => setShareIslandTarget(viewerImage)}><Icon name="share" />Share</button>
               </div>
               <section className="comments-panel">
