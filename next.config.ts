@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const backendUrl = process.env.BACKEND_URL || "http://140.245.201.209:3001";
+
 const nextConfig: NextConfig = {
   devIndicators: false,
   async rewrites() {
@@ -10,7 +12,15 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/api/daybreak/:path*",
-        destination: "http://140.245.201.209:3001/api/daybreak/:path*",
+        destination: `${backendUrl}/api/daybreak/:path*`,
+      },
+      {
+        source: "/api/auth/:path*",
+        destination: `${backendUrl}/api/auth/:path*`,
+      },
+      {
+        source: "/api/profile/:path*",
+        destination: `${backendUrl}/api/profile/:path*`,
       },
     ];
   },
