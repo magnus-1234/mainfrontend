@@ -211,32 +211,6 @@ function readStoredPlannerLayout(): PlannerLayoutPayload | null {
   }
 }
 
-const starterIslands: Island[] = [
-  {
-    id: "starter-tree-of-life",
-    title: "Tree of Life Plaza",
-    creatorName: "WhiteoutSurvival.dev",
-    description: "A reference Daybreak Island build centered around the Tree of Life with clean symmetrical paths.",
-    playerId: "000000000",
-    coordinates: { x: 512, y: 512 },
-    player: {
-      playerId: "000000000",
-      nickname: "WhiteoutSurvival.dev",
-      stateId: "Public",
-      furnaceLevel: 30,
-      furnaceLevelFormatted: "30",
-    },
-    server: "Public",
-    alliance: "Community",
-    tags: ["Tree of Life", "Symmetry", "Plaza"],
-    imageUrl: "/daybreak-island-tree-of-life.webp",
-    likes: 128,
-    shares: 36,
-    commentsCount: 2,
-    createdAt: new Date().toISOString(),
-  },
-];
-
 const defaultDaybreakTags = [
   "TreeOfLife",
   "Symmetry",
@@ -535,7 +509,7 @@ export default function Home() {
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
   const [activeMenu, setActiveMenu] = useState<"home" | "planner" | "daybreak" | "bot">("home");
-  const [islands, setIslands] = useState<Island[]>(starterIslands);
+  const [islands, setIslands] = useState<Island[]>([]);
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
@@ -716,7 +690,7 @@ export default function Home() {
     fetch(endpoint, { credentials: "include" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { islands: Island[]; favoriteIds?: string[] }) => {
-        setIslands(data.islands.length || daybreakView !== "gallery" ? data.islands : starterIslands);
+        setIslands(data.islands);
         const favoriteIds = data.favoriteIds;
         if (favoriteIds) {
           setLikedIslands((current) => ({ ...current, ...Object.fromEntries(favoriteIds.map((id) => [id, true])) }));
@@ -794,7 +768,7 @@ export default function Home() {
     }
 
     const data = (await response.json()) as { islands: Island[]; favoriteIds?: string[] };
-    setIslands(data.islands.length || daybreakView !== "gallery" ? data.islands : starterIslands);
+    setIslands(data.islands);
     const favoriteIds = data.favoriteIds;
     if (favoriteIds) {
       setLikedIslands((current) => ({ ...current, ...Object.fromEntries(favoriteIds.map((id) => [id, true])) }));
@@ -805,10 +779,6 @@ export default function Home() {
     setViewerImage(island);
     setImageZoom(100);
     setComments([]);
-
-    if (island.id.startsWith("starter")) {
-      return;
-    }
 
     setCommentsLoading(true);
     try {
@@ -1055,12 +1025,6 @@ export default function Home() {
       return;
     }
 
-    if (island.id.startsWith("starter")) {
-      setLikedIslands((current) => ({ ...current, [island.id]: true }));
-      updateIsland({ ...island, likes: island.likes + 1 });
-      return;
-    }
-
     const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}/like`, {
       method: "POST",
       credentials: "include",
@@ -1115,12 +1079,6 @@ export default function Home() {
       window.prompt("Copy island link", shareUrl);
     }
 
-    if (island.id.startsWith("starter")) {
-      updateIsland({ ...island, shares: island.shares + 1 });
-      setStatus("Share link copied.");
-      return;
-    }
-
     const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}/share`, { method: "POST" });
     const data = (await response.json()) as { island?: Island };
     if (data.island) {
@@ -1138,8 +1096,8 @@ export default function Home() {
       return;
     }
 
-    if (!viewerImage || viewerImage.id.startsWith("starter")) {
-      setStatus("Comments are available after an island is published.");
+    if (!viewerImage) {
+      setStatus("Open an island before commenting.");
       return;
     }
 
@@ -1155,13 +1113,14 @@ export default function Home() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to add comment");
+        throw new Error(data?.detail || data?.error || `Unable to add comment (${response.status})`);
       }
 
       if (data.island) {
         updateIsland(data.island);
       }
       setComments(data.comments || []);
+      setStatus("");
       form.reset();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Unable to add comment");
@@ -3115,8 +3074,8 @@ export default function Home() {
                   <p>No comments yet.</p>
                 )}
                 <form className="comment-form" onSubmit={addComment}>
-                  <textarea name="message" maxLength={360} placeholder={authUser ? "Add a comment" : "Sign in to comment"} required disabled={viewerImage.id.startsWith("starter") || !authUser} />
-                  <button type="submit" disabled={commentSaving || viewerImage.id.startsWith("starter")}>{commentSaving ? "Posting..." : authUser ? "Post Comment" : "Sign In to Comment"}</button>
+                  <textarea name="message" maxLength={360} placeholder={authUser ? "Add a comment" : "Sign in to comment"} required disabled={!authUser} />
+                  <button type="submit" disabled={commentSaving}>{commentSaving ? "Posting..." : authUser ? "Post Comment" : "Sign In to Comment"}</button>
                 </form>
               </section>
             </div>
