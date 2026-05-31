@@ -124,11 +124,16 @@ type PlannerLayoutPayload = {
   objects: PlannerObject[];
 };
 
-const apiBase =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)
-    ? "http://localhost:3001"
-    : "");
+const localApiHost = () => {
+  if (typeof window === "undefined" || !["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) {
+    return "";
+  }
+
+  const hostname = window.location.hostname === "::1" ? "[::1]" : window.location.hostname;
+  return `${window.location.protocol}//${hostname}:3001`;
+};
+
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || localApiHost();
 
 const botFrontendUrl =
   process.env.NEXT_PUBLIC_BOT_FRONTEND_URL || "https://bot.whiteoutsurvival.dev/";
@@ -1013,10 +1018,17 @@ export default function Home() {
     setDeletingIslandId(island.id);
     setStatus("");
     try {
-      const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}`, {
+      const deleteUrl = `${apiBase}/api/daybreak/islands/${island.id}`;
+      let response = await fetch(deleteUrl, {
         method: "DELETE",
         credentials: "include",
       });
+      if (response.status === 404 && typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) {
+        response = await fetch(`${localApiHost()}/api/daybreak/islands/${island.id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+      }
       const data = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(data?.detail || data?.error || `Unable to delete island (${response.status})`);
