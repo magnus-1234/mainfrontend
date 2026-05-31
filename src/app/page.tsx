@@ -1019,7 +1019,7 @@ export default function Home() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to delete island");
+        throw new Error(data?.detail || data?.error || `Unable to delete island (${response.status})`);
       }
 
       setIslands((current) => current.filter((item) => item.id !== island.id));
