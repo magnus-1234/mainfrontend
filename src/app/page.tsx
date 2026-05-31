@@ -481,6 +481,7 @@ export default function Home() {
   const [contentWidth, setContentWidth] = useState<"centered" | "full">("centered");
   const [loginOpen, setLoginOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authStatus, setAuthStatus] = useState(() => {
@@ -1139,6 +1140,7 @@ export default function Home() {
     setAuthUser(null);
     setLikedIslands({});
     setDaybreakView("gallery");
+    setAccountMenuOpen(false);
     setProfileOpen(false);
   };
 
@@ -2052,10 +2054,52 @@ export default function Home() {
                 <span className="theme-thumb" />
               </span>
             </button>
-            <button className="sign-in" type="button" onClick={() => (authUser ? setProfileOpen(true) : setLoginOpen(true))}>
-              {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
-              {authLoading ? "Account" : authUser ? "Profile" : "Sign In"}
-            </button>
+            <div className="account-menu-wrap">
+              <button
+                className="sign-in"
+                type="button"
+                onClick={() => {
+                  if (!authUser) {
+                    setLoginOpen(true);
+                    return;
+                  }
+                  setAccountMenuOpen((value) => !value);
+                }}
+                aria-expanded={authUser ? accountMenuOpen : undefined}
+                aria-haspopup={authUser ? "menu" : undefined}
+              >
+                {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                {authLoading ? "Account" : authUser ? "Profile" : "Sign In"}
+              </button>
+              {accountMenuOpen && authUser && (
+                <div className="account-dropdown" role="menu" aria-label="Account menu">
+                  <div className="account-dropdown-head">
+                    <span className="account-dropdown-avatar">
+                      {authUser.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                    </span>
+                    <span>
+                      <strong>{authUser.displayName}</strong>
+                      {authUser.email && <small>{authUser.email}</small>}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      setProfileOpen(true);
+                    }}
+                  >
+                    <Icon name="user" />
+                    Profile
+                  </button>
+                  <button className="danger" type="button" role="menuitem" onClick={() => void signOut()}>
+                    <Icon name="logout" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
