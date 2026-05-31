@@ -9,6 +9,7 @@ type Island = {
   title: string;
   creatorName: string;
   creatorUserId?: string;
+  canManage?: boolean;
   description: string;
   playerId: string;
   coordinates: {
@@ -989,7 +990,12 @@ export default function Home() {
   };
 
   const canManageIsland = (island: Island) =>
-    Boolean(authUser && (island.creatorUserId === authUser.id || authUser.playerAccounts.some((player) => player.playerId === island.playerId)));
+    Boolean(
+      island.canManage ||
+      (authUser &&
+        (island.creatorUserId === authUser.id ||
+          (!island.creatorUserId && authUser.playerAccounts.some((player) => player.playerId === island.playerId || player.nickname === island.creatorName)))),
+    );
 
   const deleteIsland = async (island: Island) => {
     if (!authUser) {
