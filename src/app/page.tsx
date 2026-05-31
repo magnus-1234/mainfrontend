@@ -405,7 +405,7 @@ function Icon({ name }: { name: string }) {
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
   const [hideTopNav, setHideTopNav] = useState(false);
