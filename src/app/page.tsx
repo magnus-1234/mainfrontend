@@ -1021,11 +1021,15 @@ export default function Home() {
     }
 
     const rect = grid.getBoundingClientRect();
-    const cellWidth = rect.width / plannerGridSize;
-    const cellHeight = rect.height / plannerGridSize;
+    const innerLeft = rect.left + grid.clientLeft;
+    const innerTop = rect.top + grid.clientTop;
+    const innerWidth = Math.max(1, grid.clientWidth);
+    const innerHeight = Math.max(1, grid.clientHeight);
+    const cellWidth = innerWidth / plannerGridSize;
+    const cellHeight = innerHeight / plannerGridSize;
     return {
-      x: Math.floor((clientX - rect.left) / cellWidth),
-      y: Math.floor((clientY - rect.top) / cellHeight),
+      x: Math.min(plannerGridSize - 1, Math.max(0, Math.floor((clientX - innerLeft) / cellWidth))),
+      y: Math.min(plannerGridSize - 1, Math.max(0, Math.floor((clientY - innerTop) / cellHeight))),
     };
   };
 
@@ -1033,6 +1037,14 @@ export default function Home() {
     x: Math.min(plannerGridSize - width, Math.max(0, x)),
     y: Math.min(plannerGridSize - height, Math.max(0, y)),
   });
+
+  const plannerObjectSizeForTemplate = (template: PlannerBuilding = selectedPlannerTemplate) => ({
+    width: template.id === "obstacle" ? plannerObstacleSize : template.width,
+    height: template.id === "obstacle" ? plannerObstacleSize : template.height,
+  });
+
+  const anchoredPlannerPosition = (cellX: number, cellY: number, width: number, height: number) =>
+    clampPlannerObjectPosition(cellX - Math.floor(width / 2), cellY - Math.floor(height / 2), width, height);
 
   const canPlacePlannerObject = (
     x: number,
@@ -1060,9 +1072,8 @@ export default function Home() {
       return null;
     }
 
-    const width = selectedPlannerTemplate.id === "obstacle" ? plannerObstacleSize : selectedPlannerTemplate.width;
-    const height = selectedPlannerTemplate.id === "obstacle" ? plannerObstacleSize : selectedPlannerTemplate.height;
-    const next = clampPlannerObjectPosition(plannerHoverCell.x, plannerHoverCell.y, width, height);
+    const { width, height } = plannerObjectSizeForTemplate(selectedPlannerTemplate);
+    const next = anchoredPlannerPosition(plannerHoverCell.x, plannerHoverCell.y, width, height);
     return {
       ...next,
       width,
@@ -1107,10 +1118,10 @@ export default function Home() {
       return;
     }
 
-    const width = template.id === "obstacle" ? plannerObstacleSize : template.width;
-    const height = template.id === "obstacle" ? plannerObstacleSize : template.height;
+    const { width, height } = plannerObjectSizeForTemplate(template);
+    const next = anchoredPlannerPosition(x, y, width, height);
 
-    if (!canPlacePlannerObject(x, y, width, height)) {
+    if (!canPlacePlannerObject(next.x, next.y, width, height)) {
       setPlannerStatus("That space is blocked or outside the planner grid.");
       return;
     }
@@ -1120,8 +1131,8 @@ export default function Home() {
       id: crypto.randomUUID(),
       type: template.id,
       label: template.id === "city" ? `City ${sameTypeCount}` : template.label,
-      x,
-      y,
+      x: next.x,
+      y: next.y,
       width,
       height,
       alliance: plannerAlliance,
@@ -1393,6 +1404,18 @@ export default function Home() {
     setSelectedPlannerObjectId("");
   };
 
+  const applyPlannerShareCode = (value: string) => {
+    const decoded = decodePlannerLayoutPayload(value);
+    setPlannerMode(decoded.mode === "castle" ? "castle" : "base");
+    setPlannerAlliance(decoded.alliance === "farm" ? "farm" : "main");
+    setPlannerObjects(decoded.objects);
+    setPlannerHistory([]);
+    setPlannerFuture([]);
+    setSelectedPlannerObjectId("");
+    setPlannerImportCode(value);
+    setPlannerStatus("Shared layout loaded.");
+  };
+
   const copyPlannerCode = async () => {
     const code = encodePlannerLayout();
     setPlannerImportCode(code);
@@ -1400,6 +1423,24 @@ export default function Home() {
       await navigator.clipboard.writeText(code);
     }
     setPlannerStatus("Layout code copied.");
+  };
+
+  const plannerShareUrl = () => {
+    const url = new URL(window.location.href);
+    url.pathname = "/";
+    url.hash = "city-layout-planner";
+    url.searchParams.set("planner", encodePlannerLayout());
+    return url.toString();
+  };
+
+  const copyPlannerShareLink = async () => {
+    const shareUrl = plannerShareUrl();
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(shareUrl);
+    } else {
+      window.prompt("Copy planner share link", shareUrl);
+    }
+    setPlannerStatus("Planner share link copied.");
   };
 
   const exportPlannerCsv = () => {
@@ -1419,44 +1460,69 @@ export default function Home() {
   };
 
   const savePlannerPng = () => {
-    const cellSize = 24;
-    const canvas = document.createElement("canvas");
-    canvas.width = plannerGridSize * cellSize;
-    canvas.height = plannerGridSize * cellSize;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      setPlannerStatus("PNG export is not available in this browser.");
-      return;
+    try {
+      const cellSize = 32;
+      const canvas = document.createElement("canvas");
+      canvas.width = plannerGridSize * cellSize;
+      canvas.height = plannerGridSize * cellSize;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        throw new Error("PNG export is not available in this browser.");
+      }
+
+      context.fillStyle = theme === "dark" ? "#101314" : "#fbfaf7";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.strokeStyle = theme === "dark" ? "rgba(255,255,255,0.14)" : "rgba(25,23,20,0.16)";
+      context.lineWidth = 1;
+      for (let index = 0; index <= plannerGridSize; index += 1) {
+        context.beginPath();
+        context.moveTo(index * cellSize + 0.5, 0);
+        context.lineTo(index * cellSize + 0.5, canvas.height);
+        context.moveTo(0, index * cellSize + 0.5);
+        context.lineTo(canvas.width, index * cellSize + 0.5);
+        context.stroke();
+      }
+
+      plannerObjects.forEach((item) => {
+        const template = plannerBuildings.find((building) => building.id === item.type);
+        const x = item.x * cellSize + 3;
+        const y = item.y * cellSize + 3;
+        const width = item.width * cellSize - 6;
+        const height = item.height * cellSize - 6;
+        context.fillStyle = template?.color || "#64748b";
+        context.globalAlpha = item.alliance === "farm" ? 0.72 : 0.94;
+        context.fillRect(x, y, width, height);
+        context.globalAlpha = 1;
+        context.strokeStyle = "rgba(0,0,0,0.28)";
+        context.strokeRect(x, y, width, height);
+        context.fillStyle = "#ffffff";
+        context.font = "700 12px Arial";
+        context.textBaseline = "top";
+        context.fillText(item.label.slice(0, 16), x + 5, y + 5, Math.max(18, width - 10));
+        context.font = "700 10px Arial";
+        context.fillText(`${item.x},${item.y}`, x + 5, y + Math.min(height - 14, 22), Math.max(18, width - 10));
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setPlannerStatus("PNG export failed.");
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "city-layout-planner.png";
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setPlannerStatus("PNG exported.");
+      }, "image/png");
+    } catch (error) {
+      setPlannerStatus(error instanceof Error ? error.message : "PNG export failed.");
     }
-
-    context.fillStyle = theme === "dark" ? "#101314" : "#fbfaf7";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.strokeStyle = theme === "dark" ? "rgba(255,255,255,0.12)" : "rgba(25,23,20,0.14)";
-    for (let index = 0; index <= plannerGridSize; index += 1) {
-      context.beginPath();
-      context.moveTo(index * cellSize, 0);
-      context.lineTo(index * cellSize, canvas.height);
-      context.moveTo(0, index * cellSize);
-      context.lineTo(canvas.width, index * cellSize);
-      context.stroke();
-    }
-
-    plannerObjects.forEach((item) => {
-      const template = plannerBuildings.find((building) => building.id === item.type);
-      context.fillStyle = template?.color || "#64748b";
-      context.globalAlpha = item.alliance === "farm" ? 0.72 : 0.92;
-      context.fillRect(item.x * cellSize + 2, item.y * cellSize + 2, item.width * cellSize - 4, item.height * cellSize - 4);
-      context.globalAlpha = 1;
-      context.fillStyle = "#ffffff";
-      context.font = "700 10px Arial";
-      context.fillText(item.label.slice(0, 10), item.x * cellSize + 5, item.y * cellSize + 16);
-    });
-
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "city-layout-planner.png";
-    link.click();
-    setPlannerStatus("PNG exported.");
   };
 
   useEffect(() => {
@@ -1565,6 +1631,26 @@ export default function Home() {
       }),
     );
   }, [plannerAlliance, plannerMode, plannerObjects]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plannerCode = params.get("planner");
+    if (!plannerCode) {
+      return;
+    }
+
+    try {
+      applyPlannerShareCode(plannerCode);
+      params.delete("planner");
+      const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}#city-layout-planner`;
+      window.history.replaceState(null, "", nextUrl);
+      setActiveMenu("planner");
+    } catch (error) {
+      setPlannerStatus(error instanceof Error ? error.message : "Unable to load shared planner link.");
+    }
+    // Shared-link restore runs once on initial page load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handlePlannerShortcut = (event: KeyboardEvent) => {
@@ -2000,6 +2086,7 @@ export default function Home() {
                     <button type="button" onClick={clearPlanner} disabled={!plannerObjects.length}>Clear</button>
                     <button type="button" onClick={savePlannerPng}>Save PNG</button>
                     <button type="button" onClick={exportPlannerCsv}>Save CSV</button>
+                    <button type="button" onClick={() => void copyPlannerShareLink()}>Share Link</button>
                   </div>
                   <label className="planner-code-box">
                     <span>Layout Code</span>
