@@ -3038,7 +3038,7 @@ svg {
 .island-actions {
   align-items: center;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
   gap: 5px;
   padding-top: 2px;
 }
@@ -3116,6 +3116,23 @@ svg {
 .card-icon-action.liked:hover {
   background: rgba(220, 38, 38, 0.14);
   box-shadow: 0 3px 10px rgba(220, 38, 38, 0.15);
+}
+
+.card-icon-action.danger {
+  border-color: rgba(220, 38, 38, 0.34);
+  background: rgba(220, 38, 38, 0.07);
+  color: #dc2626;
+}
+
+.card-icon-action.danger:hover {
+  background: rgba(220, 38, 38, 0.13);
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.14);
+}
+
+.card-icon-action:disabled {
+  cursor: wait;
+  opacity: 0.58;
+  transform: none;
 }
 
 .island-actions svg {

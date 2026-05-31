@@ -8,6 +8,7 @@ type Island = {
   id: string;
   title: string;
   creatorName: string;
+  creatorUserId?: string;
   description: string;
   playerId: string;
   coordinates: {
@@ -314,6 +315,15 @@ function Icon({ name }: { name: string }) {
         <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
       </>
     ),
+    trash: (
+      <>
+        <path d="M3 6h18" />
+        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+      </>
+    ),
     copy: (
       <>
         <rect width="14" height="14" x="8" y="8" rx="2" />
@@ -513,6 +523,7 @@ export default function Home() {
   const [comments, setComments] = useState<IslandComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSaving, setCommentSaving] = useState(false);
+  const [deletingIslandId, setDeletingIslandId] = useState("");
   const [playerLookup, setPlayerLookup] = useState<PlayerProfile | null>(null);
   const [playerLookupStatus, setPlayerLookupStatus] = useState("");
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
@@ -975,6 +986,50 @@ export default function Home() {
     setIslands((current) => current.map((island) => (island.id === next.id ? next : island)));
     setViewerImage((current) => (current?.id === next.id ? next : current));
     setShareIslandTarget((current) => (current?.id === next.id ? next : current));
+  };
+
+  const canManageIsland = (island: Island) =>
+    Boolean(authUser && (island.creatorUserId === authUser.id || authUser.playerAccounts.some((player) => player.playerId === island.playerId)));
+
+  const deleteIsland = async (island: Island) => {
+    if (!authUser) {
+      requireDaybreakSignIn("Sign in to delete your Daybreak Island uploads.");
+      return;
+    }
+    if (!canManageIsland(island)) {
+      setStatus("You can only delete islands you uploaded.");
+      return;
+    }
+    if (!window.confirm(`Delete "${island.title}" from the community showcase? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingIslandId(island.id);
+    setStatus("");
+    try {
+      const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to delete island");
+      }
+
+      setIslands((current) => current.filter((item) => item.id !== island.id));
+      setLikedIslands((current) => {
+        const next = { ...current };
+        delete next[island.id];
+        return next;
+      });
+      setViewerImage((current) => (current?.id === island.id ? null : current));
+      setShareIslandTarget((current) => (current?.id === island.id ? null : current));
+      setStatus("Island deleted.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to delete island");
+    } finally {
+      setDeletingIslandId("");
+    }
   };
 
   const likeIsland = async (island: Island) => {
@@ -2570,6 +2625,17 @@ export default function Home() {
                         <Icon name="message" />
                         {island.commentsCount}
                       </button>
+                      {canManageIsland(island) && (
+                        <button
+                          className="card-icon-action danger"
+                          type="button"
+                          onClick={() => void deleteIsland(island)}
+                          aria-label="Delete island"
+                          disabled={deletingIslandId === island.id}
+                        >
+                          <Icon name="trash" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>
