@@ -1,8 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
-import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, ChangeEvent, FormEvent, PointerEvent as ReactPointerEvent, ReactNode, WheelEvent as ReactWheelEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Island = {
   id: string;
@@ -57,6 +57,70 @@ type AuthUser = {
   createdAt: string;
 };
 
+type PlannerTool = "select" | "pan" | "erase";
+type PlannerMode = "base" | "castle";
+type PlannerAlliance = "main" | "farm";
+type PlannerBuildingId = "flag" | "city" | "trap" | "hq" | "node" | "obstacle" | "enemy";
+
+type PlannerBuilding = {
+  id: PlannerBuildingId;
+  label: string;
+  shortcut: string;
+  width: number;
+  height: number;
+  color: string;
+  castleOnly?: boolean;
+};
+
+type PlannerObject = {
+  id: string;
+  type: PlannerBuildingId;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  alliance: PlannerAlliance;
+};
+
+type PlannerDragState =
+  | {
+      kind: "pan";
+      pointerId: number;
+      startX: number;
+      startY: number;
+      scrollLeft: number;
+      scrollTop: number;
+      moved: boolean;
+    }
+  | {
+      kind: "object";
+      pointerId: number;
+      objectId: string;
+      offsetX: number;
+      offsetY: number;
+      moved: boolean;
+    };
+
+type PlannerDragPreview = {
+  id: string;
+  x: number;
+  y: number;
+  valid: boolean;
+};
+
+type PlannerHoverCell = {
+  x: number;
+  y: number;
+};
+
+type PlannerLayoutPayload = {
+  version?: number;
+  mode: PlannerMode;
+  alliance: PlannerAlliance;
+  objects: PlannerObject[];
+};
+
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   (typeof window !== "undefined" && window.location.hostname === "localhost"
@@ -80,9 +144,60 @@ const menuItems = [
 
 const sidebarItems = [
   { label: "Home", icon: "home", href: "#home" },
+  { label: "City Layout Planner", icon: "grid", href: "#city-layout-planner" },
   { label: "Daybreak Island", icon: "island", href: "#daybreak" },
   { label: "Discord Bot", icon: "bot", href: "#discord-bot" },
 ];
+
+const plannerGridSize = 28;
+const plannerStorageKey = "city-layout-planner-v1";
+
+const plannerBuildings: PlannerBuilding[] = [
+  { id: "flag", label: "Flag", shortcut: "1", width: 1, height: 1, color: "#f48120" },
+  { id: "city", label: "City", shortcut: "2", width: 2, height: 2, color: "#59a6de" },
+  { id: "trap", label: "Trap", shortcut: "3", width: 3, height: 3, color: "#dc2626" },
+  { id: "hq", label: "HQ", shortcut: "4", width: 4, height: 4, color: "#9b5de5" },
+  { id: "node", label: "Node", shortcut: "5", width: 2, height: 2, color: "#22c55e" },
+  { id: "obstacle", label: "Obstacle", shortcut: "6", width: 1, height: 1, color: "#64748b" },
+  { id: "enemy", label: "Enemy Zone", shortcut: "7", width: 3, height: 3, color: "#ef4444", castleOnly: true },
+];
+
+function encodePlannerLayoutPayload(payload: PlannerLayoutPayload) {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+
+function decodePlannerLayoutPayload(value: string): PlannerLayoutPayload {
+  const parsed = JSON.parse(decodeURIComponent(escape(atob(value.trim())))) as Partial<PlannerLayoutPayload>;
+
+  if (!Array.isArray(parsed.objects)) {
+    throw new Error("Layout code does not contain objects.");
+  }
+
+  return {
+    version: parsed.version,
+    mode: parsed.mode === "castle" ? "castle" : "base",
+    alliance: parsed.alliance === "farm" ? "farm" : "main",
+    objects: parsed.objects,
+  };
+}
+
+function readStoredPlannerLayout(): PlannerLayoutPayload | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const saved = localStorage.getItem(plannerStorageKey);
+  if (!saved) {
+    return null;
+  }
+
+  try {
+    return decodePlannerLayoutPayload(saved);
+  } catch {
+    localStorage.removeItem(plannerStorageKey);
+    return null;
+  }
+}
 
 const starterIslands: Island[] = [
   {
@@ -321,17 +436,41 @@ export default function Home() {
   const [playerLookupStatus, setPlayerLookupStatus] = useState("");
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
-  const [activeMenu, setActiveMenu] = useState<"home" | "daybreak" | "bot">("home");
+  const [activeMenu, setActiveMenu] = useState<"home" | "planner" | "daybreak" | "bot">("home");
   const [islands, setIslands] = useState<Island[]>(starterIslands);
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
   const [sort, setSort] = useState<"recent" | "popular">("popular");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [plannerTool, setPlannerTool] = useState<PlannerTool>("select");
+  const [plannerMode, setPlannerMode] = useState<PlannerMode>(() => readStoredPlannerLayout()?.mode || "base");
+  const [plannerAlliance, setPlannerAlliance] = useState<PlannerAlliance>(() => readStoredPlannerLayout()?.alliance || "main");
+  const [selectedPlannerBuilding, setSelectedPlannerBuilding] = useState<PlannerBuildingId>("city");
+  const [plannerObstacleSize, setPlannerObstacleSize] = useState(1);
+  const [plannerObjects, setPlannerObjects] = useState<PlannerObject[]>(() => readStoredPlannerLayout()?.objects || []);
+  const [selectedPlannerObjectId, setSelectedPlannerObjectId] = useState("");
+  const [plannerHistory, setPlannerHistory] = useState<PlannerObject[][]>([]);
+  const [plannerFuture, setPlannerFuture] = useState<PlannerObject[][]>([]);
+  const [plannerZoom, setPlannerZoom] = useState(100);
+  const [plannerImportCode, setPlannerImportCode] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return localStorage.getItem(plannerStorageKey) || "";
+  });
+  const [plannerStatus, setPlannerStatus] = useState("");
+  const [plannerDragPreview, setPlannerDragPreview] = useState<PlannerDragPreview | null>(null);
+  const [plannerHoverCell, setPlannerHoverCell] = useState<PlannerHoverCell | null>(null);
   const openedSharedIslandRef = useRef("");
   const footerIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const plannerBoardRef = useRef<HTMLElement | null>(null);
+  const plannerGridRef = useRef<HTMLDivElement | null>(null);
+  const plannerDragRef = useRef<PlannerDragState | null>(null);
+  const plannerSuppressClickRef = useRef(false);
   const [viewerId] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -392,6 +531,7 @@ export default function Home() {
       const hash = window.location.hash;
       const daybreakHashes = new Set(["#daybreak", "#showcase", "#upload"]);
       const botHashes = new Set(["#discord-bot", "#bot"]);
+      const plannerHashes = new Set(["#city-layout-planner", "#layout-planner", "#planner"]);
       setActiveMenu(
         params.get("menu") === "daybreak" ||
           params.has("island") ||
@@ -401,6 +541,8 @@ export default function Home() {
           ? "daybreak"
           : params.get("menu") === "bot" || botHashes.has(hash)
             ? "bot"
+          : params.get("menu") === "planner" || plannerHashes.has(hash)
+            ? "planner"
           : "home",
       );
     };
@@ -804,6 +946,688 @@ export default function Home() {
     return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
   };
 
+  const availablePlannerBuildings = useMemo(
+    () => plannerBuildings.filter((building) => plannerMode === "castle" || !building.castleOnly),
+    [plannerMode],
+  );
+
+  const selectedPlannerTemplate =
+    plannerBuildings.find((building) => building.id === selectedPlannerBuilding) || plannerBuildings[1];
+
+  const plannerStats = useMemo(
+    () => {
+      const usedCells = plannerObjects.reduce((total, item) => total + item.width * item.height, 0);
+      return {
+        flags: plannerObjects.filter((item) => item.type === "flag").length,
+        cities: plannerObjects.filter((item) => item.type === "city").length,
+        traps: plannerObjects.filter((item) => item.type === "trap" && item.alliance === "main").length,
+        hq: plannerObjects.filter((item) => item.type === "hq").length,
+        nodes: plannerObjects.filter((item) => item.type === "node").length,
+        obstacles: plannerObjects.filter((item) => item.type === "obstacle").length,
+        usedCells,
+        utilization: Math.round((usedCells / (plannerGridSize * plannerGridSize)) * 100),
+      };
+    },
+    [plannerObjects],
+  );
+
+  const plannerHealth = useMemo(() => {
+    const warnings: string[] = [];
+    if (plannerStats.hq === 0) warnings.push("Add an HQ anchor for alliance planning.");
+    if (plannerStats.traps > 2) warnings.push("Main alliance has more than 2 Bear Traps.");
+    if (plannerStats.flags < 4 && plannerObjects.length > 4) warnings.push("Consider more flags for territory lines.");
+    if (plannerStats.utilization > 72) warnings.push("Layout is dense; leave room for future edits.");
+    return warnings;
+  }, [plannerObjects.length, plannerStats.flags, plannerStats.hq, plannerStats.traps, plannerStats.utilization]);
+
+  const plannerCells = useMemo(
+    () => Array.from({ length: plannerGridSize * plannerGridSize }, (_, index) => ({
+      x: index % plannerGridSize,
+      y: Math.floor(index / plannerGridSize),
+    })),
+    [],
+  );
+
+  const selectedPlannerObject = useMemo(
+    () => plannerObjects.find((item) => item.id === selectedPlannerObjectId) || null,
+    [plannerObjects, selectedPlannerObjectId],
+  );
+
+  const sortedPlannerObjects = useMemo(
+    () => [...plannerObjects].sort((a, b) => a.type.localeCompare(b.type) || a.label.localeCompare(b.label)),
+    [plannerObjects],
+  );
+
+  const encodePlannerLayout = (objects = plannerObjects) => {
+    const payload: PlannerLayoutPayload = {
+      version: 1,
+      mode: plannerMode,
+      alliance: plannerAlliance,
+      objects,
+    };
+
+    return encodePlannerLayoutPayload(payload);
+  };
+
+  const objectAtPlannerCell = (x: number, y: number) =>
+    [...plannerObjects]
+      .reverse()
+      .find((item) => x >= item.x && x < item.x + item.width && y >= item.y && y < item.y + item.height);
+
+  const getPlannerCellFromPointer = (clientX: number, clientY: number) => {
+    const grid = plannerGridRef.current;
+    if (!grid) {
+      return null;
+    }
+
+    const rect = grid.getBoundingClientRect();
+    const cellWidth = rect.width / plannerGridSize;
+    const cellHeight = rect.height / plannerGridSize;
+    return {
+      x: Math.floor((clientX - rect.left) / cellWidth),
+      y: Math.floor((clientY - rect.top) / cellHeight),
+    };
+  };
+
+  const clampPlannerObjectPosition = (x: number, y: number, width: number, height: number) => ({
+    x: Math.min(plannerGridSize - width, Math.max(0, x)),
+    y: Math.min(plannerGridSize - height, Math.max(0, y)),
+  });
+
+  const canPlacePlannerObject = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    ignoreId = "",
+    objects = plannerObjects,
+  ) => {
+    if (x < 0 || y < 0 || x + width > plannerGridSize || y + height > plannerGridSize) {
+      return false;
+    }
+
+    return !objects.some((item) => {
+      if (item.id === ignoreId) {
+        return false;
+      }
+
+      return x < item.x + item.width && x + width > item.x && y < item.y + item.height && y + height > item.y;
+    });
+  };
+
+  const plannerPlacementPreview = useMemo(() => {
+    if (!plannerHoverCell || plannerDragPreview || plannerTool !== "select" || selectedPlannerObject) {
+      return null;
+    }
+
+    const width = selectedPlannerTemplate.id === "obstacle" ? plannerObstacleSize : selectedPlannerTemplate.width;
+    const height = selectedPlannerTemplate.id === "obstacle" ? plannerObstacleSize : selectedPlannerTemplate.height;
+    const next = clampPlannerObjectPosition(plannerHoverCell.x, plannerHoverCell.y, width, height);
+    return {
+      ...next,
+      width,
+      height,
+      color: selectedPlannerTemplate.color,
+      label: selectedPlannerTemplate.label,
+      valid: canPlacePlannerObject(next.x, next.y, width, height),
+    };
+    // Preview validation needs the current planner snapshot; canPlacePlannerObject is recreated with that snapshot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plannerDragPreview, plannerHoverCell, plannerObstacleSize, plannerTool, selectedPlannerObject, selectedPlannerTemplate, plannerObjects]);
+
+  const commitPlannerObjects = (nextObjects: PlannerObject[], message = "") => {
+    setPlannerHistory((history) => [...history.slice(-39), plannerObjects]);
+    setPlannerFuture([]);
+    setPlannerObjects(nextObjects);
+    setPlannerStatus(message);
+  };
+
+  const updatePlannerObject = (objectId: string, patch: Partial<PlannerObject>, message = "Planner updated.") => {
+    const target = plannerObjects.find((item) => item.id === objectId);
+    if (!target) {
+      return;
+    }
+
+    const nextTarget = { ...target, ...patch };
+    const nextPosition = clampPlannerObjectPosition(nextTarget.x, nextTarget.y, nextTarget.width, nextTarget.height);
+    const normalizedTarget = { ...nextTarget, ...nextPosition };
+
+    if (!canPlacePlannerObject(normalizedTarget.x, normalizedTarget.y, normalizedTarget.width, normalizedTarget.height, normalizedTarget.id)) {
+      setPlannerStatus("That edit overlaps another building.");
+      return;
+    }
+
+    commitPlannerObjects(plannerObjects.map((item) => (item.id === objectId ? normalizedTarget : item)), message);
+  };
+
+  const placePlannerObject = (x: number, y: number) => {
+    const template = selectedPlannerTemplate;
+    if (template.castleOnly && plannerMode !== "castle") {
+      setPlannerStatus("Enemy Zone is available in Castle mode.");
+      return;
+    }
+
+    const width = template.id === "obstacle" ? plannerObstacleSize : template.width;
+    const height = template.id === "obstacle" ? plannerObstacleSize : template.height;
+
+    if (!canPlacePlannerObject(x, y, width, height)) {
+      setPlannerStatus("That space is blocked or outside the planner grid.");
+      return;
+    }
+
+    const sameTypeCount = plannerObjects.filter((item) => item.type === template.id).length + 1;
+    const nextObject: PlannerObject = {
+      id: crypto.randomUUID(),
+      type: template.id,
+      label: template.id === "city" ? `City ${sameTypeCount}` : template.label,
+      x,
+      y,
+      width,
+      height,
+      alliance: plannerAlliance,
+    };
+
+    commitPlannerObjects([...plannerObjects, nextObject], `${template.label} placed.`);
+    setSelectedPlannerObjectId(nextObject.id);
+  };
+
+  const handlePlannerCellClick = (x: number, y: number) => {
+    if (plannerSuppressClickRef.current) {
+      plannerSuppressClickRef.current = false;
+      return;
+    }
+
+    const target = objectAtPlannerCell(x, y);
+
+    if (plannerTool === "erase") {
+      if (target) {
+        commitPlannerObjects(plannerObjects.filter((item) => item.id !== target.id), `${target.label} removed.`);
+        setSelectedPlannerObjectId("");
+      }
+      return;
+    }
+
+    if (plannerTool === "pan") {
+      setPlannerStatus("Use the board scrollbars or mouse wheel to pan the planner.");
+      return;
+    }
+
+    if (plannerTool === "select") {
+      if (target) {
+        setSelectedPlannerObjectId(target.id);
+        setPlannerStatus(`${target.label} selected.`);
+        return;
+      }
+
+      const selected = plannerObjects.find((item) => item.id === selectedPlannerObjectId);
+      if (selected && canPlacePlannerObject(x, y, selected.width, selected.height, selected.id)) {
+        commitPlannerObjects(
+          plannerObjects.map((item) => (item.id === selected.id ? { ...item, x, y } : item)),
+          `${selected.label} moved.`,
+        );
+        return;
+      }
+    }
+
+    placePlannerObject(x, y);
+  };
+
+  const startPlannerObjectDrag = (event: ReactPointerEvent<HTMLButtonElement>, object: PlannerObject) => {
+    if (plannerTool === "erase") {
+      commitPlannerObjects(plannerObjects.filter((item) => item.id !== object.id), `${object.label} removed.`);
+      setSelectedPlannerObjectId("");
+      return;
+    }
+
+    if (plannerTool === "pan") {
+      return;
+    }
+
+    const cell = getPlannerCellFromPointer(event.clientX, event.clientY);
+    if (!cell) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectedPlannerObjectId(object.id);
+    setPlannerStatus(`${object.label} selected.`);
+    plannerDragRef.current = {
+      kind: "object",
+      pointerId: event.pointerId,
+      objectId: object.id,
+      offsetX: Math.max(0, Math.min(object.width - 1, cell.x - object.x)),
+      offsetY: Math.max(0, Math.min(object.height - 1, cell.y - object.y)),
+      moved: false,
+    };
+  };
+
+  const startPlannerPan = (event: ReactPointerEvent<HTMLElement>) => {
+    if (plannerTool !== "pan" || event.button !== 0) {
+      return;
+    }
+
+    const board = plannerBoardRef.current;
+    if (!board) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    plannerDragRef.current = {
+      kind: "pan",
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: board.scrollLeft,
+      scrollTop: board.scrollTop,
+      moved: false,
+    };
+    setPlannerStatus("Drag to pan the planner board.");
+  };
+
+  const handlePlannerWheel = (event: ReactWheelEvent<HTMLElement>) => {
+    if (!event.ctrlKey && !event.metaKey) {
+      return;
+    }
+
+    event.preventDefault();
+    setPlannerZoom((value) => Math.min(160, Math.max(60, value + (event.deltaY < 0 ? 10 : -10))));
+  };
+
+  const fitPlannerToView = () => {
+    const board = plannerBoardRef.current;
+    if (!board) {
+      return;
+    }
+
+    const available = Math.max(280, Math.min(board.clientWidth, board.clientHeight) - 42);
+    const nextZoom = Math.min(140, Math.max(60, Math.floor((available / 672) * 100)));
+    setPlannerZoom(nextZoom);
+    window.requestAnimationFrame(() => {
+      board.scrollLeft = Math.max(0, (board.scrollWidth - board.clientWidth) / 2);
+      board.scrollTop = Math.max(0, (board.scrollHeight - board.clientHeight) / 2);
+    });
+    setPlannerStatus("Planner fitted to view.");
+  };
+
+  const centerSelectedPlannerObject = () => {
+    const board = plannerBoardRef.current;
+    const grid = plannerGridRef.current;
+    if (!board || !grid || !selectedPlannerObject) {
+      setPlannerStatus("Select a building to center.");
+      return;
+    }
+
+    const cellSize = grid.getBoundingClientRect().width / plannerGridSize;
+    const centerX = (selectedPlannerObject.x + selectedPlannerObject.width / 2) * cellSize;
+    const centerY = (selectedPlannerObject.y + selectedPlannerObject.height / 2) * cellSize;
+    board.scrollTo({
+      left: Math.max(0, centerX - board.clientWidth / 2),
+      top: Math.max(0, centerY - board.clientHeight / 2),
+      behavior: "smooth",
+    });
+    setPlannerStatus(`${selectedPlannerObject.label} centered.`);
+  };
+
+  const nudgeSelectedPlannerObject = (deltaX: number, deltaY: number) => {
+    if (!selectedPlannerObject) {
+      return;
+    }
+
+    const next = clampPlannerObjectPosition(
+      selectedPlannerObject.x + deltaX,
+      selectedPlannerObject.y + deltaY,
+      selectedPlannerObject.width,
+      selectedPlannerObject.height,
+    );
+
+    if (next.x === selectedPlannerObject.x && next.y === selectedPlannerObject.y) {
+      setPlannerStatus("Selected building is at the edge.");
+      return;
+    }
+
+    updatePlannerObject(selectedPlannerObject.id, next, `${selectedPlannerObject.label} nudged.`);
+  };
+
+  const deleteSelectedPlannerObject = () => {
+    const selected = plannerObjects.find((item) => item.id === selectedPlannerObjectId);
+    if (!selected) {
+      setPlannerTool("erase");
+      setPlannerStatus("Erase mode enabled.");
+      return;
+    }
+
+    commitPlannerObjects(plannerObjects.filter((item) => item.id !== selected.id), `${selected.label} removed.`);
+    setSelectedPlannerObjectId("");
+  };
+
+  const undoPlanner = () => {
+    setPlannerHistory((history) => {
+      const previous = history.at(-1);
+      if (!previous) {
+        return history;
+      }
+
+      setPlannerFuture((future) => [plannerObjects, ...future.slice(0, 39)]);
+      setPlannerObjects(previous);
+      setSelectedPlannerObjectId("");
+      setPlannerStatus("Undo applied.");
+      return history.slice(0, -1);
+    });
+  };
+
+  const redoPlanner = () => {
+    setPlannerFuture((future) => {
+      const next = future[0];
+      if (!next) {
+        return future;
+      }
+
+      setPlannerHistory((history) => [...history.slice(-39), plannerObjects]);
+      setPlannerObjects(next);
+      setSelectedPlannerObjectId("");
+      setPlannerStatus("Redo applied.");
+      return future.slice(1);
+    });
+  };
+
+  const clearPlanner = () => {
+    if (!plannerObjects.length) {
+      return;
+    }
+
+    if (!window.confirm("Clear the current city layout?")) {
+      return;
+    }
+
+    commitPlannerObjects([], "Planner cleared.");
+    setSelectedPlannerObjectId("");
+  };
+
+  const duplicateSelectedPlannerObject = () => {
+    if (!selectedPlannerObject) {
+      setPlannerStatus("Select a building first.");
+      return;
+    }
+
+    for (let radius = 1; radius < plannerGridSize; radius += 1) {
+      for (let y = selectedPlannerObject.y - radius; y <= selectedPlannerObject.y + radius; y += 1) {
+        for (let x = selectedPlannerObject.x - radius; x <= selectedPlannerObject.x + radius; x += 1) {
+          const next = clampPlannerObjectPosition(x, y, selectedPlannerObject.width, selectedPlannerObject.height);
+          if (canPlacePlannerObject(next.x, next.y, selectedPlannerObject.width, selectedPlannerObject.height)) {
+            const duplicated = {
+              ...selectedPlannerObject,
+              ...next,
+              id: crypto.randomUUID(),
+              label: `${selectedPlannerObject.label} Copy`,
+            };
+            commitPlannerObjects([...plannerObjects, duplicated], `${selectedPlannerObject.label} duplicated.`);
+            setSelectedPlannerObjectId(duplicated.id);
+            return;
+          }
+        }
+      }
+    }
+
+    setPlannerStatus("No open space is available for a duplicate.");
+  };
+
+  const loadPlannerCode = (value: string) => {
+    if (plannerObjects.length && !window.confirm("Load this layout and replace the current planner?")) {
+      return;
+    }
+
+    const decoded = decodePlannerLayoutPayload(value);
+    const cleanedObjects = decoded.objects
+      .filter((item) =>
+        plannerBuildings.some((building) => building.id === item.type) &&
+        canPlacePlannerObject(item.x, item.y, item.width, item.height, item.id, decoded.objects),
+      )
+      .map((item): PlannerObject => ({
+        ...item,
+        alliance: item.alliance === "farm" ? "farm" : "main",
+      }));
+
+    setPlannerMode(decoded.mode === "castle" ? "castle" : "base");
+    setPlannerAlliance(decoded.alliance === "farm" ? "farm" : "main");
+    commitPlannerObjects(cleanedObjects, "Layout loaded.");
+    setSelectedPlannerObjectId("");
+  };
+
+  const copyPlannerCode = async () => {
+    const code = encodePlannerLayout();
+    setPlannerImportCode(code);
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(code);
+    }
+    setPlannerStatus("Layout code copied.");
+  };
+
+  const exportPlannerCsv = () => {
+    const rows = ["type,label,alliance,x,y,width,height", ...plannerObjects.map((item) =>
+      [item.type, item.label, item.alliance, item.x, item.y, item.width, item.height]
+        .map((cell) => `"${String(cell).replaceAll('"', '""')}"`)
+        .join(","),
+    )];
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "city-layout-planner.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+    setPlannerStatus("CSV exported.");
+  };
+
+  const savePlannerPng = () => {
+    const cellSize = 24;
+    const canvas = document.createElement("canvas");
+    canvas.width = plannerGridSize * cellSize;
+    canvas.height = plannerGridSize * cellSize;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      setPlannerStatus("PNG export is not available in this browser.");
+      return;
+    }
+
+    context.fillStyle = theme === "dark" ? "#101314" : "#fbfaf7";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = theme === "dark" ? "rgba(255,255,255,0.12)" : "rgba(25,23,20,0.14)";
+    for (let index = 0; index <= plannerGridSize; index += 1) {
+      context.beginPath();
+      context.moveTo(index * cellSize, 0);
+      context.lineTo(index * cellSize, canvas.height);
+      context.moveTo(0, index * cellSize);
+      context.lineTo(canvas.width, index * cellSize);
+      context.stroke();
+    }
+
+    plannerObjects.forEach((item) => {
+      const template = plannerBuildings.find((building) => building.id === item.type);
+      context.fillStyle = template?.color || "#64748b";
+      context.globalAlpha = item.alliance === "farm" ? 0.72 : 0.92;
+      context.fillRect(item.x * cellSize + 2, item.y * cellSize + 2, item.width * cellSize - 4, item.height * cellSize - 4);
+      context.globalAlpha = 1;
+      context.fillStyle = "#ffffff";
+      context.font = "700 10px Arial";
+      context.fillText(item.label.slice(0, 10), item.x * cellSize + 5, item.y * cellSize + 16);
+    });
+
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "city-layout-planner.png";
+    link.click();
+    setPlannerStatus("PNG exported.");
+  };
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const drag = plannerDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) {
+        return;
+      }
+
+      if (drag.kind === "pan") {
+        const board = plannerBoardRef.current;
+        if (!board) {
+          return;
+        }
+
+        const deltaX = event.clientX - drag.startX;
+        const deltaY = event.clientY - drag.startY;
+        if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+          drag.moved = true;
+          plannerSuppressClickRef.current = true;
+        }
+        board.scrollLeft = drag.scrollLeft - deltaX;
+        board.scrollTop = drag.scrollTop - deltaY;
+        return;
+      }
+
+      const target = plannerObjects.find((item) => item.id === drag.objectId);
+      const cell = getPlannerCellFromPointer(event.clientX, event.clientY);
+      if (!target || !cell) {
+        return;
+      }
+
+      const next = clampPlannerObjectPosition(cell.x - drag.offsetX, cell.y - drag.offsetY, target.width, target.height);
+      if (next.x !== target.x || next.y !== target.y) {
+        drag.moved = true;
+        plannerSuppressClickRef.current = true;
+      }
+
+      setPlannerDragPreview({
+        id: target.id,
+        x: next.x,
+        y: next.y,
+        valid: canPlacePlannerObject(next.x, next.y, target.width, target.height, target.id),
+      });
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      const drag = plannerDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) {
+        return;
+      }
+
+      plannerDragRef.current = null;
+
+      if (drag.kind === "pan") {
+        if (drag.moved) {
+          plannerSuppressClickRef.current = true;
+          setPlannerStatus("Board panned.");
+        }
+        return;
+      }
+
+      const target = plannerObjects.find((item) => item.id === drag.objectId);
+      const cell = getPlannerCellFromPointer(event.clientX, event.clientY);
+      setPlannerDragPreview(null);
+
+      if (!target || !cell || !drag.moved) {
+        return;
+      }
+
+      const next = clampPlannerObjectPosition(cell.x - drag.offsetX, cell.y - drag.offsetY, target.width, target.height);
+      const valid = canPlacePlannerObject(next.x, next.y, target.width, target.height, target.id);
+
+      if (!valid) {
+        setPlannerStatus("Move blocked by another building.");
+        return;
+      }
+
+      commitPlannerObjects(
+        plannerObjects.map((item) => (item.id === target.id ? { ...item, x: next.x, y: next.y } : item)),
+        `${target.label} moved.`,
+      );
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    };
+    // Pointer handlers intentionally close over the current planner snapshot for drag validation and commit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plannerObjects]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      plannerStorageKey,
+      encodePlannerLayoutPayload({
+        version: 1,
+        mode: plannerMode,
+        alliance: plannerAlliance,
+        objects: plannerObjects,
+      }),
+    );
+  }, [plannerAlliance, plannerMode, plannerObjects]);
+
+  useEffect(() => {
+    const handlePlannerShortcut = (event: KeyboardEvent) => {
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      if (target?.matches("input, textarea, select, [contenteditable='true']")) {
+        return;
+      }
+
+      if (activeMenu !== "planner") {
+        return;
+      }
+
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key.toLowerCase() === "z") {
+          event.preventDefault();
+          undoPlanner();
+        }
+        if (event.key.toLowerCase() === "y") {
+          event.preventDefault();
+          redoPlanner();
+        }
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (key === "q") setPlannerTool("select");
+      if (key === "w") setPlannerTool("pan");
+      if (key === "e") deleteSelectedPlannerObject();
+      if (key === "m") setPlannerMode((value) => (value === "base" ? "castle" : "base"));
+      if (key === "a") setPlannerAlliance((value) => (value === "main" ? "farm" : "main"));
+      if (key === "delete" || key === "backspace") deleteSelectedPlannerObject();
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        nudgeSelectedPlannerObject(0, -1);
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        nudgeSelectedPlannerObject(0, 1);
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        nudgeSelectedPlannerObject(-1, 0);
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        nudgeSelectedPlannerObject(1, 0);
+      }
+
+      const building = plannerBuildings.find((item) => item.shortcut === event.key);
+      if (building && (!building.castleOnly || plannerMode === "castle")) {
+        setSelectedPlannerBuilding(building.id);
+        setPlannerTool("select");
+        setSelectedPlannerObjectId("");
+        setPlannerStatus(`${building.label} ready to place.`);
+      }
+    };
+
+    window.addEventListener("keydown", handlePlannerShortcut);
+    return () => window.removeEventListener("keydown", handlePlannerShortcut);
+    // The shortcut handler needs the latest planner snapshot; the action helpers are intentionally recreated with it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMenu, plannerMode, plannerObjects, selectedPlannerObjectId]);
+
   const formatFurnaceLevel = (value?: number | string) => {
     if (value === undefined || value === null || value === "") {
       return "N/A";
@@ -890,10 +1714,10 @@ export default function Home() {
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
-                className={`sidebar-item ${activeMenu === (item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : "daybreak") ? "active" : ""}`}
+                className={`sidebar-item ${activeMenu === (item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : item.label === "City Layout Planner" ? "planner" : "daybreak") ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
-                onClick={() => setActiveMenu(item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : "daybreak")}
+                onClick={() => setActiveMenu(item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : item.label === "City Layout Planner" ? "planner" : "daybreak")}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
@@ -914,6 +1738,298 @@ export default function Home() {
         <div className="content-column">
           {activeMenu === "home" ? (
             <section className="home-page empty-home" id="home" aria-label="Home" />
+          ) : activeMenu === "planner" ? (
+            <section className="home-page planner-page" id="city-layout-planner" aria-label="City Layout Planner">
+              <section className="planner-toolbar" aria-label="Planner controls">
+                <div className="planner-tool-group" aria-label="Tools">
+                  {(["select", "pan", "erase"] as const).map((tool) => (
+                    <button
+                      className={plannerTool === tool ? "selected" : ""}
+                      type="button"
+                      key={tool}
+                      onClick={() => setPlannerTool(tool)}
+                    >
+                      {tool === "select" ? "Select Q" : tool === "pan" ? "Pan W" : "Delete E"}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="planner-tool-group" aria-label="Mode">
+                  {(["base", "castle"] as const).map((mode) => (
+                    <button className={plannerMode === mode ? "selected" : ""} type="button" key={mode} onClick={() => setPlannerMode(mode)}>
+                      {mode === "base" ? "Base" : "Castle"}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="planner-tool-group" aria-label="Alliance">
+                  {(["main", "farm"] as const).map((alliance) => (
+                    <button className={plannerAlliance === alliance ? "selected" : ""} type="button" key={alliance} onClick={() => setPlannerAlliance(alliance)}>
+                      {alliance === "main" ? "Main" : "Farm"}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="planner-zoom" aria-label="Planner zoom">
+                  <button type="button" onClick={() => setPlannerZoom((value) => Math.max(70, value - 10))}>-</button>
+                  <span>{plannerZoom}%</span>
+                  <button type="button" onClick={() => setPlannerZoom((value) => Math.min(140, value + 10))}>+</button>
+                  <button type="button" onClick={() => setPlannerZoom(100)}>Reset</button>
+                  <button type="button" onClick={fitPlannerToView}>Fit</button>
+                  <button type="button" onClick={centerSelectedPlannerObject}>Center</button>
+                </div>
+              </section>
+
+              <section className="planner-workspace">
+                <aside className="planner-panel" aria-label="Buildings">
+                  <div className="planner-panel-head">
+                    <span className="section-kicker">City Layout Planner</span>
+                    <h2>Buildings</h2>
+                  </div>
+                  <div className="planner-building-list">
+                    {availablePlannerBuildings.map((building) => (
+                      <button
+                        className={selectedPlannerBuilding === building.id ? "selected" : ""}
+                        type="button"
+                        key={building.id}
+                        onClick={() => {
+                          setSelectedPlannerBuilding(building.id);
+                          setPlannerTool("select");
+                          setSelectedPlannerObjectId("");
+                          setPlannerStatus(`${building.label} ready to place.`);
+                        }}
+                      >
+                        <span className="planner-building-swatch" style={{ background: building.color }} />
+                        <span>{building.label}</span>
+                        <small>{building.shortcut}</small>
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedPlannerBuilding === "obstacle" && (
+                    <div className="planner-obstacle-size">
+                      <strong>Obstacle Size</strong>
+                      <div>
+                        {[1, 2, 3, 4].map((size) => (
+                          <button className={plannerObstacleSize === size ? "selected" : ""} type="button" key={size} onClick={() => setPlannerObstacleSize(size)}>
+                            {size}x{size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="planner-counts" aria-label="Planner counts">
+                    <span>Flags: {plannerStats.flags}</span>
+                    <span>Cities: {plannerStats.cities}</span>
+                    <span>BT(active): {plannerStats.traps}/2</span>
+                    <span>HQ: {plannerStats.hq}</span>
+                    <span>Nodes: {plannerStats.nodes}</span>
+                    <span>Obstacles: {plannerStats.obstacles}</span>
+                    <span>Used: {plannerStats.utilization}%</span>
+                  </div>
+                  <div className={`planner-health ${plannerHealth.length ? "warning" : "good"}`}>
+                    <strong>{plannerHealth.length ? "Layout Checks" : "Layout Healthy"}</strong>
+                    {plannerHealth.length ? (
+                      plannerHealth.map((item) => <span key={item}>{item}</span>)
+                    ) : (
+                      <span>No planning warnings for the current layout.</span>
+                    )}
+                  </div>
+                  <div className="planner-object-list" aria-label="Placed buildings">
+                    <strong>Placed Buildings</strong>
+                    {sortedPlannerObjects.length ? (
+                      sortedPlannerObjects.map((item) => {
+                        const template = plannerBuildings.find((building) => building.id === item.type);
+                        return (
+                          <button
+                            className={selectedPlannerObjectId === item.id ? "selected" : ""}
+                            type="button"
+                            key={item.id}
+                            onClick={() => {
+                              setSelectedPlannerObjectId(item.id);
+                              setPlannerStatus(`${item.label} selected.`);
+                            }}
+                          >
+                            <span className="planner-building-swatch" style={{ background: template?.color || "#64748b" }} />
+                            <span>{item.label}</span>
+                            <small>{item.x},{item.y}</small>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <p>No buildings placed yet.</p>
+                    )}
+                  </div>
+                </aside>
+
+                <section
+                  className="planner-board-wrap"
+                  aria-label="Planner grid"
+                  ref={plannerBoardRef}
+                  onPointerDown={startPlannerPan}
+                  onWheel={handlePlannerWheel}
+                >
+                  <div
+                    className={`planner-board planner-tool-${plannerTool}`}
+                    style={{
+                      "--planner-zoom": `${plannerZoom / 100}`,
+                    } as CSSProperties}
+                  >
+                    <div className="planner-grid" role="grid" aria-label="City planner grid" ref={plannerGridRef} onPointerLeave={() => setPlannerHoverCell(null)}>
+                      {plannerCells.map((cell) => (
+                        <button
+                          className="planner-cell"
+                          type="button"
+                          role="gridcell"
+                          aria-label={`Cell ${cell.x}, ${cell.y}`}
+                          key={`${cell.x}-${cell.y}`}
+                          onPointerEnter={() => setPlannerHoverCell(cell)}
+                          onFocus={() => setPlannerHoverCell(cell)}
+                          onClick={() => handlePlannerCellClick(cell.x, cell.y)}
+                        />
+                      ))}
+                      {plannerPlacementPreview && (
+                        <div
+                          className={`planner-placement-preview ${plannerPlacementPreview.valid ? "valid" : "invalid"}`}
+                          style={{
+                            gridColumn: `${plannerPlacementPreview.x + 1} / span ${plannerPlacementPreview.width}`,
+                            gridRow: `${plannerPlacementPreview.y + 1} / span ${plannerPlacementPreview.height}`,
+                            "--planner-object-color": plannerPlacementPreview.color,
+                          } as CSSProperties}
+                          aria-hidden="true"
+                        >
+                          <span>{plannerPlacementPreview.label}</span>
+                        </div>
+                      )}
+                      {plannerObjects.map((item) => {
+                        const template = plannerBuildings.find((building) => building.id === item.type);
+                        const preview = plannerDragPreview?.id === item.id ? plannerDragPreview : null;
+                        return (
+                          <button
+                            className={`planner-object planner-${item.type} ${item.alliance === "farm" ? "farm" : "main"} ${selectedPlannerObjectId === item.id ? "selected" : ""} ${preview && !preview.valid ? "invalid" : ""} ${preview ? "dragging" : ""}`}
+                            type="button"
+                            key={item.id}
+                            style={{
+                              gridColumn: `${(preview?.x ?? item.x) + 1} / span ${item.width}`,
+                              gridRow: `${(preview?.y ?? item.y) + 1} / span ${item.height}`,
+                              "--planner-object-color": template?.color || "#64748b",
+                            } as CSSProperties}
+                            onPointerDown={(event) => startPlannerObjectDrag(event, item)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (plannerSuppressClickRef.current) {
+                                plannerSuppressClickRef.current = false;
+                                return;
+                              }
+                              if (plannerTool === "erase") {
+                                commitPlannerObjects(plannerObjects.filter((object) => object.id !== item.id), `${item.label} removed.`);
+                                setSelectedPlannerObjectId("");
+                                return;
+                              }
+                              setSelectedPlannerObjectId(item.id);
+                              setPlannerStatus(`${item.label} selected.`);
+                            }}
+                          >
+                            <strong>{item.label}</strong>
+                            <span>{preview?.x ?? item.x},{preview?.y ?? item.y}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </section>
+
+                <aside className="planner-panel planner-actions" aria-label="Actions">
+                  <div className="planner-panel-head">
+                    <h2>Actions</h2>
+                    <p>{plannerStatus || "Tap a cell to place the selected building."}</p>
+                  </div>
+                  {selectedPlannerObject && (
+                    <div className="planner-selected-editor" aria-label="Selected building editor">
+                      <strong>Selected</strong>
+                      <label>
+                        Name
+                        <input
+                          value={selectedPlannerObject.label}
+                          maxLength={32}
+                          onChange={(event) => updatePlannerObject(selectedPlannerObject.id, { label: event.currentTarget.value || selectedPlannerObject.label }, "Name updated.")}
+                        />
+                      </label>
+                      <div className="planner-coordinate-grid">
+                        <label>
+                          X
+                          <input
+                            type="number"
+                            min="0"
+                            max={plannerGridSize - selectedPlannerObject.width}
+                            value={selectedPlannerObject.x}
+                            onChange={(event) => updatePlannerObject(selectedPlannerObject.id, { x: Number(event.currentTarget.value) || 0 }, "Coordinates updated.")}
+                          />
+                        </label>
+                        <label>
+                          Y
+                          <input
+                            type="number"
+                            min="0"
+                            max={plannerGridSize - selectedPlannerObject.height}
+                            value={selectedPlannerObject.y}
+                            onChange={(event) => updatePlannerObject(selectedPlannerObject.id, { y: Number(event.currentTarget.value) || 0 }, "Coordinates updated.")}
+                          />
+                        </label>
+                      </div>
+                      <div className="planner-tool-group planner-editor-toggle" aria-label="Selected alliance">
+                        {(["main", "farm"] as const).map((alliance) => (
+                          <button
+                            className={selectedPlannerObject.alliance === alliance ? "selected" : ""}
+                            type="button"
+                            key={alliance}
+                            onClick={() => updatePlannerObject(selectedPlannerObject.id, { alliance }, "Alliance updated.")}
+                          >
+                            {alliance === "main" ? "Main" : "Farm"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="planner-action-grid">
+                    <button type="button" onClick={undoPlanner} disabled={!plannerHistory.length}>Undo</button>
+                    <button type="button" onClick={redoPlanner} disabled={!plannerFuture.length}>Redo</button>
+                    <button type="button" onClick={deleteSelectedPlannerObject}>Delete</button>
+                    <button type="button" onClick={duplicateSelectedPlannerObject} disabled={!selectedPlannerObject}>Duplicate</button>
+                    <button type="button" onClick={clearPlanner} disabled={!plannerObjects.length}>Clear</button>
+                    <button type="button" onClick={savePlannerPng}>Save PNG</button>
+                    <button type="button" onClick={exportPlannerCsv}>Save CSV</button>
+                  </div>
+                  <label className="planner-code-box">
+                    <span>Layout Code</span>
+                    <textarea value={plannerImportCode} onChange={(event) => setPlannerImportCode(event.currentTarget.value)} placeholder="Paste a saved layout code" />
+                  </label>
+                  <div className="planner-action-grid">
+                    <button type="button" onClick={() => void copyPlannerCode()}>Copy Code</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          loadPlannerCode(plannerImportCode);
+                        } catch (error) {
+                          setPlannerStatus(error instanceof Error ? error.message : "Unable to load layout.");
+                        }
+                      }}
+                    >
+                      Load
+                    </button>
+                  </div>
+                  <div className="planner-help">
+                    <strong>Shortcuts</strong>
+                    <span>Q Select, W Pan, E Delete/Erase</span>
+                    <span>1-7 Buildings, A Alliance, M Mode</span>
+                    <span>Arrow keys move the selected building</span>
+                    <span>Ctrl/Cmd+Z Undo, Ctrl/Cmd+Y Redo</span>
+                  </div>
+                </aside>
+              </section>
+            </section>
           ) : activeMenu === "bot" ? (
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
               <a className="bot-ad" href={botFrontendUrl} target="_blank" rel="noreferrer">
