@@ -186,6 +186,11 @@ type RedeemResult = {
   message: string;
   checkedAt?: string;
   player?: PlayerProfile;
+  results?: {
+    code: string;
+    state: string;
+    message: string;
+  }[];
 };
 
 const fallbackBotMetrics: BotMetrics = {
@@ -762,7 +767,8 @@ export default function Home() {
       const sneakHashes = new Set(["#sneak-peek", "#sneak", "#chief-concierge"]);
       const redeemCodeParam = params.get("code") || "";
       if (redeemCodeParam) {
-        setRedeemCode(redeemCodeParam.replace(/[^A-Za-z0-9]/g, ""));
+        const cleanRedeemCode = redeemCodeParam.toUpperCase() === "ALL" ? "ALL" : redeemCodeParam.replace(/[^A-Za-z0-9]/g, "");
+        setRedeemCode(cleanRedeemCode);
       }
       setActiveMenu(
         params.get("menu") === "daybreak" ||
@@ -877,14 +883,14 @@ export default function Home() {
   }, [giftCodes.length]);
 
   useEffect(() => {
-    if (activeMenu === "gift" && !giftCodes.length && !giftCodeLoading) {
+    if ((activeMenu === "gift" || activeMenu === "redeem") && !giftCodes.length && !giftCodeLoading) {
       const timer = window.setTimeout(() => void loadGiftCodes(), 0);
       return () => window.clearTimeout(timer);
     }
   }, [activeMenu, giftCodes.length, giftCodeLoading, loadGiftCodes]);
 
   useEffect(() => {
-    if (activeMenu !== "gift") {
+    if (activeMenu !== "gift" && activeMenu !== "redeem") {
       return;
     }
 
@@ -1364,8 +1370,8 @@ export default function Home() {
     setGiftCodeStatus("All active codes copied.");
   };
 
-  const openRedeemPage = (code: string) => {
-    const cleanCode = code.replace(/[^A-Za-z0-9]/g, "");
+  const openRedeemPage = (code = "ALL") => {
+    const cleanCode = code.toUpperCase() === "ALL" ? "ALL" : code.replace(/[^A-Za-z0-9]/g, "");
     setRedeemCode(cleanCode);
     setRedeemResult(null);
     setActiveMenu("redeem");
@@ -1398,23 +1404,66 @@ export default function Home() {
     setRedeemResult(null);
 
     try {
-      const response = await fetch("/api/gift-codes/redeem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          playerId: redeemPlayerId,
-          code: redeemCode,
-        }),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(payload?.message || payload?.error || "Unable to redeem.");
+      const selectedRedeemCode = redeemCode || "ALL";
+      const codesToRedeem = selectedRedeemCode === "ALL" ? giftCodes.map((item) => item.code) : [selectedRedeemCode];
+      if (!codesToRedeem.length) {
+        throw new Error("No active codes are loaded yet.");
       }
 
-      const result = payload as RedeemResult;
-      setRedeemResult(result);
-      if (result.player) {
-        setRedeemPlayer(result.player);
+      const results = await Promise.all(
+        codesToRedeem.map(async (code) => {
+          const response = await fetch("/api/gift-codes/redeem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+              playerId: redeemPlayerId,
+              code,
+            }),
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            return {
+              code,
+              state: "error",
+              message: payload?.message || payload?.error || "Unable to redeem.",
+              player: payload?.player as PlayerProfile | undefined,
+            };
+          }
+
+          const result = payload as RedeemResult;
+          return {
+            code,
+            state: result.state,
+            message: result.message,
+            player: result.player,
+          };
+        }),
+      );
+
+      const firstPlayer = results.find((item) => item.player)?.player;
+      if (firstPlayer) {
+        setRedeemPlayer(firstPlayer);
+      }
+
+      if (selectedRedeemCode === "ALL") {
+        const failedCount = results.filter((item) => ["error", "invalid", "expired", "rate_limited", "unknown"].includes(item.state)).length;
+        setRedeemResult({
+          state: failedCount ? "partial" : "success",
+          message: failedCount
+            ? `${results.length - failedCount} of ${results.length} active codes redeemed or already claimed.`
+            : `Submitted all ${results.length} active codes successfully.`,
+          checkedAt: new Date().toISOString(),
+          player: firstPlayer,
+          results: results.map(({ code, state, message }) => ({ code, state, message })),
+        });
+      } else {
+        const [singleResult] = results;
+        setRedeemResult({
+          state: singleResult.state,
+          message: singleResult.message,
+          checkedAt: new Date().toISOString(),
+          player: singleResult.player,
+        });
       }
     } catch (error) {
       setRedeemResult({ state: "error", message: error instanceof Error ? error.message : "Unable to redeem." });
@@ -2359,8 +2408,6 @@ export default function Home() {
       : label === "Sneak Peek"
         ? "sneak"
       : "daybreak";
-  const latestGiftCode = giftCodes[0];
-
   return (
     <main
       className={`app-shell ${theme === "dark" ? "dark" : "light"} ${collapsedSidebar ? "collapsed-sidebar" : ""} ${hideTopNav ? "hide-top-nav" : ""} width-${contentWidth} ${resizingSidebar ? "resizing-sidebar" : ""}`}
@@ -2499,7 +2546,7 @@ export default function Home() {
                   <p>Fast active codes, refreshed automatically and ready for direct redemption on WhiteoutSurvival.dev.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
-                  <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage(latestGiftCode?.code || "")}>
+                  <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage()}>
                     Redeem
                     <Icon name="external" />
                   </button>
@@ -2601,16 +2648,31 @@ export default function Home() {
                 <form className="redeem-card redeem-card-wide" onSubmit={(event) => void submitRedeem(event)}>
                   <div className="redeem-card-head">
                     <span>Auto redeem</span>
-                    <strong>Player and Code</strong>
+                    <strong>Player and Active Codes</strong>
                   </div>
                   <label>
                     <span>Player ID</span>
                     <input value={redeemPlayerId} onChange={(event) => setRedeemPlayerId(event.currentTarget.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="Enter your FID" />
                   </label>
                   <label>
-                    <span>Gift Code</span>
-                    <input value={redeemCode} onChange={(event) => setRedeemCode(event.currentTarget.value.replace(/[^A-Za-z0-9]/g, ""))} placeholder="Gift code" />
+                    <span>Active Code</span>
+                    <select
+                      value={redeemCode || "ALL"}
+                      onChange={(event) => setRedeemCode(event.currentTarget.value)}
+                      disabled={giftCodeLoading && !giftCodes.length}
+                    >
+                      <option value="ALL">ALL active codes</option>
+                      {giftCodes.map((item) => (
+                        <option value={item.code} key={item.code}>
+                          {item.code}
+                        </option>
+                      ))}
+                    </select>
                   </label>
+                  <div className="redeem-code-strip" aria-live="polite">
+                    <span>{giftCodeLoading ? "Refreshing active code list" : `${giftCodes.length} active code${giftCodes.length === 1 ? "" : "s"} loaded`}</span>
+                    {giftCodeUpdatedAt && <span>Updated {formatGiftDate(giftCodeUpdatedAt)}</span>}
+                  </div>
                   {redeemPlayer && (
                     <div className="redeem-player">
                       {redeemPlayer.avatarImage && <img src={redeemPlayer.avatarImage} alt="" />}
@@ -2624,8 +2686,8 @@ export default function Home() {
                     <Icon name="shield" />
                     <span>Secure verification is handled automatically by our auto-redeem system.</span>
                   </div>
-                  <button type="submit" disabled={redeemLoading || !redeemPlayerId || !redeemCode}>
-                    {redeemLoading ? "Redeeming automatically" : "Auto Redeem Code"}
+                  <button type="submit" disabled={redeemLoading || !redeemPlayerId || ((redeemCode || "ALL") === "ALL" && !giftCodes.length)}>
+                    {redeemLoading ? "Redeeming automatically" : (redeemCode || "ALL") === "ALL" ? "Auto Redeem All Active Codes" : "Auto Redeem Code"}
                   </button>
                 </form>
               </section>
@@ -2634,6 +2696,16 @@ export default function Home() {
                 <section className={`redeem-result redeem-result-${redeemResult.state}`} aria-live="polite">
                   <strong>{redeemResult.message}</strong>
                   {redeemResult.checkedAt && <span>Checked {formatGiftDate(redeemResult.checkedAt)} UTC</span>}
+                  {redeemResult.results && (
+                    <div className="redeem-result-list">
+                      {redeemResult.results.map((item) => (
+                        <span className={`redeem-result-pill redeem-result-pill-${item.state}`} key={item.code}>
+                          <strong>{item.code}</strong>
+                          {item.message}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </section>
               )}
             </section>
