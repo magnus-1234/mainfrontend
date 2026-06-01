@@ -604,6 +604,13 @@ const formatCountdownParts = (milliseconds: number) => {
 const formatDetailedCountdown = ({ days, hours, minutes, seconds }: ReturnType<typeof formatCountdownParts>) =>
   `${days}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
 
+const countdownUnits = [
+  ["d", "days"],
+  ["h", "hours"],
+  ["m", "minutes"],
+  ["s", "seconds"],
+] as const;
+
 function Icon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
     home: (
@@ -896,7 +903,6 @@ function StateTransferCountdown() {
   const isLive = now !== null && remainingToStart <= 0 && remainingToEnd > 0;
   const hasEnded = now !== null && remainingToEnd <= 0;
   const countdown = formatCountdownParts(isLive ? remainingToEnd : remainingToStart);
-  const navCountdown = now === null ? "--d --h --m --s" : hasEnded ? "Window ended" : formatDetailedCountdown(countdown);
   const navStatus = hasEnded ? "June window closed" : isLive ? "Transfer live" : "Starts in";
 
   useEffect(() => {
@@ -942,7 +948,20 @@ function StateTransferCountdown() {
         <img src="/state-transfer.png" alt="" />
         <span className="state-transfer-copy">
           <span>Next state transfer</span>
-          <strong>{navCountdown}</strong>
+          <strong className={hasEnded ? "ended" : ""} aria-label={hasEnded ? "Window ended" : formatDetailedCountdown(countdown)}>
+            {hasEnded
+              ? "Window ended"
+              : countdownUnits.map(([suffix, key]) => {
+                  const value = now === null ? "--" : key === "days" ? String(countdown[key]) : String(countdown[key]).padStart(2, "0");
+
+                  return (
+                    <span className="state-transfer-time-unit" key={suffix}>
+                      <span>{value}</span>
+                      <small>{suffix}</small>
+                    </span>
+                  );
+                })}
+          </strong>
         </span>
         <small>{navStatus}</small>
       </button>

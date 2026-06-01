@@ -389,14 +389,15 @@ svg {
 
 .state-transfer-button {
   display: inline-flex;
-  min-width: 238px;
-  height: 40px;
+  min-width: 258px;
+  height: 44px;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   border: 1px solid color-mix(in srgb, var(--gold-line) 72%, var(--border));
   border-radius: 8px;
-  padding: 4px 8px 4px 4px;
+  padding: 5px 9px 5px 5px;
   background:
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.18), transparent 26px),
     linear-gradient(135deg, color-mix(in srgb, var(--card) 84%, transparent), color-mix(in srgb, var(--gold-soft) 88%, transparent)),
     var(--background);
   color: var(--foreground);
@@ -418,10 +419,11 @@ svg {
 }
 
 .state-transfer-button img {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold-line) 50%, transparent);
 }
 
 .state-transfer-copy {
@@ -431,7 +433,7 @@ svg {
   text-align: left;
 }
 
-.state-transfer-copy span {
+.state-transfer-copy > span {
   color: var(--muted-foreground);
   font-size: 10px;
   font-weight: 900;
@@ -442,12 +444,50 @@ svg {
 }
 
 .state-transfer-copy strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-variant-numeric: tabular-nums;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 950;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
+}
+
+.state-transfer-copy strong.ended {
+  color: var(--primary);
+  font-size: 14px;
+}
+
+.state-transfer-time-unit {
+  display: inline-flex;
+  min-width: 31px;
+  height: 19px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 48%, transparent);
+  border-radius: 6px;
+  padding: 2px 3px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, transparent), color-mix(in srgb, var(--gold-soft) 70%, transparent));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.state-transfer-time-unit span {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.state-transfer-time-unit small {
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .state-transfer-button > small {
@@ -8586,11 +8626,11 @@ body {
   }
 
   .state-transfer-button {
-    width: 142px;
-    min-width: 142px;
-    height: 32px;
+    width: 160px;
+    min-width: 160px;
+    height: 36px;
     gap: 0;
-    padding: 4px 7px;
+    padding: 4px 6px;
   }
 
   .state-transfer-button img {
@@ -8601,14 +8641,30 @@ body {
     display: grid;
   }
 
-  .state-transfer-copy span {
+  .state-transfer-copy > span {
     font-size: 8px;
     letter-spacing: 0;
   }
 
   .state-transfer-copy strong {
+    gap: 2px;
     font-size: 12px;
     letter-spacing: 0;
+  }
+
+  .state-transfer-time-unit {
+    min-width: 25px;
+    height: 17px;
+    border-radius: 5px;
+    padding: 2px;
+  }
+
+  .state-transfer-time-unit span {
+    font-size: 11px;
+  }
+
+  .state-transfer-time-unit small {
+    font-size: 7px;
   }
 
   .state-transfer-button > small {
@@ -9433,17 +9489,31 @@ body {
   }
 
   .state-transfer-button {
-    width: 116px;
-    min-width: 116px;
+    width: 136px;
+    min-width: 136px;
     padding: 4px 5px;
   }
 
-  .state-transfer-copy span {
+  .state-transfer-copy > span {
     font-size: 7px;
   }
 
   .state-transfer-copy strong {
+    gap: 1px;
     font-size: 10.5px;
+  }
+
+  .state-transfer-time-unit {
+    min-width: 22px;
+    padding-inline: 1px;
+  }
+
+  .state-transfer-time-unit span {
+    font-size: 10px;
+  }
+
+  .state-transfer-time-unit small {
+    font-size: 6px;
   }
 
   .ks-header-inner {
