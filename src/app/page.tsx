@@ -45,6 +45,7 @@ type IslandComment = {
 
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
+type ActiveMenu = "home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot";
 
 type LinkedPlayerAccount = PlayerProfile & {
   linkedAt: string;
@@ -253,14 +254,89 @@ const menuItems = [
   { label: "More", icon: "book", status: "Soon" },
 ];
 
-const sidebarItems = [
-  { label: "Home", icon: "home", href: "#home" },
-  { label: "Gift Codes", icon: "gift", href: "#gift-codes" },
-  { label: "City Layout Planner", icon: "grid", href: "#city-layout-planner", beta: true },
-  { label: "Sneak Peek", icon: "book", href: "#sneak-peek" },
-  { label: "Daybreak Island", icon: "island", href: "#daybreak" },
-  { label: "Discord Bot", icon: "bot", href: "#discord-bot" },
+const sidebarItems: {
+  label: string;
+  icon: string;
+  menu: ActiveMenu;
+  href: string;
+  beta?: boolean;
+}[] = [
+  { label: "Home", icon: "home", menu: "home", href: "/" },
+  { label: "Gift Codes", icon: "gift", menu: "gift", href: "/gift-codes" },
+  { label: "City Layout Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
+  { label: "Sneak Peek", icon: "book", menu: "sneak", href: "/#sneak-peek" },
+  { label: "Daybreak Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
+  { label: "Discord Bot", icon: "bot", menu: "bot", href: "/#discord-bot" },
 ];
+
+const hashMenuAliases: Record<string, ActiveMenu> = {
+  "#home": "home",
+  "#gift-codes": "gift",
+  "#giftcodes": "gift",
+  "#gift": "gift",
+  "#redeem": "redeem",
+  "#gift-code-redeem": "redeem",
+  "#city-layout-planner": "planner",
+  "#layout-planner": "planner",
+  "#planner": "planner",
+  "#sneak-peek": "sneak",
+  "#sneak": "sneak",
+  "#chief-concierge": "sneak",
+  "#daybreak": "daybreak",
+  "#showcase": "daybreak",
+  "#upload": "daybreak",
+  "#discord-bot": "bot",
+  "#bot": "bot",
+};
+
+const queryMenuAliases: Record<string, ActiveMenu> = {
+  home: "home",
+  "gift-codes": "gift",
+  giftcodes: "gift",
+  gift: "gift",
+  redeem: "redeem",
+  planner: "planner",
+  sneak: "sneak",
+  daybreak: "daybreak",
+  bot: "bot",
+};
+
+const menuUrls: Record<ActiveMenu, string> = {
+  home: "/",
+  gift: "/gift-codes",
+  redeem: "/redeem",
+  planner: "/#city-layout-planner",
+  sneak: "/#sneak-peek",
+  daybreak: "/#daybreak",
+  bot: "/#discord-bot",
+};
+
+const resolveActiveMenu = (location: Location): ActiveMenu => {
+  const params = new URLSearchParams(location.search);
+  const hashMenu = hashMenuAliases[location.hash];
+  if (hashMenu || location.hash.startsWith("#island-")) {
+    return hashMenu || "daybreak";
+  }
+
+  const queryMenu = queryMenuAliases[params.get("menu") || ""];
+  if (queryMenu) {
+    return queryMenu;
+  }
+
+  if (params.has("island") || location.pathname.startsWith("/daybreak/island/")) {
+    return "daybreak";
+  }
+
+  if (location.pathname.startsWith("/gift-codes")) {
+    return "gift";
+  }
+
+  if (location.pathname.startsWith("/redeem")) {
+    return "redeem";
+  }
+
+  return "home";
+};
 
 const plannerFacilitiesRaw: [number, number][][] = [[[1068, 138], [537, 138], [138, 138], [138, 666], [138, 1038], [666, 1068], [1068, 567], [1068, 1068]], [[486, 327], [768, 867], [867, 567], [327, 666]], [[666, 138], [438, 267], [138, 537], [237, 768], [537, 1038], [738, 957], [1068, 666], [957, 438]], [[816, 717], [387, 717], [588, 327]], [[957, 237], [666, 267], [237, 237], [267, 537], [237, 957], [537, 936], [936, 537], [957, 957]], [[867, 327], [327, 327], [327, 867], [867, 867]], [[867, 138], [366, 138], [138, 438], [138, 867], [438, 1068], [1068, 327], [1068, 867], [867, 1068]], [[816, 486], [387, 486], [588, 867]], [[957, 138], [537, 87], [138, 237], [87, 666], [267, 1068], [636, 1137], [1137, 567], [1068, 936]], [[1068, 237], [768, 138], [237, 138], [138, 327], [138, 957], [327, 1038], [1068, 747], [957, 1068]], [[237, 486], [138, 747], [486, 957], [768, 1038], [957, 747], [1068, 486], [486, 138], [768, 237]], [[768, 327], [327, 567], [486, 867], [867, 666]]];
 const plannerResourcesRaw: [number, number, string][] = [[312,635,"iron"],[313,314,"meat"],[314,308,"iron"],[318,634,"coal"],[318,643,"meat"],[319,318,"wood"],[319,624,"coal"],[324,630,"iron"],[324,648,"iron"],[326,602,"meat"],[326,622,"meat"],[327,591,"coal"],[329,308,"coal"],[329,613,"wood"],[330,21,"meat"],[330,649,"meat"],[331,57,"wood"],[332,597,"coal"],[332,622,"coal"],[333,675,"iron"],[334,51,"coal"],[335,7,"meat"],[338,37,"meat"],[339,125,"coal"],[339,663,"iron"],[340,116,"wood"],[340,605,"coal"],[341,53,"wood"],[341,669,"iron"],[342,90,"wood"],[342,649,"iron"],[344,322,"wood"],[344,577,"wood"],[345,63,"meat"],[345,82,"wood"],[346,617,"iron"],[346,659,"wood"],[347,679,"meat"],[349,666,"wood"],[350,154,"meat"],[350,581,"iron"],[352,136,"wood"],[352,177,"wood"],[353,315,"iron"],[353,564,"iron"],[354,161,"wood"],[354,622,"coal"],[355,123,"meat"],[355,666,"coal"],[355,685,"iron"],[356,609,"coal"],[356,632,"wood"],[357,598,"meat"],[358,309,"meat"],[359,301,"coal"],[360,560,"wood"],[360,652,"coal"],[361,661,"iron"],[362,610,"coal"],[363,161,"meat"],[363,572,"iron"],[365,273,"meat"],[365,633,"meat"],[366,280,"wood"],[367,678,"coal"],[370,305,"coal"],[370,610,"iron"],[371,603,"iron"],[371,716,"wood"],[372,630,"coal"],[372,666,"wood"],[376,654,"meat"],[376,676,"wood"],[380,697,"meat"],[385,676,"coal"],[387,686,"meat"],[388,699,"meat"],[391,661,"coal"],[396,688,"iron"],[408,397,"coal"],[409,379,"iron"],[411,681,"meat"],[413,672,"coal"],[413,694,"meat"],[414,387,"coal"],[415,355,"iron"],[416,376,"iron"],[422,374,"coal"],[422,380,"meat"],[423,684,"iron"],[425,368,"wood"],[425,402,"wood"],[425,674,"iron"],[427,390,"meat"],[428,425,"meat"],[429,435,"meat"],[431,686,"wood"],[433,399,"coal"],[435,428,"meat"],[435,680,"wood"],[437,606,"meat"],[438,387,"meat"],[438,577,"meat"],[438,697,"meat"],[440,399,"meat"],[440,664,"meat"],[441,653,"iron"],[442,362,"iron"],[442,571,"coal"],[442,597,"coal"],[446,342,"coal"],[447,401,"iron"],[448,568,"iron"],[449,649,"iron"],[450,394,"coal"],[450,585,"iron"],[451,603,"iron"],[451,612,"iron"],[452,561,"coal"],[452,629,"coal"],[453,434,"iron"],[455,650,"iron"],[456,339,"coal"],[456,709,"coal"],[457,410,"meat"],[457,592,"iron"],[457,622,"iron"],[457,680,"meat"],[458,564,"iron"],[458,606,"iron"],[458,607,"iron"],[458,757,"wood"],[459,390,"iron"],[459,643,"iron"],[459,788,"meat"],[462,690,"coal"],[463,578,"iron"],[464,601,"coal"],[464,765,"wood"],[465,419,"wood"],[465,592,"coal"],[465,745,"iron"],[465,788,"wood"],[467,629,"iron"],[467,648,"coal"],[467,680,"coal"],[468,614,"coal"],[468,659,"iron"],[469,348,"iron"],[469,717,"coal"],[471,425,"iron"],[471,667,"coal"],[472,674,"meat"],[473,782,"iron"],[473,788,"coal"],[474,772,"wood"],[475,350,"coal"],[475,432,"iron"],[475,651,"coal"],[476,638,"meat"],[476,702,"iron"],[476,765,"wood"],[479,750,"iron"],[480,378,"coal"],[480,714,"coal"],[481,346,"iron"],[482,426,"wood"],[483,643,"meat"],[484,391,"wood"],[485,359,"meat"],[485,439,"coal"],[487,369,"iron"],[487,748,"iron"],[492,460,"wood"],[494,373,"wood"],[495,471,"coal"],[497,396,"wood"],[497,437,"meat"],[498,647,"iron"],[499,880,"iron"],[500,358,"meat"],[500,774,"meat"],[501,389,"coal"],[501,780,"meat"],[502,447,"iron"],[503,459,"iron"],[504,757,"coal"],[505,763,"meat"],[506,473,"iron"],[507,396,"wood"],[508,384,"wood"],[509,448,"wood"],[509,772,"iron"],[512,483,"iron"],[512,489,"meat"],[513,378,"meat"],[514,459,"coal"],[514,881,"iron"],[516,395,"wood"],[517,451,"iron"],[518,757,"meat"],[520,490,"coal"],[521,893,"meat"],[522,471,"iron"],[523,456,"iron"],[523,462,"iron"],[524,398,"meat"],[524,431,"coal"],[524,443,"wood"],[524,758,"coal"],[525,722,"wood"],[527,487,"iron"],[527,734,"coal"],[528,883,"coal"],[528,899,"wood"],[530,770,"coal"],[531,724,"coal"],[532,428,"coal"],[532,877,"meat"],[533,758,"iron"],[534,475,"iron"],[534,747,"iron"],[536,441,"iron"],[536,484,"coal"],[536,714,"wood"],[538,731,"coal"],[539,450,"meat"],[540,786,"meat"],[541,708,"coal"],[541,759,"coal"],[541,771,"wood"],[541,780,"coal"],[541,905,"meat"],[542,420,"iron"],[542,877,"coal"],[544,744,"coal"],[546,702,"coal"],[547,753,"coal"],[548,673,"coal"],[548,895,"wood"],[549,590,"iron"],[549,781,"iron"],[552,438,"iron"],[552,729,"coal"],[552,737,"coal"],[553,704,"iron"],[555,780,"wood"],[555,867,"iron"],[555,883,"meat"],[556,457,"iron"],[556,490,"iron"],[556,712,"meat"],[557,683,"iron"],[558,720,"coal"],[560,676,"iron"],[560,690,"iron"],[560,752,"wood"],[560,762,"wood"],[560,874,"meat"],[561,449,"coal"],[562,459,"coal"],[562,743,"coal"],[563,433,"wood"],[563,506,"wood"],[563,737,"iron"],[565,778,"iron"],[566,708,"iron"],[566,766,"wood"],[568,476,"coal"],[568,676,"meat"],[568,699,"coal"],[568,718,"iron"],[570,739,"iron"],[572,684,"iron"],[572,732,"coal"],[573,706,"iron"],[573,860,"coal"],[575,470,"iron"],[575,877,"coal"],[577,464,"coal"],[577,675,"meat"],[577,753,"meat"],[580,721,"coal"],[581,771,"wood"],[582,747,"coal"],[584,679,"iron"],[584,690,"iron"],[585,731,"coal"],[585,877,"meat"],[586,757,"meat"],[587,737,"coal"],[591,726,"coal"],[592,691,"iron"],[592,707,"iron"],[592,745,"iron"],[592,770,"meat"],[595,675,"meat"],[595,701,"iron"],[599,689,"iron"],[600,764,"iron"],[601,433,"iron"],[601,698,"coal"],[601,711,"wood"],[601,733,"coal"],[602,745,"coal"],[602,756,"wood"],[603,476,"wood"],[604,679,"coal"],[606,442,"meat"],[607,456,"meat"],[607,700,"meat"],[611,433,"wood"],[611,732,"iron"],[611,765,"wood"],[613,454,"meat"],[613,691,"meat"],[614,481,"iron"],[614,754,"meat"],[615,683,"iron"],[616,676,"wood"],[616,711,"iron"],[617,433,"wood"],[618,770,"iron"],[619,734,"iron"],[620,452,"coal"],[621,478,"coal"],[622,360,"iron"],[622,443,"iron"],[622,465,"coal"],[622,471,"coal"],[624,369,"coal"],[626,725,"meat"],[626,736,"iron"],[627,673,"coal"],[627,754,"wood"],[629,696,"iron"],[630,431,"meat"],[630,468,"coal"],[630,800,"coal"],[631,439,"wood"],[631,762,"wood"],[632,393,"iron"],[632,808,"meat"],[632,823,"coal"],[633,706,"meat"],[633,780,"iron"],[634,456,"iron"],[634,680,"wood"],[635,413,"iron"],[635,755,"iron"],[636,432,"meat"],[637,375,"wood"],[638,717,"iron"],[639,727,"iron"],[639,767,"wood"],[640,447,"coal"],[640,482,"meat"],[640,743,"iron"],[642,392,"iron"],[642,827,"coal"],[643,435,"wood"],[643,476,"iron"],[644,385,"meat"],[645,752,"wood"],[645,817,"meat"],[646,443,"meat"],[647,704,"iron"],[648,459,"meat"],[648,495,"coal"],[648,733,"meat"],[648,743,"iron"],[650,416,"iron"],[650,451,"coal"],[650,791,"meat"],[651,382,"meat"],[651,429,"wood"],[651,776,"coal"],[652,750,"coal"],[653,409,"wood"],[653,435,"coal"],[653,468,"wood"],[653,723,"wood"],[653,770,"coal"],[654,492,"meat"],[655,484,"iron"],[655,759,"coal"],[657,381,"wood"],[658,402,"meat"],[658,417,"coal"],[658,748,"iron"],[658,806,"iron"],[658,822,"coal"],[658,828,"wood"],[662,372,"meat"],[662,437,"wood"],[662,486,"coal"],[662,775,"coal"],[663,391,"iron"],[663,459,"wood"],[664,417,"meat"],[664,747,"coal"],[664,784,"wood"],[664,817,"meat"],[666,805,"coal"],[668,731,"coal"],[669,398,"iron"],[670,720,"iron"],[671,439,"iron"],[671,766,"wood"],[671,811,"coal"],[673,464,"iron"],[673,772,"meat"],[676,402,"coal"],[676,745,"iron"],[677,723,"iron"],[677,797,"wood"],[679,812,"meat"],[679,820,"meat"],[680,715,"iron"],[682,782,"coal"],[683,749,"iron"],[685,405,"iron"],[687,789,"iron"],[689,730,"coal"],[689,738,"iron"],[690,705,"iron"],[690,767,"meat"],[690,812,"coal"],[691,749,"coal"],[693,782,"meat"],[695,791,"iron"],[695,801,"iron"],[696,711,"coal"],[698,760,"iron"],[699,705,"coal"],[701,746,"iron"],[705,674,"wood"],[705,809,"meat"],[707,695,"coal"],[707,777,"coal"],[713,747,"wood"],[713,774,"wood"],[714,711,"iron"],[715,723,"wood"],[715,788,"iron"],[715,794,"iron"],[715,807,"meat"],[716,693,"coal"],[717,737,"iron"],[720,744,"meat"],[721,683,"iron"],[721,785,"wood"],[721,810,"meat"],[722,651,"iron"],[723,733,"coal"],[724,721,"wood"],[726,670,"iron"],[728,759,"iron"],[729,715,"iron"],[729,734,"iron"],[730,579,"iron"],[730,681,"coal"],[731,694,"coal"],[731,721,"meat"],[731,771,"iron"],[732,640,"meat"],[732,741,"wood"],[733,475,"iron"],[733,786,"coal"],[734,468,"meat"],[734,491,"coal"],[734,752,"meat"],[735,654,"wood"],[735,809,"wood"],[736,499,"coal"],[736,816,"iron"],[737,461,"coal"],[737,686,"coal"],[739,704,"coal"],[739,721,"iron"],[740,693,"coal"],[742,599,"iron"],[742,741,"wood"],[742,763,"coal"],[743,802,"coal"],[744,452,"meat"],[744,498,"iron"],[744,784,"iron"],[745,670,"coal"],[745,721,"iron"],[745,731,"wood"],[747,693,"iron"],[747,749,"iron"],[748,764,"meat"],[749,681,"coal"],[749,702,"coal"],[749,712,"coal"],[749,794,"meat"],[750,455,"meat"],[750,466,"meat"],[750,775,"wood"],[752,664,"coal"],[752,721,"coal"],[753,785,"coal"],[754,801,"meat"],[755,500,"coal"],[755,587,"coal"],[755,601,"wood"],[755,753,"iron"],[756,688,"meat"],[757,777,"wood"],[758,737,"meat"],[759,578,"coal"],[762,452,"meat"],[763,799,"iron"],[764,678,"iron"],[764,750,"wood"],[766,688,"coal"],[766,792,"meat"],[767,494,"wood"],[767,713,"meat"],[767,742,"coal"],[768,433,"wood"],[768,707,"meat"],[768,735,"meat"],[769,451,"coal"],[769,501,"coal"],[769,660,"meat"],[769,756,"iron"],[771,477,"coal"],[773,467,"wood"],[773,714,"wood"],[774,685,"wood"],[775,656,"wood"],[777,450,"iron"],[782,793,"wood"],[784,662,"meat"],[784,806,"meat"],[785,472,"iron"],[787,726,"iron"],[788,746,"iron"],[790,756,"meat"],[792,463,"meat"],[792,478,"meat"],[793,665,"meat"],[793,736,"iron"],[795,470,"wood"],[797,719,"iron"],[798,750,"wood"],[799,660,"wood"],[799,757,"meat"],[800,667,"iron"],[800,733,"iron"],[806,665,"meat"],[807,757,"coal"],[808,751,"coal"],[812,660,"iron"],[816,755,"coal"],[820,656,"meat"],[824,663,"iron"],[828,541,"wood"],[830,753,"wood"],[834,655,"iron"],[835,546,"coal"],[835,649,"coal"],[840,533,"wood"],[851,679,"coal"],[853,754,"meat"],[854,546,"iron"],[855,745,"meat"],[859,656,"wood"],[860,683,"iron"],[862,576,"iron"],[862,689,"iron"],[863,749,"wood"],[866,558,"wood"],[866,703,"wood"],[868,603,"iron"],[869,731,"wood"],[870,682,"iron"],[871,711,"coal"],[871,725,"wood"],[874,675,"coal"],[874,738,"wood"],[876,684,"wood"],[876,691,"wood"],[880,587,"wood"],[881,555,"iron"],[881,702,"iron"],[883,655,"meat"],[883,661,"iron"],[884,760,"meat"],[885,743,"coal"],[886,579,"wood"],[886,610,"coal"],[887,561,"meat"],[888,708,"wood"],[888,777,"coal"],[889,672,"meat"],[890,758,"wood"],[892,660,"wood"],[893,723,"meat"],[894,682,"coal"],[894,694,"meat"],[894,715,"meat"],[895,671,"iron"],[896,756,"coal"],[896,763,"iron"],[898,688,"wood"],[898,706,"wood"],[904,658,"coal"],[906,537,"meat"],[906,656,"meat"],[926,557,"meat"],[929,520,"coal"],[951,503,"coal"],[1192,1194,"wood"]];
@@ -631,7 +707,7 @@ export default function Home() {
   const [playerLookupStatus, setPlayerLookupStatus] = useState("");
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
-  const [activeMenu, setActiveMenu] = useState<"home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot">("home");
+  const [activeMenu, setActiveMenu] = useState<ActiveMenu>("home");
   const [giftCodes, setGiftCodes] = useState<GiftCode[]>(() => readStoredGiftCodes()?.codes.filter((item) => item.isActive !== false) || []);
   const [giftCodeUpdatedAt, setGiftCodeUpdatedAt] = useState(() => readStoredGiftCodes()?.lastUpdated || "");
   const [giftCodeLoading, setGiftCodeLoading] = useState(false);
@@ -756,48 +832,24 @@ export default function Home() {
   }, [clearFooterHideTimer, clearFooterIntentTimer, scheduleIdleFooter]);
 
   useEffect(() => {
-    const syncMenuFromHash = () => {
+    const syncMenuFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
-      const hash = window.location.hash;
-      const daybreakHashes = new Set(["#daybreak", "#showcase", "#upload"]);
-      const botHashes = new Set(["#discord-bot", "#bot"]);
-      const giftHashes = new Set(["#gift-codes", "#giftcodes", "#gift"]);
-      const redeemHashes = new Set(["#redeem", "#gift-code-redeem"]);
-      const plannerHashes = new Set(["#city-layout-planner", "#layout-planner", "#planner"]);
-      const sneakHashes = new Set(["#sneak-peek", "#sneak", "#chief-concierge"]);
       const redeemCodeParam = params.get("code") || "";
       if (redeemCodeParam) {
         const cleanRedeemCode = redeemCodeParam.toUpperCase() === "ALL" ? "ALL" : redeemCodeParam.replace(/[^A-Za-z0-9]/g, "");
         setRedeemCode(cleanRedeemCode);
       }
-      setActiveMenu(
-        params.get("menu") === "daybreak" ||
-          params.has("island") ||
-          window.location.pathname.startsWith("/daybreak/island/") ||
-          daybreakHashes.has(hash) ||
-          hash.startsWith("#island-")
-          ? "daybreak"
-          : window.location.pathname.startsWith("/gift-codes") ||
-              params.get("menu") === "gift-codes" ||
-              params.get("menu") === "giftcodes" ||
-              giftHashes.has(hash)
-            ? "gift"
-          : window.location.pathname.startsWith("/redeem") || params.get("menu") === "redeem" || redeemHashes.has(hash)
-            ? "redeem"
-          : params.get("menu") === "bot" || botHashes.has(hash)
-            ? "bot"
-          : params.get("menu") === "planner" || plannerHashes.has(hash)
-            ? "planner"
-          : params.get("menu") === "sneak" || sneakHashes.has(hash)
-            ? "sneak"
-          : "home",
-      );
+      setActiveMenu(resolveActiveMenu(window.location));
     };
 
-    syncMenuFromHash();
-    window.addEventListener("hashchange", syncMenuFromHash);
+    syncMenuFromLocation();
+    window.addEventListener("hashchange", syncMenuFromLocation);
+    window.addEventListener("popstate", syncMenuFromLocation);
 
-    return () => window.removeEventListener("hashchange", syncMenuFromHash);
+    return () => {
+      window.removeEventListener("hashchange", syncMenuFromLocation);
+      window.removeEventListener("popstate", syncMenuFromLocation);
+    };
   }, []);
 
   useEffect(() => {
@@ -2396,22 +2448,14 @@ export default function Home() {
   };
 
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
-  const menuKeyFor = (label: string) =>
-    label === "Home"
-      ? "home"
-      : label === "Gift Codes"
-        ? "gift"
-      : label === "Discord Bot"
-        ? "bot"
-      : label === "City Layout Planner"
-        ? "planner"
-      : label === "Sneak Peek"
-        ? "sneak"
-      : "daybreak";
-  const openGiftCodesPage = () => {
-    setActiveMenu("gift");
-    window.history.pushState(null, "", "/gift-codes");
+  const navigateToMenu = (menu: ActiveMenu) => {
+    setActiveMenu(menu);
+    const nextUrl = menuUrls[menu];
+    if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
+      window.history.pushState(null, "", nextUrl);
+    }
   };
+  const openGiftCodesPage = () => navigateToMenu("gift");
 
   return (
     <main
@@ -2420,12 +2464,19 @@ export default function Home() {
     >
       <header className="ks-header">
         <div className="ks-header-inner">
-          <a className="brand" href="#home" aria-label="WhiteoutSurvival.dev Home">
+          <button
+            className="brand"
+            type="button"
+            aria-label="WhiteoutSurvival.dev Home"
+            onClick={() => {
+              navigateToMenu("home");
+            }}
+          >
             <span className="brand-icon">
               <Image src="/wos-logo.png" alt="" width={24} height={24} />
             </span>
             <span>WhiteoutSurvival.dev</span>
-          </a>
+          </button>
 
           <nav className="top-menu" aria-label="Top menu">
             {menuItems.map((item) => (
@@ -2517,18 +2568,10 @@ export default function Home() {
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
-                className={`sidebar-item ${activeMenu === menuKeyFor(item.label) ? "active" : ""}`}
+                className={`sidebar-item ${activeMenu === item.menu ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
-                onClick={(event) => {
-                  const nextMenu = menuKeyFor(item.label);
-                  if (nextMenu === "gift") {
-                    event.preventDefault();
-                    openGiftCodesPage();
-                    return;
-                  }
-                  setActiveMenu(nextMenu);
-                }}
+                onClick={() => setActiveMenu(item.menu)}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
