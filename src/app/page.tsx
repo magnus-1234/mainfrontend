@@ -3021,10 +3021,6 @@ export default function Home() {
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
-  const heroRarityCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
-    counts[hero.rarity] = (counts[hero.rarity] || 0) + 1;
-    return counts;
-  }, {});
   const heroFilterCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
     const group = heroFilterFor(hero);
     counts[group] = (counts[group] || 0) + 1;
@@ -3513,13 +3509,6 @@ export default function Home() {
                 </div>
               </section>
 
-              <section className="wiki-summary" aria-label="Hero summary">
-                <article><span>Total Heroes</span><strong>{scrapedWosHeroes.length}</strong></article>
-                {Object.entries(heroRarityCounts).map(([rarity, count]) => (
-                  <article key={rarity}><span>{rarity}</span><strong>{count}</strong></article>
-                ))}
-              </section>
-
               {activeWikiHero ? (
                 <article className="wiki-detail-panel" aria-label={`${activeWikiHero.name} details`}>
                   <div className="wiki-detail-toolbar">
@@ -3554,7 +3543,6 @@ export default function Home() {
                     <h2>{activeHeroFilter} Heroes</h2>
                     <p>{filteredWosHeroes.length} hero{filteredWosHeroes.length === 1 ? "" : "es"} in this group. Open any hero to view stats, skills, shards, and tables inside this website.</p>
                   </div>
-                  <span className="wiki-source-chip">Local snapshot</span>
                 </div>
                 <div className="wiki-filter-layout">
                   <nav className="wiki-filter-rail" aria-label="Hero filters">
@@ -3607,13 +3595,6 @@ export default function Home() {
                 </div>
               </section>
 
-              <section className="wiki-summary" aria-label="Building summary">
-                <article><span>Total Buildings</span><strong>{scrapedWosBuildings.length}</strong></article>
-                {Object.entries(buildingCategoryCounts).map(([category, count]) => (
-                  <article key={category}><span>{category}</span><strong>{count}</strong></article>
-                ))}
-              </section>
-
               {activeWikiBuilding ? (
                 <article className="wiki-detail-panel" aria-label={`${activeWikiBuilding.name} details`}>
                   <div className="wiki-detail-toolbar">
@@ -3634,7 +3615,6 @@ export default function Home() {
                   <div className="wiki-detail-facts">
                     <span><strong>{activeWikiBuilding.category}</strong>Category</span>
                     <span><strong>{activeWikiBuilding.tableCount || 0}</strong>Tables</span>
-                    <span><strong>Local</strong>Snapshot</span>
                   </div>
                   <div className="wiki-scraped-content" dangerouslySetInnerHTML={{ __html: activeWikiBuilding.html }} />
                 </article>
@@ -3645,7 +3625,6 @@ export default function Home() {
                     <h2>{buildingFilters.find((filter) => filter.value === activeBuildingFilter)?.label}</h2>
                     <p>{filteredWosBuildings.length} building{filteredWosBuildings.length === 1 ? "" : "s"} in this category. Open any building to view descriptions, requirements, costs, timers, and power tables.</p>
                   </div>
-                  <span className="wiki-source-chip">Local snapshot</span>
                 </div>
                 <div className="wiki-building-tabs" aria-label="Building filters">
                   {buildingFilters.map((filter) => (
