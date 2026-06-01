@@ -866,6 +866,10 @@ body {
   text-overflow: ellipsis;
 }
 
+.nav-label-mobile {
+  display: none;
+}
+
 .sidebar-beta-badge {
   margin-left: auto;
   border: 1px solid rgba(244, 129, 32, 0.42);
@@ -7574,5 +7578,449 @@ body {
   .giftcode-actions button,
   .giftcode-actions a {
     flex: 1 1 128px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    --mobile-nav-height: 66px;
+  }
+
+  html,
+  body,
+  .app-shell {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .ks-header {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .ks-header-inner {
+    height: 54px;
+    padding: 0 8px;
+  }
+
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .actions {
+    gap: 5px;
+  }
+
+  .theme-toggle {
+    width: 50px;
+    height: 30px;
+  }
+
+  .theme-track {
+    width: 44px;
+    height: 22px;
+  }
+
+  .theme-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dark .theme-thumb {
+    transform: translateX(22px);
+  }
+
+  .language-button {
+    min-width: 48px;
+    height: 30px;
+    padding: 0 8px;
+  }
+
+  .language-switcher {
+    display: none;
+  }
+
+  .language-button svg {
+    display: none;
+  }
+
+  .sign-in {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .sign-in span {
+    display: none;
+  }
+
+  .account-dropdown,
+  .language-menu {
+    position: fixed;
+    top: 60px;
+    right: 8px;
+    width: min(320px, calc(100vw - 16px));
+  }
+
+  .app-body,
+  .sidebar-right .app-body,
+  .collapsed-sidebar .app-body,
+  .collapsed-sidebar.sidebar-right .app-body {
+    display: block;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 12px);
+  }
+
+  .sidebar,
+  .sidebar-right .sidebar {
+    position: fixed;
+    top: auto;
+    right: 4px;
+    bottom: calc(env(safe-area-inset-bottom) + 8px);
+    left: 4px;
+    z-index: 90;
+    display: flex;
+    height: var(--mobile-nav-height);
+    width: auto;
+    min-width: 0;
+    max-width: calc(100vw - 8px);
+    flex-direction: row;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--card) 96%, var(--background));
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22), 0 0 0 1px color-mix(in srgb, var(--gold-line) 18%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .sidebar-content,
+  .collapsed-sidebar .sidebar-content {
+    display: grid;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1px;
+    padding: 5px;
+  }
+
+  .sidebar-item,
+  .collapsed-sidebar .sidebar-item {
+    display: grid;
+    min-height: 52px;
+    min-width: 0;
+    align-content: center;
+    justify-items: center;
+    gap: 2px;
+    border-radius: 10px;
+    padding: 0 2px;
+    line-height: 1;
+    white-space: normal;
+  }
+
+  .sidebar-item svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sidebar-item .nav-label-desktop,
+  .collapsed-sidebar .sidebar-item .nav-label-desktop,
+  .sidebar-beta-badge {
+    display: none;
+  }
+
+  .sidebar-item .nav-label-mobile,
+  .collapsed-sidebar .sidebar-item .nav-label-mobile {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.05;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar-item.active {
+    box-shadow: inset 0 0 0 1px var(--gold-line);
+  }
+
+  .sidebar-tools,
+  .sidebar-resizer {
+    display: none;
+  }
+
+  .content-column {
+    width: 100%;
+    max-width: 100vw;
+    height: auto;
+    min-height: calc(100vh - 54px);
+    overflow-x: hidden;
+    padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 18px);
+  }
+
+  .home-page {
+    width: 100%;
+    max-width: 100vw;
+    overflow: visible;
+  }
+
+  .site-footer {
+    display: none;
+  }
+
+  .settings-panel,
+  .collapsed-sidebar .settings-panel {
+    right: 8px;
+    bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 18px);
+    left: 8px;
+    width: auto;
+    max-height: min(520px, calc(100vh - 150px));
+  }
+
+  .section-kicker {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .section-kicker::before {
+    width: 18px;
+  }
+
+  .hero-grid {
+    gap: 22px;
+  }
+
+  .hero-copy h1,
+  .daybreak-hero-copy h1,
+  .bot-commercial-copy h1,
+  .giftcodes-hero h1 {
+    max-width: 100%;
+    font-size: clamp(30px, 10vw, 42px);
+    line-height: 1.04;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-copy p,
+  .daybreak-hero-copy p,
+  .bot-commercial-copy p,
+  .giftcodes-hero p {
+    max-width: 100%;
+    font-size: 15px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .primary-cta,
+  .secondary-cta,
+  .bot-ad-action,
+  .bot-secondary-action,
+  .giftcodes-redeem-link,
+  .giftcodes-refresh,
+  .redeem-card button {
+    min-height: 44px;
+    border-radius: 8px;
+  }
+
+  .giftcodes-page,
+  .redeem-page,
+  .daybreak-page,
+  .bot-page {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .giftcodes-page > *,
+  .redeem-page > *,
+  .daybreak-page > *,
+  .bot-page > *,
+  .planner-page > *,
+  .bot-commercial,
+  .bot-layout-grid,
+  .giftcodes-hero > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .giftcodes-hero,
+  .giftcodes-panel,
+  .giftcodes-guide article,
+  .giftcodes-summary article,
+  .redeem-card,
+  .redeem-result,
+  .bot-commercial-copy,
+  .bot-dashboard-preview,
+  .bot-web-card,
+  .bot-gallery-card,
+  .daybreak-hero,
+  .daybreak-status,
+  .planner-panel,
+  .planner-board-wrap {
+    border-radius: 8px;
+  }
+
+  .giftcodes-hero-actions,
+  .giftcodes-panel-head,
+  .giftcode-actions,
+  .redeem-result {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .giftcodes-live-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .giftcode-code-line strong {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .daybreak-hero {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .daybreak-hero-art {
+    min-height: 220px;
+  }
+
+  .daybreak-controls {
+    gap: 10px;
+  }
+
+  .daybreak-control-bar {
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .daybreak-control-bar button {
+    flex: 0 0 auto;
+    min-height: 40px;
+  }
+
+  .showcase-head,
+  .profile-head,
+  .upload-modal-head,
+  .redeem-card-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .island-card,
+  .upload-modal,
+  .share-modal,
+  .profile-modal,
+  .island-detail-modal {
+    width: min(100%, calc(100vw - 16px));
+  }
+
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .bot-commercial {
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .bot-commercial-copy,
+  .bot-dashboard-preview,
+  .bot-web-card,
+  .bot-gallery-card {
+    padding: 14px;
+  }
+
+  .bot-action-row {
+    flex-direction: column;
+  }
+
+  .bot-preview-main {
+    padding: 12px;
+  }
+
+  .bot-web-shot-grid,
+  .bot-preview-rail {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bot-web-shot-grid figure,
+  .bot-preview-rail figure {
+    flex: 0 0 min(78vw, 280px);
+    scroll-snap-align: start;
+  }
+
+  .bot-web-shot-grid img,
+  .bot-preview-rail img {
+    height: 150px;
+  }
+
+  .planner-editor-menubar,
+  .planner-toolbar,
+  .planner-bottom-dock,
+  .planner-panel {
+    padding: 10px;
+  }
+
+  .planner-editor-menubar,
+  .planner-menu-left,
+  .planner-menu-history,
+  .planner-menu-actions,
+  .planner-bottom-dock {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .planner-editor-menubar button,
+  .planner-bottom-dock button,
+  .planner-toolbar button,
+  .planner-panel button {
+    min-height: 42px;
+  }
+
+  .planner-board-wrap {
+    min-height: min(66vh, 560px);
+    touch-action: pan-x pan-y;
+  }
+}
+
+@media (max-width: 380px) {
+  .language-switcher {
+    display: none;
+  }
+
+  .sidebar-item .nav-label-mobile,
+  .collapsed-sidebar .sidebar-item .nav-label-mobile {
+    font-size: 9px;
+  }
+
+  .sidebar-item svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 430px) {
+  .language-switcher {
+    display: none;
+  }
+
+  .account-dropdown,
+  .language-menu {
+    right: 6px;
+    width: min(320px, calc(100vw - 12px));
   }
 }

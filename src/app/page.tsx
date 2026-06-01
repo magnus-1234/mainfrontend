@@ -305,17 +305,18 @@ const siteLanguages: SiteLanguage[] = [
 
 const sidebarItems: {
   label: string;
+  mobileLabel: string;
   icon: string;
   menu: ActiveMenu;
   href: string;
   beta?: boolean;
 }[] = [
-  { label: "Home", icon: "home", menu: "home", href: "/" },
-  { label: "Gift Codes", icon: "gift", menu: "gift", href: "/gift-codes" },
-  { label: "City Layout Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
-  { label: "Sneak Peek", icon: "book", menu: "sneak", href: "/#sneak-peek" },
-  { label: "Daybreak Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
-  { label: "Discord Bot", icon: "bot", menu: "bot", href: "/#discord-bot" },
+  { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/" },
+  { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes" },
+  { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
+  { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
+  { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
+  { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot" },
 ];
 
 const hashMenuAliases: Record<string, ActiveMenu> = {
@@ -2884,7 +2885,8 @@ export default function Home() {
                 }}
               >
                 <Icon name={item.icon} />
-                <span>{item.label}</span>
+                <span className="nav-label-desktop">{item.label}</span>
+                <span className="nav-label-mobile">{item.mobileLabel}</span>
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
