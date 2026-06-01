@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "scrape:wos-wiki": "node scripts/scrape-wos-wiki.mjs",
     "lint": "eslint"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "node-html-parser": "^7.1.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
