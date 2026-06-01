@@ -7843,6 +7843,373 @@ body {
   }
 }
 
+/* Premium compact state-age dashboard */
+.state-age-page {
+  gap: 12px;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, rgba(244, 129, 32, 0.08), transparent 32%),
+    linear-gradient(225deg, rgba(43, 132, 170, 0.1), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, #0b1419), var(--background));
+}
+
+.state-age-hero,
+.state-age-board,
+.state-age-summary article,
+.state-age-focus-card {
+  border-color: color-mix(in srgb, var(--border) 72%, rgba(244, 129, 32, 0.18));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), color-mix(in srgb, var(--background) 42%, var(--card))),
+    var(--card);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.14);
+}
+
+.state-age-hero {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 16px;
+  overflow: hidden;
+  padding: 18px;
+}
+
+.state-age-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(90deg, black, transparent 74%);
+  opacity: 0.35;
+}
+
+.state-age-hero-copy,
+.state-age-search {
+  position: relative;
+  z-index: 1;
+}
+
+.state-age-hero h1 {
+  max-width: 820px;
+  margin: 4px 0 8px;
+  font-size: clamp(2.15rem, 4.5vw, 4.45rem);
+}
+
+.state-age-hero p {
+  max-width: 720px;
+  font-size: 15px;
+}
+
+.state-age-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.state-age-hero-chips span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--muted) 62%, transparent);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.state-age-hero-chips svg {
+  width: 14px;
+  height: 14px;
+  color: var(--gold);
+}
+
+.state-age-search {
+  gap: 9px;
+  align-self: stretch;
+  border-color: color-mix(in srgb, var(--gold-line) 42%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 50%, transparent), color-mix(in srgb, var(--card) 86%, transparent)),
+    var(--card);
+}
+
+.state-age-search label {
+  gap: 6px;
+}
+
+.state-age-search input {
+  min-height: 42px;
+  font-size: 17px;
+}
+
+.state-age-search button {
+  min-height: 40px;
+}
+
+.state-age-search small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.state-age-summary {
+  grid-template-columns: minmax(250px, 1.35fr) repeat(3, minmax(132px, 0.72fr));
+  gap: 10px;
+}
+
+.state-age-summary article {
+  position: relative;
+  min-height: 88px;
+  overflow: hidden;
+  padding: 13px;
+}
+
+.state-age-summary article::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  bottom: -36px;
+  width: 82px;
+  height: 82px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 24%, transparent);
+  border-radius: 50%;
+  opacity: 0.55;
+}
+
+.state-age-summary article svg {
+  width: 18px;
+  height: 18px;
+}
+
+.state-age-summary strong {
+  font-size: clamp(1rem, 1.25vw, 1.22rem);
+}
+
+.state-age-primary-card strong {
+  font-size: clamp(1.28rem, 2vw, 1.9rem);
+}
+
+.state-age-focus-grid {
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 10px;
+}
+
+.state-age-focus-card {
+  min-height: 138px;
+  padding: 15px;
+}
+
+.state-age-focus-card.current {
+  border-color: rgba(34, 197, 94, 0.26);
+  background:
+    linear-gradient(135deg, rgba(34, 197, 94, 0.12), color-mix(in srgb, var(--card) 92%, transparent)),
+    var(--card);
+}
+
+.state-age-focus-card.next {
+  border-color: rgba(244, 129, 32, 0.28);
+}
+
+.state-age-focus-card > strong {
+  margin-top: 5px;
+  font-size: clamp(1.18rem, 2vw, 1.8rem);
+}
+
+.state-age-focus-images img {
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.state-age-board {
+  border-radius: 8px;
+}
+
+.state-age-board-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  align-items: center;
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+}
+
+.state-age-board-head h2 {
+  font-size: 1.18rem;
+}
+
+.state-age-board-head p {
+  font-size: 13px;
+}
+
+.state-age-board-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.state-age-board-stats span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: color-mix(in srgb, var(--muted) 58%, transparent);
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.state-age-timeline {
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.state-age-event {
+  display: block;
+  min-height: 0;
+}
+
+.state-age-rail {
+  display: none;
+}
+
+.state-age-event-card {
+  position: relative;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), color-mix(in srgb, var(--background) 50%, var(--card))),
+    var(--card);
+}
+
+.state-age-event-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #22c55e;
+}
+
+.event-upcoming .state-age-event-card::before {
+  background: var(--gold);
+}
+
+.event-maybe .state-age-event-card::before {
+  background: #eab308;
+}
+
+.state-age-event-top {
+  justify-content: flex-start;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+
+.state-age-sequence {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 7px;
+  background: color-mix(in srgb, var(--background) 62%, transparent);
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.state-age-day,
+.state-age-badge {
+  padding: 5px 7px;
+  font-size: 10px;
+}
+
+.state-age-badge {
+  margin-left: auto;
+}
+
+.state-age-event-card h3 {
+  font-size: 1rem;
+  line-height: 1.22;
+}
+
+.state-age-event-card p {
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.state-age-items {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.state-age-items span {
+  min-height: 34px;
+  padding: 6px;
+}
+
+.state-age-items span.with-image {
+  grid-template-columns: 36px minmax(0, 1fr);
+  min-height: 50px;
+}
+
+.state-age-items img {
+  width: 36px;
+  height: 36px;
+}
+
+.state-age-items strong {
+  font-size: 11px;
+}
+
+.state-age-event.has-images .state-age-items span.with-image:first-child {
+  grid-column: span 2;
+}
+
+.state-age-event.has-images .state-age-items span.with-image:first-child img {
+  width: 42px;
+  height: 42px;
+}
+
+@media (max-width: 980px) {
+  .state-age-summary,
+  .state-age-focus-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .state-age-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .state-age-summary,
+  .state-age-focus-grid,
+  .state-age-timeline {
+    grid-template-columns: 1fr;
+  }
+
+  .state-age-board-head {
+    position: static;
+  }
+
+  .state-age-event.has-images .state-age-items span.with-image:first-child {
+    grid-column: span 1;
+  }
+}
+
 .wiki-page {
   display: grid;
   gap: 16px;

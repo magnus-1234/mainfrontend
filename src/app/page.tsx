@@ -2144,6 +2144,8 @@ export default function Home() {
   ), 0) || 0;
   const nextStateAgeEvent = stateAgeResult?.events.find((event) => event.status !== "unlocked");
   const unlockedStateAgeEvents = stateAgeResult?.events.filter((event) => event.status === "unlocked").length || 0;
+  const upcomingStateAgeEvents = stateAgeEvents.filter((event) => event.status === "upcoming").length;
+  const maybeStateAgeEvents = stateAgeEvents.filter((event) => event.status === "maybe").length;
   const stateAgeImageCount = stateAgeEvents.reduce((count, event) => count + event.items.filter((item) => item.image).length, 0);
 
   const submitRedeem = async (event: FormEvent<HTMLFormElement>) => {
@@ -3628,6 +3630,11 @@ export default function Home() {
                   <span className="section-kicker">State Timeline Tool</span>
                   <h1>State Age Tracker</h1>
                   <p>Type a state number to see when it opened, how old it is, what content is already live, and what is coming next.</p>
+                  <div className="state-age-hero-chips" aria-label="Tracker capabilities">
+                    <span><Icon name="calendar" /> Creation time</span>
+                    <span><Icon name="shield" /> Live unlocks</span>
+                    <span><Icon name="image" /> Visual timeline</span>
+                  </div>
                 </div>
                 <form className="state-age-search" onSubmit={(event) => void submitStateAge(event)}>
                   <label>
@@ -3643,6 +3650,7 @@ export default function Home() {
                     <Icon name="search" />
                     {stateAgeLoading ? "Checking" : "Check State"}
                   </button>
+                  <small>{stateAgeResult ? `Showing State #${stateAgeResult.state}` : "Live state lookup"}</small>
                 </form>
               </section>
 
@@ -3661,8 +3669,8 @@ export default function Home() {
                 </article>
                 <article>
                   <Icon name="shield" />
-                  <span>Unlocked</span>
-                  <strong>{stateAgeResult ? `${unlockedStateAgeEvents} items` : "Preview"}</strong>
+                  <span>Unlocked Milestones</span>
+                  <strong>{stateAgeResult ? `${unlockedStateAgeEvents}` : "Preview"}</strong>
                 </article>
                 <article>
                   <Icon name="image" />
@@ -3704,16 +3712,21 @@ export default function Home() {
                     <h2>{stateAgeResult ? `Timeline for State #${stateAgeResult.state}` : "State Unlock Timeline Preview"}</h2>
                     <p>{stateAgeResult ? "Unlocked milestones stay at the top, upcoming milestones show how many days remain." : "Search a state to replace this preview with live server timing."}</p>
                   </div>
-                  <span>{stateAgeEvents.length} milestones</span>
+                  <div className="state-age-board-stats" aria-label="Timeline totals">
+                    <span>{stateAgeEvents.length} milestones</span>
+                    <span>{upcomingStateAgeEvents} upcoming</span>
+                    {maybeStateAgeEvents > 0 && <span>{maybeStateAgeEvents} unconfirmed</span>}
+                  </div>
                 </div>
                 <div className="state-age-timeline">
                   {stateAgeEvents.map((event, index) => (
-                    <article className={`state-age-event event-${event.status}`} key={`${event.title}-${event.dayLabel}-${index}`}>
+                    <article className={`state-age-event event-${event.status} ${event.items.some((item) => item.image) ? "has-images" : ""}`} key={`${event.title}-${event.dayLabel}-${index}`}>
                       <div className="state-age-rail">
                         <span />
                       </div>
                       <div className="state-age-event-card">
                         <div className="state-age-event-top">
+                          <span className="state-age-sequence">{String(index + 1).padStart(2, "0")}</span>
                           <span className="state-age-day">{event.dayLabel}</span>
                           <span className={`state-age-badge badge-${event.status}`}>
                             {event.status === "maybe" ? "Unconfirmed" : event.status === "upcoming" ? (event.daysLeft ? `${event.daysLeft} days left` : "Upcoming") : "Unlocked"}
