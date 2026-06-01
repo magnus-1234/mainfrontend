@@ -2515,24 +2515,6 @@ export default function Home() {
                 <span>Auto refresh every 30 seconds</span>
               </div>
 
-              {latestGiftCode && (
-                <section className="giftcodes-latest" aria-label="Latest active gift code">
-                  <div>
-                    <span className="giftcode-status-dot">Latest active</span>
-                    <h2>{latestGiftCode.code}</h2>
-                    <p>{latestGiftCode.rewards}</p>
-                  </div>
-                  <button type="button" onClick={() => void copyGiftCode(latestGiftCode.code)}>
-                    <Icon name="copy" />
-                    {copiedGiftCode === latestGiftCode.code ? "Copied" : "Copy"}
-                  </button>
-                  <button type="button" onClick={() => openRedeemPage(latestGiftCode.code)}>
-                    <Icon name="external" />
-                    Redeem here
-                  </button>
-                </section>
-              )}
-
               <section className="giftcodes-panel" aria-label="Active gift code list">
                 <div className="giftcodes-panel-head">
                   <div>

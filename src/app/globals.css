@@ -6797,7 +6797,6 @@ svg {
 }
 
 .giftcodes-hero,
-.giftcodes-latest,
 .giftcodes-panel,
 .giftcodes-guide article,
 .giftcodes-summary article {
@@ -6872,7 +6871,6 @@ svg {
 .giftcodes-redeem-link,
 .giftcodes-refresh,
 .giftcodes-panel-head button,
-.giftcodes-latest button,
 .giftcode-actions button,
 .giftcode-actions a {
   display: inline-flex;
@@ -6898,8 +6896,7 @@ svg {
 .giftcodes-redeem-link svg,
 .giftcodes-refresh svg,
 .giftcode-actions svg,
-.giftcodes-panel-head svg,
-.giftcodes-latest svg {
+.giftcodes-panel-head svg {
   width: 16px;
   height: 16px;
 }
@@ -6940,50 +6937,6 @@ svg {
   font-size: 1.35rem;
 }
 
-.giftcodes-latest {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px;
-  border-color: var(--gold-line);
-  background: linear-gradient(90deg, var(--gold-soft), transparent 68%), var(--card);
-}
-
-.giftcodes-latest > div {
-  min-width: 0;
-}
-
-.giftcodes-latest h2 {
-  margin: 6px 0;
-  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  letter-spacing: 0;
-}
-
-.giftcodes-latest p {
-  margin: 0;
-  color: var(--muted-foreground);
-}
-
-.giftcode-status-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--primary);
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.giftcode-status-dot::before {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22c55e;
-  content: "";
-}
-
 .giftcodes-panel {
   overflow: hidden;
 }
@@ -7014,6 +6967,7 @@ svg {
   align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--line-soft);
+  background: linear-gradient(90deg, var(--gold-soft), rgba(244, 129, 32, 0.02) 58%, transparent), var(--card);
 }
 
 .giftcode-row:last-child {
@@ -7033,10 +6987,11 @@ svg {
 }
 
 .giftcode-code-line span {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(34, 197, 94, 0.36);
   border-radius: 999px;
   padding: 3px 8px;
-  background: var(--muted);
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -7061,7 +7016,6 @@ svg {
 .giftcode-actions button,
 .giftcode-actions a,
 .giftcodes-panel-head button,
-.giftcodes-latest button,
 .giftcodes-redeem-link,
 .giftcodes-refresh {
   transition: transform 150ms ease, border-color 150ms ease, background-color 150ms ease;
@@ -7070,7 +7024,6 @@ svg {
 .giftcode-actions button:hover,
 .giftcode-actions a:hover,
 .giftcodes-panel-head button:hover,
-.giftcodes-latest button:hover,
 .giftcodes-redeem-link:hover,
 .giftcodes-refresh:hover {
   transform: translateY(-1px);
@@ -7286,7 +7239,6 @@ svg {
 
 @media (max-width: 980px) {
   .giftcodes-hero,
-  .giftcodes-latest,
   .giftcodes-panel-head {
     align-items: stretch;
     flex-direction: column;
@@ -7316,8 +7268,7 @@ svg {
     padding: 12px;
   }
 
-  .giftcodes-hero,
-  .giftcodes-latest {
+  .giftcodes-hero {
     padding: 16px;
   }
 
