@@ -879,17 +879,19 @@ svg {
 .home-page::before {
   inset: 0;
   background:
-    radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 0) 0 0 / 22px 22px,
     linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 96px 96px,
     linear-gradient(0deg, var(--line-soft) 1px, transparent 1px) 0 0 / 96px 96px;
   mask-image: linear-gradient(180deg, black 0%, rgba(0, 0, 0, 0.7) 42%, transparent 100%);
-  opacity: 0.58;
+  opacity: 0.5;
 }
 
 .home-page::after {
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, var(--background) 100%);
-  opacity: 0.62;
+  background:
+    radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 1.8px) 0 0 / 34px 34px,
+    linear-gradient(180deg, transparent 0%, var(--background) 100%);
+  opacity: 0.54;
+  animation: simple-dot-blink 3.8s ease-in-out infinite;
 }
 
 @keyframes live-dot-field {
@@ -950,6 +952,16 @@ svg {
   min-height: calc(100vh - 118px);
   overflow: visible;
   padding: clamp(18px, 3vw, 34px);
+}
+
+@keyframes simple-dot-blink {
+  0%,
+  100% {
+    opacity: 0.34;
+  }
+  50% {
+    opacity: 0.68;
+  }
 }
 
 .bot-page::before {
