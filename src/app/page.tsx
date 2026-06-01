@@ -47,7 +47,7 @@ type IslandComment = {
 
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "planner" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
 type SiteLanguage = {
@@ -249,6 +249,25 @@ type RedeemResult = {
   }[];
 };
 
+type StateTimelineEvent = {
+  title: string;
+  dayLabel: string;
+  day: number | null;
+  status: "unlocked" | "upcoming" | "maybe";
+  daysLeft?: number;
+  note?: string;
+  items: string[];
+};
+
+type StateAgeResult = {
+  state: string;
+  activeFor: string;
+  startedAt: string;
+  sourceUrl: string;
+  sourceUpdatedAt: string;
+  events: StateTimelineEvent[];
+};
+
 const fallbackBotMetrics: BotMetrics = {
   servers: "48",
   members: "1.5K",
@@ -295,6 +314,19 @@ const botWebDashboardScreens = [
   { label: "Auto Translation", image: "/dashboard-translation.png", alt: "Whiteout Survival bot auto-translation dashboard screenshot" },
   { label: "Auto Redeem", image: "/dashboard-auto-redeem.png", alt: "Whiteout Survival bot auto-redeem settings dashboard screenshot" },
   { label: "Reminders", image: "/dashboard-reminders.png", alt: "Whiteout Survival bot reminders dashboard screenshot" },
+];
+
+const stateAgePreviewEvents: StateTimelineEvent[] = [
+  { title: "Initial Heroes", dayLabel: "Day 0", day: 0, status: "unlocked", note: "Natalia, Molly, Patrick, Sergey, and Jessie are available when a state opens.", items: ["Natalia", "Molly", "Patrick", "Sergey", "Jessie"] },
+  { title: "Tundra", dayLabel: "Day 14", day: 14, status: "unlocked", note: "Tundra territory opens for alliances.", items: ["Tundra"] },
+  { title: "Gen 2 Heroes", dayLabel: "Day 40", day: 40, status: "unlocked", items: ["Alonso", "Flint", "Philly"] },
+  { title: "Sunfire Castle", dayLabel: "Day 53", day: 53, status: "unlocked", note: "State alliances begin fighting for castle control and presidency.", items: ["Sunfire Castle"] },
+  { title: "Fire Crystal Age", dayLabel: "Day 60", day: 60, status: "unlocked", note: "Fire Crystal 1-3 unlock after Road to Discovery completion.", items: ["Crystal 1", "Crystal 2", "Crystal 3"] },
+  { title: "SVS and KOI", dayLabel: "Day 80", day: 80, status: "unlocked", note: "State of Power and King of Icefield timelines begin around this stage.", items: ["State of Power", "King of Icefield"] },
+  { title: "War Academy Update", dayLabel: "Day 220", day: 220, status: "upcoming", items: ["War Academy", "Fire Crystal Tech", "T11 Troops"] },
+  { title: "Crystal Mastery", dayLabel: "Day 500", day: 500, status: "upcoming", note: "Fire Crystal level 9-10 unlock.", items: ["Crystal 9", "Crystal 10"] },
+  { title: "Gen 13 Heroes", dayLabel: "Day 951", day: 951, status: "upcoming", items: ["Gisela", "Flora", "Vulcanus"] },
+  { title: "Unconfirmed Gen 14 Heroes", dayLabel: "Days 1000-1060", day: 1000, status: "maybe", note: "Names and publish data are still unknown in the source timeline.", items: ["Unknown Name"] },
 ];
 
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
@@ -420,6 +452,7 @@ const sidebarItems: {
 }[] = [
   { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
   { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
+  { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
   { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
   { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
   { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak", mobilePrimary: true },
@@ -438,6 +471,9 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#gift": "gift",
   "#redeem": "redeem",
   "#gift-code-redeem": "redeem",
+  "#state-age": "stateAge",
+  "#state-age-tracker": "stateAge",
+  "#state-timeline": "stateAge",
   "#city-layout-planner": "planner",
   "#layout-planner": "planner",
   "#planner": "planner",
@@ -460,6 +496,9 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   giftcodes: "gift",
   gift: "gift",
   redeem: "redeem",
+  "state-age": "stateAge",
+  stateage: "stateAge",
+  timeline: "stateAge",
   planner: "planner",
   sneak: "sneak",
   daybreak: "daybreak",
@@ -473,6 +512,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   home: "/",
   gift: "/gift-codes",
   redeem: "/redeem",
+  stateAge: "/state-age",
   planner: "/#city-layout-planner",
   sneak: "/#sneak-peek",
   daybreak: "/#daybreak",
@@ -503,6 +543,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/redeem")) {
     return "redeem";
+  }
+
+  if (location.pathname.startsWith("/state-age")) {
+    return "stateAge";
   }
 
   if (location.pathname.startsWith("/wiki/buildings")) {
@@ -1228,6 +1272,10 @@ export default function Home() {
   const [redeemPlayer, setRedeemPlayer] = useState<PlayerProfile | null>(null);
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [redeemResult, setRedeemResult] = useState<RedeemResult | null>(null);
+  const [stateAgeInput, setStateAgeInput] = useState("");
+  const [stateAgeResult, setStateAgeResult] = useState<StateAgeResult | null>(null);
+  const [stateAgeLoading, setStateAgeLoading] = useState(false);
+  const [stateAgeStatus, setStateAgeStatus] = useState("");
   const [islands, setIslands] = useState<Island[]>([]);
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
@@ -1355,6 +1403,10 @@ export default function Home() {
         const cleanRedeemCode = redeemCodeParam.toUpperCase() === "ALL" ? "ALL" : redeemCodeParam.replace(/[^A-Za-z0-9]/g, "");
         setRedeemCode(cleanRedeemCode);
       }
+      const stateParam = params.get("state")?.replace(/\D/g, "") || "";
+      if (stateParam) {
+        setStateAgeInput(stateParam);
+      }
       setActiveWikiSlug(params.get("item") || "");
       setActiveMenu(resolveActiveMenu(window.location));
     };
@@ -1477,6 +1529,19 @@ export default function Home() {
 
     return () => window.clearInterval(interval);
   }, [activeMenu, loadGiftCodes]);
+
+  useEffect(() => {
+    if (activeMenu !== "stateAge" || !stateAgeInput || stateAgeLoading || stateAgeStatus || stateAgeResult?.state === stateAgeInput) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      const form = document.querySelector<HTMLFormElement>(".state-age-search");
+      form?.requestSubmit();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [activeMenu, stateAgeInput, stateAgeLoading, stateAgeResult?.state, stateAgeStatus]);
 
   useEffect(() => {
     const updateFooterForActivity = (event: Event) => {
@@ -2038,6 +2103,43 @@ export default function Home() {
       timeZoneName: "short",
     }).format(parsed);
   };
+
+  const submitStateAge = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const state = stateAgeInput.replace(/\D/g, "");
+    if (!state) {
+      setStateAgeStatus("Enter a valid state number.");
+      return;
+    }
+
+    setStateAgeLoading(true);
+    setStateAgeStatus("");
+
+    try {
+      const response = await fetch(`/api/state-age?state=${encodeURIComponent(state)}`, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || "State not found.");
+      }
+      setStateAgeResult(payload as StateAgeResult);
+      window.history.pushState(null, "", `/state-age?state=${encodeURIComponent(state)}`);
+    } catch (error) {
+      setStateAgeResult(null);
+      setStateAgeStatus(error instanceof Error ? error.message : "Unable to load state age data.");
+    } finally {
+      setStateAgeLoading(false);
+    }
+  };
+
+  const stateAgeEvents = stateAgeResult?.events.length ? stateAgeResult.events : stateAgePreviewEvents;
+  const currentStateDay = stateAgeResult?.events.reduce((maxDay, event) => (
+    event.status === "unlocked" && event.day !== null ? Math.max(maxDay, event.day) : maxDay
+  ), 0) || 0;
+  const nextStateAgeEvent = stateAgeResult?.events.find((event) => event.status !== "unlocked");
+  const unlockedStateAgeEvents = stateAgeResult?.events.filter((event) => event.status === "unlocked").length || 0;
 
   const submitRedeem = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -3513,6 +3615,95 @@ export default function Home() {
                   )}
                 </section>
               )}
+            </section>
+          ) : activeMenu === "stateAge" ? (
+            <section className="home-page state-age-page" id="state-age" aria-label="Whiteout Survival state age tracker">
+              <section className="state-age-hero">
+                <div className="state-age-hero-copy">
+                  <span className="section-kicker">State Timeline Tool</span>
+                  <h1>State Age Tracker</h1>
+                  <p>Type a Whiteout Survival state number to see its creation time, current age, unlocked content, and upcoming generation timeline.</p>
+                </div>
+                <form className="state-age-search" onSubmit={(event) => void submitStateAge(event)}>
+                  <label>
+                    <span>State Number</span>
+                    <input
+                      value={stateAgeInput}
+                      onChange={(event) => setStateAgeInput(event.currentTarget.value.replace(/\D/g, ""))}
+                      inputMode="numeric"
+                      placeholder="Example: 1604"
+                    />
+                  </label>
+                  <button type="submit" disabled={stateAgeLoading || !stateAgeInput}>
+                    <Icon name="search" />
+                    {stateAgeLoading ? "Checking" : "Check State"}
+                  </button>
+                </form>
+              </section>
+
+              {stateAgeStatus && <p className="state-age-status">{stateAgeStatus}</p>}
+
+              <section className="state-age-summary" aria-label="State age summary">
+                <article className="state-age-primary-card">
+                  <span>{stateAgeResult ? `State #${stateAgeResult.state}` : "Preview Mode"}</span>
+                  <strong>{stateAgeResult?.activeFor || "Enter a state number to load live age"}</strong>
+                  <small>{stateAgeResult?.startedAt ? `Created ${stateAgeResult.startedAt}` : "Timeline preview uses the source unlock schedule."}</small>
+                </article>
+                <article>
+                  <Icon name="calendar" />
+                  <span>Current Milestone</span>
+                  <strong>{stateAgeResult ? `Day ${currentStateDay}+` : "Source Timeline"}</strong>
+                </article>
+                <article>
+                  <Icon name="shield" />
+                  <span>Unlocked</span>
+                  <strong>{stateAgeResult ? `${unlockedStateAgeEvents} items` : "Preview"}</strong>
+                </article>
+                <article>
+                  <Icon name="star" />
+                  <span>Next Unlock</span>
+                  <strong>{nextStateAgeEvent ? `${nextStateAgeEvent.title}${nextStateAgeEvent.daysLeft ? ` in ${nextStateAgeEvent.daysLeft}d` : ""}` : "All listed content"}</strong>
+                </article>
+              </section>
+
+              <section className="state-age-board">
+                <div className="state-age-board-head">
+                  <div>
+                    <h2>{stateAgeResult ? `Timeline for State #${stateAgeResult.state}` : "State Unlock Timeline Preview"}</h2>
+                    <p>
+                      Data is sourced from <a href="https://whiteoutsurvival.pl/state-timeline/" target="_blank" rel="noreferrer">whiteoutsurvival.pl/state-timeline</a>
+                      {stateAgeResult?.sourceUpdatedAt ? `, updated ${stateAgeResult.sourceUpdatedAt}.` : "."}
+                    </p>
+                  </div>
+                  <span>{stateAgeEvents.length} milestones</span>
+                </div>
+                <div className="state-age-timeline">
+                  {stateAgeEvents.map((event, index) => (
+                    <article className={`state-age-event event-${event.status}`} key={`${event.title}-${event.dayLabel}-${index}`}>
+                      <div className="state-age-rail">
+                        <span />
+                      </div>
+                      <div className="state-age-event-card">
+                        <div className="state-age-event-top">
+                          <span className="state-age-day">{event.dayLabel}</span>
+                          <span className={`state-age-badge badge-${event.status}`}>
+                            {event.status === "maybe" ? "Unconfirmed" : event.status === "upcoming" ? (event.daysLeft ? `${event.daysLeft} days left` : "Upcoming") : "Unlocked"}
+                          </span>
+                        </div>
+                        <h3>{event.title}</h3>
+                        {event.note && <p>{event.note}</p>}
+                        {event.items.length > 0 && (
+                          <div className="state-age-items">
+                            {event.items.map((item) => (
+                              <span key={`${event.title}-${item}`}>{item}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
             </section>
           ) : activeMenu === "wikiHeroes" ? (
             <section className="home-page wiki-page" id="wiki-heroes" aria-label="Whiteout Survival wiki heroes">

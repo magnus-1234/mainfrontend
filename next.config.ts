@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         destination: "/?menu=redeem",
       },
       {
+        source: "/state-age",
+        destination: "/?menu=state-age",
+      },
+      {
         source: "/wiki/heroes",
         destination: "/?menu=heroes",
       },
