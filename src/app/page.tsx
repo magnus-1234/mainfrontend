@@ -3628,7 +3628,7 @@ export default function Home() {
                     <div>
                       <span>{activeWikiBuilding.category}</span>
                       <h2>{activeWikiBuilding.name}</h2>
-                      {activeWikiBuilding.description && <p>{activeWikiBuilding.description}</p>}
+                      <p>Upgrade requirements, costs, timers, and power data are shown below.</p>
                     </div>
                   </div>
                   <div className="wiki-detail-facts">

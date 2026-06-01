@@ -92,6 +92,18 @@ const localImagePath = async (imageUrl, section, slug, imageCache) => {
 const normalizeContent = async (node, section, slug, imageCache) => {
   const clone = parse(node.toString());
 
+  if (section === "heroes") {
+    clone.querySelector(".content-hero > .row > .col-md-6")?.remove();
+    const heroMain = clone.querySelector(".content-hero > .row > .col-lg-9");
+    heroMain?.querySelector(".row")?.remove();
+    heroMain?.querySelector(".row")?.remove();
+  }
+
+  if (section === "buildings") {
+    clone.querySelector(".col-lg-8 > .row")?.remove();
+    clone.querySelector(".text-light.align-self-start > .row")?.remove();
+  }
+
   for (const selector of [
     "script",
     "style",
