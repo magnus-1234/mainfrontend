@@ -256,7 +256,10 @@ type StateTimelineEvent = {
   status: "unlocked" | "upcoming" | "maybe";
   daysLeft?: number;
   note?: string;
-  items: string[];
+  items: {
+    name: string;
+    image?: string;
+  }[];
 };
 
 type StateAgeResult = {
@@ -317,16 +320,16 @@ const botWebDashboardScreens = [
 ];
 
 const stateAgePreviewEvents: StateTimelineEvent[] = [
-  { title: "Initial Heroes", dayLabel: "Day 0", day: 0, status: "unlocked", note: "Natalia, Molly, Patrick, Sergey, and Jessie are available when a state opens.", items: ["Natalia", "Molly", "Patrick", "Sergey", "Jessie"] },
-  { title: "Tundra", dayLabel: "Day 14", day: 14, status: "unlocked", note: "Tundra territory opens for alliances.", items: ["Tundra"] },
-  { title: "Gen 2 Heroes", dayLabel: "Day 40", day: 40, status: "unlocked", items: ["Alonso", "Flint", "Philly"] },
-  { title: "Sunfire Castle", dayLabel: "Day 53", day: 53, status: "unlocked", note: "State alliances begin fighting for castle control and presidency.", items: ["Sunfire Castle"] },
-  { title: "Fire Crystal Age", dayLabel: "Day 60", day: 60, status: "unlocked", note: "Fire Crystal 1-3 unlock after Road to Discovery completion.", items: ["Crystal 1", "Crystal 2", "Crystal 3"] },
-  { title: "SVS and KOI", dayLabel: "Day 80", day: 80, status: "unlocked", note: "State of Power and King of Icefield timelines begin around this stage.", items: ["State of Power", "King of Icefield"] },
-  { title: "War Academy Update", dayLabel: "Day 220", day: 220, status: "upcoming", items: ["War Academy", "Fire Crystal Tech", "T11 Troops"] },
-  { title: "Crystal Mastery", dayLabel: "Day 500", day: 500, status: "upcoming", note: "Fire Crystal level 9-10 unlock.", items: ["Crystal 9", "Crystal 10"] },
-  { title: "Gen 13 Heroes", dayLabel: "Day 951", day: 951, status: "upcoming", items: ["Gisela", "Flora", "Vulcanus"] },
-  { title: "Unconfirmed Gen 14 Heroes", dayLabel: "Days 1000-1060", day: 1000, status: "maybe", note: "Names and publish data are still unknown in the source timeline.", items: ["Unknown Name"] },
+  { title: "Initial Heroes", dayLabel: "Day 0", day: 0, status: "unlocked", note: "Natalia, Molly, Patrick, Sergey, and Jessie are available when a state opens.", items: ["Natalia", "Molly", "Patrick", "Sergey", "Jessie"].map((name) => ({ name })) },
+  { title: "Tundra", dayLabel: "Day 14", day: 14, status: "unlocked", note: "Tundra territory opens for alliances.", items: [{ name: "Tundra" }] },
+  { title: "Gen 2 Heroes", dayLabel: "Day 40", day: 40, status: "unlocked", items: ["Alonso", "Flint", "Philly"].map((name) => ({ name })) },
+  { title: "Sunfire Castle", dayLabel: "Day 53", day: 53, status: "unlocked", note: "State alliances begin fighting for castle control and presidency.", items: [{ name: "Sunfire Castle" }] },
+  { title: "Fire Crystal Age", dayLabel: "Day 60", day: 60, status: "unlocked", note: "Fire Crystal 1-3 unlock after Road to Discovery completion.", items: ["Crystal 1", "Crystal 2", "Crystal 3"].map((name) => ({ name })) },
+  { title: "SVS and KOI", dayLabel: "Day 80", day: 80, status: "unlocked", note: "State of Power and King of Icefield timelines begin around this stage.", items: ["State of Power", "King of Icefield"].map((name) => ({ name })) },
+  { title: "War Academy Update", dayLabel: "Day 220", day: 220, status: "upcoming", items: ["War Academy", "Fire Crystal Tech", "T11 Troops"].map((name) => ({ name })) },
+  { title: "Crystal Mastery", dayLabel: "Day 500", day: 500, status: "upcoming", note: "Fire Crystal level 9-10 unlock.", items: ["Crystal 9", "Crystal 10"].map((name) => ({ name })) },
+  { title: "Gen 13 Heroes", dayLabel: "Day 951", day: 951, status: "upcoming", items: ["Gisela", "Flora", "Vulcanus"].map((name) => ({ name })) },
+  { title: "Unconfirmed Gen 14 Heroes", dayLabel: "Days 1000-1060", day: 1000, status: "maybe", note: "Names and publish data are still unknown in the source timeline.", items: [{ name: "Unknown Name" }] },
 ];
 
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
@@ -2135,11 +2138,13 @@ export default function Home() {
   };
 
   const stateAgeEvents = stateAgeResult?.events.length ? stateAgeResult.events : stateAgePreviewEvents;
+  const latestStateAgeEvent = [...stateAgeEvents].reverse().find((event) => event.status === "unlocked") || stateAgeEvents[0];
   const currentStateDay = stateAgeResult?.events.reduce((maxDay, event) => (
     event.status === "unlocked" && event.day !== null ? Math.max(maxDay, event.day) : maxDay
   ), 0) || 0;
   const nextStateAgeEvent = stateAgeResult?.events.find((event) => event.status !== "unlocked");
   const unlockedStateAgeEvents = stateAgeResult?.events.filter((event) => event.status === "unlocked").length || 0;
+  const stateAgeImageCount = stateAgeEvents.reduce((count, event) => count + event.items.filter((item) => item.image).length, 0);
 
   const submitRedeem = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -3622,7 +3627,7 @@ export default function Home() {
                 <div className="state-age-hero-copy">
                   <span className="section-kicker">State Timeline Tool</span>
                   <h1>State Age Tracker</h1>
-                  <p>Type a Whiteout Survival state number to see its creation time, current age, unlocked content, and upcoming generation timeline.</p>
+                  <p>Type a state number to see when it opened, how old it is, what content is already live, and what is coming next.</p>
                 </div>
                 <form className="state-age-search" onSubmit={(event) => void submitStateAge(event)}>
                   <label>
@@ -3660,9 +3665,36 @@ export default function Home() {
                   <strong>{stateAgeResult ? `${unlockedStateAgeEvents} items` : "Preview"}</strong>
                 </article>
                 <article>
-                  <Icon name="star" />
-                  <span>Next Unlock</span>
-                  <strong>{nextStateAgeEvent ? `${nextStateAgeEvent.title}${nextStateAgeEvent.daysLeft ? ` in ${nextStateAgeEvent.daysLeft}d` : ""}` : "All listed content"}</strong>
+                  <Icon name="image" />
+                  <span>Visuals</span>
+                  <strong>{stateAgeImageCount ? `${stateAgeImageCount} images` : "Loads after search"}</strong>
+                </article>
+              </section>
+
+              <section className="state-age-focus-grid" aria-label="State age highlights">
+                <article className="state-age-focus-card current">
+                  <span>Latest Live Unlock</span>
+                  <strong>{latestStateAgeEvent?.title || "Waiting for state"}</strong>
+                  <small>{latestStateAgeEvent?.dayLabel || "Search any state number"}</small>
+                  {latestStateAgeEvent?.items.some((item) => item.image) && (
+                    <div className="state-age-focus-images">
+                      {latestStateAgeEvent.items.filter((item) => item.image).slice(0, 4).map((item) => (
+                        <img src={item.image} alt={item.name} key={`${latestStateAgeEvent.title}-${item.name}`} />
+                      ))}
+                    </div>
+                  )}
+                </article>
+                <article className="state-age-focus-card next">
+                  <span>Next Major Unlock</span>
+                  <strong>{nextStateAgeEvent?.title || "Timeline complete"}</strong>
+                  <small>{nextStateAgeEvent ? `${nextStateAgeEvent.dayLabel}${nextStateAgeEvent.daysLeft ? ` - ${nextStateAgeEvent.daysLeft} days left` : ""}` : "All listed milestones are unlocked."}</small>
+                  {nextStateAgeEvent?.items.length ? (
+                    <div className="state-age-focus-tags">
+                      {nextStateAgeEvent.items.slice(0, 5).map((item) => (
+                        <span key={`${nextStateAgeEvent.title}-${item.name}`}>{item.name}</span>
+                      ))}
+                    </div>
+                  ) : null}
                 </article>
               </section>
 
@@ -3670,10 +3702,7 @@ export default function Home() {
                 <div className="state-age-board-head">
                   <div>
                     <h2>{stateAgeResult ? `Timeline for State #${stateAgeResult.state}` : "State Unlock Timeline Preview"}</h2>
-                    <p>
-                      Data is sourced from <a href="https://whiteoutsurvival.pl/state-timeline/" target="_blank" rel="noreferrer">whiteoutsurvival.pl/state-timeline</a>
-                      {stateAgeResult?.sourceUpdatedAt ? `, updated ${stateAgeResult.sourceUpdatedAt}.` : "."}
-                    </p>
+                    <p>{stateAgeResult ? "Unlocked milestones stay at the top, upcoming milestones show how many days remain." : "Search a state to replace this preview with live server timing."}</p>
                   </div>
                   <span>{stateAgeEvents.length} milestones</span>
                 </div>
@@ -3695,7 +3724,10 @@ export default function Home() {
                         {event.items.length > 0 && (
                           <div className="state-age-items">
                             {event.items.map((item) => (
-                              <span key={`${event.title}-${item}`}>{item}</span>
+                              <span className={item.image ? "with-image" : ""} key={`${event.title}-${item.name}`}>
+                                {item.image && <img src={item.image} alt="" />}
+                                <strong>{item.name}</strong>
+                              </span>
                             ))}
                           </div>
                         )}

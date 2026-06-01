@@ -7,7 +7,10 @@ type StateTimelineEvent = {
   status: "unlocked" | "upcoming" | "maybe";
   daysLeft?: number;
   note?: string;
-  items: string[];
+  items: {
+    name: string;
+    image?: string;
+  }[];
 };
 
 const sourceUrl = "https://whiteoutsurvival.pl/state-timeline/";
@@ -34,6 +37,46 @@ const cleanText = (value: string) =>
 
 const firstMatch = (value: string, pattern: RegExp) => value.match(pattern)?.[1]?.trim() || "";
 
+const absoluteImageUrl = (value: string) => {
+  const image = decodeHtml(value);
+  if (!image) {
+    return "";
+  }
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  }
+  return new URL(image, sourceUrl).toString();
+};
+
+const parseEventItems = (chunk: string) => {
+  const seen = new Set<string>();
+  const items: StateTimelineEvent["items"] = [];
+  const blocks = Array.from(chunk.matchAll(/<(?:a|div)[^>]*class=['"][^'"]*\bstp-hero\b(?!-)[^'"]*['"][^>]*>([\s\S]*?)<\/(?:a|div)>/gi));
+
+  blocks.forEach((match, index) => {
+    const block = match[1];
+    const image = absoluteImageUrl(firstMatch(block, /<img[^>]+src=['"]([^'"]+)['"]/i));
+    const caption = cleanText(firstMatch(block, /<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i));
+    const alt = cleanText(firstMatch(block, /<img[^>]+alt=['"]([^'"]*)['"]/i));
+    const afterBreak = cleanText(firstMatch(block, /<br\s*\/?>\s*([^<]+)/i));
+    const title = cleanText(firstMatch(chunk, /<h4>([\s\S]*?)<\/h4>/i));
+    const name = caption || afterBreak || alt || (index ? `${title} ${index + 1}` : title);
+
+    if (!image && !name) {
+      return;
+    }
+
+    const key = `${name}-${image}`;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    items.push({ name, image: image || undefined });
+  });
+
+  return items.slice(0, 12);
+};
+
 const parseEventDay = (dayLabel: string) => {
   const match = dayLabel.match(/day[s]?\s+(\d+)/i);
   return match ? Number(match[1]) : null;
@@ -53,12 +96,6 @@ const parseStateTimeline = (html: string): StateTimelineEvent[] => {
     const badgeClass = firstMatch(chunk, /<span class='stp-day-badge([^']*)'>/i);
     const daysLeftText = cleanText(firstMatch(chunk, /<div class='stp-days-left'>([\s\S]*?)<\/div>/i));
     const note = cleanText(firstMatch(chunk, /<p class='stp-note'>([\s\S]*?)<\/p>/i));
-    const captions = Array.from(chunk.matchAll(/(?:<figcaption[^>]*>|<br\s*\/?>)([^<]+)(?:<\/figcaption>)?/gi))
-      .map((match) => cleanText(match[1]))
-      .filter(Boolean)
-      .filter((item, index, list) => list.indexOf(item) === index)
-      .slice(0, 8);
-
     events.push({
       title,
       dayLabel,
@@ -66,7 +103,7 @@ const parseStateTimeline = (html: string): StateTimelineEvent[] => {
       status: badgeClass.includes("maybe") ? "maybe" : badgeClass.includes("upcoming") ? "upcoming" : "unlocked",
       daysLeft: Number(daysLeftText.replace(/\D/g, "")) || undefined,
       note,
-      items: captions,
+      items: parseEventItems(chunk),
     });
   });
 
