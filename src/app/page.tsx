@@ -2657,7 +2657,6 @@ export default function Home() {
                         {[
                           [botMetrics.members, "members"],
                           [botMetrics.monitors, "monitors"],
-                          [botMetrics.redeemServers, "auto redeem"],
                           [botMetrics.giftCodes, "active codes"],
                         ].map(([value, label]) => (
                           <span key={label}><strong>{value}</strong>{label}</span>
