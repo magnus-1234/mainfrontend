@@ -33,6 +33,12 @@ const clean = (value: unknown, fallback = "") => {
 
 const toCode = (value: unknown) => clean(value).replace(/[^A-Za-z0-9]/g, "");
 
+const fetchWithTimeout = (url: string, init: RequestInit = {}, timeoutMs = 7000) =>
+  fetch(url, {
+    ...init,
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+
 const normalizeCode = (code: unknown, values: GiftCodeInput = {}): GiftCode | null => {
   const cleanCode = toCode(code);
   if (!/^[A-Za-z0-9]{4,30}$/.test(cleanCode)) {
@@ -92,7 +98,7 @@ const mergeCodes = (lists: GiftCode[][]) => {
 const fetchInternalCodes = async () => {
   for (const backendUrl of backendCandidates) {
     try {
-      const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/gift-codes`, {
+      const response = await fetchWithTimeout(`${backendUrl.replace(/\/$/, "")}/api/gift-codes`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });
@@ -123,7 +129,7 @@ const fetchInternalCodes = async () => {
 
 const fetchFastCodes = async () => {
   try {
-    const response = await fetch("https://wostools.net/api/gift-codes", {
+    const response = await fetchWithTimeout("https://wostools.net/api/gift-codes", {
       headers: { Accept: "application/json", "User-Agent": "Mozilla/5.0 WhiteoutSurvival.dev/1.0" },
       cache: "no-store",
     });
@@ -150,7 +156,7 @@ const fetchFastCodes = async () => {
 
 const fetchTableCodes = async () => {
   try {
-    const response = await fetch("https://wosgiftcodes.com/", {
+    const response = await fetchWithTimeout("https://wosgiftcodes.com/", {
       headers: { Accept: "text/html,application/xhtml+xml", "User-Agent": "Mozilla/5.0 WhiteoutSurvival.dev/1.0" },
       cache: "no-store",
     });
@@ -179,11 +185,14 @@ const fetchTableCodes = async () => {
 };
 
 export async function GET() {
-  const [internalCodes, fastCodes, tableCodes] = await Promise.all([
+  const settled = await Promise.allSettled([
     fetchInternalCodes(),
     fetchFastCodes(),
     fetchTableCodes(),
   ]);
+  const [internalCodes, fastCodes, tableCodes] = settled.map((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
   const codes = mergeCodes([internalCodes, fastCodes, tableCodes]);
 
   return NextResponse.json(

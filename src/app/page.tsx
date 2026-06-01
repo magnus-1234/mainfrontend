@@ -162,6 +162,25 @@ type GiftCodePayload = {
   refreshAfterSeconds?: number;
 };
 
+const giftCodesStorageKey = "whiteoutsurvival-gift-codes-cache-v1";
+
+const readStoredGiftCodes = (): GiftCodePayload | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(giftCodesStorageKey) || "null") as GiftCodePayload | null;
+    if (!stored || !Array.isArray(stored.codes)) {
+      return null;
+    }
+    return stored;
+  } catch {
+    localStorage.removeItem(giftCodesStorageKey);
+    return null;
+  }
+};
+
 type RedeemResult = {
   state: string;
   message: string;
@@ -608,8 +627,8 @@ export default function Home() {
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
   const [activeMenu, setActiveMenu] = useState<"home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot">("home");
-  const [giftCodes, setGiftCodes] = useState<GiftCode[]>([]);
-  const [giftCodeUpdatedAt, setGiftCodeUpdatedAt] = useState("");
+  const [giftCodes, setGiftCodes] = useState<GiftCode[]>(() => readStoredGiftCodes()?.codes.filter((item) => item.isActive !== false) || []);
+  const [giftCodeUpdatedAt, setGiftCodeUpdatedAt] = useState(() => readStoredGiftCodes()?.lastUpdated || "");
   const [giftCodeLoading, setGiftCodeLoading] = useState(false);
   const [giftCodeStatus, setGiftCodeStatus] = useState("");
   const [copiedGiftCode, setCopiedGiftCode] = useState("");
@@ -654,6 +673,7 @@ export default function Home() {
   const plannerGridRef = useRef<HTMLDivElement | null>(null);
   const plannerDragRef = useRef<PlannerDragState | null>(null);
   const plannerSuppressClickRef = useRef(false);
+  const giftCodeRefreshRef = useRef(false);
   const [viewerId] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -812,26 +832,49 @@ export default function Home() {
   }, []);
 
   const loadGiftCodes = useCallback(async () => {
+    if (giftCodeRefreshRef.current) {
+      return;
+    }
+
+    giftCodeRefreshRef.current = true;
     setGiftCodeLoading(true);
-    setGiftCodeStatus("");
+    setGiftCodeStatus(giftCodes.length ? "Refreshing active codes in the background." : "");
 
     try {
-      const response = await fetch("/api/gift-codes", { headers: { Accept: "application/json" } });
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 10000);
+      const response = await fetch("/api/gift-codes", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      window.clearTimeout(timeout);
       if (!response.ok) {
         throw new Error("Unable to load gift codes.");
       }
 
       const payload = (await response.json()) as GiftCodePayload;
       const activeCodes = (payload.codes || []).filter((item) => item.isActive !== false);
-      setGiftCodes(activeCodes);
-      setGiftCodeUpdatedAt(payload.lastUpdated || new Date().toISOString());
-      setGiftCodeStatus(activeCodes.length ? "" : "No active gift codes are available right now.");
+      if (activeCodes.length) {
+        const nextPayload = {
+          codes: activeCodes,
+          lastUpdated: payload.lastUpdated || new Date().toISOString(),
+          refreshAfterSeconds: payload.refreshAfterSeconds,
+        };
+        setGiftCodes(activeCodes);
+        setGiftCodeUpdatedAt(nextPayload.lastUpdated);
+        localStorage.setItem(giftCodesStorageKey, JSON.stringify(nextPayload));
+        setGiftCodeStatus("");
+      } else {
+        setGiftCodeStatus(giftCodes.length ? "No new active codes found. Showing the last active list." : "No active gift codes are available right now.");
+      }
     } catch {
-      setGiftCodeStatus("Gift codes are temporarily unavailable. Try refreshing in a moment.");
+      setGiftCodeStatus(giftCodes.length ? "Refresh is taking longer than expected. Showing the last active list." : "Gift codes are temporarily unavailable. Try refreshing in a moment.");
     } finally {
+      giftCodeRefreshRef.current = false;
       setGiftCodeLoading(false);
     }
-  }, []);
+  }, [giftCodes.length]);
 
   useEffect(() => {
     if (activeMenu === "gift" && !giftCodes.length && !giftCodeLoading) {
