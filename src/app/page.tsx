@@ -777,13 +777,13 @@ export default function Home() {
           daybreakHashes.has(hash) ||
           hash.startsWith("#island-")
           ? "daybreak"
-          : window.location.pathname.startsWith("/redeem") || params.get("menu") === "redeem" || redeemHashes.has(hash)
-            ? "redeem"
           : window.location.pathname.startsWith("/gift-codes") ||
               params.get("menu") === "gift-codes" ||
               params.get("menu") === "giftcodes" ||
               giftHashes.has(hash)
             ? "gift"
+          : window.location.pathname.startsWith("/redeem") || params.get("menu") === "redeem" || redeemHashes.has(hash)
+            ? "redeem"
           : params.get("menu") === "bot" || botHashes.has(hash)
             ? "bot"
           : params.get("menu") === "planner" || plannerHashes.has(hash)
@@ -2408,6 +2408,11 @@ export default function Home() {
       : label === "Sneak Peek"
         ? "sneak"
       : "daybreak";
+  const openGiftCodesPage = () => {
+    setActiveMenu("gift");
+    window.history.pushState(null, "", "/gift-codes");
+  };
+
   return (
     <main
       className={`app-shell ${theme === "dark" ? "dark" : "light"} ${collapsedSidebar ? "collapsed-sidebar" : ""} ${hideTopNav ? "hide-top-nav" : ""} width-${contentWidth} ${resizingSidebar ? "resizing-sidebar" : ""}`}
@@ -2515,7 +2520,15 @@ export default function Home() {
                 className={`sidebar-item ${activeMenu === menuKeyFor(item.label) ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
-                onClick={() => setActiveMenu(menuKeyFor(item.label))}
+                onClick={(event) => {
+                  const nextMenu = menuKeyFor(item.label);
+                  if (nextMenu === "gift") {
+                    event.preventDefault();
+                    openGiftCodesPage();
+                    return;
+                  }
+                  setActiveMenu(nextMenu);
+                }}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
@@ -2638,7 +2651,7 @@ export default function Home() {
                   <p>Enter your player ID and code. Our redeem system completes the secure check automatically.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
-                  <button className="giftcodes-refresh" type="button" onClick={() => setActiveMenu("gift")}>
+                  <button className="giftcodes-refresh" type="button" onClick={openGiftCodesPage}>
                     Back to Codes
                   </button>
                 </div>
