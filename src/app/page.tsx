@@ -3095,7 +3095,7 @@ export default function Home() {
                 <div>
                   <span className="section-kicker">Live Gift Code Tracker</span>
                   <h1>Whiteout Survival Gift Codes</h1>
-                  <p>Fast active codes, refreshed automatically and ready for direct redemption on WhiteoutSurvival.dev.</p>
+                  <p>Fast active codes detector on Internet.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
                   <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage()}>
@@ -3110,8 +3110,6 @@ export default function Home() {
 
               <div className="giftcodes-live-strip" aria-label="Gift code refresh status">
                 <span><Icon name="gift" /> {giftCodeLoading && !giftCodes.length ? "Checking active codes" : `${giftCodes.length} active code${giftCodes.length === 1 ? "" : "s"}`}</span>
-                <span>Last checked {giftCodeUpdatedAt ? formatGiftDate(giftCodeUpdatedAt) : "soon"}</span>
-                <span>Auto refresh every 30 seconds</span>
               </div>
 
               <section className="giftcodes-panel" aria-label="Active gift code list">
