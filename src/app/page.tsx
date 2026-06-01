@@ -586,9 +586,9 @@ const defaultDaybreakTags = [
 const stateTransferStartUtc = Date.UTC(2026, 5, 21, 0, 0, 0);
 const stateTransferEndUtc = Date.UTC(2026, 5, 28, 0, 0, 0);
 const stateTransferPhases = [
-  { label: "Pre-Transfer", dates: "June 21-23 UTC", body: "Presidents set caps and Chiefs review eligible destination states." },
-  { label: "Invitational Transfer", dates: "June 24-25 UTC", body: "Invites are reviewed and sent before transfers open wider." },
-  { label: "Open Transfer", dates: "June 26-27 UTC", body: "Eligible Chiefs can move while available state slots remain." },
+  { label: "Phase 1", dates: "June 21-23 UTC", body: "Presidents set caps and Chiefs review eligible destination states." },
+  { label: "Phase 2", dates: "June 24-25 UTC", body: "Invites are reviewed and sent before transfers open wider." },
+  { label: "Phase 3", dates: "June 26-27 UTC", body: "Eligible Chiefs can move while available state slots remain." },
 ];
 
 const formatCountdownParts = (milliseconds: number) => {
