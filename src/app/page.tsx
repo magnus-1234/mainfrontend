@@ -1230,7 +1230,7 @@ export default function Home() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [, setAuthLoading] = useState(true);
   const [botMetrics, setBotMetrics] = useState<BotMetrics>(fallbackBotMetrics);
   const [authStatus, setAuthStatus] = useState(() => {
     if (typeof window === "undefined") {
@@ -3295,7 +3295,7 @@ export default function Home() {
                 aria-haspopup={authUser ? "menu" : undefined}
               >
                 {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
-                <span>{authLoading ? "Account" : authUser ? authUser.displayName : "Sign In"}</span>
+                <span>{authUser ? authUser.displayName : "Sign In"}</span>
               </button>
               {accountMenuOpen && authUser && (
                 <div className="account-dropdown" role="menu" aria-label="Account menu">

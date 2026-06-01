@@ -10593,18 +10593,18 @@ body {
   }
 
   .brand-icon {
-    width: 28px;
-    height: 28px;
-    flex: 0 0 28px;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
   }
 
   .brand-icon img {
-    width: 21px;
-    height: 21px;
+    width: 18px;
+    height: 18px;
   }
 
   .brand .brand-title {
-    font-size: clamp(10px, 3.15vw, 13px);
+    font-size: clamp(8.6px, 2.75vw, 12px);
     text-overflow: clip;
   }
 
@@ -10612,15 +10612,21 @@ body {
     position: static;
     display: flex;
     min-width: 0;
-    gap: 3px;
+    gap: 4px;
     transform: none;
   }
 
+  .theme-toggle,
+  .language-switcher {
+    display: none;
+  }
+
   .state-transfer-button {
-    width: 84px;
-    min-width: 84px;
+    width: clamp(118px, 40vw, 150px);
+    min-width: 118px;
     height: 30px;
-    padding: 3px 4px;
+    gap: 2px;
+    padding: 3px 5px;
   }
 
   .state-transfer-copy {
@@ -10629,37 +10635,63 @@ body {
     text-align: center;
   }
 
-  .state-transfer-copy > span,
   .state-transfer-button > small {
     display: none;
   }
 
+  .state-transfer-copy > span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .state-transfer-copy strong {
     gap: 1px;
-    font-size: 9px;
+    font-size: 8.5px;
   }
 
   .state-transfer-time-unit {
-    min-width: 17px;
+    min-width: 16px;
     height: 16px;
     border-radius: 4px;
     padding: 1px;
   }
 
   .state-transfer-time-unit span {
-    font-size: 9px;
+    font-size: 8px;
   }
 
   .state-transfer-time-unit small {
     font-size: 5px;
   }
 
-  .theme-toggle,
-  .language-button,
   .sign-in {
-    width: 28px;
-    min-width: 28px;
+    width: 72px;
+    min-width: 72px;
     height: 30px;
+    gap: 4px;
+    padding: 0 7px;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .sign-in span {
+    display: block;
+    max-width: 46px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sign-in svg {
+    width: 14px;
+    height: 14px;
   }
 
   .mobile-more-panel {
@@ -10739,23 +10771,23 @@ body {
 
 @media (max-width: 380px) {
   .brand .brand-title {
-    font-size: 10px;
+    font-size: 8.6px;
   }
 
-  .theme-toggle {
-    width: 26px;
-    min-width: 26px;
-  }
-
-  .language-button,
-  .sign-in {
-    width: 26px;
-    min-width: 26px;
-  }
-
-  .actions .state-transfer-widget,
   .state-transfer-button {
-    display: none;
+    width: 118px;
+    min-width: 118px;
+  }
+
+  .sign-in {
+    width: 66px;
+    min-width: 66px;
+    padding: 0 5px;
+    font-size: 11px;
+  }
+
+  .sign-in span {
+    max-width: 42px;
   }
 
   .giftcodes-hero h1 {
