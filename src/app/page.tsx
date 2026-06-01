@@ -421,11 +421,14 @@ const sidebarItems: {
   { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
   { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
   { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
-  { label: "Wiki Heroes", mobileLabel: "Heroes", icon: "user", menu: "wikiHeroes", href: "/wiki/heroes", mobilePrimary: true },
-  { label: "Wiki Buildings", mobileLabel: "Build", icon: "database", menu: "wikiBuildings", href: "/wiki/buildings" },
   { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
   { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak", mobilePrimary: true },
   { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot" },
+];
+
+const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu: "wikiBuildings" | "wikiHeroes"; href: string }[] = [
+  { label: "Buildings", mobileLabel: "Build", icon: "database", menu: "wikiBuildings", href: "/wiki/buildings" },
+  { label: "Heroes", mobileLabel: "Heroes", icon: "user", menu: "wikiHeroes", href: "/wiki/heroes" },
 ];
 
 const hashMenuAliases: Record<string, ActiveMenu> = {
@@ -1193,6 +1196,7 @@ export default function Home() {
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>("home");
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
+  const [sidebarWikiOpen, setSidebarWikiOpen] = useState(false);
   const [activeHeroFilter, setActiveHeroFilter] = useState<WosHeroFilter>("Rare");
   const [activeBuildingFilter, setActiveBuildingFilter] = useState<WosBuildingFilter>("Military");
   const [giftCodes, setGiftCodes] = useState<GiftCode[]>(() => readStoredGiftCodes()?.codes.filter((item) => item.isActive !== false) || []);
@@ -3016,6 +3020,7 @@ export default function Home() {
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
+  const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
   const heroRarityCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
     counts[hero.rarity] = (counts[hero.rarity] || 0) + 1;
     return counts;
@@ -3037,6 +3042,9 @@ export default function Home() {
 
   const navigateToMenu = (menu: ActiveMenu) => {
     setMobileMoreOpen(false);
+    if (menu !== "wikiHeroes" && menu !== "wikiBuildings") {
+      setSidebarWikiOpen(false);
+    }
     setActiveMenu(menu);
     setActiveWikiSlug("");
     const nextUrl = menuUrls[menu];
@@ -3046,6 +3054,7 @@ export default function Home() {
   };
   const openWikiItem = (menu: "wikiHeroes" | "wikiBuildings", slug: string) => {
     setMobileMoreOpen(false);
+    setSidebarWikiOpen(true);
     setActiveMenu(menu);
     setActiveWikiSlug(slug);
     const baseUrl = menuUrls[menu];
@@ -3261,6 +3270,38 @@ export default function Home() {
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
+            <div className={`sidebar-wiki-group mobile-primary ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
+              <button
+                className={`sidebar-item sidebar-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
+                type="button"
+                aria-expanded={sidebarWikiOpen || wikiMenuActive}
+                aria-controls="sidebar-wos-wiki-submenu"
+                onClick={() => setSidebarWikiOpen((value) => !value)}
+              >
+                <Icon name="book" />
+                <span className="nav-label-desktop">WOS Wiki</span>
+                <span className="nav-label-mobile">Wiki</span>
+                <Icon name="chevron" />
+              </button>
+              <div className="sidebar-wiki-submenu" id="sidebar-wos-wiki-submenu" aria-label="WOS Wiki submenu">
+                {sidebarWikiItems.map((item) => (
+                  <a
+                    className={`sidebar-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
+                    href={item.href}
+                    key={item.menu}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setSidebarWikiOpen(true);
+                      navigateToMenu(item.menu);
+                    }}
+                  >
+                    <Icon name={item.icon} />
+                    <span className="nav-label-desktop">{item.label}</span>
+                    <span className="nav-label-mobile">{item.mobileLabel}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
             {mobileMoreItems.length > 0 && (
               <button
                 className={`sidebar-item mobile-more-trigger ${mobileMoreOpen || mobileMoreActive ? "active" : ""}`}
