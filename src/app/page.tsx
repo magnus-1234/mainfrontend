@@ -2179,7 +2179,7 @@ export default function Home() {
                 aria-haspopup={authUser ? "menu" : undefined}
               >
                 {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
-                {authLoading ? "Account" : authUser ? "Profile" : "Sign In"}
+                <span>{authLoading ? "Account" : authUser ? authUser.displayName : "Sign In"}</span>
               </button>
               {accountMenuOpen && authUser && (
                 <div className="account-dropdown" role="menu" aria-label="Account menu">

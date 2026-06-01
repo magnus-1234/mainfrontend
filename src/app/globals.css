@@ -485,6 +485,7 @@ svg {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  max-width: 180px;
   height: 36px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -496,6 +497,13 @@ svg {
   font-weight: 500;
   transition: color 150ms ease, background-color 150ms ease;
   box-shadow: none;
+}
+
+.sign-in span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dark .sign-in {
