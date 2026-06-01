@@ -474,6 +474,9 @@ const formatCountdownParts = (milliseconds: number) => {
   return { days, hours, minutes, seconds };
 };
 
+const formatDetailedCountdown = ({ days, hours, minutes, seconds }: ReturnType<typeof formatCountdownParts>) =>
+  `${days}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+
 function Icon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
     home: (
@@ -766,15 +769,8 @@ function StateTransferCountdown() {
   const isLive = now !== null && remainingToStart <= 0 && remainingToEnd > 0;
   const hasEnded = now !== null && remainingToEnd <= 0;
   const countdown = formatCountdownParts(isLive ? remainingToEnd : remainingToStart);
-  const primaryValue = now === null ? "--" : hasEnded ? "Ended" : isLive ? "Live" : `${countdown.days}d`;
-  const secondaryValue =
-    now === null
-      ? "Loading"
-      : hasEnded
-        ? "June window closed"
-        : isLive
-          ? `${countdown.days}d ${countdown.hours}h left`
-          : `${countdown.hours}h ${countdown.minutes}m`;
+  const navCountdown = now === null ? "--d --h --m --s" : hasEnded ? "Window ended" : formatDetailedCountdown(countdown);
+  const navStatus = hasEnded ? "June window closed" : isLive ? "Transfer live" : "Starts in";
 
   useEffect(() => {
     const updateNow = () => setNow(Date.now());
@@ -819,9 +815,9 @@ function StateTransferCountdown() {
         <img src="/state-transfer.png" alt="" />
         <span className="state-transfer-copy">
           <span>Next state transfer</span>
-          <strong>{primaryValue}</strong>
+          <strong>{navCountdown}</strong>
         </span>
-        <small>{secondaryValue}</small>
+        <small>{navStatus}</small>
       </button>
 
       {open && (
