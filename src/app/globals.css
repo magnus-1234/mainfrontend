@@ -7995,6 +7995,106 @@ body {
   font-size: clamp(1.28rem, 2vw, 1.9rem);
 }
 
+.state-age-primary-card {
+  border-color: color-mix(in srgb, var(--gold-line) 54%, var(--border));
+  box-shadow:
+    0 0 0 1px rgba(244, 129, 32, 0.08),
+    0 18px 46px rgba(0, 0, 0, 0.14),
+    0 0 38px rgba(244, 129, 32, 0.12);
+}
+
+.state-age-creation-panel {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 58%, var(--border));
+  border-radius: 8px;
+  padding: 14px;
+  background:
+    linear-gradient(90deg, rgba(244, 129, 32, 0.16), color-mix(in srgb, var(--card) 92%, transparent) 46%, rgba(43, 132, 170, 0.12)),
+    var(--card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 46px rgba(0, 0, 0, 0.16),
+    0 0 44px rgba(244, 129, 32, 0.16);
+}
+
+.state-age-creation-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 34px);
+  opacity: 0.24;
+}
+
+.state-age-creation-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid rgba(244, 129, 32, 0.52);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle, rgba(255, 209, 115, 0.36), rgba(244, 129, 32, 0.1) 56%, transparent 70%),
+    color-mix(in srgb, var(--background) 58%, transparent);
+  color: var(--gold);
+  box-shadow:
+    0 0 0 5px rgba(244, 129, 32, 0.08),
+    0 0 28px rgba(244, 129, 32, 0.32);
+}
+
+.state-age-creation-node svg {
+  width: 24px;
+  height: 24px;
+}
+
+.state-age-creation-panel div:not(.state-age-creation-node):not(.state-age-creation-pulse) {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.state-age-creation-panel span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.state-age-creation-panel strong {
+  color: var(--foreground);
+  font-size: clamp(1.16rem, 2.2vw, 2rem);
+  line-height: 1.1;
+}
+
+.state-age-creation-panel small {
+  color: var(--muted-foreground);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.state-age-creation-pulse {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow:
+    0 0 0 7px rgba(34, 197, 94, 0.1),
+    0 0 26px rgba(34, 197, 94, 0.42);
+}
+
 .state-age-focus-grid {
   grid-template-columns: 1.05fr 0.95fr;
   gap: 10px;
@@ -8003,6 +8103,10 @@ body {
 .state-age-focus-card {
   min-height: 138px;
   padding: 15px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 18px 46px rgba(0, 0, 0, 0.14),
+    0 0 32px rgba(43, 132, 170, 0.08);
 }
 
 .state-age-focus-card.current {
@@ -8010,10 +8114,18 @@ body {
   background:
     linear-gradient(135deg, rgba(34, 197, 94, 0.12), color-mix(in srgb, var(--card) 92%, transparent)),
     var(--card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 18px 46px rgba(0, 0, 0, 0.14),
+    0 0 34px rgba(34, 197, 94, 0.12);
 }
 
 .state-age-focus-card.next {
   border-color: rgba(244, 129, 32, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 18px 46px rgba(0, 0, 0, 0.14),
+    0 0 34px rgba(244, 129, 32, 0.12);
 }
 
 .state-age-focus-card > strong {
@@ -8092,6 +8204,9 @@ body {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), color-mix(in srgb, var(--background) 50%, var(--card))),
     var(--card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 12px 30px rgba(0, 0, 0, 0.1);
 }
 
 .state-age-event-card::before {
@@ -8100,14 +8215,45 @@ body {
   inset: 0 0 auto;
   height: 3px;
   background: #22c55e;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.38);
 }
 
 .event-upcoming .state-age-event-card::before {
   background: var(--gold);
+  box-shadow: 0 0 20px rgba(244, 129, 32, 0.38);
 }
 
 .event-maybe .state-age-event-card::before {
   background: #eab308;
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.34);
+}
+
+.state-age-event-card::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow:
+    0 0 0 5px rgba(34, 197, 94, 0.08),
+    0 0 18px rgba(34, 197, 94, 0.34);
+}
+
+.event-upcoming .state-age-event-card::after {
+  background: var(--gold);
+  box-shadow:
+    0 0 0 5px rgba(244, 129, 32, 0.09),
+    0 0 18px rgba(244, 129, 32, 0.34);
+}
+
+.event-maybe .state-age-event-card::after {
+  background: #eab308;
+  box-shadow:
+    0 0 0 5px rgba(234, 179, 8, 0.09),
+    0 0 18px rgba(234, 179, 8, 0.3);
 }
 
 .state-age-event-top {
@@ -8126,6 +8272,7 @@ body {
   font-size: 10px;
   font-weight: 900;
   line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
 }
 
 .state-age-day,
@@ -8163,11 +8310,14 @@ body {
 .state-age-items span.with-image {
   grid-template-columns: 36px minmax(0, 1fr);
   min-height: 50px;
+  border-color: color-mix(in srgb, var(--border) 68%, rgba(244, 129, 32, 0.22));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .state-age-items img {
   width: 36px;
   height: 36px;
+  box-shadow: 0 0 18px rgba(43, 132, 170, 0.12);
 }
 
 .state-age-items strong {
@@ -8199,6 +8349,19 @@ body {
   .state-age-focus-grid,
   .state-age-timeline {
     grid-template-columns: 1fr;
+  }
+
+  .state-age-creation-panel {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .state-age-creation-node {
+    width: 44px;
+    height: 44px;
+  }
+
+  .state-age-creation-pulse {
+    display: none;
   }
 
   .state-age-board-head {

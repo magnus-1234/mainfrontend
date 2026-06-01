@@ -3679,6 +3679,18 @@ export default function Home() {
                 </article>
               </section>
 
+              <section className="state-age-creation-panel" aria-label="State creation time">
+                <div className="state-age-creation-node">
+                  <Icon name="calendar" />
+                </div>
+                <div>
+                  <span>State Creation Date & Time</span>
+                  <strong>{stateAgeResult?.startedAt || "Search a state to reveal the exact UTC opening time"}</strong>
+                  <small>{stateAgeResult ? `State #${stateAgeResult.state} has been active for ${stateAgeResult.activeFor}.` : "Creation time is shown in UTC when the source provides the state open timestamp."}</small>
+                </div>
+                <div className="state-age-creation-pulse" aria-hidden="true" />
+              </section>
+
               <section className="state-age-focus-grid" aria-label="State age highlights">
                 <article className="state-age-focus-card current">
                   <span>Latest Live Unlock</span>
