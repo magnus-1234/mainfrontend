@@ -8333,6 +8333,126 @@ body {
   height: 42px;
 }
 
+.state-age-event-card {
+  border-color: color-mix(in srgb, var(--border) 70%, rgba(43, 132, 170, 0.24));
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, transparent), color-mix(in srgb, var(--background) 54%, var(--card))),
+    var(--card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.025),
+    0 16px 34px rgba(0, 0, 0, 0.13),
+    0 0 28px rgba(43, 132, 170, 0.055);
+}
+
+.state-age-event-card:hover {
+  border-color: color-mix(in srgb, var(--gold-line) 44%, var(--border));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.065),
+    0 18px 38px rgba(0, 0, 0, 0.16),
+    0 0 32px rgba(244, 129, 32, 0.1);
+}
+
+.state-age-event-card h3 {
+  position: relative;
+  padding-right: 18px;
+  font-weight: 950;
+}
+
+.state-age-event-card h3::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.55);
+  vertical-align: 2px;
+}
+
+.event-upcoming .state-age-event-card h3::before {
+  background: var(--gold);
+  box-shadow: 0 0 14px rgba(244, 129, 32, 0.55);
+}
+
+.event-maybe .state-age-event-card h3::before {
+  background: #eab308;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.48);
+}
+
+.state-age-day {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, rgba(255, 255, 255, 0.08));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--muted) 78%, transparent), color-mix(in srgb, var(--background) 38%, var(--muted)));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.state-age-badge {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 18px rgba(34, 197, 94, 0.1);
+}
+
+.badge-upcoming {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 18px rgba(244, 129, 32, 0.12);
+}
+
+.badge-maybe {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 18px rgba(234, 179, 8, 0.1);
+}
+
+.state-age-items {
+  align-items: stretch;
+}
+
+.state-age-items span {
+  border-color: color-mix(in srgb, var(--border) 74%, rgba(255, 255, 255, 0.08));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 72%, var(--muted)), color-mix(in srgb, var(--background) 42%, var(--card)));
+}
+
+.state-age-items span.with-image {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--gold-line) 24%, var(--border));
+}
+
+.state-age-items span.with-image::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(244, 129, 32, 0.42), transparent);
+}
+
+.state-age-items img {
+  border-color: color-mix(in srgb, var(--border) 58%, rgba(255, 255, 255, 0.16));
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.18),
+    0 0 18px rgba(43, 132, 170, 0.14);
+}
+
+.state-age-event.has-images .state-age-items span.with-image:first-child {
+  min-height: 58px;
+  border-color: color-mix(in srgb, var(--gold-line) 38%, var(--border));
+  background:
+    linear-gradient(135deg, rgba(244, 129, 32, 0.11), color-mix(in srgb, var(--card) 82%, var(--muted))),
+    var(--card);
+}
+
+.state-age-board-stats span {
+  border-color: color-mix(in srgb, var(--border) 64%, rgba(244, 129, 32, 0.16));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 62%, var(--muted)), color-mix(in srgb, var(--background) 42%, var(--card)));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 @media (max-width: 980px) {
   .state-age-summary,
   .state-age-focus-grid {

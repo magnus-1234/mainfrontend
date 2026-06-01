@@ -3656,29 +3656,6 @@ export default function Home() {
 
               {stateAgeStatus && <p className="state-age-status">{stateAgeStatus}</p>}
 
-              <section className="state-age-summary" aria-label="State age summary">
-                <article className="state-age-primary-card">
-                  <span>{stateAgeResult ? `State #${stateAgeResult.state}` : "Preview Mode"}</span>
-                  <strong>{stateAgeResult?.activeFor || "Enter a state number to load live age"}</strong>
-                  <small>{stateAgeResult?.startedAt ? `Created ${stateAgeResult.startedAt}` : "Timeline preview uses the source unlock schedule."}</small>
-                </article>
-                <article>
-                  <Icon name="calendar" />
-                  <span>Current Milestone</span>
-                  <strong>{stateAgeResult ? `Day ${currentStateDay}+` : "Source Timeline"}</strong>
-                </article>
-                <article>
-                  <Icon name="shield" />
-                  <span>Unlocked Milestones</span>
-                  <strong>{stateAgeResult ? `${unlockedStateAgeEvents}` : "Preview"}</strong>
-                </article>
-                <article>
-                  <Icon name="image" />
-                  <span>Visuals</span>
-                  <strong>{stateAgeImageCount ? `${stateAgeImageCount} images` : "Loads after search"}</strong>
-                </article>
-              </section>
-
               <section className="state-age-creation-panel" aria-label="State creation time">
                 <div className="state-age-creation-node">
                   <Icon name="calendar" />
@@ -3726,7 +3703,10 @@ export default function Home() {
                   </div>
                   <div className="state-age-board-stats" aria-label="Timeline totals">
                     <span>{stateAgeEvents.length} milestones</span>
+                    <span>{stateAgeResult ? `Day ${currentStateDay}+` : "preview mode"}</span>
+                    <span>{unlockedStateAgeEvents || "preview"} unlocked</span>
                     <span>{upcomingStateAgeEvents} upcoming</span>
+                    <span>{stateAgeImageCount ? `${stateAgeImageCount} images` : "images after search"}</span>
                     {maybeStateAgeEvents > 0 && <span>{maybeStateAgeEvents} unconfirmed</span>}
                   </div>
                 </div>
