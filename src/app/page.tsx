@@ -146,6 +146,34 @@ type BotMetrics = {
   giftCodes: string;
 };
 
+type GiftCode = {
+  code: string;
+  rewards: string;
+  expiry: string;
+  description?: string;
+  dateAdded?: string;
+  status?: string;
+  isActive?: boolean;
+};
+
+type GiftCodePayload = {
+  codes: GiftCode[];
+  lastUpdated?: string;
+  refreshAfterSeconds?: number;
+};
+
+type RedeemResult = {
+  state: string;
+  message: string;
+  checkedAt?: string;
+};
+
+type CaptchaPayload = {
+  player: PlayerProfile | null;
+  captchaImage: string;
+  issuedAt: string;
+};
+
 const fallbackBotMetrics: BotMetrics = {
   servers: "48",
   members: "1.5K",
@@ -208,6 +236,7 @@ const menuItems = [
 
 const sidebarItems = [
   { label: "Home", icon: "home", href: "#home" },
+  { label: "Gift Codes", icon: "gift", href: "#gift-codes" },
   { label: "City Layout Planner", icon: "grid", href: "#city-layout-planner", beta: true },
   { label: "Sneak Peek", icon: "book", href: "#sneak-peek" },
   { label: "Daybreak Island", icon: "island", href: "#daybreak" },
@@ -583,7 +612,19 @@ export default function Home() {
   const [playerLookupStatus, setPlayerLookupStatus] = useState("");
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
-  const [activeMenu, setActiveMenu] = useState<"home" | "planner" | "sneak" | "daybreak" | "bot">("home");
+  const [activeMenu, setActiveMenu] = useState<"home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot">("home");
+  const [giftCodes, setGiftCodes] = useState<GiftCode[]>([]);
+  const [giftCodeUpdatedAt, setGiftCodeUpdatedAt] = useState("");
+  const [giftCodeLoading, setGiftCodeLoading] = useState(false);
+  const [giftCodeStatus, setGiftCodeStatus] = useState("");
+  const [copiedGiftCode, setCopiedGiftCode] = useState("");
+  const [redeemPlayerId, setRedeemPlayerId] = useState("");
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeemCaptcha, setRedeemCaptcha] = useState("");
+  const [redeemCaptchaImage, setRedeemCaptchaImage] = useState("");
+  const [redeemPlayer, setRedeemPlayer] = useState<PlayerProfile | null>(null);
+  const [redeemLoading, setRedeemLoading] = useState(false);
+  const [redeemResult, setRedeemResult] = useState<RedeemResult | null>(null);
   const [islands, setIslands] = useState<Island[]>([]);
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
@@ -702,8 +743,14 @@ export default function Home() {
       const hash = window.location.hash;
       const daybreakHashes = new Set(["#daybreak", "#showcase", "#upload"]);
       const botHashes = new Set(["#discord-bot", "#bot"]);
+      const giftHashes = new Set(["#gift-codes", "#giftcodes", "#gift"]);
+      const redeemHashes = new Set(["#redeem", "#gift-code-redeem"]);
       const plannerHashes = new Set(["#city-layout-planner", "#layout-planner", "#planner"]);
       const sneakHashes = new Set(["#sneak-peek", "#sneak", "#chief-concierge"]);
+      const redeemCodeParam = params.get("code") || "";
+      if (redeemCodeParam) {
+        setRedeemCode(redeemCodeParam.replace(/[^A-Za-z0-9]/g, ""));
+      }
       setActiveMenu(
         params.get("menu") === "daybreak" ||
           params.has("island") ||
@@ -711,6 +758,13 @@ export default function Home() {
           daybreakHashes.has(hash) ||
           hash.startsWith("#island-")
           ? "daybreak"
+          : window.location.pathname.startsWith("/redeem") || params.get("menu") === "redeem" || redeemHashes.has(hash)
+            ? "redeem"
+          : window.location.pathname.startsWith("/gift-codes") ||
+              params.get("menu") === "gift-codes" ||
+              params.get("menu") === "giftcodes" ||
+              giftHashes.has(hash)
+            ? "gift"
           : params.get("menu") === "bot" || botHashes.has(hash)
             ? "bot"
           : params.get("menu") === "planner" || plannerHashes.has(hash)
@@ -763,6 +817,47 @@ export default function Home() {
 
     void loadBotMetrics();
   }, []);
+
+  const loadGiftCodes = useCallback(async () => {
+    setGiftCodeLoading(true);
+    setGiftCodeStatus("");
+
+    try {
+      const response = await fetch("/api/gift-codes", { headers: { Accept: "application/json" } });
+      if (!response.ok) {
+        throw new Error("Unable to load gift codes.");
+      }
+
+      const payload = (await response.json()) as GiftCodePayload;
+      const activeCodes = (payload.codes || []).filter((item) => item.isActive !== false);
+      setGiftCodes(activeCodes);
+      setGiftCodeUpdatedAt(payload.lastUpdated || new Date().toISOString());
+      setGiftCodeStatus(activeCodes.length ? "" : "No active gift codes are available right now.");
+    } catch {
+      setGiftCodeStatus("Gift codes are temporarily unavailable. Try refreshing in a moment.");
+    } finally {
+      setGiftCodeLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeMenu === "gift" && !giftCodes.length && !giftCodeLoading) {
+      const timer = window.setTimeout(() => void loadGiftCodes(), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [activeMenu, giftCodes.length, giftCodeLoading, loadGiftCodes]);
+
+  useEffect(() => {
+    if (activeMenu !== "gift") {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void loadGiftCodes();
+    }, 30000);
+
+    return () => window.clearInterval(interval);
+  }, [activeMenu, loadGiftCodes]);
 
   useEffect(() => {
     const updateFooterForActivity = (event: Event) => {
@@ -1201,6 +1296,129 @@ export default function Home() {
     }
 
     setStatus("Share link copied.");
+  };
+
+  const copyGiftCode = async (code: string) => {
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(code);
+    } catch {
+      window.prompt("Copy gift code", code);
+    }
+    setCopiedGiftCode(code);
+    window.setTimeout(() => setCopiedGiftCode((current) => (current === code ? "" : current)), 1600);
+  };
+
+  const copyAllGiftCodes = async () => {
+    const allCodes = giftCodes.map((item) => item.code).join("\n");
+    if (!allCodes) {
+      return;
+    }
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(allCodes);
+    } catch {
+      window.prompt("Copy active gift codes", allCodes);
+    }
+    setGiftCodeStatus("All active codes copied.");
+  };
+
+  const openRedeemPage = (code: string) => {
+    const cleanCode = code.replace(/[^A-Za-z0-9]/g, "");
+    setRedeemCode(cleanCode);
+    setRedeemCaptcha("");
+    setRedeemCaptchaImage("");
+    setRedeemResult(null);
+    setActiveMenu("redeem");
+    window.history.pushState(null, "", `/redeem?code=${encodeURIComponent(cleanCode)}`);
+  };
+
+  const formatGiftDate = (value?: string) => {
+    if (!value) {
+      return "Unknown";
+    }
+
+    const parsed = new Date(value);
+    if (!Number.isFinite(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "UTC",
+      timeZoneName: "short",
+    }).format(parsed);
+  };
+
+  const fetchRedeemCaptcha = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    setRedeemLoading(true);
+    setRedeemResult(null);
+    setRedeemCaptcha("");
+
+    try {
+      const response = await fetch("/api/gift-codes/captcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ playerId: redeemPlayerId }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Unable to load captcha.");
+      }
+
+      const data = payload as CaptchaPayload;
+      setRedeemPlayer(data.player);
+      setRedeemCaptchaImage(data.captchaImage);
+      setRedeemResult({
+        state: "ready",
+        message: data.player ? `Ready for ${data.player.nickname}. Enter the captcha to redeem.` : "Captcha ready. Enter the captcha to redeem.",
+      });
+    } catch (error) {
+      setRedeemCaptchaImage("");
+      setRedeemResult({ state: "error", message: error instanceof Error ? error.message : "Unable to load captcha." });
+    } finally {
+      setRedeemLoading(false);
+    }
+  };
+
+  const submitRedeem = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setRedeemLoading(true);
+    setRedeemResult(null);
+
+    try {
+      const response = await fetch("/api/gift-codes/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          playerId: redeemPlayerId,
+          code: redeemCode,
+          captchaCode: redeemCaptcha,
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.message || payload?.error || "Unable to redeem.");
+      }
+
+      setRedeemResult(payload as RedeemResult);
+      if (["captcha_error", "rate_limited"].includes(String(payload?.state))) {
+        setRedeemCaptchaImage("");
+      }
+    } catch (error) {
+      setRedeemResult({ state: "error", message: error instanceof Error ? error.message : "Unable to redeem." });
+    } finally {
+      setRedeemLoading(false);
+    }
   };
 
   const addComment = async (event: FormEvent<HTMLFormElement>) => {
@@ -2127,6 +2345,19 @@ export default function Home() {
   };
 
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
+  const menuKeyFor = (label: string) =>
+    label === "Home"
+      ? "home"
+      : label === "Gift Codes"
+        ? "gift"
+      : label === "Discord Bot"
+        ? "bot"
+      : label === "City Layout Planner"
+        ? "planner"
+      : label === "Sneak Peek"
+        ? "sneak"
+      : "daybreak";
+  const latestGiftCode = giftCodes[0];
 
   return (
     <main
@@ -2232,10 +2463,10 @@ export default function Home() {
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
-                className={`sidebar-item ${activeMenu === (item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : item.label === "City Layout Planner" ? "planner" : item.label === "Sneak Peek" ? "sneak" : "daybreak") ? "active" : ""}`}
+                className={`sidebar-item ${activeMenu === menuKeyFor(item.label) ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
-                onClick={() => setActiveMenu(item.label === "Home" ? "home" : item.label === "Discord Bot" ? "bot" : item.label === "City Layout Planner" ? "planner" : item.label === "Sneak Peek" ? "sneak" : "daybreak")}
+                onClick={() => setActiveMenu(menuKeyFor(item.label))}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
@@ -2257,6 +2488,191 @@ export default function Home() {
         <div className="content-column">
           {activeMenu === "home" ? (
             <section className="home-page empty-home" id="home" aria-label="Home" />
+          ) : activeMenu === "gift" ? (
+            <section className="home-page giftcodes-page" id="gift-codes" aria-label="Whiteout Survival gift codes">
+              <section className="giftcodes-hero">
+                <div>
+                  <span className="section-kicker">Live Gift Code Tracker</span>
+                  <h1>Whiteout Survival Gift Codes</h1>
+                  <p>The fastest active Whiteout Survival code tracker, refreshed automatically and ready for direct redemption on WhiteoutSurvival.dev.</p>
+                </div>
+                <div className="giftcodes-hero-actions">
+                  <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage(latestGiftCode?.code || "")}>
+                    Redeem
+                    <Icon name="external" />
+                  </button>
+                  <button className="giftcodes-refresh" type="button" onClick={() => void loadGiftCodes()} disabled={giftCodeLoading}>
+                    {giftCodeLoading ? "Refreshing" : "Refresh"}
+                  </button>
+                </div>
+              </section>
+
+              <div className="giftcodes-live-strip" aria-label="Gift code refresh status">
+                <span><Icon name="gift" /> {giftCodeLoading && !giftCodes.length ? "Checking active codes" : `${giftCodes.length} active code${giftCodes.length === 1 ? "" : "s"}`}</span>
+                <span>Last checked {giftCodeUpdatedAt ? formatGiftDate(giftCodeUpdatedAt) : "soon"}</span>
+                <span>Auto refresh every 30 seconds</span>
+              </div>
+
+              {latestGiftCode && (
+                <section className="giftcodes-latest" aria-label="Latest active gift code">
+                  <div>
+                    <span className="giftcode-status-dot">Latest active</span>
+                    <h2>{latestGiftCode.code}</h2>
+                    <p>{latestGiftCode.rewards}</p>
+                  </div>
+                  <button type="button" onClick={() => void copyGiftCode(latestGiftCode.code)}>
+                    <Icon name="copy" />
+                    {copiedGiftCode === latestGiftCode.code ? "Copied" : "Copy"}
+                  </button>
+                  <button type="button" onClick={() => openRedeemPage(latestGiftCode.code)}>
+                    <Icon name="external" />
+                    Redeem here
+                  </button>
+                </section>
+              )}
+
+              <section className="giftcodes-panel" aria-label="Active gift code list">
+                <div className="giftcodes-panel-head">
+                  <div>
+                    <h2>Active Code Directory</h2>
+                    <p>Compact list for quick copying and manual redeem checks.</p>
+                  </div>
+                  <button type="button" onClick={() => void copyAllGiftCodes()} disabled={!giftCodes.length}>
+                    <Icon name="copy" />
+                    Copy All
+                  </button>
+                </div>
+
+                {giftCodeStatus && <p className="giftcodes-status">{giftCodeStatus}</p>}
+
+                <div className="giftcodes-list">
+                  {giftCodes.map((item) => (
+                    <article className="giftcode-row" key={item.code}>
+                      <div className="giftcode-main">
+                        <div className="giftcode-code-line">
+                          <strong>{item.code}</strong>
+                          <span>Active</span>
+                        </div>
+                        <p>{item.rewards}</p>
+                      </div>
+                      <div className="giftcode-meta">
+                        <span>Expires: {item.expiry || "Unknown"}</span>
+                        {item.dateAdded && <span>Added: {formatGiftDate(item.dateAdded)}</span>}
+                      </div>
+                      <div className="giftcode-actions">
+                        <button type="button" onClick={() => void copyGiftCode(item.code)} aria-label={`Copy ${item.code}`}>
+                          <Icon name="copy" />
+                          {copiedGiftCode === item.code ? "Copied" : "Copy"}
+                        </button>
+                        <button type="button" onClick={() => openRedeemPage(item.code)} aria-label={`Redeem ${item.code}`}>
+                          <Icon name="external" />
+                          Redeem
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                  {giftCodeLoading && !giftCodes.length && (
+                    <div className="giftcodes-empty">Checking active codes...</div>
+                  )}
+                  {!giftCodeLoading && !giftCodes.length && (
+                    <div className="giftcodes-empty">No active codes found right now.</div>
+                  )}
+                </div>
+              </section>
+
+              <section className="giftcodes-guide" aria-label="Redeem guide">
+                <article>
+                  <span>1</span>
+                  <strong>Select Code</strong>
+                  <p>Choose any active code and open the WhiteoutSurvival.dev redeem page.</p>
+                </article>
+                <article>
+                  <span>2</span>
+                  <strong>Enter Player ID</strong>
+                  <p>Paste your FID, confirm the account, and load the secure captcha.</p>
+                </article>
+                <article>
+                  <span>3</span>
+                  <strong>Redeem Here</strong>
+                  <p>Enter the captcha and submit directly from our redeem flow.</p>
+                </article>
+              </section>
+            </section>
+          ) : activeMenu === "redeem" ? (
+            <section className="home-page giftcodes-page redeem-page" id="redeem" aria-label="Whiteout Survival gift code redeem">
+              <section className="giftcodes-hero redeem-hero">
+                <div>
+                  <span className="section-kicker">WhiteoutSurvival.dev Redeem</span>
+                  <h1>Redeem Gift Code</h1>
+                  <p>Enter your player ID, verify your account, solve the captcha, and redeem without leaving WhiteoutSurvival.dev.</p>
+                </div>
+                <div className="giftcodes-hero-actions">
+                  <button className="giftcodes-refresh" type="button" onClick={() => setActiveMenu("gift")}>
+                    Back to Codes
+                  </button>
+                </div>
+              </section>
+
+              <section className="redeem-shell">
+                <form className="redeem-card" onSubmit={(event) => void fetchRedeemCaptcha(event)}>
+                  <div className="redeem-card-head">
+                    <span>Step 1</span>
+                    <strong>Account Check</strong>
+                  </div>
+                  <label>
+                    <span>Player ID</span>
+                    <input value={redeemPlayerId} onChange={(event) => setRedeemPlayerId(event.currentTarget.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="Enter your FID" />
+                  </label>
+                  <label>
+                    <span>Gift Code</span>
+                    <input value={redeemCode} onChange={(event) => setRedeemCode(event.currentTarget.value.replace(/[^A-Za-z0-9]/g, ""))} placeholder="Gift code" />
+                  </label>
+                  <button type="submit" disabled={redeemLoading || !redeemPlayerId || !redeemCode}>
+                    {redeemLoading ? "Checking" : "Verify and Load Captcha"}
+                  </button>
+                </form>
+
+                <form className="redeem-card" onSubmit={(event) => void submitRedeem(event)}>
+                  <div className="redeem-card-head">
+                    <span>Step 2</span>
+                    <strong>Redeem</strong>
+                  </div>
+                  {redeemPlayer && (
+                    <div className="redeem-player">
+                      {redeemPlayer.avatarImage && <img src={redeemPlayer.avatarImage} alt="" />}
+                      <span>
+                        <strong>{redeemPlayer.nickname}</strong>
+                        <small>State {redeemPlayer.stateId || "N/A"} · Furnace {furnaceDisplay(redeemPlayer)}</small>
+                      </span>
+                    </div>
+                  )}
+                  {redeemCaptchaImage ? (
+                    <div className="redeem-captcha">
+                      <img src={redeemCaptchaImage} alt="Captcha challenge" />
+                      <button type="button" onClick={() => void fetchRedeemCaptcha()}>
+                        Refresh Captcha
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="redeem-captcha-empty">Load captcha after entering your player ID and gift code.</div>
+                  )}
+                  <label>
+                    <span>Captcha</span>
+                    <input value={redeemCaptcha} onChange={(event) => setRedeemCaptcha(event.currentTarget.value.replace(/[^A-Za-z0-9]/g, ""))} placeholder="Enter captcha" />
+                  </label>
+                  <button type="submit" disabled={redeemLoading || !redeemCaptchaImage || !redeemCaptcha || !redeemPlayerId || !redeemCode}>
+                    {redeemLoading ? "Redeeming" : "Redeem Code"}
+                  </button>
+                </form>
+              </section>
+
+              {redeemResult && (
+                <section className={`redeem-result redeem-result-${redeemResult.state}`} aria-live="polite">
+                  <strong>{redeemResult.message}</strong>
+                  {redeemResult.checkedAt && <span>Checked {formatGiftDate(redeemResult.checkedAt)} UTC</span>}
+                </section>
+              )}
+            </section>
           ) : activeMenu === "planner" ? (
             <section className="home-page planner-page" id="city-layout-planner" aria-label="City Layout Planner">
               <section className="planner-toolbar" aria-label="Planner controls">

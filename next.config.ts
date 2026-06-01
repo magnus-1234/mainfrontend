@@ -11,6 +11,22 @@ const nextConfig: NextConfig = {
         destination: "/?menu=daybreak&island=:id",
       },
       {
+        source: "/gift-codes",
+        destination: "/?menu=gift-codes",
+      },
+      {
+        source: "/redeem",
+        destination: "/?menu=redeem",
+      },
+      {
+        source: "/api/gift-codes",
+        destination: `${backendUrl}/api/gift-codes`,
+      },
+      {
+        source: "/api/gift-codes/:path*",
+        destination: `${backendUrl}/api/gift-codes/:path*`,
+      },
+      {
         source: "/api/daybreak/:path*",
         destination: `${backendUrl}/api/daybreak/:path*`,
       },

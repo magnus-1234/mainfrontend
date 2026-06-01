@@ -6789,3 +6789,555 @@ svg {
     font-size: 14px;
   }
 }
+
+.giftcodes-page {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.giftcodes-hero,
+.giftcodes-latest,
+.giftcodes-panel,
+.giftcodes-guide article,
+.giftcodes-summary article {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+}
+
+.giftcodes-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+}
+
+.giftcodes-hero h1 {
+  margin: 6px 0 8px;
+  max-width: 760px;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.giftcodes-hero p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+.giftcodes-hero-actions,
+.giftcode-actions,
+.giftcodes-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.giftcodes-hero-actions {
+  flex-shrink: 0;
+}
+
+.giftcodes-live-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.giftcodes-live-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.giftcodes-live-strip svg {
+  width: 16px;
+  height: 16px;
+  color: var(--primary);
+}
+
+.giftcodes-redeem-link,
+.giftcodes-refresh,
+.giftcodes-panel-head button,
+.giftcodes-latest button,
+.giftcode-actions button,
+.giftcode-actions a {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: var(--muted);
+  color: var(--foreground);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.giftcodes-redeem-link {
+  border-color: var(--gold-line);
+  background: var(--primary);
+  color: #1d1208;
+}
+
+.giftcodes-redeem-link svg,
+.giftcodes-refresh svg,
+.giftcode-actions svg,
+.giftcodes-panel-head svg,
+.giftcodes-latest svg {
+  width: 16px;
+  height: 16px;
+}
+
+.giftcodes-refresh:disabled,
+.giftcodes-panel-head button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.giftcodes-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.giftcodes-summary article {
+  padding: 14px;
+}
+
+.giftcodes-summary span,
+.giftcode-meta,
+.giftcodes-panel-head p,
+.giftcode-code-line span {
+  color: var(--muted-foreground);
+}
+
+.giftcodes-summary span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.giftcodes-summary strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.35rem;
+}
+
+.giftcodes-latest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border-color: var(--gold-line);
+  background: linear-gradient(90deg, var(--gold-soft), transparent 68%), var(--card);
+}
+
+.giftcodes-latest > div {
+  min-width: 0;
+}
+
+.giftcodes-latest h2 {
+  margin: 6px 0;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  letter-spacing: 0;
+}
+
+.giftcodes-latest p {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.giftcode-status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.giftcode-status-dot::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  content: "";
+}
+
+.giftcodes-panel {
+  overflow: hidden;
+}
+
+.giftcodes-panel-head {
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.giftcodes-panel-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+}
+
+.giftcodes-panel-head p {
+  margin: 0;
+}
+
+.giftcodes-list {
+  display: grid;
+}
+
+.giftcode-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) minmax(150px, 0.45fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.giftcode-row:last-child {
+  border-bottom: 0;
+}
+
+.giftcode-code-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.giftcode-code-line strong {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 1.08rem;
+}
+
+.giftcode-code-line span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.giftcode-main p {
+  margin: 6px 0 0;
+  color: var(--muted-foreground);
+  line-height: 1.45;
+}
+
+.giftcode-meta {
+  display: grid;
+  gap: 5px;
+  font-size: 0.86rem;
+}
+
+.giftcode-actions {
+  justify-content: flex-end;
+}
+
+.giftcode-actions button,
+.giftcode-actions a,
+.giftcodes-panel-head button,
+.giftcodes-latest button,
+.giftcodes-redeem-link,
+.giftcodes-refresh {
+  transition: transform 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+.giftcode-actions button:hover,
+.giftcode-actions a:hover,
+.giftcodes-panel-head button:hover,
+.giftcodes-latest button:hover,
+.giftcodes-redeem-link:hover,
+.giftcodes-refresh:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold-line);
+}
+
+.giftcodes-status,
+.giftcodes-empty {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--muted-foreground);
+}
+
+.giftcodes-empty {
+  text-align: center;
+}
+
+.giftcodes-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.giftcodes-guide article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 14px;
+}
+
+.giftcodes-guide span {
+  grid-row: span 2;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--gold-soft);
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.giftcodes-guide strong,
+.giftcodes-guide p {
+  margin: 0;
+}
+
+.giftcodes-guide p {
+  color: var(--muted-foreground);
+  line-height: 1.45;
+}
+
+.redeem-shell {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.redeem-card,
+.redeem-result {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+}
+
+.redeem-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.redeem-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.redeem-card-head span {
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.redeem-card-head strong {
+  font-size: 1.12rem;
+}
+
+.redeem-card label {
+  display: grid;
+  gap: 6px;
+}
+
+.redeem-card label span {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.redeem-card input {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid var(--input);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: var(--background);
+  color: var(--foreground);
+  outline: none;
+}
+
+.redeem-card input:focus {
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+.redeem-card button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gold-line);
+  border-radius: 6px;
+  background: var(--primary);
+  color: #1d1208;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.redeem-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.redeem-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--muted);
+}
+
+.redeem-player img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.redeem-player span {
+  display: grid;
+  gap: 3px;
+}
+
+.redeem-player small {
+  color: var(--muted-foreground);
+}
+
+.redeem-captcha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.redeem-captcha img {
+  min-height: 48px;
+  max-width: 180px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.redeem-captcha button {
+  min-height: 36px;
+  border-color: var(--border);
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.redeem-captcha-empty {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.redeem-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.redeem-result-success {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.redeem-result-error,
+.redeem-result-captcha_error,
+.redeem-result-invalid,
+.redeem-result-expired {
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.redeem-result span {
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 980px) {
+  .giftcodes-hero,
+  .giftcodes-latest,
+  .giftcodes-panel-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .giftcodes-summary,
+  .giftcodes-guide,
+  .redeem-shell {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .giftcode-row {
+    grid-template-columns: 1fr;
+  }
+
+  .giftcode-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .giftcodes-page {
+    padding: 12px;
+  }
+
+  .giftcodes-hero,
+  .giftcodes-latest {
+    padding: 16px;
+  }
+
+  .giftcodes-hero-actions,
+  .giftcode-actions {
+    flex-wrap: wrap;
+  }
+
+  .giftcodes-summary,
+  .giftcodes-guide,
+  .redeem-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .giftcodes-redeem-link,
+  .giftcodes-refresh,
+  .giftcode-actions button,
+  .giftcode-actions a {
+    flex: 1 1 128px;
+  }
+}
