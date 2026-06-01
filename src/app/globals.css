@@ -10662,29 +10662,6 @@ body {
     height: 30px;
   }
 
-  .sign-in.guest-sign-in {
-    width: 56px;
-    min-width: 56px;
-    border-color: color-mix(in srgb, #2f7dff 88%, white);
-    background: #1f74ff;
-    color: #fff;
-    padding: 0 7px;
-    font-size: 10.5px;
-    font-weight: 900;
-    box-shadow: 0 8px 18px rgba(31, 116, 255, 0.28);
-  }
-
-  .sign-in.guest-sign-in svg {
-    display: none;
-  }
-
-  .sign-in.guest-sign-in span {
-    display: block;
-    color: #fff;
-    line-height: 1;
-    text-align: center;
-  }
-
   .mobile-more-panel {
     right: 6px;
     left: 6px;
@@ -10779,13 +10756,6 @@ body {
   .actions .state-transfer-widget,
   .state-transfer-button {
     display: none;
-  }
-
-  .sign-in.guest-sign-in {
-    width: 52px;
-    min-width: 52px;
-    padding: 0 5px;
-    font-size: 10px;
   }
 
   .giftcodes-hero h1 {
