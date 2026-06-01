@@ -994,7 +994,7 @@ function StateTransferCountdown() {
       >
         <img src="/state-transfer.png" alt="" />
         <span className="state-transfer-copy">
-          <span>Next state transfer</span>
+          <span>State transfer</span>
           <strong className={hasEnded ? "ended" : ""} aria-label={hasEnded ? "Window ended" : formatDetailedCountdown(countdown)}>
             {hasEnded
               ? "Window ended"

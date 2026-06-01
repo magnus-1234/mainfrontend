@@ -10629,9 +10629,22 @@ body {
     text-align: center;
   }
 
-  .state-transfer-copy > span,
   .state-transfer-button > small {
     display: none;
+  }
+
+  .state-transfer-copy > span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--muted-foreground);
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .state-transfer-copy strong {
@@ -10753,9 +10766,12 @@ body {
     min-width: 26px;
   }
 
-  .actions .state-transfer-widget,
+  .actions .state-transfer-widget {
+    display: block;
+  }
+
   .state-transfer-button {
-    display: none;
+    display: inline-flex;
   }
 
   .giftcodes-hero h1 {
