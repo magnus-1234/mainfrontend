@@ -3499,9 +3499,9 @@ export default function Home() {
             <section className="home-page wiki-page" id="wiki-heroes" aria-label="Whiteout Survival wiki heroes">
               <section className="wiki-hero">
                 <div>
-                  <span className="section-kicker">Official Wiki Extract</span>
+                  <span className="section-kicker">Whiteout Survival Guide</span>
                   <h1>Wos Wiki Heroes</h1>
-                  <p>Hero directory scraped into WhiteoutSurvival.dev with local images, stats, skills, tables, and in-site detail views.</p>
+                  <p>Browse hero stats, classes, skills, shards, and progression details in one place.</p>
                 </div>
                 <div className="wiki-switcher" aria-label="Wiki section switcher">
                   <button className="active" type="button" onClick={() => navigateToMenu("wikiHeroes")}>Heroes</button>
@@ -3585,9 +3585,9 @@ export default function Home() {
             <section className="home-page wiki-page" id="wiki-buildings" aria-label="Whiteout Survival wiki buildings">
               <section className="wiki-hero">
                 <div>
-                  <span className="section-kicker">Official Wiki Extract</span>
+                  <span className="section-kicker">Whiteout Survival Guide</span>
                   <h1>Wos Wiki Buildings</h1>
-                  <p>Building directory scraped into WhiteoutSurvival.dev with local images, descriptions, requirements, costs, timers, and power tables.</p>
+                  <p>Browse building categories, upgrade requirements, costs, timers, and power details in one place.</p>
                 </div>
                 <div className="wiki-switcher" aria-label="Wiki section switcher">
                   <button type="button" onClick={() => navigateToMenu("wikiHeroes")}>Heroes</button>
