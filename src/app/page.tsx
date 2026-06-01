@@ -675,7 +675,7 @@ export default function Home() {
   const [hideTopNav, setHideTopNav] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [resizingSidebar, setResizingSidebar] = useState(false);
-  const [contentWidth, setContentWidth] = useState<"centered" | "full">("centered");
+  const [contentWidth, setContentWidth] = useState<"centered" | "full">("full");
   const [loginOpen, setLoginOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
