@@ -10611,9 +10611,16 @@ body {
   .actions {
     position: static;
     display: flex;
+    align-items: center;
     min-width: 0;
     gap: 3px;
     transform: none;
+  }
+
+  .state-transfer-widget {
+    display: flex;
+    height: 30px;
+    align-items: center;
   }
 
   .state-transfer-button {
@@ -10767,7 +10774,7 @@ body {
   }
 
   .actions .state-transfer-widget {
-    display: block;
+    display: flex;
   }
 
   .state-transfer-button {
