@@ -10752,6 +10752,70 @@ body {
     color: color-mix(in srgb, var(--foreground) 70%, var(--muted-foreground));
   }
 
+  .mobile-more-wiki {
+    display: grid;
+    gap: 5px;
+  }
+
+  .mobile-more-wiki-trigger {
+    width: 100%;
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+
+  .mobile-more-wiki-trigger svg:last-child {
+    width: 15px;
+    height: 15px;
+    color: var(--muted-foreground);
+    transition: transform 150ms ease;
+  }
+
+  .mobile-more-wiki.open .mobile-more-wiki-trigger svg:last-child {
+    transform: rotate(180deg);
+  }
+
+  .mobile-more-wiki-submenu {
+    display: none;
+    gap: 5px;
+    margin-left: 14px;
+    padding-left: 12px;
+    border-left: 1px solid color-mix(in srgb, var(--gold-line) 55%, transparent);
+  }
+
+  .mobile-more-wiki.open .mobile-more-wiki-submenu {
+    display: grid;
+  }
+
+  .mobile-more-wiki-subitem {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 40px;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+    border-radius: 9px;
+    padding: 6px 9px;
+    background: color-mix(in srgb, var(--background) 74%, transparent);
+    color: var(--muted-foreground);
+    font-size: 13px;
+    font-weight: 850;
+    text-decoration: none;
+  }
+
+  .mobile-more-wiki-subitem svg {
+    width: 16px;
+    height: 16px;
+    justify-self: center;
+    color: var(--gold);
+  }
+
+  .mobile-more-wiki-subitem.active {
+    background: linear-gradient(135deg, var(--sidebar-accent), var(--gold-soft));
+    color: var(--foreground);
+  }
+
   .sidebar-wiki-group {
     display: none;
   }

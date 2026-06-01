@@ -3364,25 +3364,40 @@ export default function Home() {
                     {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
                   </a>
                 ))}
-                {sidebarWikiItems.map((item) => (
-                  <a
-                    className={`mobile-more-item ${activeMenu === item.menu ? "active" : ""}`}
-                    href={item.href}
-                    key={item.menu}
+                <div className={`mobile-more-wiki ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
+                  <button
+                    className={`mobile-more-item mobile-more-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
+                    type="button"
                     role="menuitem"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      setSidebarWikiOpen(true);
-                      navigateToMenu(item.menu);
-                    }}
+                    aria-expanded={sidebarWikiOpen || wikiMenuActive}
+                    onClick={() => setSidebarWikiOpen((value) => !value)}
                   >
-                    <Icon name={item.icon} />
+                    <Icon name="book" />
                     <span>
-                      <strong>WOS Wiki {item.label}</strong>
-                      <small>{item.mobileLabel}</small>
+                      <strong>WOS Wiki</strong>
+                      <small>Heroes and buildings</small>
                     </span>
-                  </a>
-                ))}
+                    <Icon name="chevron" />
+                  </button>
+                  <div className="mobile-more-wiki-submenu" aria-label="WOS Wiki submenu">
+                    {sidebarWikiItems.map((item) => (
+                      <a
+                        className={`mobile-more-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
+                        href={item.href}
+                        key={item.menu}
+                        role="menuitem"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setSidebarWikiOpen(true);
+                          navigateToMenu(item.menu);
+                        }}
+                      >
+                        <Icon name={item.icon} />
+                        <span>{item.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -3468,7 +3483,7 @@ export default function Home() {
                 <div>
                   <span className="section-kicker">Live Gift Code Tracker</span>
                   <h1>Whiteout Survival Gift Codes</h1>
-                  <p>Fast active codes detector on Internet.</p>
+                  <p>Fastest active giftcodes detector on Internet.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
                   <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage()}>
@@ -3489,7 +3504,6 @@ export default function Home() {
                 <div className="giftcodes-panel-head">
                   <div>
                     <h2>Active Code Directory</h2>
-                    <p>Compact list for quick copying and manual redeem checks.</p>
                   </div>
                   <button type="button" onClick={() => void copyAllGiftCodes()} disabled={!giftCodes.length}>
                     <Icon name="copy" />
