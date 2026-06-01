@@ -7839,7 +7839,7 @@ body {
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 1px;
     overflow: hidden;
     padding: 5px;
@@ -7862,16 +7862,12 @@ body {
   }
 
   .mobile-more-trigger {
-    position: fixed;
-    right: auto;
-    left: calc(100svw - 78px);
-    bottom: calc(env(safe-area-inset-bottom) + 15px);
-    z-index: 92;
-    width: 68px;
-    height: 52px;
+    position: static;
+    width: 100%;
+    height: auto;
     border: 0;
     border-radius: 10px;
-    background: color-mix(in srgb, var(--card) 94%, var(--background));
+    background: transparent;
     color: var(--muted-foreground);
     cursor: pointer;
     font: inherit;
@@ -8334,8 +8330,8 @@ body {
 
   .sidebar-content,
   .collapsed-sidebar .sidebar-content {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding-right: 78px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding-right: 5px;
   }
 
   .giftcodes-hero h1 {
