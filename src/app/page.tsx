@@ -319,19 +319,6 @@ const botWebDashboardScreens = [
   { label: "Reminders", image: "/dashboard-reminders.png", alt: "Whiteout Survival bot reminders dashboard screenshot" },
 ];
 
-const stateAgePreviewEvents: StateTimelineEvent[] = [
-  { title: "Initial Heroes", dayLabel: "Day 0", day: 0, status: "unlocked", note: "Natalia, Molly, Patrick, Sergey, and Jessie are available when a state opens.", items: ["Natalia", "Molly", "Patrick", "Sergey", "Jessie"].map((name) => ({ name })) },
-  { title: "Tundra", dayLabel: "Day 14", day: 14, status: "unlocked", note: "Tundra territory opens for alliances.", items: [{ name: "Tundra" }] },
-  { title: "Gen 2 Heroes", dayLabel: "Day 40", day: 40, status: "unlocked", items: ["Alonso", "Flint", "Philly"].map((name) => ({ name })) },
-  { title: "Sunfire Castle", dayLabel: "Day 53", day: 53, status: "unlocked", note: "State alliances begin fighting for castle control and presidency.", items: [{ name: "Sunfire Castle" }] },
-  { title: "Fire Crystal Age", dayLabel: "Day 60", day: 60, status: "unlocked", note: "Fire Crystal 1-3 unlock after Road to Discovery completion.", items: ["Crystal 1", "Crystal 2", "Crystal 3"].map((name) => ({ name })) },
-  { title: "SVS and KOI", dayLabel: "Day 80", day: 80, status: "unlocked", note: "State of Power and King of Icefield timelines begin around this stage.", items: ["State of Power", "King of Icefield"].map((name) => ({ name })) },
-  { title: "War Academy Update", dayLabel: "Day 220", day: 220, status: "upcoming", items: ["War Academy", "Fire Crystal Tech", "T11 Troops"].map((name) => ({ name })) },
-  { title: "Crystal Mastery", dayLabel: "Day 500", day: 500, status: "upcoming", note: "Fire Crystal level 9-10 unlock.", items: ["Crystal 9", "Crystal 10"].map((name) => ({ name })) },
-  { title: "Gen 13 Heroes", dayLabel: "Day 951", day: 951, status: "upcoming", items: ["Gisela", "Flora", "Vulcanus"].map((name) => ({ name })) },
-  { title: "Unconfirmed Gen 14 Heroes", dayLabel: "Days 1000-1060", day: 1000, status: "maybe", note: "Names and publish data are still unknown in the source timeline.", items: [{ name: "Unknown Name" }] },
-];
-
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
@@ -2137,7 +2124,7 @@ export default function Home() {
     }
   };
 
-  const stateAgeEvents = stateAgeResult?.events.length ? stateAgeResult.events : stateAgePreviewEvents;
+  const stateAgeEvents = stateAgeResult?.events.length ? stateAgeResult.events : [];
   const latestStateAgeEvent = [...stateAgeEvents].reverse().find((event) => event.status === "unlocked") || stateAgeEvents[0];
   const currentStateDay = stateAgeResult?.events.reduce((maxDay, event) => (
     event.status === "unlocked" && event.day !== null ? Math.max(maxDay, event.day) : maxDay
@@ -3705,8 +3692,8 @@ export default function Home() {
                 </article>
                 <article className="state-age-focus-card next">
                   <span>Next Major Unlock</span>
-                  <strong>{nextStateAgeEvent?.title || "Timeline complete"}</strong>
-                  <small>{nextStateAgeEvent ? `${nextStateAgeEvent.dayLabel}${nextStateAgeEvent.daysLeft ? ` - ${nextStateAgeEvent.daysLeft} days left` : ""}` : "All listed milestones are unlocked."}</small>
+                  <strong>{nextStateAgeEvent?.title || (stateAgeResult ? "Timeline complete" : "Waiting for state")}</strong>
+                  <small>{nextStateAgeEvent ? `${nextStateAgeEvent.dayLabel}${nextStateAgeEvent.daysLeft ? ` - ${nextStateAgeEvent.daysLeft} days left` : ""}` : stateAgeResult ? "All listed milestones are unlocked." : "Search any state number"}</small>
                   {nextStateAgeEvent?.items.length ? (
                     <div className="state-age-focus-tags">
                       {nextStateAgeEvent.items.slice(0, 5).map((item) => (
@@ -3723,45 +3710,49 @@ export default function Home() {
                     <h2>{stateAgeResult ? `Timeline for State #${stateAgeResult.state}` : "State Unlock Timeline Preview"}</h2>
                     <p>{stateAgeResult ? "Unlocked milestones stay at the top, upcoming milestones show how many days remain." : "Search a state to replace this preview with live server timing."}</p>
                   </div>
-                  <div className="state-age-board-stats" aria-label="Timeline totals">
-                    <span>{stateAgeEvents.length} milestones</span>
-                    <span>{stateAgeResult ? `Day ${currentStateDay}+` : "preview mode"}</span>
-                    <span>{unlockedStateAgeEvents || "preview"} unlocked</span>
-                    <span>{upcomingStateAgeEvents} upcoming</span>
-                    <span>{stateAgeImageCount ? `${stateAgeImageCount} images` : "images after search"}</span>
-                    {maybeStateAgeEvents > 0 && <span>{maybeStateAgeEvents} unconfirmed</span>}
-                  </div>
+                  {stateAgeResult && (
+                    <div className="state-age-board-stats" aria-label="Timeline totals">
+                      <span>{stateAgeEvents.length} milestones</span>
+                      <span>Day {currentStateDay}+</span>
+                      <span>{unlockedStateAgeEvents} unlocked</span>
+                      <span>{upcomingStateAgeEvents} upcoming</span>
+                      <span>{stateAgeImageCount} images</span>
+                      {maybeStateAgeEvents > 0 && <span>{maybeStateAgeEvents} unconfirmed</span>}
+                    </div>
+                  )}
                 </div>
-                <div className="state-age-timeline">
-                  {stateAgeEvents.map((event, index) => (
-                    <article className={`state-age-event event-${event.status} ${event.items.some((item) => item.image) ? "has-images" : ""}`} key={`${event.title}-${event.dayLabel}-${index}`}>
-                      <div className="state-age-rail">
-                        <span />
-                      </div>
-                      <div className="state-age-event-card">
-                        <div className="state-age-event-top">
-                          <span className="state-age-sequence">{String(index + 1).padStart(2, "0")}</span>
-                          <span className="state-age-day">{event.dayLabel}</span>
-                          <span className={`state-age-badge badge-${event.status}`}>
-                            {event.status === "maybe" ? "Unconfirmed" : event.status === "upcoming" ? (event.daysLeft ? `${event.daysLeft} days left` : "Upcoming") : "Unlocked"}
-                          </span>
+                {stateAgeResult && (
+                  <div className="state-age-timeline">
+                    {stateAgeEvents.map((event, index) => (
+                      <article className={`state-age-event event-${event.status} ${event.items.some((item) => item.image) ? "has-images" : ""}`} key={`${event.title}-${event.dayLabel}-${index}`}>
+                        <div className="state-age-rail">
+                          <span />
                         </div>
-                        <h3>{event.title}</h3>
-                        {event.note && <p>{event.note}</p>}
-                        {event.items.length > 0 && (
-                          <div className="state-age-items">
-                            {event.items.map((item) => (
-                              <span className={item.image ? "with-image" : ""} key={`${event.title}-${item.name}`}>
-                                {item.image && <img src={item.image} alt="" />}
-                                <strong>{item.name}</strong>
-                              </span>
-                            ))}
+                        <div className="state-age-event-card">
+                          <div className="state-age-event-top">
+                            <span className="state-age-sequence">{String(index + 1).padStart(2, "0")}</span>
+                            <span className="state-age-day">{event.dayLabel}</span>
+                            <span className={`state-age-badge badge-${event.status}`}>
+                              {event.status === "maybe" ? "Unconfirmed" : event.status === "upcoming" ? (event.daysLeft ? `${event.daysLeft} days left` : "Upcoming") : "Unlocked"}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                          <h3>{event.title}</h3>
+                          {event.note && <p>{event.note}</p>}
+                          {event.items.length > 0 && (
+                            <div className="state-age-items">
+                              {event.items.map((item) => (
+                                <span className={item.image ? "with-image" : ""} key={`${event.title}-${item.name}`}>
+                                  {item.image && <img src={item.image} alt="" />}
+                                  <strong>{item.name}</strong>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </section>
             </section>
           ) : activeMenu === "wikiHeroes" ? (
