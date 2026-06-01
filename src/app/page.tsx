@@ -46,6 +46,29 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type ActiveMenu = "home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot";
+type SiteLanguage = {
+  code: string;
+  name: string;
+  shortCode: string;
+};
+
+type GoogleTranslateConstructor = new (
+  options: {
+    pageLanguage: string;
+    includedLanguages: string;
+    autoDisplay: boolean;
+  },
+  elementId: string,
+) => unknown;
+
+type TranslateWindow = Window & {
+  googleTranslateElementInit?: () => void;
+  google?: {
+    translate?: {
+      TranslateElement?: GoogleTranslateConstructor;
+    };
+  };
+};
 
 type LinkedPlayerAccount = PlayerProfile & {
   linkedAt: string;
@@ -252,6 +275,32 @@ const menuItems = [
   { label: "Tools", icon: "wrench", status: "Soon" },
   { label: "Database", icon: "database", status: "Soon" },
   { label: "More", icon: "book", status: "Soon" },
+];
+
+const pageLanguage = "en";
+const languageStorageKey = "whiteoutsurvival-dev-language";
+const translateCookieName = "googtrans";
+const siteLanguages: SiteLanguage[] = [
+  { code: "en", name: "English", shortCode: "EN" },
+  { code: "hi", name: "Hindi", shortCode: "HI" },
+  { code: "es", name: "Spanish", shortCode: "ES" },
+  { code: "fr", name: "French", shortCode: "FR" },
+  { code: "de", name: "German", shortCode: "DE" },
+  { code: "it", name: "Italian", shortCode: "IT" },
+  { code: "pt", name: "Portuguese", shortCode: "PT" },
+  { code: "ru", name: "Russian", shortCode: "RU" },
+  { code: "ar", name: "Arabic", shortCode: "AR" },
+  { code: "tr", name: "Turkish", shortCode: "TR" },
+  { code: "id", name: "Indonesian", shortCode: "ID" },
+  { code: "vi", name: "Vietnamese", shortCode: "VI" },
+  { code: "th", name: "Thai", shortCode: "TH" },
+  { code: "ja", name: "Japanese", shortCode: "JA" },
+  { code: "ko", name: "Korean", shortCode: "KO" },
+  { code: "zh-CN", name: "Chinese Simplified", shortCode: "ZH" },
+  { code: "zh-TW", name: "Chinese Traditional", shortCode: "ZT" },
+  { code: "pl", name: "Polish", shortCode: "PL" },
+  { code: "nl", name: "Dutch", shortCode: "NL" },
+  { code: "sv", name: "Swedish", shortCode: "SV" },
 ];
 
 const sidebarItems: {
@@ -569,6 +618,14 @@ function Icon({ name }: { name: string }) {
         <path d="M3 12a9 3 0 0 0 18 0" />
       </>
     ),
+    globe: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M2 12h20" />
+        <path d="M12 2a15.3 15.3 0 0 1 0 20" />
+        <path d="M12 2a15.3 15.3 0 0 0 0 20" />
+      </>
+    ),
     book: (
       <>
         <path d="M12 7v14" />
@@ -671,6 +728,168 @@ function Icon({ name }: { name: string }) {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       {paths[name] || <path d="m6 9 6 6 6-6" />}
     </svg>
+  );
+}
+
+function LanguageSwitcher() {
+  const [open, setOpen] = useState(false);
+  const [language, setLanguage] = useState(pageLanguage);
+
+  const activeLanguage = siteLanguages.find((item) => item.code === language) || siteLanguages[0];
+
+  const applyGoogleLanguage = useCallback((nextLanguage: string) => {
+    const combo = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+    if (!combo) {
+      return false;
+    }
+
+    combo.value = nextLanguage === pageLanguage ? "" : nextLanguage;
+    combo.dispatchEvent(new Event("change"));
+    return true;
+  }, []);
+
+  const applyLanguageWhenReady = useCallback(function retryApplyLanguage(nextLanguage: string, attempt = 0) {
+    if (nextLanguage === pageLanguage || applyGoogleLanguage(nextLanguage)) {
+      return;
+    }
+
+    if (attempt < 24) {
+      window.setTimeout(() => retryApplyLanguage(nextLanguage, attempt + 1), 250);
+    }
+  }, [applyGoogleLanguage]);
+
+  const setTranslateCookie = useCallback((nextLanguage: string) => {
+    const value = nextLanguage === pageLanguage ? "" : `/${pageLanguage}/${nextLanguage}`;
+    const expires = nextLanguage === pageLanguage ? "Thu, 01 Jan 1970 00:00:00 GMT" : "Fri, 31 Dec 9999 23:59:59 GMT";
+    const hostParts = window.location.hostname.split(".");
+    const domains = [window.location.hostname];
+
+    if (hostParts.length > 2) {
+      domains.push(`.${hostParts.slice(-2).join(".")}`);
+    }
+
+    domains.forEach((domain) => {
+      document.cookie = `${translateCookieName}=${value}; expires=${expires}; path=/; domain=${domain}; SameSite=Lax`;
+    });
+    document.cookie = `${translateCookieName}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+  }, []);
+
+  const chooseLanguage = useCallback((nextLanguage: string) => {
+    setLanguage(nextLanguage);
+    setOpen(false);
+    localStorage.setItem(languageStorageKey, nextLanguage);
+    document.documentElement.lang = nextLanguage;
+    setTranslateCookie(nextLanguage);
+
+    if (nextLanguage === pageLanguage) {
+      window.location.reload();
+      return;
+    }
+
+    applyLanguageWhenReady(nextLanguage);
+  }, [applyLanguageWhenReady, setTranslateCookie]);
+
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem(languageStorageKey);
+    const validLanguage = siteLanguages.some((item) => item.code === savedLanguage) ? savedLanguage || pageLanguage : pageLanguage;
+    window.setTimeout(() => setLanguage(validLanguage), 0);
+    document.documentElement.lang = validLanguage;
+
+    const translateWindow = window as TranslateWindow;
+    translateWindow.googleTranslateElementInit = () => {
+      const TranslateElement = translateWindow.google?.translate?.TranslateElement;
+      if (!TranslateElement) {
+        return;
+      }
+
+      new TranslateElement({
+        pageLanguage,
+        includedLanguages: siteLanguages.map((item) => item.code).join(","),
+        autoDisplay: false,
+      }, "google_translate_element");
+
+      if (validLanguage !== pageLanguage) {
+        window.setTimeout(() => applyLanguageWhenReady(validLanguage), 350);
+      }
+    };
+
+    if (!document.querySelector('script[src*="translate_a/element.js"]')) {
+      const script = document.createElement("script");
+      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+      script.async = true;
+      script.onload = () => translateWindow.googleTranslateElementInit?.();
+      document.head.appendChild(script);
+    } else if (translateWindow.google?.translate?.TranslateElement) {
+      translateWindow.googleTranslateElementInit();
+    }
+  }, [applyLanguageWhenReady]);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const closeOnOutside = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest(".language-switcher")) {
+        setOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("click", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("click", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  return (
+    <div className="language-switcher notranslate" translate="no">
+      <div id="google_translate_element" aria-hidden="true" />
+      <button
+        className="language-button"
+        type="button"
+        aria-label="Select website language"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title="Select website language"
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen((value) => !value);
+        }}
+      >
+        <Icon name="globe" />
+        <span>{activeLanguage.shortCode}</span>
+      </button>
+      {open && (
+        <div className="language-menu" role="listbox" aria-label="Website language">
+          <div className="language-menu-head">
+            <span>Website language</span>
+            <span>Translate</span>
+          </div>
+          <div className="language-options">
+            {siteLanguages.map((item) => (
+              <button
+                className={`language-option ${item.code === language ? "active" : ""}`}
+                type="button"
+                role="option"
+                aria-selected={item.code === language}
+                key={item.code}
+                onClick={() => chooseLanguage(item.code)}
+              >
+                <span>{item.name}</span>
+                <small>{item.shortCode}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -2591,6 +2810,7 @@ export default function Home() {
                 <span className="theme-thumb" />
               </span>
             </button>
+            <LanguageSwitcher />
             <div className="account-menu-wrap">
               <button
                 className="sign-in"
