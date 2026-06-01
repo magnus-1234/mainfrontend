@@ -310,9 +310,10 @@ const sidebarItems: {
   menu: ActiveMenu;
   href: string;
   beta?: boolean;
+  mobilePrimary?: boolean;
 }[] = [
-  { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/" },
-  { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes" },
+  { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
+  { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
   { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
   { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
   { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
@@ -711,6 +712,13 @@ function Icon({ name }: { name: string }) {
         <circle cx="12" cy="18" r="2" />
       </>
     ),
+    menu: (
+      <>
+        <path d="M4 6h16" />
+        <path d="M4 12h16" />
+        <path d="M4 18h16" />
+      </>
+    ),
     x: (
       <>
         <path d="M18 6 6 18" />
@@ -897,6 +905,7 @@ function LanguageSwitcher() {
 export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
   const [layoutOpen, setLayoutOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
   const [hideTopNav, setHideTopNav] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -2755,7 +2764,11 @@ export default function Home() {
   };
 
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
+  const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
+  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
+
   const navigateToMenu = (menu: ActiveMenu) => {
+    setMobileMoreOpen(false);
     setActiveMenu(menu);
     const nextUrl = menuUrls[menu];
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
@@ -2782,7 +2795,7 @@ export default function Home() {
             <span className="brand-icon">
               <Image src="/wos-logo.png" alt="" width={24} height={24} />
             </span>
-            <span>WhiteoutSurvival.dev</span>
+            <span className="brand-title">WhiteoutSurvival.dev</span>
           </button>
 
           <nav className="top-menu" aria-label="Top menu">
@@ -2873,10 +2886,46 @@ export default function Home() {
           onPointerLeave={hideFooterAfterInteraction}
           onPointerMove={showFooterWithIntent}
         >
+          {mobileMoreOpen && (
+            <button
+              className="mobile-more-backdrop"
+              type="button"
+              aria-label="Close mobile menu"
+              onClick={() => setMobileMoreOpen(false)}
+            />
+          )}
+          {mobileMoreOpen && (
+            <div className="mobile-more-panel" role="menu" aria-label="More navigation">
+              <div className="mobile-more-head">
+                <strong>More</strong>
+                <button type="button" aria-label="Close menu" onClick={() => setMobileMoreOpen(false)}>
+                  <Icon name="x" />
+                </button>
+              </div>
+              <div className="mobile-more-list">
+                {mobileMoreItems.map((item) => (
+                  <a
+                    className={`mobile-more-item ${activeMenu === item.menu ? "active" : ""}`}
+                    href={item.href}
+                    key={item.label}
+                    role="menuitem"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigateToMenu(item.menu);
+                    }}
+                  >
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                    {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
-                className={`sidebar-item ${activeMenu === item.menu ? "active" : ""}`}
+                className={`sidebar-item ${item.mobilePrimary ? "mobile-primary" : "mobile-secondary"} ${activeMenu === item.menu ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
                 onClick={(event) => {
@@ -2890,6 +2939,18 @@ export default function Home() {
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
+            {mobileMoreItems.length > 0 && (
+              <button
+                className={`sidebar-item mobile-more-trigger ${mobileMoreOpen || mobileMoreActive ? "active" : ""}`}
+                type="button"
+                aria-label="Open more menu"
+                aria-expanded={mobileMoreOpen}
+                onClick={() => setMobileMoreOpen((value) => !value)}
+              >
+                <Icon name="menu" />
+                <span className="nav-label-mobile">More</span>
+              </button>
+            )}
           </div>
           <div className="sidebar-tools" aria-label="Sidebar controls">
             <button className="sidebar-tool-button" type="button" aria-label="Collapse sidebar" onMouseDown={() => setCollapsedSidebar((value) => !value)}>
