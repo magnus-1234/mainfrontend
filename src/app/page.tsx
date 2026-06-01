@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
 import type { CSSProperties, ChangeEvent, FormEvent, PointerEvent as ReactPointerEvent, ReactNode, WheelEvent as ReactWheelEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type Island = {
   id: string;
@@ -851,6 +851,14 @@ export default function Home() {
       window.removeEventListener("popstate", syncMenuFromLocation);
     };
   }, []);
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined" || window.location.hash.startsWith("#island-")) {
+      return;
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [activeMenu]);
 
   useEffect(() => {
     const formatMetric = (value: unknown) => {
@@ -2571,7 +2579,10 @@ export default function Home() {
                 className={`sidebar-item ${activeMenu === item.menu ? "active" : ""}`}
                 href={item.href}
                 key={item.label}
-                onClick={() => setActiveMenu(item.menu)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  navigateToMenu(item.menu);
+                }}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
