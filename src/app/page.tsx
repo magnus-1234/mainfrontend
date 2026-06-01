@@ -455,11 +455,11 @@ const sidebarItems: {
 }[] = [
   { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
   { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
+  { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
   { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
   { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
   { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
-  { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak", mobilePrimary: true },
-  { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot" },
+  { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
 ];
 
 const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu: "wikiBuildings" | "wikiHeroes"; href: string }[] = [
@@ -1230,7 +1230,7 @@ export default function Home() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [, setAuthLoading] = useState(true);
   const [botMetrics, setBotMetrics] = useState<BotMetrics>(fallbackBotMetrics);
   const [authStatus, setAuthStatus] = useState(() => {
     if (typeof window === "undefined") {
@@ -3282,7 +3282,7 @@ export default function Home() {
             <LanguageSwitcher />
             <div className="account-menu-wrap">
               <button
-                className="sign-in"
+                className={`sign-in ${!authUser ? "guest-sign-in" : ""}`}
                 type="button"
                 onClick={() => {
                   if (!authUser) {
@@ -3295,7 +3295,7 @@ export default function Home() {
                 aria-haspopup={authUser ? "menu" : undefined}
               >
                 {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
-                <span>{authLoading ? "Account" : authUser ? authUser.displayName : "Sign In"}</span>
+                <span>{authUser ? authUser.displayName : "Sign In"}</span>
               </button>
               {accountMenuOpen && authUser && (
                 <div className="account-dropdown" role="menu" aria-label="Account menu">
@@ -3370,8 +3370,30 @@ export default function Home() {
                     }}
                   >
                     <Icon name={item.icon} />
-                    <span>{item.label}</span>
+                    <span>
+                      <strong>{item.label}</strong>
+                      <small>{item.mobileLabel}</small>
+                    </span>
                     {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
+                  </a>
+                ))}
+                {sidebarWikiItems.map((item) => (
+                  <a
+                    className={`mobile-more-item ${activeMenu === item.menu ? "active" : ""}`}
+                    href={item.href}
+                    key={item.menu}
+                    role="menuitem"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setSidebarWikiOpen(true);
+                      navigateToMenu(item.menu);
+                    }}
+                  >
+                    <Icon name={item.icon} />
+                    <span>
+                      <strong>WOS Wiki {item.label}</strong>
+                      <small>{item.mobileLabel}</small>
+                    </span>
                   </a>
                 ))}
               </div>

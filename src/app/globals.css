@@ -10575,56 +10575,217 @@ body {
   }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 720px) {
+  .ks-header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px;
+    width: 100%;
+    max-width: 100vw;
+    max-width: 100svw;
+    padding: 0 5px;
+  }
+
+  .brand {
+    width: auto;
+    max-width: 100%;
+    gap: 4px;
+  }
+
+  .brand-icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+  }
+
+  .brand-icon img {
+    width: 21px;
+    height: 21px;
+  }
+
   .brand .brand-title {
-    font-size: 12px;
+    font-size: clamp(10px, 3.15vw, 13px);
+    text-overflow: clip;
   }
 
-  .theme-toggle {
-    width: 34px;
-  }
-
-  .language-button,
-  .sign-in {
-    width: 30px;
-    min-width: 30px;
+  .actions {
+    position: static;
+    display: flex;
+    min-width: 0;
+    gap: 3px;
+    transform: none;
   }
 
   .state-transfer-button {
-    width: 136px;
-    min-width: 136px;
-    padding: 4px 5px;
+    width: 84px;
+    min-width: 84px;
+    height: 30px;
+    padding: 3px 4px;
   }
 
-  .state-transfer-copy > span {
-    font-size: 7px;
+  .state-transfer-copy {
+    width: 100%;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .state-transfer-copy > span,
+  .state-transfer-button > small {
+    display: none;
   }
 
   .state-transfer-copy strong {
     gap: 1px;
-    font-size: 10.5px;
+    font-size: 9px;
   }
 
   .state-transfer-time-unit {
-    min-width: 22px;
-    padding-inline: 1px;
+    min-width: 17px;
+    height: 16px;
+    border-radius: 4px;
+    padding: 1px;
   }
 
   .state-transfer-time-unit span {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .state-transfer-time-unit small {
-    font-size: 6px;
+    font-size: 5px;
   }
 
-  .ks-header-inner {
-    padding-right: 228px;
+  .theme-toggle,
+  .language-button,
+  .sign-in {
+    width: 28px;
+    min-width: 28px;
+    height: 30px;
   }
 
-  .actions {
-    left: calc(100dvw - 222px);
-    left: calc(100svw - 222px);
+  .sign-in.guest-sign-in {
+    width: 56px;
+    min-width: 56px;
+    border-color: color-mix(in srgb, #2f7dff 88%, white);
+    background: #1f74ff;
+    color: #fff;
+    padding: 0 7px;
+    font-size: 10.5px;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(31, 116, 255, 0.28);
+  }
+
+  .sign-in.guest-sign-in svg {
+    display: none;
+  }
+
+  .sign-in.guest-sign-in span {
+    display: block;
+    color: #fff;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .mobile-more-panel {
+    right: 6px;
+    left: 6px;
+    width: auto;
+    border-radius: 14px;
+    padding: 6px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--card) 98%, var(--gold-soft)), color-mix(in srgb, var(--background) 96%, var(--card)));
+  }
+
+  .mobile-more-head {
+    border: 0;
+    padding: 8px 8px 6px;
+  }
+
+  .mobile-more-head strong {
+    font-size: 15px;
+    font-weight: 950;
+  }
+
+  .mobile-more-list {
+    gap: 6px;
+    padding: 4px;
+  }
+
+  .mobile-more-item {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    min-height: 50px;
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--muted) 46%, transparent);
+    padding: 7px 10px;
+    text-decoration: none;
+  }
+
+  .mobile-more-item svg {
+    justify-self: center;
+  }
+
+  .mobile-more-item span {
+    display: grid;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .mobile-more-item span strong,
+  .mobile-more-item span small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-more-item span strong {
+    color: var(--foreground);
+    font-size: 13px;
+    line-height: 1.05;
+  }
+
+  .mobile-more-item span small {
+    color: var(--muted-foreground);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .mobile-more-item.active span small {
+    color: color-mix(in srgb, var(--foreground) 70%, var(--muted-foreground));
+  }
+
+  .sidebar-wiki-group {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand .brand-title {
+    font-size: 10px;
+  }
+
+  .theme-toggle {
+    width: 26px;
+    min-width: 26px;
+  }
+
+  .language-button,
+  .sign-in {
+    width: 26px;
+    min-width: 26px;
+  }
+
+  .actions .state-transfer-widget,
+  .state-transfer-button {
+    display: none;
+  }
+
+  .sign-in.guest-sign-in {
+    width: 52px;
+    min-width: 52px;
+    padding: 0 5px;
+    font-size: 10px;
   }
 
   .giftcodes-hero h1 {
