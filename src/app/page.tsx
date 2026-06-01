@@ -3280,52 +3280,52 @@ export default function Home() {
               </span>
             </button>
             <LanguageSwitcher />
-            <div className="account-menu-wrap">
-              <button
-                className={`sign-in ${!authUser ? "guest-sign-in" : ""}`}
-                type="button"
-                onClick={() => {
-                  if (!authUser) {
-                    setLoginOpen(true);
-                    return;
-                  }
-                  setAccountMenuOpen((value) => !value);
-                }}
-                aria-expanded={authUser ? accountMenuOpen : undefined}
-                aria-haspopup={authUser ? "menu" : undefined}
-              >
-                {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
-                <span>{authUser ? authUser.displayName : "Sign In"}</span>
-              </button>
-              {accountMenuOpen && authUser && (
-                <div className="account-dropdown" role="menu" aria-label="Account menu">
-                  <div className="account-dropdown-head">
-                    <span className="account-dropdown-avatar">
-                      {authUser.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
-                    </span>
-                    <span>
-                      <strong>{authUser.displayName}</strong>
-                      {authUser.email && <small>{authUser.email}</small>}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setAccountMenuOpen(false);
-                      setProfileOpen(true);
-                    }}
-                  >
-                    <Icon name="user" />
-                    Profile
-                  </button>
-                  <button className="danger" type="button" role="menuitem" onClick={() => void signOut()}>
-                    <Icon name="logout" />
-                    Sign Out
-                  </button>
+          </div>
+          <div className="account-menu-wrap">
+            <button
+              className={`sign-in ${!authUser ? "guest-sign-in" : ""}`}
+              type="button"
+              onClick={() => {
+                if (!authUser) {
+                  setLoginOpen(true);
+                  return;
+                }
+                setAccountMenuOpen((value) => !value);
+              }}
+              aria-expanded={authUser ? accountMenuOpen : undefined}
+              aria-haspopup={authUser ? "menu" : undefined}
+            >
+              {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+              <span>{authUser ? authUser.displayName : "Sign In"}</span>
+            </button>
+            {accountMenuOpen && authUser && (
+              <div className="account-dropdown" role="menu" aria-label="Account menu">
+                <div className="account-dropdown-head">
+                  <span className="account-dropdown-avatar">
+                    {authUser.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                  </span>
+                  <span>
+                    <strong>{authUser.displayName}</strong>
+                    {authUser.email && <small>{authUser.email}</small>}
+                  </span>
                 </div>
-              )}
-            </div>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setAccountMenuOpen(false);
+                    setProfileOpen(true);
+                  }}
+                >
+                  <Icon name="user" />
+                  Profile
+                </button>
+                <button className="danger" type="button" role="menuitem" onClick={() => void signOut()}>
+                  <Icon name="logout" />
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
