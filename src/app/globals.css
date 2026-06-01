@@ -71,6 +71,8 @@ a {
   --gold-line: rgba(244, 129, 32, 0.34);
   --line-soft: rgba(25, 23, 20, 0.08);
   --dot: rgba(25, 23, 20, 0.16);
+  --dot-live: rgba(244, 129, 32, 0.4);
+  --dot-live-soft: rgba(244, 129, 32, 0.14);
   --sidebar: #f6f2ea;
   --sidebar-border: #ded8cd;
   --sidebar-accent: #ece6d9;
@@ -95,6 +97,8 @@ a {
   --gold-line: rgba(244, 129, 32, 0.42);
   --line-soft: rgba(255, 255, 255, 0.07);
   --dot: rgba(255, 255, 255, 0.15);
+  --dot-live: rgba(255, 255, 255, 0.42);
+  --dot-live-soft: rgba(244, 129, 32, 0.18);
   --sidebar: #0c1214;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-accent: #1a2224;
@@ -875,17 +879,62 @@ svg {
 .home-page::before {
   inset: 0;
   background:
-    radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 0) 0 0 / 22px 22px,
+    radial-gradient(circle at 1px 1px, var(--dot-live) 1px, transparent 1.8px) 0 0 / 22px 22px,
+    radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 1.8px) 11px 11px / 22px 22px,
     linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 96px 96px,
     linear-gradient(0deg, var(--line-soft) 1px, transparent 1px) 0 0 / 96px 96px;
   mask-image: linear-gradient(180deg, black 0%, rgba(0, 0, 0, 0.7) 42%, transparent 100%);
-  opacity: 0.58;
+  opacity: 0.6;
+  animation: live-dot-field 24s linear infinite, live-dot-breathe 4.8s ease-in-out infinite;
 }
 
 .home-page::after {
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, var(--background) 100%);
-  opacity: 0.62;
+  background:
+    radial-gradient(circle at 48% 34%, var(--dot-live-soft), transparent 18rem),
+    linear-gradient(180deg, transparent 0%, var(--background) 100%);
+  opacity: 0.72;
+  animation: live-dot-scan 18s ease-in-out infinite alternate;
+}
+
+@keyframes live-dot-field {
+  from {
+    background-position: 0 0, 11px 11px, 0 0, 0 0;
+  }
+  to {
+    background-position: 44px 22px, 55px 33px, 96px 0, 0 96px;
+  }
+}
+
+@keyframes live-dot-breathe {
+  0%,
+  100% {
+    opacity: 0.46;
+    filter: brightness(0.86);
+  }
+  50% {
+    opacity: 0.72;
+    filter: brightness(1.22);
+  }
+}
+
+@keyframes live-dot-scan {
+  0% {
+    background-position: 8% 18%, 0 0;
+  }
+  45% {
+    background-position: 82% 34%, 0 0;
+  }
+  100% {
+    background-position: 28% 72%, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page::before,
+  .home-page::after {
+    animation: none;
+  }
 }
 
 .daybreak-page {
