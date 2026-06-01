@@ -138,6 +138,62 @@ const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || localApiHost();
 const botFrontendUrl =
   process.env.NEXT_PUBLIC_BOT_FRONTEND_URL || "https://bot.whiteoutsurvival.dev/";
 
+type BotMetrics = {
+  servers: string;
+  members: string;
+  monitors: string;
+  redeemServers: string;
+  giftCodes: string;
+};
+
+const fallbackBotMetrics: BotMetrics = {
+  servers: "48",
+  members: "1.5K",
+  monitors: "13",
+  redeemServers: "19",
+  giftCodes: "4",
+};
+
+const botFeatureCards = [
+  {
+    title: "Alliance monitor",
+    body: "Tracks FC level changes, nickname changes, and profile image changes from monitored alliance members.",
+    image: "/showcase-furnace-up.png",
+    alt: "Furnace level change notification preview",
+  },
+  {
+    title: "Identity change alerts",
+    body: "Keeps player records readable with clear notifications when names or avatars change.",
+    image: "/showcase-name-change.png",
+    alt: "Nickname change notification preview",
+  },
+  {
+    title: "Auto gift code redeem",
+    body: "Announces new Whiteout Survival codes in Discord and redeems them for configured servers.",
+    image: "/showcase-auto-redeem.png",
+    alt: "Auto gift code redeem preview",
+  },
+];
+
+const botPreviewScreens = [
+  { label: "Auto Redeem", image: "/showcase-auto-redeem.png", alt: "Auto-redeem complete notification screenshot" },
+  { label: "Gift Alerts", image: "/showcase-gift-alert.png", alt: "New gift code notification screenshot" },
+  { label: "FC Tracking", image: "/showcase-furnace-up.png", alt: "Furnace level up notification screenshot" },
+  { label: "PFP Changes", image: "/showcase-avatar-change.png", alt: "Avatar change detected notification screenshot" },
+  { label: "Name Tracking", image: "/showcase-name-change.png", alt: "Name change detected notification screenshot" },
+  { label: "Translation", image: "/showcase-auto-translation.png", alt: "Auto translation notification screenshot" },
+  { label: "State Age", image: "/showcase-state-age.png", alt: "State age notification screenshot" },
+  { label: "Music", image: "/showcase-music-system.png", alt: "Music system now playing screenshot" },
+  { label: "Dice", image: "/showcase-dice-game.png", alt: "Dice game notification screenshot" },
+];
+
+const botWebDashboardScreens = [
+  { label: "Server Overview", image: "/dashboard-overview.png", alt: "Whiteout Survival bot server overview dashboard screenshot" },
+  { label: "Auto Translation", image: "/dashboard-translation.png", alt: "Whiteout Survival bot auto-translation dashboard screenshot" },
+  { label: "Auto Redeem", image: "/dashboard-auto-redeem.png", alt: "Whiteout Survival bot auto-redeem settings dashboard screenshot" },
+  { label: "Reminders", image: "/dashboard-reminders.png", alt: "Whiteout Survival bot reminders dashboard screenshot" },
+];
+
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
@@ -310,6 +366,13 @@ function Icon({ name }: { name: string }) {
         <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
       </>
     ),
+    image: (
+      <>
+        <rect width="18" height="18" x="3" y="3" rx="2" />
+        <circle cx="9" cy="9" r="2" />
+        <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+      </>
+    ),
     zoomIn: (
       <>
         <circle cx="11" cy="11" r="7" />
@@ -409,6 +472,15 @@ function Icon({ name }: { name: string }) {
         <path d="M3 10h18" />
       </>
     ),
+    gift: (
+      <>
+        <rect width="18" height="14" x="3" y="8" rx="2" />
+        <path d="M12 8v14" />
+        <path d="M3 13h18" />
+        <path d="M7.5 8a2.5 2.5 0 1 1 2.2-3.7L12 8" />
+        <path d="M16.5 8a2.5 2.5 0 1 0-2.2-3.7L12 8" />
+      </>
+    ),
     shield: (
       <>
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
@@ -484,6 +556,7 @@ export default function Home() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [botMetrics, setBotMetrics] = useState<BotMetrics>(fallbackBotMetrics);
   const [authStatus, setAuthStatus] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -648,6 +721,43 @@ export default function Home() {
     window.addEventListener("hashchange", syncMenuFromHash);
 
     return () => window.removeEventListener("hashchange", syncMenuFromHash);
+  }, []);
+
+  useEffect(() => {
+    const formatMetric = (value: unknown) => {
+      const number = Number(value || 0);
+      if (!Number.isFinite(number)) {
+        return "0";
+      }
+      return new Intl.NumberFormat("en-US", {
+        notation: number >= 1000 ? "compact" : "standard",
+        maximumFractionDigits: number >= 1000 ? 1 : 0,
+      }).format(number);
+    };
+
+    const loadBotMetrics = async () => {
+      try {
+        const [statusResponse, feedResponse] = await Promise.all([
+          fetch("/api/bot-status", { headers: { Accept: "application/json" } }),
+          fetch("/api/bot-feed?limit=10", { headers: { Accept: "application/json" } }),
+        ]);
+        const status = statusResponse.ok ? await statusResponse.json() : {};
+        const feed = feedResponse.ok ? await feedResponse.json() : {};
+        const summary = feed.summary || {};
+
+        setBotMetrics({
+          servers: formatMetric(summary.servers ?? status.servers_count ?? status.guilds_count),
+          members: formatMetric(summary.members ?? status.total_members ?? status.members_count),
+          monitors: formatMetric(summary.active_monitors),
+          redeemServers: formatMetric(summary.auto_redeem_servers),
+          giftCodes: formatMetric(summary.active_gift_codes),
+        });
+      } catch {
+        setBotMetrics(fallbackBotMetrics);
+      }
+    };
+
+    void loadBotMetrics();
   }, []);
 
   useEffect(() => {
@@ -2493,42 +2603,109 @@ export default function Home() {
             </section>
           ) : activeMenu === "bot" ? (
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
-              <a className="bot-ad" href={botFrontendUrl} target="_blank" rel="noreferrer">
-                <div className="bot-ad-copy">
-                  <span className="section-kicker">WOS Discord Bot</span>
-                  <h1>Manage alliance automation from the bot dashboard.</h1>
-                  <p>Open the separate Whiteout Survival Bot frontend for gift codes, reminders, commands, chat, moderation, and web dashboard controls.</p>
-                  <span className="bot-ad-action">
-                    Open Bot Dashboard
-                    <Icon name="external" />
-                  </span>
-                </div>
-                <div className="bot-ad-panel" aria-hidden="true">
-                  <div className="bot-ad-window">
-                    <div className="bot-ad-window-bar">
-                      <span />
-                      <span />
-                      <span />
+              <div className="bot-commercial">
+                <div className="bot-commercial-copy">
+                  <div className="bot-brand-row">
+                    <Image className="bot-brand-logo" src="/molly-logo.png" alt="Whiteout Survival bot logo" width={58} height={58} />
+                    <div>
+                      <span className="section-kicker">Whiteout Survival Discord Bot</span>
+                      <h1>Alliance operations for Whiteout Survival Discord servers.</h1>
                     </div>
-                    <div className="bot-ad-window-body">
-                      <div className="bot-ad-logo">
-                        <Image src="/discord-logo.png" alt="" width={48} height={48} />
+                  </div>
+                  <p>
+                    Run your Discord server with DeepL auto-translation, welcome messages, smart reminders, admin tools, gift-code alerts, auto redeem, and alliance activity monitoring.
+                  </p>
+                  <div className="bot-action-row">
+                    <a className="bot-ad-action" href={botFrontendUrl} target="_blank" rel="noreferrer">
+                      Open Bot Dashboard
+                      <Icon name="external" />
+                    </a>
+                    <a className="bot-secondary-action" href="https://discord.com/oauth2/authorize?client_id=1399025185046134866&permissions=8&integration_type=0&scope=bot" target="_blank" rel="noreferrer">
+                      Add to Discord
+                    </a>
+                  </div>
+                  <div className="bot-proof-grid" aria-label="Bot highlights">
+                    <span><strong>{botMetrics.servers}</strong> servers</span>
+                    <span><strong>{botMetrics.monitors}</strong> active monitors</span>
+                    <span><strong>{botMetrics.redeemServers}</strong> redeem servers</span>
+                  </div>
+                  <div className="bot-feature-list" aria-label="Core bot capabilities">
+                    <span><Icon name="bot" /> AI chat</span>
+                    <span><Icon name="image" /> Image generation</span>
+                    <span><Icon name="calendar" /> Smart reminders</span>
+                    <span><Icon name="wrench" /> Admin tools</span>
+                  </div>
+                </div>
+
+                <div className="bot-layout-grid">
+                  <div className="bot-dashboard-preview" aria-label="Live bot operations preview">
+                    <div className="bot-preview-sidebar">
+                      <div className="bot-preview-title">
+                        <Image src="/molly-logo.png" alt="" width={34} height={34} />
+                        <span>Whiteout Survival</span>
                       </div>
-                      <strong>Whiteout Survival Bot</strong>
-                      <div className="bot-ad-lines">
-                        <span />
-                        <span />
-                        <span />
+                      {["Overview", "Alliance Monitor", "Gift Codes", "Records", "Reminders"].map((item, index) => (
+                        <span className={index === 0 ? "active" : ""} key={item}>{item}</span>
+                      ))}
+                    </div>
+                    <div className="bot-preview-main">
+                      <div className="bot-preview-topbar">
+                        <span>Live Operations</span>
+                        <strong>{botMetrics.servers} servers</strong>
                       </div>
-                      <div className="bot-ad-stats">
-                        <span>Gift Codes</span>
-                        <span>Reminders</span>
-                        <span>Dashboard</span>
+                      <div className="bot-preview-stats">
+                        {[
+                          [botMetrics.members, "members"],
+                          [botMetrics.monitors, "monitors"],
+                          [botMetrics.redeemServers, "auto redeem"],
+                          [botMetrics.giftCodes, "active codes"],
+                        ].map(([value, label]) => (
+                          <span key={label}><strong>{value}</strong>{label}</span>
+                        ))}
+                      </div>
+                      <div className="bot-feature-stack">
+                        {botFeatureCards.map((feature) => (
+                          <article key={feature.title}>
+                            <img src={feature.image} alt={feature.alt} />
+                            <div>
+                              <strong>{feature.title}</strong>
+                            </div>
+                          </article>
+                        ))}
                       </div>
                     </div>
                   </div>
+
+                  <aside className="bot-web-card" aria-label="Web dashboard preview">
+                    <div className="bot-card-head">
+                      <span>Web Dashboard</span>
+                      <strong>Manage server overview, translation rules, auto-redeem channels, registered members, and reminders from the browser.</strong>
+                    </div>
+                    <div className="bot-web-shot-grid">
+                      {botWebDashboardScreens.map((screen) => (
+                        <figure key={screen.label}>
+                          <img src={screen.image} alt={screen.alt} />
+                          <figcaption>{screen.label}</figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  </aside>
+
+                  <div className="bot-gallery-card" aria-label="Bot website preview screenshots">
+                    <div className="bot-card-head">
+                      <span>Feature Previews</span>
+                    </div>
+                    <div className="bot-preview-rail">
+                      {botPreviewScreens.map((screen) => (
+                        <figure key={screen.label}>
+                          <img src={screen.image} alt={screen.alt} />
+                          <figcaption>{screen.label}</figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </a>
+              </div>
             </section>
           ) : (
           <section className="home-page daybreak-page" id="daybreak" aria-label="Daybreak Island community showcase">

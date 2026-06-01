@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
         source: "/api/profile/:path*",
         destination: `${backendUrl}/api/profile/:path*`,
       },
+      {
+        source: "/api/bot-status",
+        destination: "https://bot.whiteoutsurvival.dev/api/status",
+      },
+      {
+        source: "/api/bot-feed",
+        destination: "https://bot.whiteoutsurvival.dev/api/bot-feed",
+      },
     ];
   },
   images: {
