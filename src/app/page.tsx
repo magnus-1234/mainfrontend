@@ -45,7 +45,7 @@ type IslandComment = {
 
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot";
+type ActiveMenu = "home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
 type SiteLanguage = {
   code: string;
   name: string;
@@ -277,6 +277,120 @@ const menuItems = [
   { label: "More", icon: "book", status: "Soon" },
 ];
 
+const wosWikiMenuItems: { label: string; icon: string; menu?: ActiveMenu; href?: string; status?: string }[] = [
+  { label: "Heroes", icon: "user", menu: "wikiHeroes", href: "/wiki/heroes" },
+  { label: "Buildings", icon: "database", menu: "wikiBuildings", href: "/wiki/buildings" },
+  { label: "Research", icon: "book", href: "https://www.whiteoutsurvival.wiki/research/", status: "Next" },
+  { label: "Events", icon: "star", href: "https://www.whiteoutsurvival.wiki/events/", status: "Next" },
+  { label: "Items", icon: "gift", href: "https://www.whiteoutsurvival.wiki/items/", status: "Next" },
+];
+
+const wosHeroRows = `Smith|Rare|Infantry|Growth|https://www.whiteoutsurvival.wiki/heroes/smith/
+Eugene|Rare|Infantry|Growth|https://www.whiteoutsurvival.wiki/heroes/eugene/
+Charlie|Rare|Lancer|Growth|https://www.whiteoutsurvival.wiki/heroes/charlie/
+Cloris|Rare|Marksmen|Growth|https://www.whiteoutsurvival.wiki/heroes/cloris-2/
+Sergey|Epic|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/sergey/
+Jessie|Epic|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/jessie/
+Patrick|Epic|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/patrick/
+Lumak Bokan|Epic|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/lumak-bokan/
+Ling Xue|Epic|Lancer|Growth|https://www.whiteoutsurvival.wiki/heroes/ling-shuang/
+Gina|Epic|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/gina/
+Bahiti|Epic|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/bahiti/
+Jasser|Epic|Marksmen|Growth|https://www.whiteoutsurvival.wiki/heroes/jasser/
+Seo-yoon|Epic|Marksmen|Growth|https://www.whiteoutsurvival.wiki/heroes/seo-yoon/
+Natalia|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/natalia/
+Jeronimo|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/jeronimo/
+Molly|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/molly/
+Zinman|Legendary|Marksmen|Growth|https://www.whiteoutsurvival.wiki/heroes/zinman/
+Flint|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/flint/
+Philly|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/philly/
+Alonso|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/alonso/
+Logan|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/logan/
+Mia|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/mia/
+Greg|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/greg/
+Ahmose|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/ahmose/
+Reina|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/reina/
+Lynn|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/lynn/
+Hector|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/hector/
+Norah|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/gwen/
+Gwen|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/gwen-2/
+Wu Ming|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/wu-ming/
+Renee|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/renee/
+Wayne|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/wayne/
+Edith|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/edith/
+Gordon|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/gordon/
+Bradley|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/bradley/
+Gatot|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/gatot/
+Sonya|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/sonya/
+Hendrik|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/hendrik/
+Magnus|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/magnus/
+Fred|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/fred/
+Xura|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/xura/
+Gregory|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/gregory/
+Freya|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/freya/
+Blanchette|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/blanchette/
+Eleonora|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/eleonora/
+Lloyd|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/lloyd/
+Rufus|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/rufus/
+Hervor|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/hervor/
+Karol|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/karol/
+Ligeia|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/ligeia/
+Gisela|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/gisela/
+Flora|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/flora/
+Vulcanus|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/vulcanus/
+Elif|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/elif/
+Dominic|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/dominic/
+Cara|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/cara/
+Hank|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/hank-2/
+Estrella|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/estrella/
+Viveca|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/viveca-2/
+Seigel|Legendary|Infantry|Combat|https://www.whiteoutsurvival.wiki/heroes/seigel/
+Ursar|Legendary|Lancer|Combat|https://www.whiteoutsurvival.wiki/heroes/ursar/
+Aisling|Legendary|Marksmen|Combat|https://www.whiteoutsurvival.wiki/heroes/aisling/`;
+
+const wosHeroes = wosHeroRows.split("\n").map((row) => {
+  const [name, rarity, heroClass, subClass, url] = row.split("|");
+  return { name, rarity, heroClass, subClass, url };
+});
+
+const wosBuildings = [
+  ["Enlistment Office", "Military", "https://www.whiteoutsurvival.wiki/buildings/enlistment-office/"],
+  ["Barricade", "Military", "https://www.whiteoutsurvival.wiki/buildings/barricade/"],
+  ["Marksman Camp", "Military", "https://www.whiteoutsurvival.wiki/buildings/marksman-camp/"],
+  ["Lancer Camp", "Military", "https://www.whiteoutsurvival.wiki/buildings/lancer-camp/"],
+  ["Infantry Camp", "Military", "https://www.whiteoutsurvival.wiki/buildings/infantry-camp/"],
+  ["Research Center", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/research-center/"],
+  ["Infirmary", "Military", "https://www.whiteoutsurvival.wiki/buildings/infirmary/"],
+  ["Command Center", "Military", "https://www.whiteoutsurvival.wiki/buildings/command-center/"],
+  ["Embassy", "Military", "https://www.whiteoutsurvival.wiki/buildings/embassy/"],
+  ["Storehouse", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/storehouse/"],
+  ["Furnace", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/furnace/"],
+  ["Clinic", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/clinic/"],
+  ["Shelter", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/shelter/"],
+  ["Cookhouse", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/cookhouse/"],
+  ["Hero Hall", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/hero-hall/"],
+  ["Iron Mine", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/iron-mine/"],
+  ["Sawmill", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/sawmill/"],
+  ["Coal Mine", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/coal-mine/"],
+  ["Hunter's Hut", "Inner City", "https://www.whiteoutsurvival.wiki/buildings/hunters-hut/"],
+  ["Dawn Academy", "Other", "https://www.whiteoutsurvival.wiki/buildings/dawn-academy/"],
+  ["Beast Cage", "Other", "https://www.whiteoutsurvival.wiki/buildings/beast-cage/"],
+  ["Lighthouse", "Other", "https://www.whiteoutsurvival.wiki/buildings/lighthouse/"],
+  ["Arena", "Other", "https://www.whiteoutsurvival.wiki/buildings/arena/"],
+  ["Chief's House", "Other", "https://www.whiteoutsurvival.wiki/buildings/chiefs-house/"],
+  ["Suggestion Box", "Other", "https://www.whiteoutsurvival.wiki/buildings/suggestion-box/"],
+  ["Explorers Cabin", "Other", "https://www.whiteoutsurvival.wiki/buildings/explorers-cabin/"],
+  ["Crystal Laboratory", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/crystal-laboratory/"],
+  ["War Academy", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/war-academy/"],
+  ["Fire Crystal Marksman Camp", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-marksman-camp/"],
+  ["Fire Crystal Infantry Camp", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-infantry-camp/"],
+  ["Fire Crystal Lancer Camp", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-lancer-camp/"],
+  ["Fire Crystal Embassy", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-embassy/"],
+  ["Fire Crystal Infirmary", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-infirmary/"],
+  ["Fire Crystal Command Center", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-command-center/"],
+  ["Fire Crystal Furnace", "Fire Crystal", "https://www.whiteoutsurvival.wiki/buildings/fire-crystal-furnace/"],
+].map(([name, category, url]) => ({ name, category, url }));
+
 const pageLanguage = "en";
 const languageStorageKey = "whiteoutsurvival-dev-language";
 const translateCookieName = "googtrans";
@@ -315,9 +429,11 @@ const sidebarItems: {
   { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
   { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
   { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
+  { label: "Wiki Heroes", mobileLabel: "Heroes", icon: "user", menu: "wikiHeroes", href: "/wiki/heroes", mobilePrimary: true },
+  { label: "Wiki Buildings", mobileLabel: "Build", icon: "database", menu: "wikiBuildings", href: "/wiki/buildings" },
   { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
   { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak", mobilePrimary: true },
-  { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
+  { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot" },
 ];
 
 const hashMenuAliases: Record<string, ActiveMenu> = {
@@ -338,6 +454,9 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#upload": "daybreak",
   "#discord-bot": "bot",
   "#bot": "bot",
+  "#wiki": "wikiHeroes",
+  "#wiki-heroes": "wikiHeroes",
+  "#wiki-buildings": "wikiBuildings",
 };
 
 const queryMenuAliases: Record<string, ActiveMenu> = {
@@ -350,6 +469,9 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   sneak: "sneak",
   daybreak: "daybreak",
   bot: "bot",
+  wiki: "wikiHeroes",
+  heroes: "wikiHeroes",
+  buildings: "wikiBuildings",
 };
 
 const menuUrls: Record<ActiveMenu, string> = {
@@ -360,6 +482,8 @@ const menuUrls: Record<ActiveMenu, string> = {
   sneak: "/#sneak-peek",
   daybreak: "/#daybreak",
   bot: "/#discord-bot",
+  wikiHeroes: "/wiki/heroes",
+  wikiBuildings: "/wiki/buildings",
 };
 
 const resolveActiveMenu = (location: Location): ActiveMenu => {
@@ -384,6 +508,14 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/redeem")) {
     return "redeem";
+  }
+
+  if (location.pathname.startsWith("/wiki/buildings")) {
+    return "wikiBuildings";
+  }
+
+  if (location.pathname.startsWith("/wiki/heroes") || location.pathname.startsWith("/wiki")) {
+    return "wikiHeroes";
   }
 
   return "home";
@@ -2888,6 +3020,14 @@ export default function Home() {
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
+  const heroRarityCounts = wosHeroes.reduce<Record<string, number>>((counts, hero) => {
+    counts[hero.rarity] = (counts[hero.rarity] || 0) + 1;
+    return counts;
+  }, {});
+  const buildingCategoryCounts = wosBuildings.reduce<Record<string, number>>((counts, building) => {
+    counts[building.category] = (counts[building.category] || 0) + 1;
+    return counts;
+  }, {});
 
   const navigateToMenu = (menu: ActiveMenu) => {
     setMobileMoreOpen(false);
@@ -2921,6 +3061,41 @@ export default function Home() {
           </button>
 
           <nav className="top-menu" aria-label="Top menu">
+            <div className="menu-trigger-wrap">
+              <button type="button" className="menu-trigger wiki-trigger" onClick={() => navigateToMenu("wikiHeroes")} aria-haspopup="true">
+                <span className="menu-status">Live</span>
+                <span className="menu-main">
+                  <Icon name="book" />
+                  <span>Wos Wiki</span>
+                  <Icon name="chevron" />
+                </span>
+              </button>
+              <div className="wiki-dropdown" role="menu" aria-label="Wos wiki menu">
+                {wosWikiMenuItems.map((item) => (
+                  item.menu ? (
+                    <a
+                      className={activeMenu === item.menu ? "active" : ""}
+                      href={item.href}
+                      key={item.label}
+                      role="menuitem"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigateToMenu(item.menu as ActiveMenu);
+                      }}
+                    >
+                      <Icon name={item.icon} />
+                      <span>{item.label}</span>
+                    </a>
+                  ) : (
+                    <a href={item.href} key={item.label} role="menuitem" target="_blank" rel="noreferrer">
+                      <Icon name={item.icon} />
+                      <span>{item.label}</span>
+                      {item.status && <small>{item.status}</small>}
+                    </a>
+                  )
+                ))}
+              </div>
+            </div>
             {menuItems.map((item) => (
               <button type="button" className="menu-trigger" key={item.label}>
                 <span className="menu-status">{item.status}</span>
@@ -3258,6 +3433,106 @@ export default function Home() {
                   )}
                 </section>
               )}
+            </section>
+          ) : activeMenu === "wikiHeroes" ? (
+            <section className="home-page wiki-page" id="wiki-heroes" aria-label="Whiteout Survival wiki heroes">
+              <section className="wiki-hero">
+                <div>
+                  <span className="section-kicker">Official Wiki Extract</span>
+                  <h1>Wos Wiki Heroes</h1>
+                  <p>Hero directory extracted from the official Whiteout Survival Wiki with rarity, troop class, subclass, and direct detail links.</p>
+                </div>
+                <div className="wiki-switcher" aria-label="Wiki section switcher">
+                  <button className="active" type="button" onClick={() => navigateToMenu("wikiHeroes")}>Heroes</button>
+                  <button type="button" onClick={() => navigateToMenu("wikiBuildings")}>Buildings</button>
+                </div>
+              </section>
+
+              <section className="wiki-summary" aria-label="Hero summary">
+                <article><span>Total Heroes</span><strong>{wosHeroes.length}</strong></article>
+                {Object.entries(heroRarityCounts).map(([rarity, count]) => (
+                  <article key={rarity}><span>{rarity}</span><strong>{count}</strong></article>
+                ))}
+              </section>
+
+              <section className="wiki-panel" aria-label="Hero list">
+                <div className="wiki-panel-head">
+                  <div>
+                    <h2>Heroes</h2>
+                    <p>Open any hero to view the official story, shard, skill, and special weapon tables on the source wiki.</p>
+                  </div>
+                  <a href="https://www.whiteoutsurvival.wiki/heroes/" target="_blank" rel="noreferrer">
+                    Source
+                    <Icon name="external" />
+                  </a>
+                </div>
+                <div className="wiki-grid">
+                  {wosHeroes.map((hero) => (
+                    <article className="wiki-card hero-card" key={hero.url}>
+                      <div className="wiki-card-title">
+                        <strong>{hero.name}</strong>
+                        <span className={`wiki-rarity rarity-${hero.rarity.toLowerCase()}`}>{hero.rarity}</span>
+                      </div>
+                      <div className="wiki-card-meta">
+                        <span><Icon name="shield" />{hero.heroClass}</span>
+                        <span><Icon name="star" />{hero.subClass}</span>
+                      </div>
+                      <a href={hero.url} target="_blank" rel="noreferrer">
+                        View details
+                        <Icon name="external" />
+                      </a>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </section>
+          ) : activeMenu === "wikiBuildings" ? (
+            <section className="home-page wiki-page" id="wiki-buildings" aria-label="Whiteout Survival wiki buildings">
+              <section className="wiki-hero">
+                <div>
+                  <span className="section-kicker">Official Wiki Extract</span>
+                  <h1>Wos Wiki Buildings</h1>
+                  <p>Building directory extracted from the official Whiteout Survival Wiki with category grouping and direct detail links.</p>
+                </div>
+                <div className="wiki-switcher" aria-label="Wiki section switcher">
+                  <button type="button" onClick={() => navigateToMenu("wikiHeroes")}>Heroes</button>
+                  <button className="active" type="button" onClick={() => navigateToMenu("wikiBuildings")}>Buildings</button>
+                </div>
+              </section>
+
+              <section className="wiki-summary" aria-label="Building summary">
+                <article><span>Total Buildings</span><strong>{wosBuildings.length}</strong></article>
+                {Object.entries(buildingCategoryCounts).map(([category, count]) => (
+                  <article key={category}><span>{category}</span><strong>{count}</strong></article>
+                ))}
+              </section>
+
+              <section className="wiki-panel" aria-label="Building list">
+                <div className="wiki-panel-head">
+                  <div>
+                    <h2>Buildings</h2>
+                    <p>Open any building to view its official description, upgrade requirements, costs, timers, and power tables.</p>
+                  </div>
+                  <a href="https://www.whiteoutsurvival.wiki/buildings/" target="_blank" rel="noreferrer">
+                    Source
+                    <Icon name="external" />
+                  </a>
+                </div>
+                <div className="wiki-grid buildings-grid">
+                  {wosBuildings.map((building) => (
+                    <article className="wiki-card building-card" key={building.url}>
+                      <div className="wiki-card-title">
+                        <strong>{building.name}</strong>
+                        <span>{building.category}</span>
+                      </div>
+                      <a href={building.url} target="_blank" rel="noreferrer">
+                        View details
+                        <Icon name="external" />
+                      </a>
+                    </article>
+                  ))}
+                </div>
+              </section>
             </section>
           ) : activeMenu === "planner" ? (
             <section className="home-page planner-page" id="city-layout-planner" aria-label="City Layout Planner">

@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
         destination: "/?menu=redeem",
       },
       {
+        source: "/wiki/heroes",
+        destination: "/?menu=heroes",
+      },
+      {
+        source: "/wiki/buildings",
+        destination: "/?menu=buildings",
+      },
+      {
         source: "/api/gift-codes",
         destination: `${backendUrl}/api/gift-codes`,
       },
