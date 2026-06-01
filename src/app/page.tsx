@@ -48,6 +48,8 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type ActiveMenu = "home" | "gift" | "redeem" | "planner" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
+type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
 type SiteLanguage = {
   code: string;
   name: string;
@@ -317,6 +319,69 @@ const wosWikiMenuItems: { label: string; icon: string; menu?: ActiveMenu; href?:
 
 const scrapedWosHeroes = wikiHeroesData as unknown as WosWikiHero[];
 const scrapedWosBuildings = wikiBuildingsData as unknown as WosWikiBuilding[];
+
+const legendaryHeroSeasons: Record<string, WosHeroFilter> = {
+  Natalia: "S1",
+  Jeronimo: "S1",
+  Molly: "S1",
+  Zinman: "S1",
+  Flint: "S2",
+  Philly: "S2",
+  Alonso: "S2",
+  Logan: "S3",
+  Mia: "S3",
+  Greg: "S3",
+  Ahmose: "S4",
+  Reina: "S4",
+  Lynn: "S4",
+  Hector: "S5",
+  Norah: "S5",
+  Gwen: "S5",
+  "Wu Ming": "S6",
+  Renee: "S6",
+  Wayne: "S6",
+  Edith: "S7",
+  Gordon: "S7",
+  Bradley: "S7",
+  Gatot: "S8",
+  Sonya: "S8",
+  Hendrik: "S8",
+  Magnus: "S9",
+  Fred: "S9",
+  Xura: "S9",
+  Gregory: "S10",
+  Freya: "S10",
+  Blanchette: "S10",
+  Eleonora: "S11",
+  Lloyd: "S11",
+  Rufus: "S11",
+  Hervor: "S12",
+  Karol: "S12",
+  Ligeia: "S12",
+  Gisela: "S13",
+  Flora: "S13",
+  Vulcanus: "S13",
+  Elif: "S14",
+  Dominic: "S14",
+  Cara: "S14",
+  Hank: "S15",
+  Estrella: "S15",
+  Viveca: "S15",
+  Seigel: "S15",
+  Ursar: "S15",
+  Aisling: "S15",
+};
+
+const heroFilterOrder: WosHeroFilter[] = ["Rare", "Epic", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13", "S14", "S15"];
+const buildingFilters: { label: string; value: WosBuildingFilter }[] = [
+  { label: "Military Buildings", value: "Military" },
+  { label: "Inner City", value: "Inner City" },
+  { label: "Others", value: "Other" },
+  { label: "Fire Crystal Buildings", value: "Fire Crystal" },
+];
+
+const heroFilterFor = (hero: WosWikiHero): WosHeroFilter =>
+  hero.rarity === "Rare" || hero.rarity === "Epic" ? hero.rarity : legendaryHeroSeasons[hero.name] || "S1";
 
 const pageLanguage = "en";
 const languageStorageKey = "whiteoutsurvival-dev-language";
@@ -1128,6 +1193,8 @@ export default function Home() {
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>("home");
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
+  const [activeHeroFilter, setActiveHeroFilter] = useState<WosHeroFilter>("Rare");
+  const [activeBuildingFilter, setActiveBuildingFilter] = useState<WosBuildingFilter>("Military");
   const [giftCodes, setGiftCodes] = useState<GiftCode[]>(() => readStoredGiftCodes()?.codes.filter((item) => item.isActive !== false) || []);
   const [giftCodeUpdatedAt, setGiftCodeUpdatedAt] = useState(() => readStoredGiftCodes()?.lastUpdated || "");
   const [giftCodeLoading, setGiftCodeLoading] = useState(false);
@@ -2953,10 +3020,18 @@ export default function Home() {
     counts[hero.rarity] = (counts[hero.rarity] || 0) + 1;
     return counts;
   }, {});
+  const heroFilterCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
+    const group = heroFilterFor(hero);
+    counts[group] = (counts[group] || 0) + 1;
+    return counts;
+  }, {});
   const buildingCategoryCounts = scrapedWosBuildings.reduce<Record<string, number>>((counts, building) => {
     counts[building.category] = (counts[building.category] || 0) + 1;
     return counts;
   }, {});
+  const visibleHeroFilters = heroFilterOrder.filter((filter) => heroFilterCounts[filter]);
+  const filteredWosHeroes = scrapedWosHeroes.filter((hero) => heroFilterFor(hero) === activeHeroFilter);
+  const filteredWosBuildings = scrapedWosBuildings.filter((building) => building.category === activeBuildingFilter);
   const activeWikiHero = scrapedWosHeroes.find((hero) => hero.slug === activeWikiSlug);
   const activeWikiBuilding = scrapedWosBuildings.find((building) => building.slug === activeWikiSlug);
 
@@ -3411,7 +3486,7 @@ export default function Home() {
                       <Icon name="chevron" />
                       Back to Heroes
                     </button>
-                    <span>Snapshot source: Whiteout Survival Wiki</span>
+                    <span>{heroFilterFor(activeWikiHero)} | {activeWikiHero.rarity}</span>
                   </div>
                   <div className="wiki-detail-head">
                     {activeWikiHero.thumbnail && <img src={activeWikiHero.thumbnail} alt="" />}
@@ -3430,35 +3505,49 @@ export default function Home() {
                     ))}
                   </div>
                   <div className="wiki-scraped-content" dangerouslySetInnerHTML={{ __html: activeWikiHero.html }} />
-                  <p className="wiki-source-note">Source snapshot from Whiteout Survival Wiki: {activeWikiHero.sourceUrl}</p>
                 </article>
               ) : (
               <section className="wiki-panel" aria-label="Hero list">
                 <div className="wiki-panel-head">
                   <div>
-                    <h2>Heroes</h2>
-                    <p>Open any hero to view its scraped story, shard, skill, and special weapon tables inside this website.</p>
+                    <h2>{activeHeroFilter} Heroes</h2>
+                    <p>{filteredWosHeroes.length} hero{filteredWosHeroes.length === 1 ? "" : "es"} in this group. Open any hero to view stats, skills, shards, and tables inside this website.</p>
                   </div>
                   <span className="wiki-source-chip">Local snapshot</span>
                 </div>
-                <div className="wiki-grid">
-                  {scrapedWosHeroes.map((hero) => (
-                    <article className="wiki-card hero-card" key={hero.slug}>
-                      {hero.thumbnail && <img className="wiki-card-image" src={hero.thumbnail} alt="" />}
-                      <div className="wiki-card-title">
-                        <strong>{hero.name}</strong>
-                        <span className={`wiki-rarity rarity-${hero.rarity.toLowerCase()}`}>{hero.rarity}</span>
-                      </div>
-                      <div className="wiki-card-meta">
-                        <span><Icon name="shield" />{hero.heroClass}</span>
-                        <span><Icon name="star" />{hero.subClass}</span>
-                      </div>
-                      <button type="button" onClick={() => openWikiItem("wikiHeroes", hero.slug)}>
-                        View details
-                        <Icon name="chevron" />
+                <div className="wiki-filter-layout">
+                  <nav className="wiki-filter-rail" aria-label="Hero filters">
+                    {visibleHeroFilters.map((filter) => (
+                      <button
+                        className={activeHeroFilter === filter ? "active" : ""}
+                        type="button"
+                        key={filter}
+                        onClick={() => setActiveHeroFilter(filter)}
+                      >
+                        <span>{filter}</span>
+                        <small>{heroFilterCounts[filter]}</small>
                       </button>
-                    </article>
-                  ))}
+                    ))}
+                  </nav>
+                  <div className="wiki-grid">
+                    {filteredWosHeroes.map((hero) => (
+                      <article className="wiki-card hero-card" key={hero.slug}>
+                        {hero.thumbnail && <img className="wiki-card-image" src={hero.thumbnail} alt="" />}
+                        <div className="wiki-card-title">
+                          <strong>{hero.name}</strong>
+                          <span className={`wiki-rarity rarity-${hero.rarity.toLowerCase()}`}>{hero.rarity}</span>
+                        </div>
+                        <div className="wiki-card-meta">
+                          <span><Icon name="shield" />{hero.heroClass}</span>
+                          <span><Icon name="star" />{hero.subClass}</span>
+                        </div>
+                        <button type="button" onClick={() => openWikiItem("wikiHeroes", hero.slug)}>
+                          View details
+                          <Icon name="chevron" />
+                        </button>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               </section>
               )}
@@ -3491,7 +3580,7 @@ export default function Home() {
                       <Icon name="chevron" />
                       Back to Buildings
                     </button>
-                    <span>Snapshot source: Whiteout Survival Wiki</span>
+                    <span>{activeWikiBuilding.category}</span>
                   </div>
                   <div className="wiki-detail-head">
                     {activeWikiBuilding.thumbnail && <img src={activeWikiBuilding.thumbnail} alt="" />}
@@ -3507,19 +3596,32 @@ export default function Home() {
                     <span><strong>Local</strong>Snapshot</span>
                   </div>
                   <div className="wiki-scraped-content" dangerouslySetInnerHTML={{ __html: activeWikiBuilding.html }} />
-                  <p className="wiki-source-note">Source snapshot from Whiteout Survival Wiki: {activeWikiBuilding.sourceUrl}</p>
                 </article>
               ) : (
               <section className="wiki-panel" aria-label="Building list">
                 <div className="wiki-panel-head">
                   <div>
-                    <h2>Buildings</h2>
-                    <p>Open any building to view its scraped description, upgrade requirements, costs, timers, and power tables inside this website.</p>
+                    <h2>{buildingFilters.find((filter) => filter.value === activeBuildingFilter)?.label}</h2>
+                    <p>{filteredWosBuildings.length} building{filteredWosBuildings.length === 1 ? "" : "s"} in this category. Open any building to view descriptions, requirements, costs, timers, and power tables.</p>
                   </div>
                   <span className="wiki-source-chip">Local snapshot</span>
                 </div>
+                <div className="wiki-building-tabs" aria-label="Building filters">
+                  {buildingFilters.map((filter) => (
+                    <button
+                      className={activeBuildingFilter === filter.value ? "active" : ""}
+                      type="button"
+                      key={filter.value}
+                      onClick={() => setActiveBuildingFilter(filter.value)}
+                    >
+                      <Icon name={filter.value === "Military" ? "shield" : filter.value === "Fire Crystal" ? "flame" : filter.value === "Inner City" ? "home" : "grid"} />
+                      <span>{filter.label}</span>
+                      <small>{buildingCategoryCounts[filter.value] || 0}</small>
+                    </button>
+                  ))}
+                </div>
                 <div className="wiki-grid buildings-grid">
-                  {scrapedWosBuildings.map((building) => (
+                  {filteredWosBuildings.map((building) => (
                     <article className="wiki-card building-card" key={building.slug}>
                       {building.thumbnail && <img className="wiki-card-image" src={building.thumbnail} alt="" />}
                       <div className="wiki-card-title">

@@ -7415,6 +7415,113 @@ body {
   padding: 12px;
 }
 
+.wiki-filter-layout {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--muted) 72%, transparent), transparent),
+    var(--background);
+}
+
+.wiki-filter-layout .wiki-grid {
+  align-content: start;
+  padding: 0;
+}
+
+.wiki-filter-rail {
+  position: sticky;
+  top: 76px;
+  display: grid;
+  align-self: start;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-accent) 70%, transparent), color-mix(in srgb, var(--card) 86%, transparent)),
+    var(--card);
+}
+
+.wiki-filter-rail button {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  padding: 0 14px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 850;
+  text-align: left;
+}
+
+.wiki-filter-rail button:last-child {
+  border-bottom: 0;
+}
+
+.wiki-filter-rail button:hover,
+.wiki-filter-rail button.active {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 82%, transparent), color-mix(in srgb, var(--sidebar-accent) 88%, transparent));
+  color: var(--foreground);
+}
+
+.wiki-filter-rail small,
+.wiki-building-tabs small {
+  border: 1px solid color-mix(in srgb, var(--gold-line) 58%, transparent);
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.wiki-building-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 14px 0;
+}
+
+.wiki-building-tabs button {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+}
+
+.wiki-building-tabs button:hover,
+.wiki-building-tabs button.active {
+  border-color: var(--gold-line);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 84%, transparent), color-mix(in srgb, var(--card) 92%, transparent));
+  color: var(--foreground);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold-line) 20%, transparent);
+}
+
+.wiki-building-tabs svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
 .buildings-grid {
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
@@ -7425,7 +7532,17 @@ body {
   align-content: space-between;
   gap: 14px;
   padding: 14px;
-  box-shadow: none;
+  background:
+    radial-gradient(circle at 18px 18px, color-mix(in srgb, var(--gold-soft) 78%, transparent), transparent 34%),
+    var(--card);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.wiki-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold-line);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.12);
 }
 
 .wiki-card-image {
@@ -7444,6 +7561,7 @@ body {
 
 .wiki-card-title strong {
   font-size: 1.04rem;
+  line-height: 1.2;
 }
 
 .wiki-card-title span,
@@ -7678,6 +7796,42 @@ body {
   color: var(--muted-foreground);
   font-size: 0.8rem;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .wiki-filter-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wiki-filter-rail {
+    position: static;
+    display: flex;
+    overflow-x: auto;
+    border-radius: 8px;
+  }
+
+  .wiki-filter-rail button {
+    flex: 0 0 auto;
+    min-width: 86px;
+    border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    border-bottom: 0;
+  }
+
+  .wiki-building-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .wiki-building-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .wiki-detail-toolbar,
+  .wiki-detail-head {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
 }
 
 .giftcodes-hero,
