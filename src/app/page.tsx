@@ -166,12 +166,7 @@ type RedeemResult = {
   state: string;
   message: string;
   checkedAt?: string;
-};
-
-type CaptchaPayload = {
-  player: PlayerProfile | null;
-  captchaImage: string;
-  issuedAt: string;
+  player?: PlayerProfile;
 };
 
 const fallbackBotMetrics: BotMetrics = {
@@ -620,8 +615,6 @@ export default function Home() {
   const [copiedGiftCode, setCopiedGiftCode] = useState("");
   const [redeemPlayerId, setRedeemPlayerId] = useState("");
   const [redeemCode, setRedeemCode] = useState("");
-  const [redeemCaptcha, setRedeemCaptcha] = useState("");
-  const [redeemCaptchaImage, setRedeemCaptchaImage] = useState("");
   const [redeemPlayer, setRedeemPlayer] = useState<PlayerProfile | null>(null);
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [redeemResult, setRedeemResult] = useState<RedeemResult | null>(null);
@@ -1331,8 +1324,6 @@ export default function Home() {
   const openRedeemPage = (code: string) => {
     const cleanCode = code.replace(/[^A-Za-z0-9]/g, "");
     setRedeemCode(cleanCode);
-    setRedeemCaptcha("");
-    setRedeemCaptchaImage("");
     setRedeemResult(null);
     setActiveMenu("redeem");
     window.history.pushState(null, "", `/redeem?code=${encodeURIComponent(cleanCode)}`);
@@ -1358,38 +1349,6 @@ export default function Home() {
     }).format(parsed);
   };
 
-  const fetchRedeemCaptcha = async (event?: FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
-    setRedeemLoading(true);
-    setRedeemResult(null);
-    setRedeemCaptcha("");
-
-    try {
-      const response = await fetch("/api/gift-codes/captcha", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ playerId: redeemPlayerId }),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(payload?.error || "Unable to load captcha.");
-      }
-
-      const data = payload as CaptchaPayload;
-      setRedeemPlayer(data.player);
-      setRedeemCaptchaImage(data.captchaImage);
-      setRedeemResult({
-        state: "ready",
-        message: data.player ? `Ready for ${data.player.nickname}. Enter the captcha to redeem.` : "Captcha ready. Enter the captcha to redeem.",
-      });
-    } catch (error) {
-      setRedeemCaptchaImage("");
-      setRedeemResult({ state: "error", message: error instanceof Error ? error.message : "Unable to load captcha." });
-    } finally {
-      setRedeemLoading(false);
-    }
-  };
-
   const submitRedeem = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setRedeemLoading(true);
@@ -1402,7 +1361,6 @@ export default function Home() {
         body: JSON.stringify({
           playerId: redeemPlayerId,
           code: redeemCode,
-          captchaCode: redeemCaptcha,
         }),
       });
       const payload = await response.json().catch(() => null);
@@ -1410,9 +1368,10 @@ export default function Home() {
         throw new Error(payload?.message || payload?.error || "Unable to redeem.");
       }
 
-      setRedeemResult(payload as RedeemResult);
-      if (["captcha_error", "rate_limited"].includes(String(payload?.state))) {
-        setRedeemCaptchaImage("");
+      const result = payload as RedeemResult;
+      setRedeemResult(result);
+      if (result.player) {
+        setRedeemPlayer(result.player);
       }
     } catch (error) {
       setRedeemResult({ state: "error", message: error instanceof Error ? error.message : "Unable to redeem." });
@@ -2494,7 +2453,7 @@ export default function Home() {
                 <div>
                   <span className="section-kicker">Live Gift Code Tracker</span>
                   <h1>Whiteout Survival Gift Codes</h1>
-                  <p>The fastest active Whiteout Survival code tracker, refreshed automatically and ready for direct redemption on WhiteoutSurvival.dev.</p>
+                  <p>Fast active codes, refreshed automatically and ready for direct redemption on WhiteoutSurvival.dev.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
                   <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage(latestGiftCode?.code || "")}>
@@ -2589,12 +2548,12 @@ export default function Home() {
                 <article>
                   <span>2</span>
                   <strong>Enter Player ID</strong>
-                  <p>Paste your FID, confirm the account, and load the secure captcha.</p>
+                  <p>Paste your FID and confirm the matching account.</p>
                 </article>
                 <article>
                   <span>3</span>
-                  <strong>Redeem Here</strong>
-                  <p>Enter the captcha and submit directly from our redeem flow.</p>
+                  <strong>Auto Redeem</strong>
+                  <p>Submit once and our redeem system completes the secure check automatically.</p>
                 </article>
               </section>
             </section>
@@ -2604,7 +2563,7 @@ export default function Home() {
                 <div>
                   <span className="section-kicker">WhiteoutSurvival.dev Redeem</span>
                   <h1>Redeem Gift Code</h1>
-                  <p>Enter your player ID, verify your account, solve the captcha, and redeem without leaving WhiteoutSurvival.dev.</p>
+                  <p>Enter your player ID and code. Our redeem system completes the secure check automatically.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
                   <button className="giftcodes-refresh" type="button" onClick={() => setActiveMenu("gift")}>
@@ -2614,10 +2573,10 @@ export default function Home() {
               </section>
 
               <section className="redeem-shell">
-                <form className="redeem-card" onSubmit={(event) => void fetchRedeemCaptcha(event)}>
+                <form className="redeem-card redeem-card-wide" onSubmit={(event) => void submitRedeem(event)}>
                   <div className="redeem-card-head">
-                    <span>Step 1</span>
-                    <strong>Account Check</strong>
+                    <span>Auto redeem</span>
+                    <strong>Player and Code</strong>
                   </div>
                   <label>
                     <span>Player ID</span>
@@ -2627,16 +2586,6 @@ export default function Home() {
                     <span>Gift Code</span>
                     <input value={redeemCode} onChange={(event) => setRedeemCode(event.currentTarget.value.replace(/[^A-Za-z0-9]/g, ""))} placeholder="Gift code" />
                   </label>
-                  <button type="submit" disabled={redeemLoading || !redeemPlayerId || !redeemCode}>
-                    {redeemLoading ? "Checking" : "Verify and Load Captcha"}
-                  </button>
-                </form>
-
-                <form className="redeem-card" onSubmit={(event) => void submitRedeem(event)}>
-                  <div className="redeem-card-head">
-                    <span>Step 2</span>
-                    <strong>Redeem</strong>
-                  </div>
                   {redeemPlayer && (
                     <div className="redeem-player">
                       {redeemPlayer.avatarImage && <img src={redeemPlayer.avatarImage} alt="" />}
@@ -2646,22 +2595,12 @@ export default function Home() {
                       </span>
                     </div>
                   )}
-                  {redeemCaptchaImage ? (
-                    <div className="redeem-captcha">
-                      <img src={redeemCaptchaImage} alt="Captcha challenge" />
-                      <button type="button" onClick={() => void fetchRedeemCaptcha()}>
-                        Refresh Captcha
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="redeem-captcha-empty">Load captcha after entering your player ID and gift code.</div>
-                  )}
-                  <label>
-                    <span>Captcha</span>
-                    <input value={redeemCaptcha} onChange={(event) => setRedeemCaptcha(event.currentTarget.value.replace(/[^A-Za-z0-9]/g, ""))} placeholder="Enter captcha" />
-                  </label>
-                  <button type="submit" disabled={redeemLoading || !redeemCaptchaImage || !redeemCaptcha || !redeemPlayerId || !redeemCode}>
-                    {redeemLoading ? "Redeeming" : "Redeem Code"}
+                  <div className="redeem-auto-note">
+                    <Icon name="shield" />
+                    <span>Secure verification is handled automatically by our auto-redeem system.</span>
+                  </div>
+                  <button type="submit" disabled={redeemLoading || !redeemPlayerId || !redeemCode}>
+                    {redeemLoading ? "Redeeming automatically" : "Auto Redeem Code"}
                   </button>
                 </form>
               </section>

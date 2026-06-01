@@ -6817,10 +6817,11 @@ svg {
 
 .giftcodes-hero h1 {
   margin: 6px 0 8px;
-  max-width: 760px;
-  font-size: clamp(2rem, 4vw, 4rem);
+  max-width: none;
+  font-size: clamp(2.25rem, 4.4vw, 4.75rem);
   line-height: 0.95;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .giftcodes-hero p {
@@ -7126,8 +7127,9 @@ svg {
 
 .redeem-shell {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 760px);
   gap: 14px;
+  justify-content: center;
 }
 
 .redeem-card,
@@ -7142,6 +7144,10 @@ svg {
   display: grid;
   gap: 14px;
   padding: 16px;
+}
+
+.redeem-card-wide {
+  width: 100%;
 }
 
 .redeem-card-head {
@@ -7237,34 +7243,22 @@ svg {
   color: var(--muted-foreground);
 }
 
-.redeem-captcha {
+.redeem-auto-note {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-}
-
-.redeem-captcha img {
-  min-height: 48px;
-  max-width: 180px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #ffffff;
-}
-
-.redeem-captcha button {
-  min-height: 36px;
-  border-color: var(--border);
-  background: var(--muted);
-  color: var(--foreground);
-}
-
-.redeem-captcha-empty {
-  border: 1px dashed var(--border);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
+  background: var(--muted);
   color: var(--muted-foreground);
-  text-align: center;
+}
+
+.redeem-auto-note svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 .redeem-result {
@@ -7298,6 +7292,10 @@ svg {
     flex-direction: column;
   }
 
+  .giftcodes-hero h1 {
+    font-size: clamp(1.7rem, 8vw, 3.2rem);
+  }
+
   .giftcodes-summary,
   .giftcodes-guide,
   .redeem-shell {
@@ -7321,6 +7319,10 @@ svg {
   .giftcodes-hero,
   .giftcodes-latest {
     padding: 16px;
+  }
+
+  .giftcodes-hero h1 {
+    font-size: clamp(1.4rem, 7.5vw, 2.5rem);
   }
 
   .giftcodes-hero-actions,
