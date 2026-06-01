@@ -456,6 +456,24 @@ const defaultDaybreakTags = [
   "Minimal",
 ];
 
+const stateTransferStartUtc = Date.UTC(2026, 5, 21, 0, 0, 0);
+const stateTransferEndUtc = Date.UTC(2026, 5, 28, 0, 0, 0);
+const stateTransferPhases = [
+  { label: "Pre-Transfer", dates: "June 21-23 UTC", body: "Presidents set caps and Chiefs review eligible destination states." },
+  { label: "Invitational Transfer", dates: "June 24-25 UTC", body: "Invites are reviewed and sent before transfers open wider." },
+  { label: "Open Transfer", dates: "June 26-27 UTC", body: "Eligible Chiefs can move while available state slots remain." },
+];
+
+const formatCountdownParts = (milliseconds: number) => {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { days, hours, minutes, seconds };
+};
+
 function Icon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
     home: (
@@ -737,6 +755,114 @@ function Icon({ name }: { name: string }) {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       {paths[name] || <path d="m6 9 6 6 6-6" />}
     </svg>
+  );
+}
+
+function StateTransferCountdown() {
+  const [open, setOpen] = useState(false);
+  const [now, setNow] = useState<number | null>(null);
+  const remainingToStart = now === null ? 0 : stateTransferStartUtc - now;
+  const remainingToEnd = now === null ? 0 : stateTransferEndUtc - now;
+  const isLive = now !== null && remainingToStart <= 0 && remainingToEnd > 0;
+  const hasEnded = now !== null && remainingToEnd <= 0;
+  const countdown = formatCountdownParts(isLive ? remainingToEnd : remainingToStart);
+  const primaryValue = now === null ? "--" : hasEnded ? "Ended" : isLive ? "Live" : `${countdown.days}d`;
+  const secondaryValue =
+    now === null
+      ? "Loading"
+      : hasEnded
+        ? "June window closed"
+        : isLive
+          ? `${countdown.days}d ${countdown.hours}h left`
+          : `${countdown.hours}h ${countdown.minutes}m`;
+
+  useEffect(() => {
+    const updateNow = () => setNow(Date.now());
+    updateNow();
+    const interval = window.setInterval(updateNow, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handleOutside = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest(".state-transfer-widget")) {
+        setOpen(false);
+      }
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("click", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <div className="state-transfer-widget">
+      <button
+        className={`state-transfer-button ${isLive ? "live" : ""}`}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+      >
+        <img src="/state-transfer.png" alt="" />
+        <span className="state-transfer-copy">
+          <span>Next state transfer</span>
+          <strong>{primaryValue}</strong>
+        </span>
+        <small>{secondaryValue}</small>
+      </button>
+
+      {open && (
+        <section className="state-transfer-popover" role="dialog" aria-label="State transfer event details">
+          <div className="state-transfer-hero">
+            <img src="/state-transfer.png" alt="State Transfer event artwork" />
+            <div>
+              <span className="section-kicker">Whiteout Survival</span>
+              <h2>Next state transfer</h2>
+              <p>Starts June 21, 2026 at 00:00 UTC and runs through June 27, 2026.</p>
+            </div>
+          </div>
+          <div className="state-transfer-count-grid" aria-label="Countdown">
+            {[
+              ["Days", countdown.days],
+              ["Hours", countdown.hours],
+              ["Minutes", countdown.minutes],
+              ["Seconds", countdown.seconds],
+            ].map(([label, value]) => (
+              <span key={label}>
+                <strong>{now === null ? "--" : value}</strong>
+                <small>{label}</small>
+              </span>
+            ))}
+          </div>
+          <div className="state-transfer-status">
+            <Icon name="calendar" />
+            <span>{hasEnded ? "This transfer window has ended." : isLive ? "Transfer window is live. Countdown shows time remaining." : "Countdown is locked to 00:00 UTC on June 21."}</span>
+          </div>
+          <div className="state-transfer-phase-list">
+            {stateTransferPhases.map((phase) => (
+              <article key={phase.label}>
+                <strong>{phase.label}</strong>
+                <span>{phase.dates}</span>
+                <p>{phase.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
   );
 }
 
@@ -2812,6 +2938,7 @@ export default function Home() {
           </nav>
 
           <div className="actions">
+            <StateTransferCountdown />
             <button className="theme-toggle" type="button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle dark theme">
               <span className="theme-track">
                 <span className="theme-cloud cloud-a" />

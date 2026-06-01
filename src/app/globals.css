@@ -317,6 +317,209 @@ svg {
   height: 19px;
 }
 
+.state-transfer-widget {
+  position: relative;
+  z-index: 95;
+  flex-shrink: 0;
+}
+
+.state-transfer-button {
+  display: inline-flex;
+  height: 38px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 72%, var(--border));
+  border-radius: 8px;
+  padding: 3px 9px 3px 4px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--card) 84%, transparent), color-mix(in srgb, var(--gold-soft) 88%, transparent)),
+    var(--background);
+  color: var(--foreground);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold-line) 16%, transparent);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.state-transfer-button:hover,
+.state-transfer-button[aria-expanded="true"] {
+  transform: translateY(-1px);
+  border-color: var(--gold-line);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--gold-soft) 65%, transparent);
+}
+
+.state-transfer-button.live {
+  border-color: rgba(34, 197, 94, 0.52);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.12), 0 8px 20px rgba(34, 197, 94, 0.08);
+}
+
+.state-transfer-button img {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.state-transfer-copy {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+}
+
+.state-transfer-copy span {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.state-transfer-copy strong {
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.state-transfer-button > small {
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.state-transfer-popover {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  display: grid;
+  width: min(380px, calc(100vw - 20px));
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--background) 97%, var(--card));
+  color: var(--foreground);
+  box-shadow: 0 22px 58px rgba(0, 0, 0, 0.34), 0 0 0 1px color-mix(in srgb, var(--gold-line) 18%, transparent);
+}
+
+.state-transfer-hero {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.state-transfer-hero img {
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.state-transfer-hero h2,
+.state-transfer-hero p {
+  margin: 0;
+}
+
+.state-transfer-hero h2 {
+  margin-top: 5px;
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.state-transfer-hero p {
+  margin-top: 5px;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.state-transfer-count-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.state-transfer-count-grid span {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 4px;
+  background: color-mix(in srgb, var(--muted) 68%, transparent);
+}
+
+.state-transfer-count-grid strong {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.state-transfer-count-grid small {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.state-transfer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 60%, transparent);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--gold-soft) 74%, transparent);
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.state-transfer-status svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.state-transfer-phase-list {
+  display: grid;
+  gap: 8px;
+}
+
+.state-transfer-phase-list article {
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--card);
+}
+
+.state-transfer-phase-list strong {
+  font-size: 0.9rem;
+}
+
+.state-transfer-phase-list span {
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.state-transfer-phase-list p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .language-switcher {
   position: relative;
   z-index: 90;
@@ -7684,6 +7887,33 @@ body {
     display: none;
   }
 
+  .state-transfer-button {
+    width: 34px;
+    height: 32px;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+  }
+
+  .state-transfer-button img {
+    width: 25px;
+    height: 25px;
+  }
+
+  .state-transfer-copy,
+  .state-transfer-button > small {
+    display: none;
+  }
+
+  .state-transfer-popover {
+    position: fixed;
+    top: 60px;
+    right: 8px;
+    width: min(360px, calc(100vw - 16px));
+    max-height: calc(100vh - 74px);
+    overflow-y: auto;
+  }
+
   .sign-in {
     width: 32px;
     height: 32px;
@@ -8295,7 +8525,7 @@ body {
     width: 100%;
     max-width: none;
     margin: 0;
-    padding-right: 126px;
+    padding-right: 158px;
   }
 
   .brand {
@@ -8307,8 +8537,8 @@ body {
     position: absolute;
     top: 11px;
     right: auto;
-    left: calc(100dvw - 119px);
-    left: calc(100svw - 119px);
+    left: calc(100dvw - 151px);
+    left: calc(100svw - 151px);
     z-index: 70;
     transform: none;
   }
@@ -8412,8 +8642,22 @@ body {
     min-width: 30px;
   }
 
+  .state-transfer-button {
+    width: 30px;
+  }
+
+  .state-transfer-button img {
+    width: 23px;
+    height: 23px;
+  }
+
   .ks-header-inner {
-    padding-right: 112px;
+    padding-right: 144px;
+  }
+
+  .actions {
+    left: calc(100dvw - 138px);
+    left: calc(100svw - 138px);
   }
 
   .giftcodes-hero h1 {
