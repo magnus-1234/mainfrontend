@@ -880,6 +880,7 @@ svg {
   inset: 0;
   background:
     radial-gradient(circle at 1px 1px, var(--dot-live) 1px, transparent 1.8px) 0 0 / 22px 22px,
+    radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 1.8px) 11px 11px / 22px 22px,
     linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 96px 96px,
     linear-gradient(0deg, var(--line-soft) 1px, transparent 1px) 0 0 / 96px 96px;
   mask-image: linear-gradient(180deg, black 0%, rgba(0, 0, 0, 0.7) 42%, transparent 100%);
@@ -898,10 +899,10 @@ svg {
 
 @keyframes live-dot-field {
   from {
-    background-position: 0 0, 0 0, 0 0;
+    background-position: 0 0, 11px 11px, 0 0, 0 0;
   }
   to {
-    background-position: 44px 22px, 0 0, 0 0;
+    background-position: 44px 22px, 55px 33px, 96px 0, 0 96px;
   }
 }
 
