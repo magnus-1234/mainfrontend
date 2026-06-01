@@ -8282,7 +8282,9 @@ body {
 }
 
 .state-age-badge {
+  position: relative;
   margin-left: auto;
+  padding-right: 17px;
 }
 
 .state-age-event-card h3 {
@@ -8297,19 +8299,22 @@ body {
 }
 
 .state-age-items {
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(134px, 1fr));
+  grid-auto-rows: 58px;
   gap: 7px;
   margin-top: 10px;
 }
 
 .state-age-items span {
-  min-height: 34px;
+  min-height: 0;
+  height: 58px;
   padding: 6px;
 }
 
 .state-age-items span.with-image {
   grid-template-columns: 36px minmax(0, 1fr);
-  min-height: 50px;
+  min-height: 0;
+  height: 58px;
   border-color: color-mix(in srgb, var(--border) 68%, rgba(244, 129, 32, 0.22));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
@@ -8322,15 +8327,6 @@ body {
 
 .state-age-items strong {
   font-size: 11px;
-}
-
-.state-age-event.has-images .state-age-items span.with-image:first-child {
-  grid-column: span 2;
-}
-
-.state-age-event.has-images .state-age-items span.with-image:first-child img {
-  width: 42px;
-  height: 42px;
 }
 
 .state-age-event-card {
@@ -8395,6 +8391,33 @@ body {
     0 0 18px rgba(34, 197, 94, 0.1);
 }
 
+.state-age-badge::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+  transform: translateY(-50%);
+  animation: state-age-blink 1.15s ease-in-out infinite;
+}
+
+@keyframes state-age-blink {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(-50%) scale(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.18);
+  }
+}
+
 .badge-upcoming {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -8412,6 +8435,7 @@ body {
 }
 
 .state-age-items span {
+  box-sizing: border-box;
   border-color: color-mix(in srgb, var(--border) 74%, rgba(255, 255, 255, 0.08));
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--card) 72%, var(--muted)), color-mix(in srgb, var(--background) 42%, var(--card)));
@@ -8439,7 +8463,9 @@ body {
 }
 
 .state-age-event.has-images .state-age-items span.with-image:first-child {
-  min-height: 58px;
+  grid-column: auto;
+  min-height: 0;
+  height: 58px;
   border-color: color-mix(in srgb, var(--gold-line) 38%, var(--border));
   background:
     linear-gradient(135deg, rgba(244, 129, 32, 0.11), color-mix(in srgb, var(--card) 82%, var(--muted))),
@@ -8488,9 +8514,6 @@ body {
     position: static;
   }
 
-  .state-age-event.has-images .state-age-items span.with-image:first-child {
-    grid-column: span 1;
-  }
 }
 
 .wiki-page {
