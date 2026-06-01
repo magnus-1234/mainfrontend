@@ -3251,6 +3251,7 @@ svg {
 }
 
 .island-card {
+  position: relative;
   display: grid;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
@@ -3320,6 +3321,37 @@ svg {
 
 .island-card:hover .island-image img {
   transform: scale(1.04);
+}
+
+.island-edit-fab {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 3;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(10, 12, 12, 0.76);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.island-edit-fab:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold-line);
+  background: color-mix(in srgb, var(--gold) 82%, #111);
+}
+
+.island-edit-fab svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
 }
 
 .island-card-body {
@@ -3708,6 +3740,28 @@ svg {
   margin-bottom: 22px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--border);
+}
+
+.edit-island-modal {
+  width: min(500px, calc(100vw - 32px));
+}
+
+.edit-island-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.edit-island-actions .submit-button {
+  margin-top: 0;
+}
+
+.edit-island-actions .secondary-cta {
+  min-height: 46px;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--background) 90%, var(--muted));
 }
 
 .upload-form {

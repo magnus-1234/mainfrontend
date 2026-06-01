@@ -485,6 +485,12 @@ function Icon({ name }: { name: string }) {
         <path d="M14 11v6" />
       </>
     ),
+    edit: (
+      <>
+        <path d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6" />
+        <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
+      </>
+    ),
     copy: (
       <>
         <rect width="14" height="14" x="8" y="8" rx="2" />
@@ -696,6 +702,9 @@ export default function Home() {
   const [uploadImageLabel, setUploadImageLabel] = useState("No image selected");
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState("");
   const [uploadTagsInput, setUploadTagsInput] = useState("");
+  const [editingIsland, setEditingIsland] = useState<Island | null>(null);
+  const [editTagsInput, setEditTagsInput] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
   const [viewerImage, setViewerImage] = useState<Island | null>(null);
   const [imageZoom, setImageZoom] = useState(100);
   const [shareIslandTarget, setShareIslandTarget] = useState<Island | null>(null);
@@ -786,6 +795,12 @@ export default function Home() {
   const visibleTagSuggestions = tagSuggestions
     .filter((tag) => tag.toLowerCase().includes(activeTagQuery))
     .filter((tag) => !selectedUploadTags.includes(tag.toLowerCase()))
+    .slice(0, 6);
+  const activeEditTagQuery = editTagsInput.match(/(?:^|\s)#?([\w-]*)$/)?.[1].toLowerCase() || "";
+  const selectedEditTags = editTagsInput.toLowerCase().split(/[\s,]+/).map((tag) => tag.replace(/^#/, ""));
+  const visibleEditTagSuggestions = tagSuggestions
+    .filter((tag) => tag.toLowerCase().includes(activeEditTagQuery))
+    .filter((tag) => !selectedEditTags.includes(tag.toLowerCase()))
     .slice(0, 6);
 
   const clearFooterIntentTimer = useCallback(() => {
@@ -1255,6 +1270,11 @@ export default function Home() {
     setPlayerLookupStatus("");
   };
 
+  const closeEditModal = () => {
+    setEditingIsland(null);
+    setEditTagsInput("");
+  };
+
   const openUploadModal = () => {
     if (!authUser) {
       setAuthStatus("Sign in before uploading a Daybreak Island showcase.");
@@ -1274,6 +1294,7 @@ export default function Home() {
     setIslands((current) => current.map((island) => (island.id === next.id ? next : island)));
     setViewerImage((current) => (current?.id === next.id ? next : current));
     setShareIslandTarget((current) => (current?.id === next.id ? next : current));
+    setEditingIsland((current) => (current?.id === next.id ? next : current));
   };
 
   const canManageIsland = (island: Island) =>
@@ -1381,6 +1402,64 @@ export default function Home() {
       const next = `${withoutActiveToken ? `${withoutActiveToken} ` : ""}#${cleanTag} `;
       return next;
     });
+  };
+
+  const addEditTagSuggestion = (tag: string) => {
+    const cleanTag = tag.trim().replace(/^#/, "").replace(/\s+/g, "");
+    if (!cleanTag) {
+      return;
+    }
+    setEditTagsInput((current) => {
+      const withoutActiveToken = current.replace(/(?:^|\s)#?[\w-]*$/, "").trim();
+      return `${withoutActiveToken ? `${withoutActiveToken} ` : ""}#${cleanTag} `;
+    });
+  };
+
+  const openEditIslandModal = (island: Island) => {
+    if (!canManageIsland(island)) {
+      setStatus("You can only edit islands you uploaded.");
+      return;
+    }
+    setEditingIsland(island);
+    setEditTagsInput(island.tags.map((tag) => `#${tag.replace(/^#/, "")}`).join(" "));
+  };
+
+  const handleEditIsland = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingIsland) {
+      return;
+    }
+    if (!authUser) {
+      closeEditModal();
+      requireDaybreakSignIn("Sign in to edit your Daybreak Island uploads.");
+      return;
+    }
+
+    setEditSaving(true);
+    setStatus("");
+    try {
+      const form = event.currentTarget;
+      const body = Object.fromEntries(new FormData(form).entries());
+      const response = await fetch(`${apiBase}/api/daybreak/islands/${editingIsland.id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.detail || data?.error || `Unable to update island (${response.status})`);
+      }
+      if (data?.island) {
+        updateIsland(data.island);
+      }
+      setStatus("Island details updated.");
+      closeEditModal();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to update island");
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const shareIsland = async (island: Island) => {
@@ -3463,6 +3542,17 @@ export default function Home() {
                   <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
                     <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
                   </button>
+                  {canManageIsland(island) && (
+                    <button
+                      className="island-edit-fab"
+                      type="button"
+                      onClick={() => openEditIslandModal(island)}
+                      aria-label={`Edit ${island.title}`}
+                      title="Edit island details"
+                    >
+                      <Icon name="edit" />
+                    </button>
+                  )}
                   <h3 className="compact-island-title">{island.title}</h3>
                   <div className="island-card-body">
                     <div className="player-strip card-player-strip">
@@ -3509,15 +3599,25 @@ export default function Home() {
                         {island.commentsCount}
                       </button>
                       {canManageIsland(island) && (
-                        <button
-                          className="card-icon-action danger"
-                          type="button"
-                          onClick={() => void deleteIsland(island)}
-                          aria-label="Delete island"
-                          disabled={deletingIslandId === island.id}
-                        >
-                          <Icon name="trash" />
-                        </button>
+                        <>
+                          <button
+                            className="card-icon-action"
+                            type="button"
+                            onClick={() => openEditIslandModal(island)}
+                            aria-label="Edit island"
+                          >
+                            <Icon name="edit" />
+                          </button>
+                          <button
+                            className="card-icon-action danger"
+                            type="button"
+                            onClick={() => void deleteIsland(island)}
+                            aria-label="Delete island"
+                            disabled={deletingIslandId === island.id}
+                          >
+                            <Icon name="trash" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -3607,8 +3707,8 @@ export default function Home() {
       )}
 
       {loginOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Sign In">
-          <section className="login-modal">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Sign In" onClick={() => setLoginOpen(false)}>
+          <section className="login-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setLoginOpen(false)} aria-label="Close">x</button>
             <div className="login-hero-mark">
               <Image src="/wos-logo.png" alt="" width={46} height={46} />
@@ -3633,8 +3733,8 @@ export default function Home() {
       )}
 
       {profileOpen && authUser && (
-        <div className="modal-backdrop profile-backdrop" role="dialog" aria-modal="true" aria-label="Profile">
-          <section className="profile-modal">
+        <div className="modal-backdrop profile-backdrop" role="dialog" aria-modal="true" aria-label="Profile" onClick={() => setProfileOpen(false)}>
+          <section className="profile-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setProfileOpen(false)} aria-label="Close">x</button>
             <div className="profile-head">
               <h2>Profile</h2>
@@ -3736,8 +3836,8 @@ export default function Home() {
       )}
 
       {uploadOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Upload Daybreak Island">
-          <section className="upload-modal">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Upload Daybreak Island" onClick={closeUploadModal}>
+          <section className="upload-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={closeUploadModal} aria-label="Close">x</button>
             <div className="upload-modal-head">
               <span className="section-kicker">Add Your Island</span>
@@ -3909,9 +4009,57 @@ export default function Home() {
         </div>
       )}
 
+      {editingIsland && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Edit ${editingIsland.title}`} onClick={closeEditModal}>
+          <section className="upload-modal edit-island-modal" onClick={(event) => event.stopPropagation()}>
+            <button className="close-button" type="button" onClick={closeEditModal} aria-label="Close">x</button>
+            <div className="upload-modal-head">
+              <span className="section-kicker">Edit Upload</span>
+              <h2>Update island details</h2>
+            </div>
+            <form className="upload-form" onSubmit={handleEditIsland}>
+              <label>
+                Island title
+                <input name="title" maxLength={90} defaultValue={editingIsland.title} placeholder="Tree of Life Plaza" required />
+              </label>
+              <div className="form-grid">
+                <label>
+                  X Coordinate
+                  <input name="coordinateX" type="number" min="0" step="1" defaultValue={editingIsland.coordinates.x} required />
+                </label>
+                <label>
+                  Y Coordinate
+                  <input name="coordinateY" type="number" min="0" step="1" defaultValue={editingIsland.coordinates.y} required />
+                </label>
+              </div>
+              <label className="hashtag-field">
+                Tags
+                <input
+                  name="tags"
+                  placeholder="#TreeOfLife #Plaza #Symmetry"
+                  value={editTagsInput}
+                  onChange={(event) => setEditTagsInput(event.currentTarget.value)}
+                />
+                {editTagsInput && visibleEditTagSuggestions.length > 0 && (
+                  <div className="tag-suggestion-row" aria-label="Tag suggestions">
+                    {visibleEditTagSuggestions.map((tag) => (
+                      <button type="button" key={tag} onClick={() => addEditTagSuggestion(tag)}>#{tag}</button>
+                    ))}
+                  </div>
+                )}
+              </label>
+              <div className="edit-island-actions">
+                <button className="secondary-cta" type="button" onClick={closeEditModal}>Cancel</button>
+                <button className="submit-button" type="submit" disabled={editSaving}>{editSaving ? "Saving..." : "Save Changes"}</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
       {viewerImage && (
-        <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={viewerImage.title}>
-          <section className="island-detail-modal">
+        <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={viewerImage.title} onClick={() => setViewerImage(null)}>
+          <section className="island-detail-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setViewerImage(null)} aria-label="Close">x</button>
             <div className="island-detail-media">
               <div className="image-viewer-toolbar" aria-label="Image controls">
@@ -3990,8 +4138,8 @@ export default function Home() {
       )}
 
       {shareIslandTarget && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Share ${shareIslandTarget.title}`}>
-          <section className="share-modal">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Share ${shareIslandTarget.title}`} onClick={() => setShareIslandTarget(null)}>
+          <section className="share-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setShareIslandTarget(null)} aria-label="Close">x</button>
             <h2>Share Island</h2>
             <p>{shareIslandTarget.title}</p>
