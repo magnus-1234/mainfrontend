@@ -1728,6 +1728,8 @@ export default function Home() {
   const [templateSort] = useState<"popular" | "recent">("popular");
   const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
   const [likedTemplates, setLikedTemplates] = useState<Record<string, boolean>>({});
+  const [templateLikeDeltas, setTemplateLikeDeltas] = useState<Record<string, number>>({});
+  const [templateLikeBursts, setTemplateLikeBursts] = useState<Record<string, number>>({});
   const [templateStatus, setTemplateStatus] = useState("");
   const [templateComposerOpen, setTemplateComposerOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
@@ -2578,6 +2580,27 @@ export default function Home() {
     setLoginOpen(true);
   };
 
+  const templateLikeCount = (template: MessageTemplate) =>
+    (template.likes || 0) + (templateLikeDeltas[template.id] || 0);
+
+  const markTemplateLikeBurst = (templateId: string) => {
+    setTemplateLikeBursts((current) => ({ ...current, [templateId]: Date.now() }));
+    window.setTimeout(() => {
+      setTemplateLikeBursts((current) => {
+        const next = { ...current };
+        delete next[templateId];
+        return next;
+      });
+    }, 620);
+  };
+
+  const syncTemplateCopies = (template: MessageTemplate) => {
+    setCommunityTemplates((current) => current.map((item) => (item.id === template.id ? template : item)));
+    setTemplateViewer((current) => (current?.id === template.id ? template : current));
+    setTemplateImageViewer((current) => (current?.id === template.id ? template : current));
+    setShareTemplateTarget((current) => (current?.id === template.id ? template : current));
+  };
+
   const openTemplateComposer = () => {
     if (!authUser) {
       requireTemplateSignIn("Sign in before creating a message template.");
@@ -2676,19 +2699,55 @@ export default function Home() {
       requireTemplateSignIn("Sign in to like message templates.");
       return;
     }
-    if (template.builtin || likedTemplates[template.id]) {
+    if (likedTemplates[template.id]) {
       return;
     }
 
-    const response = await fetch(`${apiBase}/api/message-templates/${template.id}/like`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    });
-    const data = (await response.json().catch(() => null)) as { template?: MessageTemplate } | null;
-    if (data?.template) {
-      setLikedTemplates((current) => ({ ...current, [template.id]: true }));
-      setCommunityTemplates((current) => current.map((item) => (item.id === template.id ? data.template! : item)));
+    setLikedTemplates((current) => ({ ...current, [template.id]: true }));
+    setTemplateLikeDeltas((current) => ({ ...current, [template.id]: (current[template.id] || 0) + 1 }));
+    markTemplateLikeBurst(template.id);
+    setTemplateStatus(template.builtin ? "Template liked." : "");
+
+    if (template.builtin) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiBase}/api/message-templates/${template.id}/like`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = (await response.json().catch(() => null)) as { template?: MessageTemplate; error?: string } | null;
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to like template");
+      }
+      if (data?.template) {
+        syncTemplateCopies(data.template);
+        setTemplateLikeDeltas((current) => {
+          const next = { ...current };
+          delete next[template.id];
+          return next;
+        });
+      }
+      setTemplateStatus("Template liked.");
+    } catch (error) {
+      setLikedTemplates((current) => {
+        const next = { ...current };
+        delete next[template.id];
+        return next;
+      });
+      setTemplateLikeDeltas((current) => {
+        const next = { ...current };
+        const value = (next[template.id] || 0) - 1;
+        if (value > 0) {
+          next[template.id] = value;
+        } else {
+          delete next[template.id];
+        }
+        return next;
+      });
+      setTemplateStatus(error instanceof Error ? error.message : "Unable to like template");
     }
   };
 
@@ -5061,14 +5120,13 @@ export default function Home() {
                       </footer>
                       <footer className="template-action-footer">
                         <button
-                          className={likedTemplates[template.id] ? "liked" : ""}
+                          className={`${likedTemplates[template.id] ? "liked" : ""} ${templateLikeBursts[template.id] ? "like-burst" : ""}`}
                           type="button"
                           onClick={() => void likeTemplate(template)}
-                          disabled={Boolean(template.builtin || likedTemplates[template.id])}
-                          title={template.builtin ? "Built-in templates cannot be liked" : undefined}
+                          disabled={Boolean(likedTemplates[template.id])}
                         >
                           <Icon name="heart" />
-                          {template.likes || 0}
+                          {templateLikeCount(template)}
                         </button>
                         <button type="button" onClick={() => setShareTemplateTarget(template)}>
                           <Icon name="share" />
@@ -6076,7 +6134,7 @@ export default function Home() {
               <h2>{templateViewer.title}</h2>
               {templateViewer.description && <p>{templateViewer.description}</p>}
               <div className="template-detail-meta">
-                <span>{templateViewer.likes || 0} likes</span>
+                <span>{templateLikeCount(templateViewer)} likes</span>
                 <span>{templateViewer.shares || 0} shares</span>
               </div>
               <div className="template-detail-tags">
@@ -6086,6 +6144,14 @@ export default function Home() {
               </div>
               <div className="template-detail-actions">
                 <button type="button" onClick={() => void copyMessageTemplate(templateViewer)}><Icon name="copy" />Copy Text</button>
+                <button
+                  className={`${likedTemplates[templateViewer.id] ? "liked" : ""} ${templateLikeBursts[templateViewer.id] ? "like-burst" : ""}`}
+                  type="button"
+                  onClick={() => void likeTemplate(templateViewer)}
+                  disabled={Boolean(likedTemplates[templateViewer.id])}
+                >
+                  <Icon name="heart" />{likedTemplates[templateViewer.id] ? "Liked" : "Like"}
+                </button>
                 <button type="button" onClick={() => setShareTemplateTarget(templateViewer)}><Icon name="share" />Share</button>
                 <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateViewer), "Copy template link")}><Icon name="external" />Copy Link</button>
                 {templateViewer.imageUrl && <button type="button" onClick={() => void downloadTemplateImage(templateViewer)}><Icon name="download" />Download Image</button>}
