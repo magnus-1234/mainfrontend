@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
         destination: "/?menu=state-age",
       },
       {
+        source: "/message-templates",
+        destination: "/?menu=message-templates",
+      },
+      {
         source: "/wiki/heroes",
         destination: "/?menu=heroes",
       },

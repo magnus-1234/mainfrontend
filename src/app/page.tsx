@@ -47,7 +47,8 @@ type IslandComment = {
 
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "planner" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
 type SiteLanguage = {
@@ -218,6 +219,15 @@ type GiftCodePayload = {
   refreshAfterSeconds?: number;
 };
 
+type MessageTemplate = {
+  id: string;
+  title: string;
+  category: Exclude<MessageTemplateCategory, "all">;
+  description: string;
+  text: string;
+  tags: string[];
+};
+
 const giftCodesStorageKey = "whiteoutsurvival-gift-codes-cache-v1";
 
 const readStoredGiftCodes = (): GiftCodePayload | null => {
@@ -318,6 +328,138 @@ const botWebDashboardScreens = [
   { label: "Auto Redeem", image: "/dashboard-auto-redeem.png", alt: "Whiteout Survival bot auto-redeem settings dashboard screenshot" },
   { label: "Reminders", image: "/dashboard-reminders.png", alt: "Whiteout Survival bot reminders dashboard screenshot" },
 ];
+
+const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
+  { label: "All", value: "all" },
+  { label: "Unicodes", value: "unicodes" },
+  { label: "Emojis", value: "emojis" },
+  { label: "Funny", value: "funny" },
+  { label: "Alliance Recruit", value: "alliance-recruit" },
+];
+
+const messageTemplates: MessageTemplate[] = [
+  {
+    id: "svs-prep-guide",
+    title: "SVS Prep Guide",
+    category: "emojis",
+    description: "Compact SVS prep checklist for alliance chat.",
+    tags: ["SVS", "Prep", "Checklist"],
+    text: `👑 - SVS Prep Guide 🔎
+ １   ２　３    ４    ５
+✅｜🆗｜🚫｜🚫｜🆗｜FC 
+🆗｜✅｜🚫｜🚫｜🆗｜FC Shards
+🚫｜✅｜🆗｜🚫｜🚫｜Hero Shard
+✅｜🆗｜🚫｜🚫｜🆗｜Construct
+🚫｜🚫｜🚫｜✅｜🆗｜Troops
+🆗｜✅｜🚫｜🚫｜🆗｜Research
+🚫｜✅｜🆗｜🚫｜🚫｜Wheel💎
+🚫｜✅｜🚫｜🚫｜🚫｜Gathering
+🆗｜✅｜🚫｜🚫｜🆗｜Learn
+🚫｜✅｜🆗｜🚫｜🚫｜Expert Sigils
+🚫｜✅｜🆗｜🚫｜🚫｜📚 Knowledge
+🚫｜🚫｜✅｜🚫｜🚫｜Beasts🐗
+🚫｜🚫｜🆗｜🚫｜✅｜Pets🐒
+🆗｜🚫｜🆗｜✅｜🚫｜Chief Charm
+🚫｜🚫｜🚫｜🚫｜✅｜Chief Gear
+🚫｜🚫｜🚫｜🆗｜✅｜Widgets
+🚫｜🚫｜🚫｜🆗｜✅｜Mithril🔮
+🚫｜🚫｜🚫｜🆗｜✅｜Stones`,
+  },
+  {
+    id: "alliance-recruit-clean",
+    title: "Alliance Recruit",
+    category: "alliance-recruit",
+    description: "Short recruitment message with clear requirements.",
+    tags: ["Recruit", "Alliance", "Members"],
+    text: `🔥 Join our alliance 🔥
+Active players wanted.
+Daily bear, forts, CJ and SVS.
+Help each other grow fast.
+
+Requirements:
+✅ Be active
+✅ Join events
+✅ Respect the team
+
+Message R4/R5 to apply.`,
+  },
+  {
+    id: "unicode-border-announcement",
+    title: "Unicode Notice",
+    category: "unicodes",
+    description: "Clean framed notice for rules and announcements.",
+    tags: ["Unicode", "Notice", "Rules"],
+    text: `╔══════════════════════╗
+   Alliance Notice
+╚══════════════════════╝
+
+➤ Event:
+➤ Time:
+➤ Target:
+➤ Notes:
+
+Please be online 10 minutes early.`,
+  },
+  {
+    id: "rally-ready",
+    title: "Rally Ready",
+    category: "emojis",
+    description: "Fast rally coordination reminder.",
+    tags: ["Rally", "War", "Prep"],
+    text: `⚔️ RALLY READY ⚔️
+Set formation before joining.
+Use strongest heroes only.
+Do not fill wrong troop type.
+
+✅ Infantry front
+✅ Marksman / Lancer ready
+✅ Buffs active
+✅ Speedups ready`,
+  },
+  {
+    id: "bear-trap-ping",
+    title: "Bear Trap Ping",
+    category: "funny",
+    description: "Friendly event ping for sleepy alliance members.",
+    tags: ["Bear", "Funny", "Ping"],
+    text: `🐻 Bear Trap alarm!
+Wake up, grab coffee, send troops.
+If you miss it, the bear wins.
+
+Start:
+Rally leads:
+No solo marches please 😄`,
+  },
+  {
+    id: "nap-reminder",
+    title: "NAP Reminder",
+    category: "unicodes",
+    description: "Simple diplomacy reminder for alliance chat.",
+    tags: ["NAP", "Rules", "Diplomacy"],
+    text: `──── NAP Reminder ────
+Do not attack allied NAP tags.
+Scout before hitting cities.
+Ask R4 if unsure.
+
+Breaking NAP can cause war.
+Keep farming clean.`,
+  },
+];
+
+const wrapTemplateLine = (line: string, width = 28) => {
+  const chars = Array.from(line);
+  if (chars.length <= width) {
+    return [line || " "];
+  }
+
+  const wrapped: string[] = [];
+  for (let index = 0; index < chars.length; index += width) {
+    wrapped.push(chars.slice(index, index + width).join(""));
+  }
+  return wrapped;
+};
+
+const templatePreviewLines = (text: string) => text.split("\n").flatMap((line) => wrapTemplateLine(line));
 
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
@@ -445,6 +587,7 @@ const sidebarItems: {
   { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
   { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
   { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
+  { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
   { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
   { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
 ];
@@ -467,6 +610,8 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#city-layout-planner": "planner",
   "#layout-planner": "planner",
   "#planner": "planner",
+  "#message-templates": "templates",
+  "#templates": "templates",
   "#sneak-peek": "sneak",
   "#sneak": "sneak",
   "#chief-concierge": "sneak",
@@ -490,6 +635,8 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   stateage: "stateAge",
   timeline: "stateAge",
   planner: "planner",
+  templates: "templates",
+  "message-templates": "templates",
   sneak: "sneak",
   daybreak: "daybreak",
   bot: "bot",
@@ -504,6 +651,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   redeem: "/redeem",
   stateAge: "/state-age",
   planner: "/#city-layout-planner",
+  templates: "/message-templates",
   sneak: "/#sneak-peek",
   daybreak: "/#daybreak",
   bot: "/#discord-bot",
@@ -537,6 +685,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/state-age")) {
     return "stateAge";
+  }
+
+  if (location.pathname.startsWith("/message-templates")) {
+    return "templates";
   }
 
   if (location.pathname.startsWith("/wiki/buildings")) {
@@ -1266,6 +1418,8 @@ export default function Home() {
   const [stateAgeResult, setStateAgeResult] = useState<StateAgeResult | null>(null);
   const [stateAgeLoading, setStateAgeLoading] = useState(false);
   const [stateAgeStatus, setStateAgeStatus] = useState("");
+  const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
+  const [copiedTemplateId, setCopiedTemplateId] = useState("");
   const [islands, setIslands] = useState<Island[]>([]);
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
@@ -2064,6 +2218,30 @@ export default function Home() {
       window.prompt("Copy active gift codes", allCodes);
     }
     setGiftCodeStatus("All active codes copied.");
+  };
+
+  const copyMessageTemplate = async (template: MessageTemplate) => {
+    setCopiedTemplateId(template.id);
+    window.setTimeout(() => setCopiedTemplateId((current) => (current === template.id ? "" : current)), 1600);
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(template.text);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = template.text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      if (!copied) {
+        window.setTimeout(() => window.prompt("Copy message template", template.text), 0);
+      }
+    }
   };
 
   const openRedeemPage = (code = "ALL") => {
@@ -3150,6 +3328,9 @@ export default function Home() {
   const filteredWosBuildings = scrapedWosBuildings.filter((building) => building.category === activeBuildingFilter);
   const activeWikiHero = scrapedWosHeroes.find((hero) => hero.slug === activeWikiSlug);
   const activeWikiBuilding = scrapedWosBuildings.find((building) => building.slug === activeWikiSlug);
+  const filteredMessageTemplates = activeTemplateCategory === "all"
+    ? messageTemplates
+    : messageTemplates.filter((template) => template.category === activeTemplateCategory);
 
   const navigateToMenu = (menu: ActiveMenu) => {
     setMobileMoreOpen(false);
@@ -4278,6 +4459,85 @@ export default function Home() {
                     <span>Ctrl/Cmd+Z Undo, Ctrl/Cmd+Y Redo</span>
                   </div>
                 </aside>
+              </section>
+            </section>
+          ) : activeMenu === "templates" ? (
+            <section className="home-page message-templates-page" id="message-templates" aria-label="Whiteout Survival message templates">
+              <section className="templates-hero">
+                <div>
+                  <span className="section-kicker">Alliance Chat Tools</span>
+                  <h1>Message Templates</h1>
+                  <p>Copy ready-made alliance chat text, emoji layouts, unicode notices, and recruit messages with a 28-character game chat preview.</p>
+                </div>
+                <div className="templates-chat-spec" aria-label="Game chat width">
+                  <Icon name="message" />
+                  <strong>28</strong>
+                  <span>chat width</span>
+                </div>
+              </section>
+
+              <section className="templates-howto" aria-label="How to use message templates">
+                {["Choose a category", "Preview the chat width", "Copy and paste in game"].map((step, index) => (
+                  <div key={step}>
+                    <span>{index + 1}</span>
+                    <strong>{step}</strong>
+                  </div>
+                ))}
+              </section>
+
+              <section className="showcase-head templates-head">
+                <div>
+                  <h2>All Message Templates</h2>
+                </div>
+                <div className="daybreak-controls">
+                  <div className="daybreak-control-bar templates-filter-bar" aria-label="Message template category filter">
+                    {messageTemplateCategories.map((category) => (
+                      <button
+                        className={activeTemplateCategory === category.value ? "selected" : ""}
+                        type="button"
+                        key={category.value}
+                        onClick={() => setActiveTemplateCategory(category.value)}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="template-grid" aria-label="Template cards">
+                {filteredMessageTemplates.map((template) => (
+                  <article className="template-card" key={template.id}>
+                    <header className="template-card-title">
+                      <div>
+                        <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
+                        <h3>{template.title}</h3>
+                      </div>
+                      <button type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title}`}>
+                        <Icon name="copy" />
+                        {copiedTemplateId === template.id ? "Copied" : "Copy"}
+                      </button>
+                    </header>
+                    <p>{template.description}</p>
+                    <div className="template-chat-preview" aria-label={`${template.title} 28 character preview`}>
+                      <div className="template-chat-top">
+                        <span>WOS Chat Preview</span>
+                        <small>28 chars</small>
+                      </div>
+                      <pre>{templatePreviewLines(template.text).map((line, index) => (
+                        <span key={`${template.id}-${index}`}>{line}</span>
+                      ))}</pre>
+                    </div>
+                    <footer className="template-card-footer">
+                      <div className="template-tags">
+                        {template.tags.map((tag) => (
+                          <span key={`${template.id}-${tag}`}>{tag}</span>
+                        ))}
+                      </div>
+                      <span>{Array.from(template.text).length} chars</span>
+                    </footer>
+                  </article>
+                ))}
               </section>
             </section>
           ) : activeMenu === "sneak" ? (
