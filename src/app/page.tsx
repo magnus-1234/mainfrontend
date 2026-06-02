@@ -5018,37 +5018,42 @@ export default function Home() {
 
               <section className={`template-grid ${activeTemplateCategory === "unicodes" ? "template-grid-unicodes" : ""}`} aria-label="Template cards">
                 {filteredMessageTemplates.map((template) => (
-                  <article className={`template-card ${template.iconGlyph ? "template-card-unicode" : ""}`} id={`message-template-${template.id}`} key={template.id}>
-                    <header className="template-card-title">
-                      <button className="template-title-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
-                        <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
-                        <h3>{template.title}</h3>
+                  template.iconGlyph ? (
+                    <article className="template-card template-card-unicode" id={`message-template-${template.id}`} key={template.id}>
+                      <button className="template-unicode-copy" type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title}`}>
+                        <Icon name="copy" />
+                        {copiedTemplateId === template.id ? "Copied" : "Copy"}
                       </button>
-                      <div className="template-card-actions">
-                        {template.canManage && !template.builtin && (
-                          <button
-                            type="button"
-                            onClick={() => openEditTemplateComposer(template)}
-                            aria-label={`Edit ${template.title}`}
-                          >
-                            <Icon name="edit" />
-                            Edit
-                          </button>
-                        )}
-                        <button type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title}`}>
-                          <Icon name="copy" />
-                          {copiedTemplateId === template.id ? "Copied" : "Copy"}
-                        </button>
-                      </div>
-                    </header>
-                    {template.iconGlyph ? (
                       <button className="template-unicode-tile" type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title} unicode`}>
                         <span className="template-unicode-glyph" aria-hidden="true">{template.iconVisual || template.iconGlyph}</span>
                         <strong>{template.title}</strong>
                         {template.iconCode && <small>{template.iconCode}</small>}
                       </button>
-                    ) : (
-                      <>
+                    </article>
+                  ) : (
+                    <article className="template-card" id={`message-template-${template.id}`} key={template.id}>
+                      <header className="template-card-title">
+                        <button className="template-title-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
+                          <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
+                          <h3>{template.title}</h3>
+                        </button>
+                        <div className="template-card-actions">
+                          {template.canManage && !template.builtin && (
+                            <button
+                              type="button"
+                              onClick={() => openEditTemplateComposer(template)}
+                              aria-label={`Edit ${template.title}`}
+                            >
+                              <Icon name="edit" />
+                              Edit
+                            </button>
+                          )}
+                          <button type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title}`}>
+                            <Icon name="copy" />
+                            {copiedTemplateId === template.id ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+                      </header>
                         {template.description && <p>{template.description}</p>}
                         {template.imageUrl && (
                           <button className="template-card-image" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
@@ -5064,42 +5069,41 @@ export default function Home() {
                             <span key={`${template.id}-${index}`}>{line}</span>
                           ))}</pre>
                         </button>
-                      </>
-                    )}
-                    <footer className="template-card-footer">
-                      <div className="template-tags">
-                        {template.tags.map((tag) => (
-                          <button type="button" key={`${template.id}-${tag}`} onClick={() => setSelectedTemplateTag(tag)}>{tag}</button>
-                        ))}
-                      </div>
-                    </footer>
-                    <footer className="template-action-footer">
-                      <button
-                        className={likedTemplates[template.id] ? "liked" : ""}
-                        type="button"
-                        onClick={() => void likeTemplate(template)}
-                        disabled={Boolean(template.builtin || likedTemplates[template.id])}
-                        title={template.builtin ? "Built-in templates cannot be liked" : undefined}
-                      >
-                        <Icon name="heart" />
-                        {template.likes || 0}
-                      </button>
-                      <button type="button" onClick={() => setShareTemplateTarget(template)}>
-                        <Icon name="share" />
-                        {template.shares || 0}
-                      </button>
-                      {template.canManage && !template.builtin && (
+                      <footer className="template-card-footer">
+                        <div className="template-tags">
+                          {template.tags.map((tag) => (
+                            <button type="button" key={`${template.id}-${tag}`} onClick={() => setSelectedTemplateTag(tag)}>{tag}</button>
+                          ))}
+                        </div>
+                      </footer>
+                      <footer className="template-action-footer">
                         <button
-                          className="danger"
+                          className={likedTemplates[template.id] ? "liked" : ""}
                           type="button"
-                          onClick={() => void deleteTemplate(template)}
-                          disabled={deletingTemplateId === template.id}
+                          onClick={() => void likeTemplate(template)}
+                          disabled={Boolean(template.builtin || likedTemplates[template.id])}
+                          title={template.builtin ? "Built-in templates cannot be liked" : undefined}
                         >
-                          <Icon name="trash" />
+                          <Icon name="heart" />
+                          {template.likes || 0}
                         </button>
-                      )}
-                    </footer>
-                  </article>
+                        <button type="button" onClick={() => setShareTemplateTarget(template)}>
+                          <Icon name="share" />
+                          {template.shares || 0}
+                        </button>
+                        {template.canManage && !template.builtin && (
+                          <button
+                            className="danger"
+                            type="button"
+                            onClick={() => void deleteTemplate(template)}
+                            disabled={deletingTemplateId === template.id}
+                          >
+                            <Icon name="trash" />
+                          </button>
+                        )}
+                      </footer>
+                    </article>
+                  )
                 ))}
                 {!filteredMessageTemplates.length && (
                   <div className="empty-island-state template-empty-state">

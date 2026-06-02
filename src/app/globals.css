@@ -3901,12 +3901,12 @@ body {
 }
 
 .template-grid-unicodes {
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  gap: 10px;
 }
 
 .template-grid-unicodes .template-card {
-  height: 190px;
+  height: 176px;
 }
 
 .template-grid-unicodes .template-card:not(.template-card-unicode) .template-chat-preview {
@@ -3915,8 +3915,8 @@ body {
 
 .template-card {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
-  height: 520px;
+  grid-template-rows: auto auto auto minmax(0, 1fr) max-content max-content;
+  height: 438px;
   align-content: stretch;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
@@ -3929,8 +3929,13 @@ body {
 }
 
 .template-card-unicode {
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  height: 190px;
+  position: relative;
+  grid-template-rows: minmax(0, 1fr);
+  height: 176px;
+  padding: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, var(--gold-soft)), var(--card)),
+    var(--card);
 }
 
 .template-card:hover {
@@ -4029,18 +4034,22 @@ body {
 }
 
 .template-card > p {
+  display: -webkit-box;
   margin: 0;
-  padding: 8px 8px 0;
+  padding: 7px 8px 0;
   color: var(--muted-foreground);
+  overflow: hidden;
   font-size: 12px;
   font-weight: 700;
-  line-height: 1.45;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .template-card-image {
   display: block;
-  height: 88px;
-  margin: 8px 8px 0;
+  height: 72px;
+  margin: 7px 8px 0;
   overflow-x: hidden;
   overflow-y: auto;
   border: 1px solid var(--border);
@@ -4066,20 +4075,50 @@ body {
 
 .template-unicode-tile {
   display: grid;
+  width: 100%;
+  height: 100%;
   min-height: 0;
   align-content: center;
   justify-items: center;
-  gap: 6px;
-  margin: 8px;
+  gap: 7px;
+  margin: 0;
   border: 1px solid color-mix(in srgb, var(--gold-line) 64%, var(--border));
   border-radius: 8px;
-  padding: 10px 8px;
+  padding: 24px 10px 12px;
   background:
     radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--gold-soft) 82%, transparent), transparent 58%),
     color-mix(in srgb, var(--card) 92%, var(--gold-soft));
   color: var(--foreground);
   cursor: pointer;
   text-align: center;
+}
+
+.template-unicode-copy {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 76%, var(--border));
+  border-radius: 7px;
+  padding: 0;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 0;
+}
+
+.template-unicode-copy:hover {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.template-unicode-copy svg {
+  width: 14px;
+  height: 14px;
 }
 
 .template-unicode-tile:hover {
@@ -4105,12 +4144,16 @@ body {
 }
 
 .template-unicode-tile strong {
+  display: -webkit-box;
   max-width: 100%;
   color: var(--gold);
+  overflow: hidden;
   overflow-wrap: anywhere;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1.15;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .template-unicode-tile small {
@@ -4129,7 +4172,7 @@ body {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
-  margin: 8px;
+  margin: 7px 8px;
   overflow: hidden;
   border: 2px solid #48c7d8;
   border-radius: 8px;
@@ -4159,7 +4202,7 @@ body {
   justify-content: space-between;
   gap: 10px;
   border-bottom: 1px solid rgba(14, 105, 120, 0.24);
-  padding: 6px 8px;
+  padding: 5px 8px;
   background: linear-gradient(180deg, #d7ffd4, #baf7bd);
 }
 
@@ -4178,7 +4221,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   margin: 0;
-  padding: 9px 12px;
+  padding: 8px 10px;
   font-family: "Arial Rounded MT Bold", Arial, "Segoe UI Emoji", "Apple Color Emoji", var(--font-geist-sans), sans-serif;
   font-size: 13px;
   font-weight: 900;
@@ -4196,15 +4239,15 @@ body {
 .template-card-footer {
   display: grid;
   align-items: start;
-  gap: 7px;
+  gap: 5px;
   border-top: 1px solid var(--border);
-  padding: 7px 8px;
+  padding: 6px 8px;
 }
 
 .template-tags {
   display: flex;
   min-width: 0;
-  max-height: 46px;
+  max-height: 22px;
   flex-wrap: wrap;
   gap: 5px;
   overflow: hidden;
@@ -4234,7 +4277,7 @@ body {
   align-items: center;
   gap: 5px;
   border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  padding: 7px 8px;
+  padding: 6px 8px;
 }
 
 .template-action-footer button {
@@ -7714,8 +7757,44 @@ body {
   }
 
   .template-card {
-    height: 390px;
+    height: 332px;
     border-radius: 7px;
+  }
+
+  .template-grid-unicodes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .template-grid-unicodes .template-card,
+  .template-card-unicode {
+    height: 166px;
+  }
+
+  .template-card-unicode {
+    padding: 7px;
+  }
+
+  .template-unicode-tile {
+    gap: 6px;
+    padding: 22px 8px 10px;
+  }
+
+  .template-unicode-copy {
+    top: 9px;
+    right: 9px;
+    width: 27px;
+    height: 27px;
+  }
+
+  .template-unicode-glyph {
+    width: 48px;
+    height: 48px;
+    font-size: 30px;
+  }
+
+  .template-unicode-tile strong {
+    font-size: 12px;
   }
 
   .template-card-title {
@@ -7748,11 +7827,12 @@ body {
   .template-card > p {
     padding: 6px 6px 0;
     font-size: 11px;
-    line-height: 1.3;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
   }
 
   .template-card-image {
-    height: 62px;
+    height: 48px;
     margin: 6px 6px 0;
   }
 
@@ -7772,7 +7852,7 @@ body {
 
   .template-chat-preview pre {
     max-height: none;
-    padding: 6px 7px;
+    padding: 5px 6px;
     font-size: 10px;
     line-height: 1.28;
   }
@@ -7792,7 +7872,7 @@ body {
   }
 
   .template-tags {
-    max-height: 40px;
+    max-height: 20px;
   }
 
   .template-tags button {
