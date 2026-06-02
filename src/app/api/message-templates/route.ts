@@ -1,0 +1,29 @@
+import { NextRequest, NextResponse } from "next/server";
+
+const backendUrl = process.env.BACKEND_URL || process.env.PUBLIC_API_URL || "http://localhost:3001";
+
+const forward = async (request: NextRequest) => {
+  const target = new URL(`${backendUrl.replace(/\/+$/, "")}/api/message-templates`);
+  request.nextUrl.searchParams.forEach((value, key) => target.searchParams.set(key, value));
+
+  const response = await fetch(target, {
+    method: request.method,
+    headers: {
+      "Content-Type": request.headers.get("content-type") || "application/json",
+      cookie: request.headers.get("cookie") || "",
+    },
+    body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),
+    cache: "no-store",
+  });
+
+  const body = await response.text();
+  return new NextResponse(body, {
+    status: response.status,
+    headers: {
+      "Content-Type": response.headers.get("content-type") || "application/json",
+    },
+  });
+};
+
+export const GET = forward;
+export const POST = forward;

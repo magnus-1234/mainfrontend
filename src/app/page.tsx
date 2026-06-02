@@ -47,6 +47,7 @@ type IslandComment = {
 
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
+type TemplateView = "gallery" | "uploads" | "favorites";
 type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
@@ -227,6 +228,14 @@ type MessageTemplate = {
   text: string;
   previewText?: string;
   tags: string[];
+  creatorName?: string;
+  creatorUserId?: string;
+  canManage?: boolean;
+  likes?: number;
+  shares?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  builtin?: boolean;
 };
 
 const giftCodesStorageKey = "whiteoutsurvival-gift-codes-cache-v1";
@@ -344,6 +353,10 @@ const messageTemplates: MessageTemplate[] = [
     title: "SVS Prep Guide",
     category: "emojis",
     description: "Compact SVS prep checklist for alliance chat.",
+    builtin: true,
+    creatorName: "WhiteoutSurvival.dev",
+    likes: 0,
+    shares: 0,
     tags: ["SVS", "Prep", "Checklist"],
     text: `👑 - SVS Prep Guide 🔎
  １   ２　３    ４    ５                   ✅｜🆗｜🚫｜🚫｜🆗｜FC 
@@ -374,6 +387,10 @@ const messageTemplates: MessageTemplate[] = [
     title: "Alliance Recruit",
     category: "alliance-recruit",
     description: "Short recruitment message with clear requirements.",
+    builtin: true,
+    creatorName: "WhiteoutSurvival.dev",
+    likes: 0,
+    shares: 0,
     tags: ["Recruit", "Alliance", "Members"],
     text: `🔥 Join our alliance 🔥
 Active players wanted.
@@ -392,6 +409,10 @@ Message R4/R5 to apply.`,
     title: "Unicode Notice",
     category: "unicodes",
     description: "Clean framed notice for rules and announcements.",
+    builtin: true,
+    creatorName: "WhiteoutSurvival.dev",
+    likes: 0,
+    shares: 0,
     tags: ["Unicode", "Notice", "Rules"],
     text: `╔══════════════════════╗
    Alliance Notice
@@ -409,6 +430,10 @@ Please be online 10 minutes early.`,
     title: "Rally Ready",
     category: "emojis",
     description: "Fast rally coordination reminder.",
+    builtin: true,
+    creatorName: "WhiteoutSurvival.dev",
+    likes: 0,
+    shares: 0,
     tags: ["Rally", "War", "Prep"],
     text: `⚔️ RALLY READY ⚔️
 Set formation before joining.
@@ -425,6 +450,10 @@ Do not fill wrong troop type.
     title: "Bear Trap Ping",
     category: "funny",
     description: "Friendly event ping for sleepy alliance members.",
+    builtin: true,
+    creatorName: "WhiteoutSurvival.dev",
+    likes: 0,
+    shares: 0,
     tags: ["Bear", "Funny", "Ping"],
     text: `🐻 Bear Trap alarm!
 Wake up, grab coffee, send troops.
@@ -439,6 +468,10 @@ No solo marches please 😄`,
     title: "NAP Reminder",
     category: "unicodes",
     description: "Simple diplomacy reminder for alliance chat.",
+    builtin: true,
+    creatorName: "WhiteoutSurvival.dev",
+    likes: 0,
+    shares: 0,
     tags: ["NAP", "Rules", "Diplomacy"],
     text: `──── NAP Reminder ────
 Do not attack allied NAP tags.
@@ -1454,6 +1487,17 @@ export default function Home() {
   const [stateAgeStatus, setStateAgeStatus] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
+  const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
+  const [templateView, setTemplateView] = useState<TemplateView>("gallery");
+  const [templateSort, setTemplateSort] = useState<"popular" | "recent">("popular");
+  const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
+  const [likedTemplates, setLikedTemplates] = useState<Record<string, boolean>>({});
+  const [templateStatus, setTemplateStatus] = useState("");
+  const [templateComposerOpen, setTemplateComposerOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+  const [shareTemplateTarget, setShareTemplateTarget] = useState<MessageTemplate | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [deletingTemplateId, setDeletingTemplateId] = useState("");
   const [islands, setIslands] = useState<Island[]>([]);
   const [linkedIslandId, setLinkedIslandId] = useState("");
   const [footerVisible, setFooterVisible] = useState(false);
@@ -1801,6 +1845,53 @@ export default function Home() {
       })
       .catch(() => null);
   }, [authUser]);
+
+  useEffect(() => {
+    if (activeMenu !== "templates") {
+      return;
+    }
+    if (templateView !== "gallery" && !authUser) {
+      return;
+    }
+
+    const categoryParam = activeTemplateCategory !== "all" ? `&category=${encodeURIComponent(activeTemplateCategory)}` : "";
+    const tagParam = selectedTemplateTag ? `&tag=${encodeURIComponent(selectedTemplateTag)}` : "";
+    const endpoint =
+      templateView === "uploads"
+        ? `${apiBase}/api/message-templates/me/uploads?limit=80`
+        : templateView === "favorites"
+          ? `${apiBase}/api/message-templates/me/favorites?limit=80`
+          : `${apiBase}/api/message-templates?sort=${templateSort}${categoryParam}${tagParam}&limit=80`;
+
+    fetch(endpoint, { credentials: "include" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((data: { templates: MessageTemplate[]; favoriteIds?: string[] }) => {
+        setCommunityTemplates(data.templates || []);
+        if (data.favoriteIds) {
+          setLikedTemplates((current) => ({ ...current, ...Object.fromEntries((data.favoriteIds || []).map((id) => [id, true])) }));
+        }
+        setTemplateStatus("");
+      })
+      .catch(() => {
+        if (templateView !== "gallery") {
+          setTemplateStatus("Sign in or try again to load your templates.");
+        }
+      });
+  }, [activeMenu, activeTemplateCategory, authUser, selectedTemplateTag, templateSort, templateView]);
+
+  useEffect(() => {
+    if (!authUser || activeMenu !== "templates") {
+      return;
+    }
+
+    fetch(`${apiBase}/api/message-templates/me/favorites?limit=100`, { credentials: "include" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((data: { favoriteIds?: string[] }) => {
+        const favoriteIds = data.favoriteIds || [];
+        setLikedTemplates((current) => ({ ...current, ...Object.fromEntries(favoriteIds.map((id) => [id, true])) }));
+      })
+      .catch(() => null);
+  }, [activeMenu, authUser]);
 
   useEffect(() => {
     if (!resizingSidebar || collapsedSidebar) {
@@ -2222,6 +2313,162 @@ export default function Home() {
     }
 
     setStatus("Share link copied.");
+  };
+
+  const refreshTemplates = async () => {
+    const endpoint =
+      templateView === "uploads"
+        ? `${apiBase}/api/message-templates/me/uploads?limit=80`
+        : templateView === "favorites"
+          ? `${apiBase}/api/message-templates/me/favorites?limit=80`
+          : `${apiBase}/api/message-templates?sort=${templateSort}${activeTemplateCategory !== "all" ? `&category=${encodeURIComponent(activeTemplateCategory)}` : ""}${selectedTemplateTag ? `&tag=${encodeURIComponent(selectedTemplateTag)}` : ""}&limit=80`;
+    const response = await fetch(endpoint, { credentials: "include" });
+    if (!response.ok) {
+      throw new Error("Unable to refresh templates");
+    }
+    const data = (await response.json()) as { templates: MessageTemplate[]; favoriteIds?: string[] };
+    setCommunityTemplates(data.templates || []);
+    if (data.favoriteIds) {
+      setLikedTemplates((current) => ({ ...current, ...Object.fromEntries(data.favoriteIds!.map((id) => [id, true])) }));
+    }
+  };
+
+  const requireTemplateSignIn = (message: string) => {
+    setAuthStatus(message);
+    setLoginOpen(true);
+  };
+
+  const openTemplateComposer = () => {
+    if (!authUser) {
+      requireTemplateSignIn("Sign in before creating a message template.");
+      return;
+    }
+    setEditingTemplate(null);
+    setTemplateComposerOpen(true);
+  };
+
+  const closeTemplateComposer = () => {
+    setTemplateComposerOpen(false);
+    setEditingTemplate(null);
+  };
+
+  const handleTemplateSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!authUser) {
+      closeTemplateComposer();
+      requireTemplateSignIn("Sign in before saving message templates.");
+      return;
+    }
+
+    setSavingTemplate(true);
+    setTemplateStatus("");
+    try {
+      const form = event.currentTarget;
+      const body = Object.fromEntries(new FormData(form).entries());
+      const endpoint = editingTemplate ? `${apiBase}/api/message-templates/${editingTemplate.id}` : `${apiBase}/api/message-templates`;
+      const response = await fetch(endpoint, {
+        method: editingTemplate ? "PATCH" : "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.detail || data?.error || "Template save failed");
+      }
+
+      if (data?.template) {
+        setCommunityTemplates((current) => {
+          const exists = current.some((template) => template.id === data.template.id);
+          return exists ? current.map((template) => (template.id === data.template.id ? data.template : template)) : [data.template, ...current];
+        });
+      }
+      await refreshTemplates().catch(() => null);
+      setTemplateStatus(editingTemplate ? "Template updated." : "Template published.");
+      closeTemplateComposer();
+    } catch (error) {
+      setTemplateStatus(error instanceof Error ? error.message : "Template save failed");
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const likeTemplate = async (template: MessageTemplate) => {
+    if (!authUser) {
+      requireTemplateSignIn("Sign in to like message templates.");
+      return;
+    }
+    if (template.builtin || likedTemplates[template.id]) {
+      return;
+    }
+
+    const response = await fetch(`${apiBase}/api/message-templates/${template.id}/like`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = (await response.json().catch(() => null)) as { template?: MessageTemplate } | null;
+    if (data?.template) {
+      setLikedTemplates((current) => ({ ...current, [template.id]: true }));
+      setCommunityTemplates((current) => current.map((item) => (item.id === template.id ? data.template! : item)));
+    }
+  };
+
+  const deleteTemplate = async (template: MessageTemplate) => {
+    if (!authUser) {
+      requireTemplateSignIn("Sign in to delete your message templates.");
+      return;
+    }
+    if (!template.canManage || template.builtin) {
+      setTemplateStatus("You can only delete templates you created.");
+      return;
+    }
+    if (!window.confirm(`Delete "${template.title}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingTemplateId(template.id);
+    setTemplateStatus("");
+    try {
+      const response = await fetch(`${apiBase}/api/message-templates/${template.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to delete template");
+      }
+      setCommunityTemplates((current) => current.filter((item) => item.id !== template.id));
+      setTemplateStatus("Template deleted.");
+    } catch (error) {
+      setTemplateStatus(error instanceof Error ? error.message : "Unable to delete template");
+    } finally {
+      setDeletingTemplateId("");
+    }
+  };
+
+  const templateShareUrlFor = (template: MessageTemplate) => `${window.location.origin}/message-templates?template=${encodeURIComponent(template.id)}`;
+
+  const shareMessageTemplate = async (template: MessageTemplate) => {
+    const shareUrl = templateShareUrlFor(template);
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      window.prompt("Copy template link", shareUrl);
+    }
+
+    if (!template.builtin) {
+      const response = await fetch(`${apiBase}/api/message-templates/${template.id}/share`, { method: "POST", credentials: "include" });
+      const data = (await response.json().catch(() => null)) as { template?: MessageTemplate } | null;
+      if (data?.template) {
+        setCommunityTemplates((current) => current.map((item) => (item.id === template.id ? data.template! : item)));
+        setShareTemplateTarget(data.template);
+      }
+    }
+    setTemplateStatus("Template link copied.");
   };
 
   const copyGiftCode = async (code: string) => {
@@ -3362,9 +3609,17 @@ export default function Home() {
   const filteredWosBuildings = scrapedWosBuildings.filter((building) => building.category === activeBuildingFilter);
   const activeWikiHero = scrapedWosHeroes.find((hero) => hero.slug === activeWikiSlug);
   const activeWikiBuilding = scrapedWosBuildings.find((building) => building.slug === activeWikiSlug);
-  const filteredMessageTemplates = activeTemplateCategory === "all"
-    ? messageTemplates
-    : messageTemplates.filter((template) => template.category === activeTemplateCategory);
+  const allMessageTemplates = templateView === "gallery" ? [...messageTemplates, ...communityTemplates] : communityTemplates;
+  const filteredMessageTemplates = allMessageTemplates.filter((template) => {
+    if (activeTemplateCategory !== "all" && template.category !== activeTemplateCategory) {
+      return false;
+    }
+    if (selectedTemplateTag && !template.tags.some((tag) => tag.toLowerCase() === selectedTemplateTag.toLowerCase())) {
+      return false;
+    }
+    return true;
+  });
+  const templateTagSuggestions = Array.from(new Set(allMessageTemplates.flatMap((template) => template.tags))).slice(0, 18);
 
   const navigateToMenu = (menu: ActiveMenu) => {
     setMobileMoreOpen(false);
@@ -4501,7 +4756,7 @@ export default function Home() {
                 <div>
                   <span className="section-kicker">Alliance Chat Tools</span>
                   <h1>Message Templates</h1>
-                  <p>Copy ready-made alliance chat text, emoji layouts, unicode notices, and recruit messages with a 28-character game chat preview.</p>
+                  <p>Create, edit, share, and copy alliance chat templates with tags, likes, and a 28-character game chat preview.</p>
                 </div>
                 <div className="templates-chat-spec" aria-label="Game chat width">
                   <Icon name="message" />
@@ -4511,7 +4766,7 @@ export default function Home() {
               </section>
 
               <section className="templates-howto" aria-label="How to use message templates">
-                {["Choose a category", "Preview the chat width", "Copy and paste in game"].map((step, index) => (
+                {["Create or choose a template", "Preview the chat width", "Copy, like, or share"].map((step, index) => (
                   <div key={step}>
                     <span>{index + 1}</span>
                     <strong>{step}</strong>
@@ -4521,9 +4776,29 @@ export default function Home() {
 
               <section className="showcase-head templates-head">
                 <div>
-                  <h2>All Message Templates</h2>
+                  <h2>{templateView === "uploads" ? "My Templates" : templateView === "favorites" ? "Liked Templates" : "Message Gallery"}</h2>
                 </div>
                 <div className="daybreak-controls">
+                  <div className="daybreak-control-bar templates-view-bar" aria-label="Message template view controls">
+                    <button className={templateView === "gallery" ? "selected" : ""} type="button" onClick={() => setTemplateView("gallery")}>Gallery</button>
+                    <button
+                      className={templateView === "uploads" ? "selected" : ""}
+                      type="button"
+                      onClick={() => (authUser ? setTemplateView("uploads") : requireTemplateSignIn("Sign in to view your message templates."))}
+                    >
+                      My Templates
+                    </button>
+                    <button
+                      className={templateView === "favorites" ? "selected" : ""}
+                      type="button"
+                      onClick={() => (authUser ? setTemplateView("favorites") : requireTemplateSignIn("Sign in to view liked templates."))}
+                    >
+                      Liked
+                    </button>
+                    <span aria-hidden="true" className="daybreak-control-divider" />
+                    <button className={templateSort === "popular" ? "selected" : ""} type="button" onClick={() => setTemplateSort("popular")}>Popular</button>
+                    <button className={templateSort === "recent" ? "selected" : ""} type="button" onClick={() => setTemplateSort("recent")}>Recent</button>
+                  </div>
                   <div className="daybreak-control-bar templates-filter-bar" aria-label="Message template category filter">
                     {messageTemplateCategories.map((category) => (
                       <button
@@ -4536,8 +4811,29 @@ export default function Home() {
                       </button>
                     ))}
                   </div>
+                  <button className="template-create-button" type="button" onClick={openTemplateComposer}>
+                    <Icon name="plus" />
+                    New Template
+                  </button>
                 </div>
               </section>
+
+              {selectedTemplateTag && (
+                <div className="active-tag-filter template-active-filter">
+                  <span>#{selectedTemplateTag}</span>
+                  <button type="button" onClick={() => setSelectedTemplateTag("")} aria-label="Clear template tag filter">Clear</button>
+                </div>
+              )}
+
+              {templateStatus && <p className="daybreak-status">{templateStatus}</p>}
+
+              {templateTagSuggestions.length > 0 && templateView === "gallery" && (
+                <div className="template-tag-strip" aria-label="Template tag filters">
+                  {templateTagSuggestions.map((tag) => (
+                    <button type="button" key={tag} onClick={() => setSelectedTemplateTag(tag)}>#{tag}</button>
+                  ))}
+                </div>
+              )}
 
               <section className="template-grid" aria-label="Template cards">
                 {filteredMessageTemplates.map((template) => (
@@ -4547,12 +4843,27 @@ export default function Home() {
                         <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
                         <h3>{template.title}</h3>
                       </div>
-                      <button type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title}`}>
-                        <Icon name="copy" />
-                        {copiedTemplateId === template.id ? "Copied" : "Copy"}
-                      </button>
+                      <div className="template-card-actions">
+                        {template.canManage && !template.builtin && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingTemplate(template);
+                              setTemplateComposerOpen(true);
+                            }}
+                            aria-label={`Edit ${template.title}`}
+                          >
+                            <Icon name="edit" />
+                            Edit
+                          </button>
+                        )}
+                        <button type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title}`}>
+                          <Icon name="copy" />
+                          {copiedTemplateId === template.id ? "Copied" : "Copy"}
+                        </button>
+                      </div>
                     </header>
-                    <p>{template.description}</p>
+                    {template.description && <p>{template.description}</p>}
                     <div className="template-chat-preview" aria-label={`${template.title} 28 character preview`}>
                       <div className="template-chat-top">
                         <span>WOS Chat Preview</span>
@@ -4565,13 +4876,49 @@ export default function Home() {
                     <footer className="template-card-footer">
                       <div className="template-tags">
                         {template.tags.map((tag) => (
-                          <span key={`${template.id}-${tag}`}>{tag}</span>
+                          <button type="button" key={`${template.id}-${tag}`} onClick={() => setSelectedTemplateTag(tag)}>{tag}</button>
                         ))}
                       </div>
-                      <span>{Array.from(template.text).length} chars</span>
+                      <div className="template-metrics">
+                        <span>{template.creatorName || "Community"}</span>
+                        <span>{Array.from(template.text).length} chars</span>
+                      </div>
+                    </footer>
+                    <footer className="template-action-footer">
+                      <button
+                        className={likedTemplates[template.id] ? "liked" : ""}
+                        type="button"
+                        onClick={() => void likeTemplate(template)}
+                        disabled={Boolean(template.builtin || likedTemplates[template.id])}
+                        title={template.builtin ? "Built-in templates cannot be liked" : undefined}
+                      >
+                        <Icon name="heart" />
+                        {template.likes || 0}
+                      </button>
+                      <button type="button" onClick={() => setShareTemplateTarget(template)}>
+                        <Icon name="share" />
+                        {template.shares || 0}
+                      </button>
+                      {template.canManage && !template.builtin && (
+                        <button
+                          className="danger"
+                          type="button"
+                          onClick={() => void deleteTemplate(template)}
+                          disabled={deletingTemplateId === template.id}
+                        >
+                          <Icon name="trash" />
+                        </button>
+                      )}
                     </footer>
                   </article>
                 ))}
+                {!filteredMessageTemplates.length && (
+                  <div className="empty-island-state template-empty-state">
+                    <Icon name="message" />
+                    <strong>No templates found</strong>
+                    <span>Create one or clear the current filters.</span>
+                  </div>
+                )}
               </section>
             </section>
           ) : activeMenu === "sneak" ? (
@@ -5428,6 +5775,54 @@ export default function Home() {
         </div>
       )}
 
+      {templateComposerOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={editingTemplate ? `Edit ${editingTemplate.title}` : "Create Message Template"} onClick={closeTemplateComposer}>
+          <section className="upload-modal template-composer-modal" onClick={(event) => event.stopPropagation()}>
+            <button className="close-button" type="button" onClick={closeTemplateComposer} aria-label="Close">x</button>
+            <div className="upload-modal-head">
+              <span className="section-kicker">Message Templates</span>
+              <h2>{editingTemplate ? "Edit message template" : "Create message template"}</h2>
+            </div>
+            <form className="upload-form" onSubmit={handleTemplateSave}>
+              <div className="form-grid">
+                <label>
+                  Title
+                  <input name="title" maxLength={90} defaultValue={editingTemplate?.title || ""} placeholder="SVS Prep Guide" required />
+                </label>
+                <label>
+                  Category
+                  <select name="category" defaultValue={editingTemplate?.category || "unicodes"} required>
+                    {messageTemplateCategories.filter((category) => category.value !== "all").map((category) => (
+                      <option value={category.value} key={category.value}>{category.label}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label>
+                Description optional
+                <textarea name="description" maxLength={360} defaultValue={editingTemplate?.description || ""} placeholder="Short note about when to use this template." />
+              </label>
+              <label>
+                Template text
+                <textarea className="template-source-input" name="text" maxLength={4000} defaultValue={editingTemplate?.text || ""} placeholder="Paste or write the exact text players should copy into WOS chat." required />
+              </label>
+              <label>
+                Preview override optional
+                <textarea name="previewText" maxLength={4000} defaultValue={editingTemplate?.previewText || ""} placeholder="Optional display-only preview if the game renders the pasted text differently." />
+              </label>
+              <label className="hashtag-field">
+                Tags
+                <input name="tags" defaultValue={editingTemplate?.tags.map((tag) => `#${tag}`).join(" ") || ""} placeholder="#SVS #Prep #Recruit" />
+              </label>
+              <div className="edit-island-actions">
+                <button className="secondary-cta" type="button" onClick={closeTemplateComposer}>Cancel</button>
+                <button className="submit-button" type="submit" disabled={savingTemplate}>{savingTemplate ? "Saving..." : editingTemplate ? "Save Template" : "Publish Template"}</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
       {viewerImage && (
         <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={viewerImage.title} onClick={() => setViewerImage(null)}>
           <section className="island-detail-modal" onClick={(event) => event.stopPropagation()}>
@@ -5503,6 +5898,27 @@ export default function Home() {
                   <button type="submit" disabled={commentSaving}>{commentSaving ? "Posting..." : authUser ? "Post Comment" : "Sign In to Comment"}</button>
                 </form>
               </section>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {shareTemplateTarget && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Share ${shareTemplateTarget.title}`} onClick={() => setShareTemplateTarget(null)}>
+          <section className="share-modal" onClick={(event) => event.stopPropagation()}>
+            <button className="close-button" type="button" onClick={() => setShareTemplateTarget(null)} aria-label="Close">x</button>
+            <h2>Share Template</h2>
+            <p>{shareTemplateTarget.title}</p>
+            <div className="share-url-box">
+              <span>{templateShareUrlFor(shareTemplateTarget)}</span>
+              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget)} aria-label="Copy template URL">
+                <Icon name="copy" />
+              </button>
+            </div>
+            <div className="share-icon-row">
+              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget)}>Copy URL</button>
+              <a href={`https://wa.me/?text=${encodeURIComponent(`${shareTemplateTarget.title} ${templateShareUrlFor(shareTemplateTarget)}`)}`} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}>WhatsApp</a>
+              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTemplateTarget.title)}&url=${encodeURIComponent(templateShareUrlFor(shareTemplateTarget))}`} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}>X</a>
             </div>
           </section>
         </div>
