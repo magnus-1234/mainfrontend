@@ -659,6 +659,31 @@ const normalizeFoundryPlayerProfile = (player: PlayerProfile & { avatar?: string
   avatarImage: player.avatarImage || player.avatarUrl || player.avatar || player.avatar_image,
 });
 
+const utcInputDate = (date = new Date()) => date.toISOString().slice(0, 10);
+const utcInputDateTime = (date = new Date()) => date.toISOString().slice(0, 16);
+
+const formatFoundryUtcTime = (value: string) => {
+  if (!value) {
+    return "UTC time not set";
+  }
+  if (!value.includes("T")) {
+    return `${value} UTC`;
+  }
+  const parsed = new Date(`${value}:00Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return `${value} UTC`;
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(parsed) + " UTC";
+};
+
 const encodeFoundryShareState = (state: FoundryShareState) =>
   btoa(unescape(encodeURIComponent(JSON.stringify(state))))
     .replace(/\+/g, "-")
@@ -3738,6 +3763,21 @@ export default function Home() {
     return url.toString();
   };
 
+  const foundryUtcDatePart = foundryUtcTime.includes("T") ? foundryUtcTime.split("T")[0] : "";
+  const foundryUtcClockPart = foundryUtcTime.includes("T") ? foundryUtcTime.split("T")[1]?.slice(0, 5) || "" : foundryUtcTime.slice(0, 5);
+  const setFoundryBattleTimeParts = (datePart: string, timePart: string) => {
+    if (!datePart && !timePart) {
+      setFoundryUtcTime("");
+      return;
+    }
+    setFoundryUtcTime(`${datePart || utcInputDate()}T${timePart || "00:00"}`);
+  };
+  const adjustFoundryBattleTime = (minutes: number) => {
+    const base = foundryUtcTime ? new Date(`${foundryUtcTime}:00Z`) : new Date();
+    const safeBase = Number.isNaN(base.getTime()) ? new Date() : base;
+    setFoundryUtcTime(utcInputDateTime(new Date(safeBase.getTime() + minutes * 60_000)));
+  };
+
   const shareFoundryPlanner = async () => {
     if (!authUser) {
       setFoundryExportStatus("Sign in to create and edit shared Foundry plans.");
@@ -4046,7 +4086,7 @@ export default function Home() {
       context.fillText("Foundry Battle Plan", 36, 44);
       context.fillStyle = "#f7b267";
       context.font = "800 20px Arial";
-      context.fillText(`Legion ${foundryLegion}  |  ${foundryUtcTime || "UTC time not set"} UTC`, 38, 78);
+      context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}`, 38, 78);
       if (logo) {
         context.drawImage(logo, canvas.width - 354, 18, 314, 72);
       }
@@ -4170,7 +4210,7 @@ export default function Home() {
     context.fillText("Foundry Team Plan", 34, 50);
     context.fillStyle = "#f0ede6";
     context.font = "800 21px Arial";
-    context.fillText(`Legion ${foundryLegion}  |  ${foundryUtcTime || "UTC time not set"} UTC`, 36, 84);
+    context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}`, 36, 84);
     if (logo) {
       context.drawImage(logo, canvas.width - 326, 20, 286, 66);
     }
@@ -5031,9 +5071,11 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="chief-gear-visual" aria-hidden="true">
-                  {chiefGearPieces.map((piece, index) => (
-                    <span className={`gear-node troop-${piece.troop.toLowerCase()}`} key={piece.id} style={{ ["--gear-angle" as string]: `${index * 60}deg` }}>
-                      {piece.name}
+                  {chiefGearRows.map((row, index) => (
+                    <span className={`gear-node troop-${row.gear.troop.toLowerCase()}`} key={row.gear.id} style={{ ["--gear-angle" as string]: `${index * 60}deg` }}>
+                      <img src={chiefGearImageFor(row.gear, row.toLevel)} alt="" />
+                      <b>{row.gear.name}</b>
+                      <small>{row.toLevel?.tier || "Gear"}</small>
                     </span>
                   ))}
                   <div className="gear-core">
@@ -5284,8 +5326,11 @@ export default function Home() {
                 </div>
                 <div className="chief-charm-art" aria-hidden="true">
                   <div className="charm-gear-ring">
-                    {Array.from({ length: chiefCharmSlots }, (_, index) => (
-                      <span key={index} style={{ ["--slot-angle" as string]: `${index * 20}deg` }} />
+                    {charmSlotRows.map((slot, index) => (
+                      <span key={`${slot.gear.id}-${slot.slotIndex}`} style={{ ["--slot-angle" as string]: `${index * 20}deg` }}>
+                        <img src={chiefCharmImageFor(slot.gear.charmImageTroop, slot.to)} alt="" />
+                        <b>{slot.to ? `Lv.${slot.to}` : "New"}</b>
+                      </span>
                     ))}
                   </div>
                   <div className="charm-core">
@@ -5742,10 +5787,29 @@ export default function Home() {
                     <option value="2">Legion 2</option>
                   </select>
                 </label>
-                <label>
+                <div className="foundry-time-control">
                   <span>2. Battle Time UTC</span>
-                  <input type="datetime-local" value={foundryUtcTime} onChange={(event) => setFoundryUtcTime(event.target.value)} />
-                </label>
+                  <div className="foundry-time-inputs">
+                    <input
+                      aria-label="Foundry battle date in UTC"
+                      type="date"
+                      value={foundryUtcDatePart}
+                      onChange={(event) => setFoundryBattleTimeParts(event.target.value, foundryUtcClockPart)}
+                    />
+                    <input
+                      aria-label="Foundry battle time in UTC"
+                      type="time"
+                      value={foundryUtcClockPart}
+                      onChange={(event) => setFoundryBattleTimeParts(foundryUtcDatePart, event.target.value)}
+                    />
+                  </div>
+                  <div className="foundry-time-actions" aria-label="Foundry battle UTC quick actions">
+                    <button type="button" onClick={() => setFoundryUtcTime(utcInputDateTime())}>Now UTC</button>
+                    <button type="button" onClick={() => adjustFoundryBattleTime(30)}>+30m</button>
+                    <button type="button" onClick={() => adjustFoundryBattleTime(60)}>+1h</button>
+                    <button type="button" onClick={() => setFoundryUtcTime("")}>Clear</button>
+                  </div>
+                </div>
                 <label>
                   <span>3. Number of Teams</span>
                   <select value={foundryTeamCount} onChange={(event) => updateFoundryTeamCount(Number(event.target.value))}>
@@ -5783,7 +5847,7 @@ export default function Home() {
                         {foundryShowTeamRoster ? "Hide Players" : "Show Players"}
                       </button>
                       <strong>Legion {foundryLegion}</strong>
-                      <strong>{foundryUtcTime || "UTC time not set"}</strong>
+                      <strong>{formatFoundryUtcTime(foundryUtcTime)}</strong>
                     </div>
                   </div>
                   <div className="foundry-map-frame">
@@ -7126,7 +7190,7 @@ export default function Home() {
               <img src="/foundry-team-planner-map.webp" alt="" />
               <div>
                 <h2>Share Foundry Plan</h2>
-                <p>Legion {foundryLegion} | {foundryUtcTime ? `${foundryUtcTime} UTC` : "UTC time not set"} | {allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"}</p>
+                <p>Legion {foundryLegion} | {formatFoundryUtcTime(foundryUtcTime)} | {allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"}</p>
               </div>
             </div>
             <div className="share-preview-row">
