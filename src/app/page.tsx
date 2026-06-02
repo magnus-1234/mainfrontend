@@ -259,12 +259,21 @@ type StateTimelineEvent = {
   }[];
 };
 
+type RecentlyOpenedState = {
+  state: string;
+  openedAt: string;
+  openedAtIso: string;
+  activeFor: string;
+  dayLabel: string;
+};
+
 type StateAgeResult = {
   state: string;
   activeFor: string;
   startedAt: string;
   sourceUrl: string;
   sourceUpdatedAt: string;
+  recentlyOpenedStates?: RecentlyOpenedState[];
   events: StateTimelineEvent[];
 };
 
@@ -2813,6 +2822,18 @@ export default function Home() {
   const upcomingStateAgeEvents = stateAgeEvents.filter((event) => event.status === "upcoming").length;
   const maybeStateAgeEvents = stateAgeEvents.filter((event) => event.status === "maybe").length;
   const stateAgeImageCount = stateAgeEvents.reduce((count, event) => count + event.items.filter((item) => item.image).length, 0);
+  const recentlyOpenedStateGroups = (stateAgeResult?.recentlyOpenedStates || []).reduce<{
+    dayLabel: string;
+    states: RecentlyOpenedState[];
+  }[]>((groups, item) => {
+    const group = groups.find((entry) => entry.dayLabel === item.dayLabel);
+    if (group) {
+      group.states.push(item);
+    } else {
+      groups.push({ dayLabel: item.dayLabel, states: [item] });
+    }
+    return groups;
+  }, []);
 
   const submitRedeem = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -3071,6 +3092,7 @@ export default function Home() {
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
+  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive;
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
   const charmTargetSafe = Math.max(charmCurrentLevel + 1, Math.min(16, charmTargetLevel));
   const charmSlotSafe = Math.max(1, Math.min(chiefCharmSlots, charmSlotCount));
@@ -4028,6 +4050,38 @@ export default function Home() {
                 </div>
                 <div className="state-age-creation-pulse" aria-hidden="true" />
               </section>
+              <section className="state-age-recent-panel" aria-label="Recently opened servers">
+                <div className="state-age-recent-head">
+                  <div>
+                    <span>Recently Opened Servers</span>
+                    <strong>Last 3 Days</strong>
+                  </div>
+                  <small>{stateAgeResult ? `${stateAgeResult.recentlyOpenedStates?.length || 0} states found` : "Search a state to load live openings"}</small>
+                </div>
+                {recentlyOpenedStateGroups.length > 0 ? (
+                  <div className="state-age-recent-groups">
+                    {recentlyOpenedStateGroups.map((group) => (
+                      <article className="state-age-recent-group" key={group.dayLabel}>
+                        <div className="state-age-recent-day">
+                          <Icon name="calendar" />
+                          <span>{group.dayLabel}</span>
+                        </div>
+                        <div className="state-age-recent-states">
+                          {group.states.map((item) => (
+                            <span className="state-age-recent-chip" key={item.state} title={`Opened ${item.openedAt}`}>
+                              <strong>State {item.state}</strong>
+                              <small>{item.openedAt}</small>
+                            </span>
+                          ))}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="state-age-recent-empty">The latest state openings appear here after a successful lookup.</p>
+                )}
+              </section>
+
 
               <section className="state-age-focus-grid" aria-label="State age highlights">
                 <article className="state-age-focus-card current">

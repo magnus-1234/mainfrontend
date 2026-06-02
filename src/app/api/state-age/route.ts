@@ -13,8 +13,23 @@ type StateTimelineEvent = {
   }[];
 };
 
+type RecentlyOpenedState = {
+  state: string;
+  openedAt: string;
+  openedAtIso: string;
+  activeFor: string;
+  dayLabel: string;
+};
+
 const sourceUrl = "https://whiteoutsurvival.pl/state-timeline/";
 const ajaxUrl = "https://whiteoutsurvival.pl/wp-admin/admin-ajax.php";
+const dayMs = 24 * 60 * 60 * 1000;
+
+let recentStateCache: {
+  nonce: string;
+  createdAt: number;
+  states: RecentlyOpenedState[];
+} | null = null;
 
 const decodeHtml = (value: string) =>
   value
@@ -110,6 +125,137 @@ const parseStateTimeline = (html: string): StateTimelineEvent[] => {
   return events;
 };
 
+const parseStateInfo = (html: string) => {
+  const stateInfo = cleanText(firstMatch(html, /<div class="stp-alert stp-live-notice">([\s\S]*?)<\/div>/i));
+  const startedAt = cleanText(firstMatch(stateInfo, /It started on\s+([^.]+UTC)/i));
+  const activeFor = cleanText(firstMatch(stateInfo, /active for\s+(.+?)\s*\./i));
+  return { stateInfo, startedAt, activeFor };
+};
+
+const parseUtcStartDate = (startedAt: string) => {
+  const match = startedAt.match(/(\d{2})\/(\d{2})\/(\d{4})\s*-\s*(\d{2}):(\d{2}):(\d{2})\s*UTC/i);
+  if (!match) {
+    return null;
+  }
+
+  const [, day, month, year, hour, minute, second] = match;
+  const timestamp = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second));
+  return Number.isFinite(timestamp) ? new Date(timestamp) : null;
+};
+
+const formatUtcTime = (date: Date) =>
+  new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(date);
+
+const formatUtcDate = (date: Date) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+
+const recentDayLabel = (date: Date, now = new Date()) => {
+  const today = Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / dayMs);
+  const target = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / dayMs);
+  const diff = today - target;
+  if (diff === 0) {
+    return "Today";
+  }
+  if (diff === 1) {
+    return "Yesterday";
+  }
+  return formatUtcDate(date);
+};
+
+const fetchTimelineHtml = async (nonce: string, state: number) => {
+  const response = await fetch(ajaxUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+    body: new URLSearchParams({
+      action: "stp_get_timeline",
+      nonce,
+      server_id: String(state),
+    }),
+    cache: "no-store",
+  });
+  const payload = await response.json();
+  const html = payload?.data?.html ? String(payload.data.html) : "";
+  const { startedAt, activeFor } = parseStateInfo(html);
+  const startedDate = parseUtcStartDate(startedAt);
+
+  if (!payload?.success || !html || !startedDate) {
+    return {
+      error: payload?.data?.message || "State not found in the source timeline.",
+      html: "",
+      startedAt: "",
+      activeFor: "",
+      startedDate: null,
+    };
+  }
+
+  return { html, startedAt, activeFor, startedDate, error: "" };
+};
+
+const findLatestOpenedState = async (nonce: string, startState: number) => {
+  let low = Math.max(1, startState);
+  let high = low;
+
+  while ((await fetchTimelineHtml(nonce, high)).startedDate) {
+    low = high;
+    high += 256;
+    if (high > 25000) {
+      break;
+    }
+  }
+
+  while (low + 1 < high) {
+    const middle = Math.floor((low + high) / 2);
+    if ((await fetchTimelineHtml(nonce, middle)).startedDate) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+
+  return low;
+};
+
+const getRecentlyOpenedStates = async (nonce: string, requestedState: number): Promise<RecentlyOpenedState[]> => {
+  if (recentStateCache?.nonce === nonce && Date.now() - recentStateCache.createdAt < 15 * 60 * 1000) {
+    return recentStateCache.states;
+  }
+
+  const latestState = await findLatestOpenedState(nonce, Math.max(requestedState, 3000));
+  const now = new Date();
+  const cutoff = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - (2 * dayMs);
+  const states: RecentlyOpenedState[] = [];
+
+  for (let state = latestState; state > 0 && states.length < 24; state -= 1) {
+    const timeline = await fetchTimelineHtml(nonce, state);
+    if (!timeline.startedDate) {
+      continue;
+    }
+    if (timeline.startedDate.getTime() < cutoff) {
+      break;
+    }
+
+    states.push({
+      state: String(state),
+      openedAt: formatUtcTime(timeline.startedDate),
+      openedAtIso: timeline.startedDate.toISOString(),
+      activeFor: timeline.activeFor,
+      dayLabel: recentDayLabel(timeline.startedDate),
+    });
+  }
+
+  recentStateCache = { nonce, createdAt: Date.now(), states };
+  return states;
+};
+
 export async function GET(request: Request) {
   const state = new URL(request.url).searchParams.get("state")?.replace(/\D/g, "") || "";
   if (!state) {
@@ -127,34 +273,20 @@ export async function GET(request: Request) {
       throw new Error("Source nonce not found.");
     }
 
-    const response = await fetch(ajaxUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
-      body: new URLSearchParams({
-        action: "stp_get_timeline",
-        nonce,
-        server_id: state,
-      }),
-      cache: "no-store",
-    });
-    const payload = await response.json();
+    const timeline = await fetchTimelineHtml(nonce, Number(state));
 
-    if (!payload?.success || !payload?.data?.html) {
-      return NextResponse.json({ error: payload?.data?.message || "State not found in the source timeline." }, { status: 404 });
+    if (!timeline.html) {
+      return NextResponse.json({ error: timeline.error }, { status: 404 });
     }
-
-    const html = String(payload.data.html);
-    const stateInfo = cleanText(firstMatch(html, /<div class="stp-alert stp-live-notice">([\s\S]*?)<\/div>/i));
-    const startedAt = cleanText(firstMatch(stateInfo, /It started on\s+([^.]+UTC)/i));
-    const activeFor = cleanText(firstMatch(stateInfo, /active for\s+(.+?)\s*\./i));
 
     return NextResponse.json({
       state,
-      activeFor,
-      startedAt,
+      activeFor: timeline.activeFor,
+      startedAt: timeline.startedAt,
       sourceUrl,
       sourceUpdatedAt: cleanText(sourceUpdatedAt),
-      events: parseStateTimeline(html),
+      recentlyOpenedStates: await getRecentlyOpenedStates(nonce, Number(state)),
+      events: parseStateTimeline(timeline.html),
     });
   } catch {
     return NextResponse.json({ error: "Unable to load state age data right now." }, { status: 502 });
