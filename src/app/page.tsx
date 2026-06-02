@@ -1149,6 +1149,36 @@ function Icon({ name }: { name: string }) {
   );
 }
 
+type ShareBrand = "whatsapp" | "x" | "facebook" | "linkedin" | "telegram" | "email";
+
+function BrandLogo({ brand }: { brand: ShareBrand }) {
+  const logos: Record<ShareBrand, string> = {
+    whatsapp: "https://cdn.simpleicons.org/whatsapp/white",
+    x: "https://cdn.simpleicons.org/x/white",
+    facebook: "https://cdn.simpleicons.org/facebook/white",
+    linkedin: "https://cdn.simpleicons.org/linkedin/white",
+    telegram: "https://cdn.simpleicons.org/telegram/white",
+    email: "https://cdn.simpleicons.org/gmail/white",
+  };
+  const logo = logos[brand];
+  if (brand === "whatsapp") {
+    return <span className="brand-logo whatsapp" aria-hidden="true"><img src={logo} alt="" /></span>;
+  }
+  if (brand === "x") {
+    return <span className="brand-logo x" aria-hidden="true"><img src={logo} alt="" /></span>;
+  }
+  if (brand === "facebook") {
+    return <span className="brand-logo facebook" aria-hidden="true"><img src={logo} alt="" /></span>;
+  }
+  if (brand === "linkedin") {
+    return <span className="brand-logo linkedin" aria-hidden="true"><img src={logo} alt="" /></span>;
+  }
+  if (brand === "telegram") {
+    return <span className="brand-logo telegram" aria-hidden="true"><img src={logo} alt="" /></span>;
+  }
+  return <span className="brand-logo email" aria-hidden="true"><img src={logo} alt="" /></span>;
+}
+
 function StateTransferCountdown() {
   const [open, setOpen] = useState(false);
   const [now, setNow] = useState<number | null>(null);
@@ -6081,12 +6111,12 @@ export default function Home() {
               <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><Icon name="copy" />Copy</button>
               <a href={templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
               {shareTemplateTarget.imageUrl && <button type="button" onClick={() => { setTemplateImageViewer(shareTemplateTarget); setShareTemplateTarget(null); }}><Icon name="image" />Image</button>}
-              <a href={socialShareUrl("whatsapp", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>WhatsApp</a>
-              <a href={socialShareUrl("x", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>X</a>
-              <a href={socialShareUrl("facebook", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>Facebook</a>
-              <a href={socialShareUrl("linkedin", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>LinkedIn</a>
-              <a href={socialShareUrl("telegram", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>Telegram</a>
-              <a href={socialShareUrl("email", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>Email</a>
+              <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+              <a className="brand-share x" href={socialShareUrl("x", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="x" /><span>X</span></a>
+              <a className="brand-share facebook" href={socialShareUrl("facebook", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="facebook" /><span>Facebook</span></a>
+              <a className="brand-share linkedin" href={socialShareUrl("linkedin", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
+              <a className="brand-share telegram" href={socialShareUrl("telegram", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="telegram" /><span>Telegram</span></a>
+              <a className="brand-share email" href={socialShareUrl("email", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="email" /><span>Email</span></a>
             </div>
           </section>
         </div>
@@ -6117,12 +6147,12 @@ export default function Home() {
               <button type="button" onClick={() => shareIsland(shareIslandTarget)}><Icon name="copy" />Copy</button>
               <a href={shareUrlFor(shareIslandTarget)} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
               <button type="button" onClick={() => { setShareIslandTarget(null); void loadComments(shareIslandTarget); }}><Icon name="image" />Image</button>
-              <a href={socialShareUrl("whatsapp", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>WhatsApp</a>
-              <a href={socialShareUrl("x", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>X</a>
-              <a href={socialShareUrl("facebook", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Facebook</a>
-              <a href={socialShareUrl("linkedin", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>LinkedIn</a>
-              <a href={socialShareUrl("telegram", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Telegram</a>
-              <a href={socialShareUrl("email", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} onClick={() => void shareIsland(shareIslandTarget)}>Email</a>
+              <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+              <a className="brand-share x" href={socialShareUrl("x", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="x" /><span>X</span></a>
+              <a className="brand-share facebook" href={socialShareUrl("facebook", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="facebook" /><span>Facebook</span></a>
+              <a className="brand-share linkedin" href={socialShareUrl("linkedin", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
+              <a className="brand-share telegram" href={socialShareUrl("telegram", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="telegram" /><span>Telegram</span></a>
+              <a className="brand-share email" href={socialShareUrl("email", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="email" /><span>Email</span></a>
             </div>
           </section>
         </div>

@@ -5619,11 +5619,11 @@ body {
 .share-modal {
   position: relative;
   display: grid;
-  gap: 14px;
-  width: min(640px, calc(100vw - 32px));
+  gap: 12px;
+  width: min(560px, calc(100vw - 32px));
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 18px;
+  padding: 16px;
   background: var(--card);
   color: var(--foreground);
   box-shadow:
@@ -5634,17 +5634,17 @@ body {
 
 .share-modal-head {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding-right: 34px;
 }
 
 .share-modal-head img,
 .share-modal-head > span {
   display: grid;
-  width: 58px;
-  height: 58px;
+  width: 48px;
+  height: 48px;
   place-items: center;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -5665,7 +5665,7 @@ body {
 }
 
 .share-modal h2 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -5680,20 +5680,20 @@ body {
 
 .share-preview-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 104px;
+  grid-template-columns: minmax(0, 1fr) 88px;
   align-items: stretch;
-  gap: 10px;
+  gap: 8px;
 }
 
 .share-url-box {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-columns: minmax(0, 1fr) 30px;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 7px 7px 7px 12px;
+  padding: 6px 6px 6px 10px;
   background: color-mix(in srgb, var(--background) 90%, var(--muted));
   color: var(--muted-foreground);
   font-family: var(--font-geist-mono), monospace;
@@ -5706,8 +5706,8 @@ body {
 }
 
 .share-qr {
-  width: 104px;
-  height: 104px;
+  width: 88px;
+  height: 88px;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px;
@@ -5723,8 +5723,8 @@ body {
 
 .share-url-box button {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
@@ -5749,30 +5749,103 @@ body {
 .share-icon-row {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
 .share-icon-row button,
 .share-icon-row a {
   display: inline-flex;
-  min-height: 46px;
+  min-height: 52px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 5px;
   border: 1px solid var(--border);
   border-radius: 9px;
   background: color-mix(in srgb, var(--background) 90%, var(--muted));
   color: var(--foreground);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   text-align: center;
   transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .share-icon-row svg {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
+}
+
+.brand-logo {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 7px;
+  color: #fff;
+}
+
+.brand-logo img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.brand-logo.whatsapp {
+  background: #25d366;
+}
+
+.brand-logo.x {
+  background: #000;
+}
+
+.brand-logo.facebook {
+  background: #1877f2;
+}
+
+.brand-logo.linkedin {
+  background: #0a66c2;
+}
+
+.brand-logo.telegram {
+  background: #229ed9;
+}
+
+.brand-logo.email {
+  background: linear-gradient(135deg, #ea4335 0 34%, #fbbc05 34% 52%, #34a853 52% 70%, #4285f4 70%);
+}
+
+.share-icon-row .brand-share {
+  background: color-mix(in srgb, var(--background) 94%, var(--muted));
+}
+
+.share-icon-row .brand-share.whatsapp:hover {
+  border-color: rgba(37, 211, 102, 0.6);
+  background: rgba(37, 211, 102, 0.1);
+}
+
+.share-icon-row .brand-share.x:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.share-icon-row .brand-share.facebook:hover {
+  border-color: rgba(24, 119, 242, 0.6);
+  background: rgba(24, 119, 242, 0.1);
+}
+
+.share-icon-row .brand-share.linkedin:hover {
+  border-color: rgba(10, 102, 194, 0.6);
+  background: rgba(10, 102, 194, 0.1);
+}
+
+.share-icon-row .brand-share.telegram:hover {
+  border-color: rgba(34, 158, 217, 0.6);
+  background: rgba(34, 158, 217, 0.1);
+}
+
+.share-icon-row .brand-share.email:hover {
+  border-color: rgba(234, 67, 53, 0.6);
+  background: rgba(234, 67, 53, 0.08);
 }
 
 .share-icon-row button:hover,
@@ -5803,6 +5876,41 @@ body {
   background: rgba(37, 211, 102, 0.08);
   border-color: rgba(37, 211, 102, 0.5);
   box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
+}
+
+.share-icon-row .brand-share.whatsapp:hover {
+  border-color: rgba(37, 211, 102, 0.6);
+  background: rgba(37, 211, 102, 0.1);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
+}
+
+.share-icon-row .brand-share.x:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.share-icon-row .brand-share.facebook:hover {
+  border-color: rgba(24, 119, 242, 0.6);
+  background: rgba(24, 119, 242, 0.1);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.15);
+}
+
+.share-icon-row .brand-share.linkedin:hover {
+  border-color: rgba(10, 102, 194, 0.6);
+  background: rgba(10, 102, 194, 0.1);
+  box-shadow: 0 4px 12px rgba(10, 102, 194, 0.15);
+}
+
+.share-icon-row .brand-share.telegram:hover {
+  border-color: rgba(34, 158, 217, 0.6);
+  background: rgba(34, 158, 217, 0.1);
+  box-shadow: 0 4px 12px rgba(34, 158, 217, 0.15);
+}
+
+.share-icon-row .brand-share.email:hover {
+  border-color: rgba(234, 67, 53, 0.6);
+  background: rgba(234, 67, 53, 0.08);
+  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.12);
 }
 
 .island-detail-media .image-viewer-toolbar {
