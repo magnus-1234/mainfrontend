@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
         destination: "/?menu=chief-charms",
       },
       {
+        source: "/chief-gear-calculator",
+        destination: "/?menu=chief-gear-calculator",
+      },
+      {
+        source: "/chief-gear",
+        destination: "/?menu=chief-gear",
+      },
+      {
         source: "/message-templates",
         destination: "/?menu=message-templates",
       },

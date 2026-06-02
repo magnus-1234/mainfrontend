@@ -48,7 +48,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "chiefCharm" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
@@ -110,6 +110,39 @@ type ChiefCharmGearPiece = {
 };
 
 type ChiefCharmGearState = Record<string, ChiefCharmSlotState[]>;
+
+type ChiefGearCost = {
+  designPlans: number;
+  hardenedAlloy: number;
+  lunarAmber: number;
+  polishingSolution: number;
+};
+
+type ChiefGearLevel = {
+  id: string;
+  label: string;
+  tier: string;
+  baseTier: "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic";
+  stars: number;
+  index: number;
+  attackDefense: number;
+  squadCapacity: number;
+  cost: ChiefGearCost;
+};
+
+type ChiefGearPiece = {
+  id: string;
+  name: string;
+  troop: "Infantry" | "Marksman" | "Lancer";
+  stat: string;
+};
+
+type ChiefGearSelection = {
+  from: string;
+  to: string;
+};
+
+type ChiefGearState = Record<string, ChiefGearSelection>;
 type SiteLanguage = {
   code: string;
   name: string;
@@ -447,6 +480,95 @@ const createChiefCharmGearState = (from = 0, to = 0): ChiefCharmGearState =>
     state[gear.id] = Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from, to }));
     return state;
   }, {});
+
+const chiefGearPieces: ChiefGearPiece[] = [
+  { id: "cap", name: "Cap", troop: "Lancer", stat: "Lancer Attack / Defense" },
+  { id: "coat", name: "Coat", troop: "Infantry", stat: "Infantry Attack / Defense" },
+  { id: "ring", name: "Ring", troop: "Marksman", stat: "Marksman Attack / Defense" },
+  { id: "watch", name: "Watch", troop: "Lancer", stat: "Lancer Attack / Defense" },
+  { id: "pants", name: "Pants", troop: "Infantry", stat: "Infantry Attack / Defense" },
+  { id: "weapon", name: "Weapon", troop: "Marksman", stat: "Marksman Attack / Defense" },
+];
+
+const emptyChiefGearCost: ChiefGearCost = { designPlans: 0, hardenedAlloy: 0, lunarAmber: 0, polishingSolution: 0 };
+
+const chiefGearLevels: ChiefGearLevel[] = [
+  { id: "green_0", label: "Uncommon", tier: "Uncommon", baseTier: "Uncommon", stars: 0, index: 0, attackDefense: 9.35, squadCapacity: 0, cost: { designPlans: 0, hardenedAlloy: 1500, lunarAmber: 0, polishingSolution: 15 } },
+  { id: "green_1", label: "Uncommon 1-Star", tier: "Uncommon", baseTier: "Uncommon", stars: 1, index: 1, attackDefense: 12.75, squadCapacity: 0, cost: { designPlans: 0, hardenedAlloy: 3800, lunarAmber: 0, polishingSolution: 40 } },
+  { id: "blue_0", label: "Rare", tier: "Rare", baseTier: "Rare", stars: 0, index: 2, attackDefense: 17, squadCapacity: 0, cost: { designPlans: 0, hardenedAlloy: 7000, lunarAmber: 0, polishingSolution: 70 } },
+  { id: "blue_1", label: "Rare 1-Star", tier: "Rare", baseTier: "Rare", stars: 1, index: 3, attackDefense: 21.25, squadCapacity: 0, cost: { designPlans: 0, hardenedAlloy: 9700, lunarAmber: 0, polishingSolution: 95 } },
+  { id: "blue_2", label: "Rare 2-Star", tier: "Rare", baseTier: "Rare", stars: 2, index: 4, attackDefense: 25.5, squadCapacity: 0, cost: { designPlans: 45, hardenedAlloy: 0, lunarAmber: 0, polishingSolution: 0 } },
+  { id: "blue_3", label: "Rare 3-Star", tier: "Rare", baseTier: "Rare", stars: 3, index: 5, attackDefense: 29.75, squadCapacity: 0, cost: { designPlans: 50, hardenedAlloy: 0, lunarAmber: 0, polishingSolution: 0 } },
+  { id: "purple_0", label: "Epic", tier: "Epic", baseTier: "Epic", stars: 0, index: 6, attackDefense: 34, squadCapacity: 0, cost: { designPlans: 60, hardenedAlloy: 0, lunarAmber: 0, polishingSolution: 0 } },
+  { id: "purple_1", label: "Epic 1-Star", tier: "Epic", baseTier: "Epic", stars: 1, index: 7, attackDefense: 36.89, squadCapacity: 0, cost: { designPlans: 70, hardenedAlloy: 0, lunarAmber: 0, polishingSolution: 0 } },
+  { id: "purple_2", label: "Epic 2-Star", tier: "Epic", baseTier: "Epic", stars: 2, index: 8, attackDefense: 39.78, squadCapacity: 0, cost: { designPlans: 40, hardenedAlloy: 6500, lunarAmber: 0, polishingSolution: 65 } },
+  { id: "purple_3", label: "Epic 3-Star", tier: "Epic", baseTier: "Epic", stars: 3, index: 9, attackDefense: 42.67, squadCapacity: 0, cost: { designPlans: 50, hardenedAlloy: 8000, lunarAmber: 0, polishingSolution: 80 } },
+  { id: "purple_t1_0", label: "Epic T1", tier: "Epic T1", baseTier: "Epic", stars: 0, index: 10, attackDefense: 45.56, squadCapacity: 0, cost: { designPlans: 60, hardenedAlloy: 10000, lunarAmber: 0, polishingSolution: 95 } },
+  { id: "purple_t1_1", label: "Epic T1 1-Star", tier: "Epic T1", baseTier: "Epic", stars: 1, index: 11, attackDefense: 48.45, squadCapacity: 0, cost: { designPlans: 70, hardenedAlloy: 11000, lunarAmber: 0, polishingSolution: 110 } },
+  { id: "purple_t1_2", label: "Epic T1 2-Star", tier: "Epic T1", baseTier: "Epic", stars: 2, index: 12, attackDefense: 51.34, squadCapacity: 0, cost: { designPlans: 85, hardenedAlloy: 13000, lunarAmber: 0, polishingSolution: 130 } },
+  { id: "purple_t1_3", label: "Epic T1 3-Star", tier: "Epic T1", baseTier: "Epic", stars: 3, index: 13, attackDefense: 54.23, squadCapacity: 0, cost: { designPlans: 100, hardenedAlloy: 15000, lunarAmber: 0, polishingSolution: 160 } },
+  { id: "gold_0", label: "Legendary", tier: "Legendary", baseTier: "Legendary", stars: 0, index: 14, attackDefense: 56.78, squadCapacity: 0, cost: { designPlans: 40, hardenedAlloy: 22000, lunarAmber: 0, polishingSolution: 220 } },
+  { id: "gold_1", label: "Legendary 1-Star", tier: "Legendary", baseTier: "Legendary", stars: 1, index: 15, attackDefense: 59.33, squadCapacity: 0, cost: { designPlans: 40, hardenedAlloy: 23000, lunarAmber: 0, polishingSolution: 230 } },
+  { id: "gold_2", label: "Legendary 2-Star", tier: "Legendary", baseTier: "Legendary", stars: 2, index: 16, attackDefense: 61.88, squadCapacity: 0, cost: { designPlans: 45, hardenedAlloy: 25000, lunarAmber: 0, polishingSolution: 250 } },
+  { id: "gold_3", label: "Legendary 3-Star", tier: "Legendary", baseTier: "Legendary", stars: 3, index: 17, attackDefense: 64.43, squadCapacity: 0, cost: { designPlans: 45, hardenedAlloy: 26000, lunarAmber: 0, polishingSolution: 260 } },
+  { id: "gold_t1_0", label: "Legendary T1", tier: "Legendary T1", baseTier: "Legendary", stars: 0, index: 18, attackDefense: 66.98, squadCapacity: 0, cost: { designPlans: 45, hardenedAlloy: 28000, lunarAmber: 0, polishingSolution: 280 } },
+  { id: "gold_t1_1", label: "Legendary T1 1-Star", tier: "Legendary T1", baseTier: "Legendary", stars: 1, index: 19, attackDefense: 69.53, squadCapacity: 0, cost: { designPlans: 55, hardenedAlloy: 30000, lunarAmber: 0, polishingSolution: 300 } },
+  { id: "gold_t1_2", label: "Legendary T1 2-Star", tier: "Legendary T1", baseTier: "Legendary", stars: 2, index: 20, attackDefense: 72.08, squadCapacity: 0, cost: { designPlans: 55, hardenedAlloy: 32000, lunarAmber: 0, polishingSolution: 320 } },
+  { id: "gold_t1_3", label: "Legendary T1 3-Star", tier: "Legendary T1", baseTier: "Legendary", stars: 3, index: 21, attackDefense: 74.63, squadCapacity: 0, cost: { designPlans: 55, hardenedAlloy: 35000, lunarAmber: 0, polishingSolution: 340 } },
+  { id: "gold_t2_0", label: "Legendary T2", tier: "Legendary T2", baseTier: "Legendary", stars: 0, index: 22, attackDefense: 77.18, squadCapacity: 0, cost: { designPlans: 55, hardenedAlloy: 38000, lunarAmber: 0, polishingSolution: 360 } },
+  { id: "gold_t2_1", label: "Legendary T2 1-Star", tier: "Legendary T2", baseTier: "Legendary", stars: 1, index: 23, attackDefense: 79.73, squadCapacity: 0, cost: { designPlans: 75, hardenedAlloy: 43000, lunarAmber: 0, polishingSolution: 430 } },
+  { id: "gold_t2_2", label: "Legendary T2 2-Star", tier: "Legendary T2", baseTier: "Legendary", stars: 2, index: 24, attackDefense: 82.28, squadCapacity: 0, cost: { designPlans: 80, hardenedAlloy: 45000, lunarAmber: 0, polishingSolution: 460 } },
+  { id: "gold_t2_3", label: "Legendary T2 3-Star", tier: "Legendary T2", baseTier: "Legendary", stars: 3, index: 25, attackDefense: 85, squadCapacity: 0, cost: { designPlans: 85, hardenedAlloy: 48000, lunarAmber: 0, polishingSolution: 500 } },
+  { id: "red_0", label: "Mythic", tier: "Mythic", baseTier: "Mythic", stars: 0, index: 26, attackDefense: 89.25, squadCapacity: 30, cost: { designPlans: 85, hardenedAlloy: 50000, lunarAmber: 10, polishingSolution: 530 } },
+  { id: "red_1", label: "Mythic 1-Star", tier: "Mythic", baseTier: "Mythic", stars: 1, index: 27, attackDefense: 93.5, squadCapacity: 80, cost: { designPlans: 90, hardenedAlloy: 52000, lunarAmber: 10, polishingSolution: 560 } },
+  { id: "red_2", label: "Mythic 2-Star", tier: "Mythic", baseTier: "Mythic", stars: 2, index: 28, attackDefense: 97.75, squadCapacity: 120, cost: { designPlans: 95, hardenedAlloy: 54000, lunarAmber: 10, polishingSolution: 590 } },
+  { id: "red_3", label: "Mythic 3-Star", tier: "Mythic", baseTier: "Mythic", stars: 3, index: 29, attackDefense: 102, squadCapacity: 160, cost: { designPlans: 100, hardenedAlloy: 56000, lunarAmber: 10, polishingSolution: 620 } },
+  { id: "red_t1_0", label: "Mythic T1", tier: "Mythic T1", baseTier: "Mythic", stars: 0, index: 30, attackDefense: 106.25, squadCapacity: 290, cost: { designPlans: 110, hardenedAlloy: 59000, lunarAmber: 15, polishingSolution: 670 } },
+  { id: "red_t1_1", label: "Mythic T1 1-Star", tier: "Mythic T1", baseTier: "Mythic", stars: 1, index: 31, attackDefense: 110.5, squadCapacity: 330, cost: { designPlans: 115, hardenedAlloy: 61000, lunarAmber: 15, polishingSolution: 700 } },
+  { id: "red_t1_2", label: "Mythic T1 2-Star", tier: "Mythic T1", baseTier: "Mythic", stars: 2, index: 32, attackDefense: 114.75, squadCapacity: 370, cost: { designPlans: 120, hardenedAlloy: 63000, lunarAmber: 15, polishingSolution: 730 } },
+  { id: "red_t1_3", label: "Mythic T1 3-Star", tier: "Mythic T1", baseTier: "Mythic", stars: 3, index: 33, attackDefense: 119, squadCapacity: 410, cost: { designPlans: 125, hardenedAlloy: 65000, lunarAmber: 15, polishingSolution: 760 } },
+  { id: "red_t2_0", label: "Mythic T2", tier: "Mythic T2", baseTier: "Mythic", stars: 0, index: 34, attackDefense: 123.25, squadCapacity: 540, cost: { designPlans: 135, hardenedAlloy: 68000, lunarAmber: 20, polishingSolution: 810 } },
+  { id: "red_t2_1", label: "Mythic T2 1-Star", tier: "Mythic T2", baseTier: "Mythic", stars: 1, index: 35, attackDefense: 127.5, squadCapacity: 580, cost: { designPlans: 140, hardenedAlloy: 70000, lunarAmber: 20, polishingSolution: 840 } },
+  { id: "red_t2_2", label: "Mythic T2 2-Star", tier: "Mythic T2", baseTier: "Mythic", stars: 2, index: 36, attackDefense: 131.75, squadCapacity: 620, cost: { designPlans: 145, hardenedAlloy: 72000, lunarAmber: 20, polishingSolution: 870 } },
+  { id: "red_t2_3", label: "Mythic T2 3-Star", tier: "Mythic T2", baseTier: "Mythic", stars: 3, index: 37, attackDefense: 136, squadCapacity: 660, cost: { designPlans: 150, hardenedAlloy: 74000, lunarAmber: 20, polishingSolution: 900 } },
+  { id: "red_t3_0", label: "Mythic T3", tier: "Mythic T3", baseTier: "Mythic", stars: 0, index: 38, attackDefense: 140.25, squadCapacity: 790, cost: { designPlans: 160, hardenedAlloy: 77000, lunarAmber: 25, polishingSolution: 950 } },
+  { id: "red_t3_1", label: "Mythic T3 1-Star", tier: "Mythic T3", baseTier: "Mythic", stars: 1, index: 39, attackDefense: 144.5, squadCapacity: 830, cost: { designPlans: 165, hardenedAlloy: 80000, lunarAmber: 25, polishingSolution: 990 } },
+  { id: "red_t3_2", label: "Mythic T3 2-Star", tier: "Mythic T3", baseTier: "Mythic", stars: 2, index: 40, attackDefense: 148.75, squadCapacity: 870, cost: { designPlans: 170, hardenedAlloy: 83000, lunarAmber: 25, polishingSolution: 1030 } },
+  { id: "red_t3_3", label: "Mythic T3 3-Star", tier: "Mythic T3", baseTier: "Mythic", stars: 3, index: 41, attackDefense: 153, squadCapacity: 910, cost: { designPlans: 180, hardenedAlloy: 86000, lunarAmber: 25, polishingSolution: 1070 } },
+  { id: "red_t4_0", label: "Mythic T4", tier: "Mythic T4", baseTier: "Mythic", stars: 0, index: 42, attackDefense: 161.5, squadCapacity: 1050, cost: { designPlans: 250, hardenedAlloy: 120000, lunarAmber: 40, polishingSolution: 1500 } },
+  { id: "red_t4_1", label: "Mythic T4 1-Star", tier: "Mythic T4", baseTier: "Mythic", stars: 1, index: 43, attackDefense: 170, squadCapacity: 1100, cost: { designPlans: 275, hardenedAlloy: 140000, lunarAmber: 40, polishingSolution: 1650 } },
+  { id: "red_t4_2", label: "Mythic T4 2-Star", tier: "Mythic T4", baseTier: "Mythic", stars: 2, index: 44, attackDefense: 178.5, squadCapacity: 1150, cost: { designPlans: 300, hardenedAlloy: 160000, lunarAmber: 40, polishingSolution: 1800 } },
+  { id: "red_t4_3", label: "Mythic T4 3-Star", tier: "Mythic T4", baseTier: "Mythic", stars: 3, index: 45, attackDefense: 187, squadCapacity: 1200, cost: { designPlans: 325, hardenedAlloy: 180000, lunarAmber: 40, polishingSolution: 1950 } },
+];
+
+const chiefGearLevelMap = new Map(chiefGearLevels.map((level) => [level.id, level]));
+const chiefGearTierOrder = ["Uncommon", "Rare", "Epic", "Legendary", "Mythic"] as const;
+const createChiefGearState = (from = "", to = "gold_t2_3"): ChiefGearState =>
+  chiefGearPieces.reduce<ChiefGearState>((state, gear) => {
+    state[gear.id] = { from, to };
+    return state;
+  }, {});
+
+const addChiefGearCost = (left: ChiefGearCost, right: ChiefGearCost): ChiefGearCost => ({
+  designPlans: left.designPlans + right.designPlans,
+  hardenedAlloy: left.hardenedAlloy + right.hardenedAlloy,
+  lunarAmber: left.lunarAmber + right.lunarAmber,
+  polishingSolution: left.polishingSolution + right.polishingSolution,
+});
+
+const calculateChiefGearCost = (fromId: string, toId: string) => {
+  const fromIndex = fromId ? chiefGearLevelMap.get(fromId)?.index ?? -1 : -1;
+  const toLevel = chiefGearLevelMap.get(toId);
+  if (!toLevel || fromIndex >= toLevel.index) {
+    return { steps: [] as ChiefGearLevel[], total: emptyChiefGearCost };
+  }
+
+  const steps = chiefGearLevels.filter((level) => level.index > fromIndex && level.index <= toLevel.index);
+  return {
+    steps,
+    total: steps.reduce((sum, level) => addChiefGearCost(sum, level.cost), emptyChiefGearCost),
+  };
+};
 
 const formatNumber = (value: number) => new Intl.NumberFormat("en-US").format(Math.round(value));
 
@@ -852,6 +974,7 @@ const sidebarItems: {
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
     { label: "Chief Charm Calculator", mobileLabel: "Charms", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
+    { label: "Chief Gear Calculator", mobileLabel: "Gear", icon: "shield", menu: "chiefGear", href: "/chief-gear-calculator" },
     { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/#foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
@@ -876,6 +999,9 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#chief-charm-calculator": "chiefCharm",
   "#chief-charms": "chiefCharm",
   "#charm-calculator": "chiefCharm",
+  "#chief-gear-calculator": "chiefGear",
+  "#chief-gear": "chiefGear",
+  "#gear-calculator": "chiefGear",
   "#foundry-team-planner": "planner",
   "#foundry-planner": "planner",
   "#city-layout-planner": "planner",
@@ -908,6 +1034,9 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   "chief-charm-calculator": "chiefCharm",
   "chief-charms": "chiefCharm",
   charms: "chiefCharm",
+  "chief-gear-calculator": "chiefGear",
+  "chief-gear": "chiefGear",
+  gear: "chiefGear",
   planner: "planner",
   templates: "templates",
   "message-templates": "templates",
@@ -925,6 +1054,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   redeem: "/redeem",
   stateAge: "/state-age",
   chiefCharm: "/chief-charm-calculator",
+  chiefGear: "/chief-gear-calculator",
   planner: "/#foundry-team-planner",
   templates: "/message-templates",
   sneak: "/#sneak-peek",
@@ -964,6 +1094,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/chief-charm-calculator") || location.pathname.startsWith("/chief-charms")) {
     return "chiefCharm";
+  }
+
+  if (location.pathname.startsWith("/chief-gear-calculator") || location.pathname.startsWith("/chief-gear")) {
+    return "chiefGear";
   }
 
   if (location.pathname.startsWith("/message-templates")) {
@@ -1712,6 +1846,11 @@ export default function Home() {
   const [ownedCharmDesign, setOwnedCharmDesign] = useState(0);
   const [ownedCharmGuide, setOwnedCharmGuide] = useState(0);
   const [ownedCharmSecret, setOwnedCharmSecret] = useState(0);
+  const [chiefGearState, setChiefGearState] = useState<ChiefGearState>(() => createChiefGearState());
+  const [ownedChiefGearAlloy, setOwnedChiefGearAlloy] = useState(0);
+  const [ownedChiefGearPolish, setOwnedChiefGearPolish] = useState(0);
+  const [ownedChiefGearPlans, setOwnedChiefGearPlans] = useState(0);
+  const [ownedChiefGearAmber, setOwnedChiefGearAmber] = useState(0);
   const [foundryLegion, setFoundryLegion] = useState<"1" | "2">("1");
   const [foundryUtcTime, setFoundryUtcTime] = useState("");
   const [foundryTeamCount, setFoundryTeamCount] = useState(4);
@@ -3332,6 +3471,76 @@ export default function Home() {
     charmAllSlotCost.secret > 0
       ? "Jewel Secret pressure starts at Lv.12. Check that material before pushing late charm levels."
       : "Early WOS charm value usually comes from leveling all 18 slots evenly before deep pushes.";
+  const chiefGearLevelGroups = chiefGearTierOrder.map((tier) => ({
+    levels: chiefGearLevels.filter((level) => level.baseTier === tier),
+    tier,
+  }));
+  const updateChiefGearPiece = useCallback((gearId: string, field: keyof ChiefGearSelection, value: string) => {
+    setChiefGearState((current) => {
+      const currentPiece = current[gearId] || { from: "", to: "" };
+      const nextPiece = { ...currentPiece, [field]: value };
+      const fromIndex = nextPiece.from ? chiefGearLevelMap.get(nextPiece.from)?.index ?? -1 : -1;
+      const toIndex = nextPiece.to ? chiefGearLevelMap.get(nextPiece.to)?.index ?? -1 : -1;
+
+      if (nextPiece.to && fromIndex >= toIndex) {
+        if (field === "from") {
+          nextPiece.to = chiefGearLevels.find((level) => level.index > fromIndex)?.id || "";
+        } else {
+          nextPiece.from = "";
+        }
+      }
+
+      return { ...current, [gearId]: nextPiece };
+    });
+  }, []);
+  const applyChiefGearPreset = useCallback((from: string, to: string) => {
+    setChiefGearState(createChiefGearState(from, to));
+  }, []);
+  const chiefGearRows = chiefGearPieces.map((gear) => {
+    const selection = chiefGearState[gear.id] || { from: "", to: "" };
+    const calculation = calculateChiefGearCost(selection.from, selection.to);
+    const fromLevel = selection.from ? chiefGearLevelMap.get(selection.from) : undefined;
+    const toLevel = selection.to ? chiefGearLevelMap.get(selection.to) : undefined;
+    return { calculation, fromLevel, gear, selection, toLevel };
+  });
+  const chiefGearTotalCost = chiefGearRows.reduce((sum, row) => addChiefGearCost(sum, row.calculation.total), emptyChiefGearCost);
+  const chiefGearPlannedPieces = chiefGearRows.filter((row) => row.calculation.steps.length > 0).length;
+  const chiefGearMaxedPieces = chiefGearRows.filter((row) => row.selection.to === "red_t4_3").length;
+  const chiefGearHighestTarget = chiefGearRows
+    .map((row) => row.toLevel)
+    .filter((level): level is ChiefGearLevel => Boolean(level))
+    .sort((a, b) => b.index - a.index)[0];
+  const chiefGearAttackGain = chiefGearRows.reduce((sum, row) => sum + Math.max(0, (row.toLevel?.attackDefense || 0) - (row.fromLevel?.attackDefense || 0)), 0);
+  const chiefGearCapacityGain = chiefGearRows.reduce((sum, row) => sum + Math.max(0, (row.toLevel?.squadCapacity || 0) - (row.fromLevel?.squadCapacity || 0)), 0);
+  const chiefGearShortfall = {
+    designPlans: Math.max(0, chiefGearTotalCost.designPlans - ownedChiefGearPlans),
+    hardenedAlloy: Math.max(0, chiefGearTotalCost.hardenedAlloy - ownedChiefGearAlloy),
+    lunarAmber: Math.max(0, chiefGearTotalCost.lunarAmber - ownedChiefGearAmber),
+    polishingSolution: Math.max(0, chiefGearTotalCost.polishingSolution - ownedChiefGearPolish),
+  };
+  const chiefGearCoverage = {
+    designPlans: chiefGearTotalCost.designPlans > 0 ? Math.min(100, (ownedChiefGearPlans / chiefGearTotalCost.designPlans) * 100) : 100,
+    hardenedAlloy: chiefGearTotalCost.hardenedAlloy > 0 ? Math.min(100, (ownedChiefGearAlloy / chiefGearTotalCost.hardenedAlloy) * 100) : 100,
+    lunarAmber: chiefGearTotalCost.lunarAmber > 0 ? Math.min(100, (ownedChiefGearAmber / chiefGearTotalCost.lunarAmber) * 100) : 100,
+    polishingSolution: chiefGearTotalCost.polishingSolution > 0 ? Math.min(100, (ownedChiefGearPolish / chiefGearTotalCost.polishingSolution) * 100) : 100,
+  };
+  const chiefGearCanFinish = Object.values(chiefGearShortfall).every((value) => value === 0);
+  const chiefGearExchangeRows = [
+    "10 Design Plans -> 1 Lunar Amber",
+    "1 Design Plan -> 3 Polishing Solution",
+    "1 Design Plan -> 300 Hardened Alloy",
+    "10 Polishing Solution -> 1 Design Plan",
+    "50 Hardened Alloy -> 1 Polishing Solution",
+    "1,000 Hardened Alloy -> 1 Design Plan",
+  ];
+  const chiefGearTroopTotals = chiefCharmTroops.map((troop) => {
+    const rows = chiefGearRows.filter((row) => row.gear.troop === troop);
+    return {
+      attack: rows.reduce((sum, row) => sum + Math.max(0, (row.toLevel?.attackDefense || 0) - (row.fromLevel?.attackDefense || 0)), 0),
+      cost: rows.reduce((sum, row) => addChiefGearCost(sum, row.calculation.total), emptyChiefGearCost),
+      troop,
+    };
+  });
   const heroFilterCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
     const group = heroFilterFor(hero);
     counts[group] = (counts[group] || 0) + 1;
@@ -4447,6 +4656,227 @@ export default function Home() {
                     ))}
                   </div>
                 )}
+              </section>
+            </section>
+          ) : activeMenu === "chiefGear" ? (
+            <section className="home-page chief-gear-page" id="chief-gear-calculator" aria-label="Whiteout Survival Chief Gear calculator">
+              <section className="chief-gear-hero">
+                <div>
+                  <span className="section-kicker">Chief Gear Calculator</span>
+                  <h1>Chief Gear Upgrade Planner</h1>
+                  <p>Plan all six WOS Chief Gear pieces from Uncommon to Mythic T4 with material totals, inventory shortfalls, troop buffs, and exchange context.</p>
+                  <div className="chief-gear-hero-chips" aria-label="Chief Gear facts">
+                    <span><Icon name="flame" /> Furnace Lv.22 unlock</span>
+                    <span><Icon name="shield" /> 6 gear pieces</span>
+                    <span><Icon name="database" /> T4 data included</span>
+                    <span><Icon name="star" /> Amber from Mythic</span>
+                  </div>
+                </div>
+                <div className="chief-gear-visual" aria-hidden="true">
+                  {chiefGearPieces.map((piece, index) => (
+                    <span className={`gear-node troop-${piece.troop.toLowerCase()}`} key={piece.id} style={{ ["--gear-angle" as string]: `${index * 60}deg` }}>
+                      {piece.name}
+                    </span>
+                  ))}
+                  <div className="gear-core">
+                    <Icon name="shield" />
+                    <strong>{chiefGearMaxedPieces}/6</strong>
+                    <small>Mythic T4 max</small>
+                  </div>
+                </div>
+              </section>
+
+              <section className="chief-gear-summary" aria-label="Chief Gear result summary">
+                <article className="primary">
+                  <span>Total Material Load</span>
+                  <strong>{formatNumber(chiefGearTotalCost.hardenedAlloy + chiefGearTotalCost.polishingSolution + chiefGearTotalCost.designPlans + chiefGearTotalCost.lunarAmber)}</strong>
+                  <small>{chiefGearPlannedPieces} piece{chiefGearPlannedPieces === 1 ? "" : "s"} with pending upgrades</small>
+                </article>
+                <article>
+                  <span>Highest Target</span>
+                  <strong>{chiefGearHighestTarget?.label || "None"}</strong>
+                  <small>{chiefGearHighestTarget ? `${formatPercent(chiefGearHighestTarget.attackDefense)} attack / defense` : "No upgrades selected"}</small>
+                </article>
+                <article>
+                  <span>Buff Gain</span>
+                  <strong>{formatPercent(chiefGearAttackGain)}</strong>
+                  <small>Total attack / defense gain, plus {formatNumber(chiefGearCapacityGain)} squad capacity</small>
+                </article>
+                <article className={chiefGearCanFinish ? "ready" : "short"}>
+                  <span>Inventory Status</span>
+                  <strong>{chiefGearCanFinish ? "Ready" : "Short"}</strong>
+                  <small>{chiefGearCanFinish ? "Owned materials cover this plan" : "Shortfalls listed below"}</small>
+                </article>
+              </section>
+
+              <section className="chief-gear-workbench" aria-label="Chief Gear calculator controls">
+                <div className="chief-gear-panel">
+                  <div className="chief-charm-panel-head">
+                    <span>Gear Planner</span>
+                    <strong>Configure current and target level for every Chief Gear piece</strong>
+                  </div>
+                  <div className="chief-gear-actions">
+                    <button type="button" onClick={() => applyChiefGearPreset("", "gold_t2_3")}>New to Legendary T2 3-Star</button>
+                    <button type="button" onClick={() => applyChiefGearPreset("gold_t2_3", "red_t3_3")}>Legendary T2 to Mythic T3</button>
+                    <button type="button" onClick={() => applyChiefGearPreset("red_t3_3", "red_t4_3")}>Mythic T3 to T4</button>
+                    <button type="button" onClick={() => applyChiefGearPreset("", "")}>Clear plan</button>
+                  </div>
+                  <div className="chief-gear-grid">
+                    {chiefGearRows.map((row) => (
+                      <article className={`chief-gear-card troop-${row.gear.troop.toLowerCase()}`} key={row.gear.id}>
+                        <div className="chief-gear-card-head">
+                          <div>
+                            <span>{row.gear.troop}</span>
+                            <strong>{row.gear.name}</strong>
+                            <small>{row.gear.stat}</small>
+                          </div>
+                          <b>{row.toLevel?.label || "Unset"}</b>
+                        </div>
+                        <div className="chief-gear-selects">
+                          <label>
+                            <span>From</span>
+                            <select value={row.selection.from} onChange={(event) => updateChiefGearPiece(row.gear.id, "from", event.currentTarget.value)}>
+                              <option value="">Unactivated</option>
+                              {chiefGearLevelGroups.map((group) => (
+                                <optgroup label={group.tier} key={`${row.gear.id}-from-${group.tier}`}>
+                                  {group.levels.map((level) => (
+                                    <option value={level.id} key={level.id}>{level.label}</option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            <span>To</span>
+                            <select value={row.selection.to} onChange={(event) => updateChiefGearPiece(row.gear.id, "to", event.currentTarget.value)}>
+                              <option value="">No target</option>
+                              {chiefGearLevelGroups.map((group) => (
+                                <optgroup label={group.tier} key={`${row.gear.id}-to-${group.tier}`}>
+                                  {group.levels.map((level) => (
+                                    <option value={level.id} key={level.id}>{level.label}</option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                        <div className="chief-gear-card-total">
+                          <span>{formatNumber(row.calculation.total.hardenedAlloy)} Alloy</span>
+                          <span>{formatNumber(row.calculation.total.polishingSolution)} Polish</span>
+                          <span>{formatNumber(row.calculation.total.designPlans)} Plans</span>
+                          <span>{formatNumber(row.calculation.total.lunarAmber)} Amber</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+
+                <aside className="chief-gear-panel">
+                  <div className="chief-charm-panel-head">
+                    <span>Owned Inventory</span>
+                    <strong>Material shortfall check</strong>
+                  </div>
+                  <div className="chief-gear-inventory">
+                    <label><span>Hardened Alloy</span><input value={ownedChiefGearAlloy} onChange={(event) => setOwnedChiefGearAlloy(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span>Polishing Solution</span><input value={ownedChiefGearPolish} onChange={(event) => setOwnedChiefGearPolish(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span>Design Plans</span><input value={ownedChiefGearPlans} onChange={(event) => setOwnedChiefGearPlans(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span>Lunar Amber</span><input value={ownedChiefGearAmber} onChange={(event) => setOwnedChiefGearAmber(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                  </div>
+                  <div className="charm-shortfall-list">
+                    {[
+                      { label: "Alloy", needed: chiefGearTotalCost.hardenedAlloy, owned: ownedChiefGearAlloy, missing: chiefGearShortfall.hardenedAlloy, coverage: chiefGearCoverage.hardenedAlloy },
+                      { label: "Polish", needed: chiefGearTotalCost.polishingSolution, owned: ownedChiefGearPolish, missing: chiefGearShortfall.polishingSolution, coverage: chiefGearCoverage.polishingSolution },
+                      { label: "Plans", needed: chiefGearTotalCost.designPlans, owned: ownedChiefGearPlans, missing: chiefGearShortfall.designPlans, coverage: chiefGearCoverage.designPlans },
+                      { label: "Amber", needed: chiefGearTotalCost.lunarAmber, owned: ownedChiefGearAmber, missing: chiefGearShortfall.lunarAmber, coverage: chiefGearCoverage.lunarAmber },
+                    ].map((item) => (
+                      <div className="charm-shortfall-row" key={item.label}>
+                        <div><strong>{item.label}</strong><span>{formatNumber(item.owned)} / {formatNumber(item.needed)}</span></div>
+                        <div className="charm-progress" style={{ ["--coverage" as string]: `${item.coverage}%` }}><span /></div>
+                        <small>{item.missing > 0 ? `${formatNumber(item.missing)} short` : "Covered"}</small>
+                      </div>
+                    ))}
+                  </div>
+                </aside>
+              </section>
+
+              <section className="chief-gear-results" aria-label="Chief Gear material totals">
+                {[
+                  { label: "Hardened Alloy", value: chiefGearTotalCost.hardenedAlloy, className: "alloy" },
+                  { label: "Polishing Solution", value: chiefGearTotalCost.polishingSolution, className: "polish" },
+                  { label: "Design Plans", value: chiefGearTotalCost.designPlans, className: "plans" },
+                  { label: "Lunar Amber", value: chiefGearTotalCost.lunarAmber, className: "amber" },
+                ].map((item) => (
+                  <article className={`chief-gear-result ${item.className}`} key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{formatNumber(item.value)}</strong>
+                    <small>{chiefGearPlannedPieces ? `${formatNumber(item.value / chiefGearPlannedPieces)} average per planned piece` : "No pieces selected"}</small>
+                  </article>
+                ))}
+              </section>
+
+              <section className="chief-gear-deep-grid">
+                <article className="chief-gear-panel">
+                  <div className="chief-charm-panel-head">
+                    <span>Troop Breakdown</span>
+                    <strong>Chief Gear buffs attack and defense by troop type</strong>
+                  </div>
+                  <div className="chief-gear-troops">
+                    {chiefGearTroopTotals.map((item) => (
+                      <span key={item.troop}>
+                        <small>{item.troop}</small>
+                        <strong>{formatPercent(item.attack)}</strong>
+                        <em>{formatNumber(item.cost.hardenedAlloy + item.cost.polishingSolution + item.cost.designPlans + item.cost.lunarAmber)} materials</em>
+                      </span>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="chief-gear-panel">
+                  <div className="chief-charm-panel-head">
+                    <span>Exchange System</span>
+                    <strong>Unlocks after one Chief Gear reaches Legendary T2 3-Star</strong>
+                  </div>
+                  <div className="chief-gear-exchange">
+                    {chiefGearExchangeRows.map((row) => <span key={row}>{row}</span>)}
+                  </div>
+                </article>
+              </section>
+
+              <section className="chief-gear-chart" aria-label="Chief Gear upgrade chart">
+                <div className="chief-charm-chart-head">
+                  <div>
+                    <span className="section-kicker">Reference Chart</span>
+                    <h2>Chief Gear Upgrade Cost by Level</h2>
+                  </div>
+                </div>
+                <div className="chief-charm-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Level</th>
+                        <th>Alloy</th>
+                        <th>Polish</th>
+                        <th>Plans</th>
+                        <th>Amber</th>
+                        <th>Atk/Def</th>
+                        <th>Capacity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chiefGearLevels.map((level) => (
+                        <tr className={chiefGearRows.some((row) => row.calculation.steps.some((step) => step.id === level.id)) ? "selected" : ""} key={level.id}>
+                          <td>{level.label}</td>
+                          <td>{level.cost.hardenedAlloy ? formatNumber(level.cost.hardenedAlloy) : "-"}</td>
+                          <td>{level.cost.polishingSolution ? formatNumber(level.cost.polishingSolution) : "-"}</td>
+                          <td>{level.cost.designPlans ? formatNumber(level.cost.designPlans) : "-"}</td>
+                          <td>{level.cost.lunarAmber ? formatNumber(level.cost.lunarAmber) : "-"}</td>
+                          <td>{formatPercent(level.attackDefense)}</td>
+                          <td>{level.squadCapacity ? `+${formatNumber(level.squadCapacity)}` : "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             </section>
           ) : activeMenu === "chiefCharm" ? (
