@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteTitle = "Whiteout Survival Tools & Discord Bot | WhiteoutSurvival.dev";
+const siteTitle = "Whiteout Survival Tools & WOS Discord Bot";
 const siteDescription =
   "The ultimate toolkit for Whiteout Survival. Access powerful tools, detailed guides, and an advanced Discord bot. Plan smarter, grow faster, and stay ahead of the competition.";
 
@@ -34,6 +34,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    url: "/",
     siteName: "WhiteoutSurvival.dev",
     title: siteTitle,
     description: siteDescription,
