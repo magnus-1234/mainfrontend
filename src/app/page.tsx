@@ -5328,18 +5328,39 @@ export default function Home() {
                     </div>
                     <div className="bot-preview-main">
                       <div className="bot-preview-topbar">
-                        <span>Live Operations</span>
+                        <div>
+                          <span>Live Operations</span>
+                          <small>real-time dashboard feed</small>
+                        </div>
                         <strong>{botMetrics.discordMembers} Discord members</strong>
+                      </div>
+                      <div className="bot-preview-event">
+                        <span>Gift Code</span>
+                        <strong>Active Gift Code Detected</strong>
+                        <p>Active gift code detected; auto redeem pending across configured servers.</p>
                       </div>
                       <div className="bot-preview-stats">
                         {[
-                          [botMetrics.members, "members"],
-                          [botMetrics.monitors, "monitors"],
+                          [botMetrics.members, "monitored members"],
+                          [botMetrics.monitors, "active monitors"],
+                          [botMetrics.redeemServers, "auto redeem servers"],
                           [botMetrics.giftCodes, "active codes"],
-                          [botMetrics.redeemServers, "redeem servers"],
                         ].map(([value, label]) => (
                           <span key={label}><strong>{value}</strong>{label}</span>
                         ))}
+                      </div>
+                      <div className="bot-preview-process">
+                        <div className="bot-preview-process-head">
+                          <span>Live Process</span>
+                          <strong>60 records</strong>
+                        </div>
+                        <article>
+                          <b>GC</b>
+                          <div>
+                            <strong>Active gift code detected</strong>
+                            <p>Bot feed connected to live gift-code, monitor, and auto-redeem events.</p>
+                          </div>
+                        </article>
                       </div>
                       <div className="bot-feature-stack">
                         {botFeatureCards.map((feature) => (
