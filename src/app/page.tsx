@@ -107,6 +107,7 @@ type ChiefCharmGearPiece = {
   name: string;
   troop: "Infantry" | "Marksman" | "Lancer";
   stat: string;
+  charmImageTroop: "Infantry" | "Marksman" | "Lancer";
 };
 
 type ChiefCharmGearState = Record<string, ChiefCharmSlotState[]>;
@@ -135,6 +136,7 @@ type ChiefGearPiece = {
   name: string;
   troop: "Infantry" | "Marksman" | "Lancer";
   stat: string;
+  asset: "helmet" | "chestplate" | "ring" | "watch" | "pants" | "staff";
 };
 
 type ChiefGearSelection = {
@@ -434,12 +436,12 @@ const chiefCharmLevels: ChiefCharmLevel[] = [
 const chiefCharmSlots = 18;
 const chiefCharmSlotsPerGear = 3;
 const chiefCharmGearPieces: ChiefCharmGearPiece[] = [
-  { id: "helmet", name: "Helmet", troop: "Infantry", stat: "Infantry Health / Lethality" },
-  { id: "armor", name: "Armor", troop: "Infantry", stat: "Infantry Health / Lethality" },
-  { id: "weapon", name: "Weapon", troop: "Marksman", stat: "Marksman Health / Lethality" },
-  { id: "belt", name: "Belt", troop: "Marksman", stat: "Marksman Health / Lethality" },
-  { id: "watch", name: "Watch", troop: "Lancer", stat: "Lancer Health / Lethality" },
-  { id: "boots", name: "Boots", troop: "Lancer", stat: "Lancer Health / Lethality" },
+  { id: "helmet", name: "Helmet", troop: "Infantry", stat: "Infantry Health / Lethality", charmImageTroop: "Infantry" },
+  { id: "armor", name: "Armor", troop: "Infantry", stat: "Infantry Health / Lethality", charmImageTroop: "Infantry" },
+  { id: "weapon", name: "Weapon", troop: "Marksman", stat: "Marksman Health / Lethality", charmImageTroop: "Marksman" },
+  { id: "belt", name: "Belt", troop: "Marksman", stat: "Marksman Health / Lethality", charmImageTroop: "Marksman" },
+  { id: "watch", name: "Watch", troop: "Lancer", stat: "Lancer Health / Lethality", charmImageTroop: "Lancer" },
+  { id: "boots", name: "Boots", troop: "Lancer", stat: "Lancer Health / Lethality", charmImageTroop: "Lancer" },
 ];
 const chiefCharmTroops = ["Infantry", "Marksman", "Lancer"] as const;
 const emptyChiefCharmCost: ChiefCharmCost = { design: 0, guide: 0, secret: 0, power: 0, statGain: 0 };
@@ -483,12 +485,12 @@ const createChiefCharmGearState = (from = 0, to = 0): ChiefCharmGearState =>
   }, {});
 
 const chiefGearPieces: ChiefGearPiece[] = [
-  { id: "cap", name: "Cap", troop: "Lancer", stat: "Lancer Attack / Defense" },
-  { id: "coat", name: "Coat", troop: "Infantry", stat: "Infantry Attack / Defense" },
-  { id: "ring", name: "Ring", troop: "Marksman", stat: "Marksman Attack / Defense" },
-  { id: "watch", name: "Watch", troop: "Lancer", stat: "Lancer Attack / Defense" },
-  { id: "pants", name: "Pants", troop: "Infantry", stat: "Infantry Attack / Defense" },
-  { id: "weapon", name: "Weapon", troop: "Marksman", stat: "Marksman Attack / Defense" },
+  { id: "cap", name: "Cap", troop: "Lancer", stat: "Lancer Attack / Defense", asset: "helmet" },
+  { id: "coat", name: "Coat", troop: "Infantry", stat: "Infantry Attack / Defense", asset: "chestplate" },
+  { id: "ring", name: "Ring", troop: "Marksman", stat: "Marksman Attack / Defense", asset: "ring" },
+  { id: "watch", name: "Watch", troop: "Lancer", stat: "Lancer Attack / Defense", asset: "watch" },
+  { id: "pants", name: "Pants", troop: "Infantry", stat: "Infantry Attack / Defense", asset: "pants" },
+  { id: "weapon", name: "Weapon", troop: "Marksman", stat: "Marksman Attack / Defense", asset: "staff" },
 ];
 
 const emptyChiefGearCost: ChiefGearCost = { designPlans: 0, hardenedAlloy: 0, lunarAmber: 0, polishingSolution: 0 };
@@ -544,6 +546,57 @@ const chiefGearLevels: ChiefGearLevel[] = [
 
 const chiefGearLevelMap = new Map(chiefGearLevels.map((level) => [level.id, level]));
 const chiefGearTierOrder = ["Uncommon", "Rare", "Epic", "Legendary", "Mythic"] as const;
+const chiefGearVisualTargets = [
+  { id: "green_1", label: "Uncommon", color: "green" },
+  { id: "blue_3", label: "Rare 3-Star", color: "blue" },
+  { id: "purple_t1_3", label: "Epic T1 3-Star", color: "purple" },
+  { id: "gold_t2_3", label: "Legendary T2 3-Star", color: "gold" },
+  { id: "red_t3_3", label: "Mythic T3 3-Star", color: "red" },
+  { id: "red_t4_3", label: "Mythic T4 3-Star", color: "t4-legendary" },
+] as const;
+const chiefCharmVisualTargets = [0, 1, 4, 8, 11, 12, 16] as const;
+
+const chiefGearColorForLevel = (level?: ChiefGearLevel) => {
+  if (!level) {
+    return "green";
+  }
+
+  if (level.id.startsWith("red_t4")) {
+    return "t4-legendary";
+  }
+
+  if (level.id.startsWith("red")) {
+    return "red";
+  }
+
+  if (level.id.startsWith("gold")) {
+    return "gold";
+  }
+
+  if (level.id.startsWith("purple")) {
+    return "purple";
+  }
+
+  if (level.id.startsWith("blue")) {
+    return "blue";
+  }
+
+  return "green";
+};
+
+const chiefGearImageFor = (piece: ChiefGearPiece, level?: ChiefGearLevel) => `/woscalc/gear/${piece.asset}-${chiefGearColorForLevel(level)}.png`;
+const chiefCharmImageFor = (troop: ChiefCharmGearPiece["charmImageTroop"], level: number) => `/woscalc/charms/${troop}_${Math.max(1, level)}.png`;
+const chiefGearMaterialIcons = {
+  hardenedAlloy: "/woscalc/materials/Hardened-Alloy.png",
+  polishingSolution: "/woscalc/materials/Polishing-Solution.png",
+  designPlans: "/woscalc/materials/Design-Plan.png",
+  lunarAmber: "/woscalc/materials/lunar-amber.png",
+};
+const chiefCharmMaterialIcons = {
+  design: "/woscalc/materials/charm-design.png",
+  guide: "/woscalc/materials/charm-guide.png",
+  secret: "/woscalc/materials/jewel-secret.png",
+};
 const createChiefGearState = (from = "", to = "gold_t2_3"): ChiefGearState =>
   chiefGearPieces.reduce<ChiefGearState>((state, gear) => {
     state[gear.id] = { from, to };
@@ -606,7 +659,25 @@ const normalizeFoundryPlayerProfile = (player: PlayerProfile & { avatar?: string
   avatarImage: player.avatarImage || player.avatarUrl || player.avatar || player.avatar_image,
 });
 
-type FoundryShareMember = Pick<FoundryMember, "playerId">;
+const encodeFoundryShareState = (state: FoundryShareState) =>
+  btoa(unescape(encodeURIComponent(JSON.stringify(state))))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+const decodeFoundryShareState = (value: string): FoundryShareState => {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = `${normalized}${"=".repeat((4 - (normalized.length % 4)) % 4)}`;
+  try {
+    return JSON.parse(decodeURIComponent(escape(atob(padded)))) as FoundryShareState;
+  } catch {
+    return JSON.parse(decodeURIComponent(atob(value))) as FoundryShareState;
+  }
+};
+
+type FoundryShareMember = Pick<FoundryMember, "playerId"> & {
+  profile?: PlayerProfile;
+};
 type FoundryShareTeam = {
   buildingId: string;
   joiners: FoundryShareMember[];
@@ -869,12 +940,16 @@ const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
 
-const menuItems = [
+const menuItems: { label: string; icon: string; status: string; menu?: ActiveMenu }[] = [
   { label: "Browse", icon: "grid", status: "Soon" },
-  { label: "Calculators", icon: "calculator", status: "Live", menu: "chiefCharm" as ActiveMenu },
   { label: "Tools", icon: "wrench", status: "Soon" },
   { label: "Database", icon: "database", status: "Soon" },
   { label: "More", icon: "book", status: "Soon" },
+];
+
+const calculatorMenuItems: { label: string; icon: string; menu: "chiefGear" | "chiefCharm"; href: string }[] = [
+  { label: "Chief Gear", icon: "shield", menu: "chiefGear", href: "/chief-gear-calculator" },
+  { label: "Chief Charm", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
 ];
 
 const wosWikiMenuItems: { label: string; icon: string; menu?: ActiveMenu; href?: string; status?: string; disabled?: boolean }[] = [
@@ -990,8 +1065,6 @@ const sidebarItems: {
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
-    { label: "Chief Charm Calculator", mobileLabel: "Charms", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
-    { label: "Chief Gear Calculator", mobileLabel: "Gear", icon: "shield", menu: "chiefGear", href: "/chief-gear-calculator" },
     { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/#foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
@@ -1001,6 +1074,11 @@ const sidebarItems: {
 const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu: "wikiBuildings" | "wikiHeroes"; href: string }[] = [
   { label: "Buildings", mobileLabel: "Build", icon: "database", menu: "wikiBuildings", href: "/wiki/buildings" },
   { label: "Heroes", mobileLabel: "Heroes", icon: "user", menu: "wikiHeroes", href: "/wiki/heroes" },
+];
+
+const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string; menu: "chiefGear" | "chiefCharm"; href: string }[] = [
+  { label: "Chief Gear", mobileLabel: "Gear", icon: "shield", menu: "chiefGear", href: "/chief-gear-calculator" },
+  { label: "Chief Charm", mobileLabel: "Charm", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
 ];
 
 const hashMenuAliases: Record<string, ActiveMenu> = {
@@ -1091,6 +1169,9 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
   const queryMenu = queryMenuAliases[params.get("menu") || ""];
   if (queryMenu) {
     return queryMenu;
+  }
+  if (params.get("foundry")) {
+    return "planner";
   }
 
   if (params.has("island") || location.pathname.startsWith("/daybreak/island/")) {
@@ -1839,6 +1920,7 @@ export default function Home() {
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>("home");
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
   const [sidebarWikiOpen, setSidebarWikiOpen] = useState(false);
+  const [sidebarCalculatorOpen, setSidebarCalculatorOpen] = useState(false);
   const [activeHeroFilter, setActiveHeroFilter] = useState<WosHeroFilter>("Rare");
   const [activeBuildingFilter, setActiveBuildingFilter] = useState<WosBuildingFilter>("Military");
   const [giftCodes, setGiftCodes] = useState<GiftCode[]>(() => readStoredGiftCodes()?.codes.filter((item) => item.isActive !== false) || []);
@@ -2007,7 +2089,7 @@ export default function Home() {
         setStateAgeInput(stateParam);
       }
       setActiveWikiSlug(params.get("item") || "");
-      setActiveMenu(resolveActiveMenu(window.location));
+      setActiveMenu(params.get("foundry") ? "planner" : resolveActiveMenu(window.location));
     };
 
     syncMenuFromLocation();
@@ -3415,7 +3497,8 @@ export default function Home() {
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
-  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive;
+  const calculatorMenuActive = activeMenu === "chiefGear" || activeMenu === "chiefCharm";
+  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive || calculatorMenuActive;
   const updateCharmSlot = useCallback((gearId: string, slotIndex: number, field: keyof ChiefCharmSlotState, value: number) => {
     setCharmGearState((current) => {
       const gearSlots = current[gearId] || Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from: 0, to: 0 }));
@@ -3439,6 +3522,17 @@ export default function Home() {
   }, []);
   const applyCharmPreset = useCallback((from: number, to: number) => {
     setCharmGearState(createChiefCharmGearState(from, to));
+  }, []);
+  const applyCharmGearTarget = useCallback((gearId: string, targetLevel: number) => {
+    setCharmGearState((current) => {
+      const gearSlots = current[gearId] || Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from: 0, to: 0 }));
+      const nextSlots = gearSlots.map((slot) => ({
+        from: Math.min(slot.from, targetLevel),
+        to: targetLevel,
+      }));
+
+      return { ...current, [gearId]: nextSlots };
+    });
   }, []);
   const charmSlotRows = chiefCharmGearPieces.flatMap((gear) => {
     const slots = charmGearState[gear.id] || [];
@@ -3601,9 +3695,9 @@ export default function Home() {
 
   const foundryTeamToShare = (team: FoundryTeam): FoundryShareTeam => ({
     buildingId: team.buildingId,
-    joiners: team.joiners.map((member) => ({ playerId: member.playerId })),
+    joiners: team.joiners.map((member) => ({ playerId: member.playerId, profile: member.profile })),
     name: team.name,
-    rallyLeader: { playerId: team.rallyLeader.playerId },
+    rallyLeader: { playerId: team.rallyLeader.playerId, profile: team.rallyLeader.profile },
   });
 
   const foundryTeamFromShare = (team: FoundryShareTeam, index: number): FoundryTeam => {
@@ -3614,11 +3708,13 @@ export default function Home() {
       joiners: (team.joiners?.length ? team.joiners : fallback.joiners).map((member, joinerIndex) => ({
         ...createFoundryMember("joiner", `${index + 1}-${joinerIndex + 1}`),
         playerId: member.playerId?.replace(/\D/g, "") || "",
+        profile: member.profile ? normalizeFoundryPlayerProfile(member.profile) : undefined,
       })),
       name: team.name || fallback.name,
       rallyLeader: {
         ...fallback.rallyLeader,
         playerId: team.rallyLeader?.playerId?.replace(/\D/g, "") || "",
+        profile: team.rallyLeader?.profile ? normalizeFoundryPlayerProfile(team.rallyLeader.profile) : undefined,
       },
     };
   };
@@ -3633,7 +3729,7 @@ export default function Home() {
   });
 
   const foundryShareUrl = () => {
-    const payload = btoa(encodeURIComponent(JSON.stringify(foundrySharePayload())));
+    const payload = encodeFoundryShareState(foundrySharePayload());
     const url = new URL(window.location.href);
     url.pathname = "/";
     url.hash = "foundry-team-planner";
@@ -3661,7 +3757,7 @@ export default function Home() {
       return;
     }
     try {
-      const parsed = JSON.parse(decodeURIComponent(atob(encoded))) as FoundryShareState;
+      const parsed = decodeFoundryShareState(encoded);
       window.setTimeout(() => {
         const teams = (parsed.teams || []).map(foundryTeamFromShare);
         if (teams.length) {
@@ -4149,6 +4245,9 @@ export default function Home() {
     if (menu !== "wikiHeroes" && menu !== "wikiBuildings") {
       setSidebarWikiOpen(false);
     }
+    if (menu !== "chiefGear" && menu !== "chiefCharm") {
+      setSidebarCalculatorOpen(false);
+    }
     setActiveMenu(menu);
     setActiveWikiSlug("");
     const nextUrl = menuUrls[menu];
@@ -4230,6 +4329,33 @@ export default function Home() {
                       {item.status && <small>{item.status}</small>}
                     </a>
                   )
+                ))}
+              </div>
+            </div>
+            <div className="menu-trigger-wrap">
+              <button type="button" className={`menu-trigger wiki-trigger ${calculatorMenuActive ? "active" : ""}`} onClick={() => navigateToMenu("chiefGear")} aria-haspopup="true">
+                <span className="menu-status">Live</span>
+                <span className="menu-main">
+                  <Icon name="calculator" />
+                  <span>Calculators</span>
+                  <Icon name="chevron" />
+                </span>
+              </button>
+              <div className="wiki-dropdown" role="menu" aria-label="Calculators menu">
+                {calculatorMenuItems.map((item) => (
+                  <a
+                    className={activeMenu === item.menu ? "active" : ""}
+                    href={item.href}
+                    key={item.label}
+                    role="menuitem"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigateToMenu(item.menu);
+                    }}
+                  >
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                  </a>
                 ))}
               </div>
             </div>
@@ -4366,6 +4492,40 @@ export default function Home() {
                     {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
                   </a>
                 ))}
+                <div className={`mobile-more-wiki ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
+                  <button
+                    className={`mobile-more-item mobile-more-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
+                    type="button"
+                    role="menuitem"
+                    aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
+                    onClick={() => setSidebarCalculatorOpen((value) => !value)}
+                  >
+                    <Icon name="calculator" />
+                    <span>
+                      <strong>Calculators</strong>
+                      <small>Chief gear and charm</small>
+                    </span>
+                    <Icon name="chevron" />
+                  </button>
+                  <div className="mobile-more-wiki-submenu" aria-label="Calculators submenu">
+                    {sidebarCalculatorItems.map((item) => (
+                      <a
+                        className={`mobile-more-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
+                        href={item.href}
+                        key={item.menu}
+                        role="menuitem"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setSidebarCalculatorOpen(true);
+                          navigateToMenu(item.menu);
+                        }}
+                      >
+                        <Icon name={item.icon} />
+                        <span>{item.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
                 <div className={`mobile-more-wiki ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
                   <button
                     className={`mobile-more-item mobile-more-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
@@ -4420,6 +4580,38 @@ export default function Home() {
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
+            <div className={`sidebar-wiki-group mobile-primary ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
+              <button
+                className={`sidebar-item sidebar-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
+                type="button"
+                aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
+                aria-controls="sidebar-calculators-submenu"
+                onClick={() => setSidebarCalculatorOpen((value) => !value)}
+              >
+                <Icon name="calculator" />
+                <span className="nav-label-desktop">Calculators</span>
+                <span className="nav-label-mobile">Calc</span>
+                <Icon name="chevron" />
+              </button>
+              <div className="sidebar-wiki-submenu" id="sidebar-calculators-submenu" aria-label="Calculators submenu">
+                {sidebarCalculatorItems.map((item) => (
+                  <a
+                    className={`sidebar-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
+                    href={item.href}
+                    key={item.menu}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setSidebarCalculatorOpen(true);
+                      navigateToMenu(item.menu);
+                    }}
+                  >
+                    <Icon name={item.icon} />
+                    <span className="nav-label-desktop">{item.label}</span>
+                    <span className="nav-label-mobile">{item.mobileLabel}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
             <div className={`sidebar-wiki-group mobile-primary ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
               <button
                 className={`sidebar-item sidebar-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
@@ -4888,6 +5080,34 @@ export default function Home() {
                           </div>
                           <b>{row.toLevel?.label || "Unset"}</b>
                         </div>
+                        <div className="chief-gear-visual-select">
+                          <div className="chief-gear-compare">
+                            <span>
+                              <small>Current</small>
+                              <img src={chiefGearImageFor(row.gear, row.fromLevel)} alt={`${row.gear.name} current gear`} />
+                              <b>{row.fromLevel?.label || "None"}</b>
+                            </span>
+                            <em>to</em>
+                            <span className="target">
+                              <small>Target</small>
+                              <img src={chiefGearImageFor(row.gear, row.toLevel)} alt={`${row.gear.name} target gear`} />
+                              <b>{row.toLevel?.label || "Unset"}</b>
+                            </span>
+                          </div>
+                          <div className="chief-gear-tier-palette" aria-label={`${row.gear.name} visual target levels`}>
+                            {chiefGearVisualTargets.map((target) => (
+                              <button
+                                className={row.selection.to === target.id ? "active" : ""}
+                                key={`${row.gear.id}-${target.id}`}
+                                onClick={() => updateChiefGearPiece(row.gear.id, "to", target.id)}
+                                type="button"
+                              >
+                                <img src={`/woscalc/gear/${row.gear.asset}-${target.color}.png`} alt="" />
+                                <span>{target.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                         <div className="chief-gear-selects">
                           <label>
                             <span>From</span>
@@ -4917,10 +5137,10 @@ export default function Home() {
                           </label>
                         </div>
                         <div className="chief-gear-card-total">
-                          <span>{formatNumber(row.calculation.total.hardenedAlloy)} Alloy</span>
-                          <span>{formatNumber(row.calculation.total.polishingSolution)} Polish</span>
-                          <span>{formatNumber(row.calculation.total.designPlans)} Plans</span>
-                          <span>{formatNumber(row.calculation.total.lunarAmber)} Amber</span>
+                          <span><img src={chiefGearMaterialIcons.hardenedAlloy} alt="" />{formatNumber(row.calculation.total.hardenedAlloy)} Alloy</span>
+                          <span><img src={chiefGearMaterialIcons.polishingSolution} alt="" />{formatNumber(row.calculation.total.polishingSolution)} Polish</span>
+                          <span><img src={chiefGearMaterialIcons.designPlans} alt="" />{formatNumber(row.calculation.total.designPlans)} Plans</span>
+                          <span><img src={chiefGearMaterialIcons.lunarAmber} alt="" />{formatNumber(row.calculation.total.lunarAmber)} Amber</span>
                         </div>
                       </article>
                     ))}
@@ -4933,10 +5153,10 @@ export default function Home() {
                     <strong>Material shortfall check</strong>
                   </div>
                   <div className="chief-gear-inventory">
-                    <label><span>Hardened Alloy</span><input value={ownedChiefGearAlloy} onChange={(event) => setOwnedChiefGearAlloy(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
-                    <label><span>Polishing Solution</span><input value={ownedChiefGearPolish} onChange={(event) => setOwnedChiefGearPolish(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
-                    <label><span>Design Plans</span><input value={ownedChiefGearPlans} onChange={(event) => setOwnedChiefGearPlans(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
-                    <label><span>Lunar Amber</span><input value={ownedChiefGearAmber} onChange={(event) => setOwnedChiefGearAmber(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span><img src={chiefGearMaterialIcons.hardenedAlloy} alt="" />Hardened Alloy</span><input value={ownedChiefGearAlloy} onChange={(event) => setOwnedChiefGearAlloy(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span><img src={chiefGearMaterialIcons.polishingSolution} alt="" />Polishing Solution</span><input value={ownedChiefGearPolish} onChange={(event) => setOwnedChiefGearPolish(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span><img src={chiefGearMaterialIcons.designPlans} alt="" />Design Plans</span><input value={ownedChiefGearPlans} onChange={(event) => setOwnedChiefGearPlans(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
+                    <label><span><img src={chiefGearMaterialIcons.lunarAmber} alt="" />Lunar Amber</span><input value={ownedChiefGearAmber} onChange={(event) => setOwnedChiefGearAmber(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" /></label>
                   </div>
                   <div className="charm-shortfall-list">
                     {[
@@ -4957,13 +5177,13 @@ export default function Home() {
 
               <section className="chief-gear-results" aria-label="Chief Gear material totals">
                 {[
-                  { label: "Hardened Alloy", value: chiefGearTotalCost.hardenedAlloy, className: "alloy" },
-                  { label: "Polishing Solution", value: chiefGearTotalCost.polishingSolution, className: "polish" },
-                  { label: "Design Plans", value: chiefGearTotalCost.designPlans, className: "plans" },
-                  { label: "Lunar Amber", value: chiefGearTotalCost.lunarAmber, className: "amber" },
+                  { label: "Hardened Alloy", value: chiefGearTotalCost.hardenedAlloy, className: "alloy", icon: chiefGearMaterialIcons.hardenedAlloy },
+                  { label: "Polishing Solution", value: chiefGearTotalCost.polishingSolution, className: "polish", icon: chiefGearMaterialIcons.polishingSolution },
+                  { label: "Design Plans", value: chiefGearTotalCost.designPlans, className: "plans", icon: chiefGearMaterialIcons.designPlans },
+                  { label: "Lunar Amber", value: chiefGearTotalCost.lunarAmber, className: "amber", icon: chiefGearMaterialIcons.lunarAmber },
                 ].map((item) => (
                   <article className={`chief-gear-result ${item.className}`} key={item.label}>
-                    <span>{item.label}</span>
+                    <span><img src={item.icon} alt="" />{item.label}</span>
                     <strong>{formatNumber(item.value)}</strong>
                     <small>{chiefGearPlannedPieces ? `${formatNumber(item.value / chiefGearPlannedPieces)} average per planned piece` : "No pieces selected"}</small>
                   </article>
@@ -5112,6 +5332,30 @@ export default function Home() {
                           </div>
                           <b>Avg Lv.{targetAverage.toFixed(1)}</b>
                         </div>
+                        <div className="charm-visual-select" aria-label={`${gear.name} visual charm targets`}>
+                          <div className="charm-visual-current">
+                            {slots.map((slot) => (
+                              <span key={`${gear.id}-preview-${slot.slotIndex}`}>
+                                <img src={chiefCharmImageFor(gear.charmImageTroop, slot.to)} alt={`${gear.name} charm ${slot.slotIndex + 1} level ${slot.to || 1}`} />
+                                <small>Slot {slot.slotIndex + 1}</small>
+                                <b>Lv.{slot.to}</b>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="charm-level-palette">
+                            {chiefCharmVisualTargets.map((level) => (
+                              <button
+                                className={Math.round(targetAverage) === level ? "active" : ""}
+                                key={`${gear.id}-visual-${level}`}
+                                onClick={() => applyCharmGearTarget(gear.id, level)}
+                                type="button"
+                              >
+                                <img src={chiefCharmImageFor(gear.charmImageTroop, level)} alt="" />
+                                <span>{level === 0 ? "None" : `Lv.${level}`}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                         <div className="charm-slot-list">
                           {slots.map((slot) => (
                             <div className="charm-slot-row" key={`${gear.id}-${slot.slotIndex}`}>
@@ -5138,9 +5382,9 @@ export default function Home() {
                           ))}
                         </div>
                         <div className="charm-gear-total">
-                          <span>{formatNumber(total.design)} Design</span>
-                          <span>{formatNumber(total.guide)} Guide</span>
-                          <span>{formatNumber(total.secret)} Secret</span>
+                          <span><img src={chiefCharmMaterialIcons.design} alt="" />{formatNumber(total.design)} Design</span>
+                          <span><img src={chiefCharmMaterialIcons.guide} alt="" />{formatNumber(total.guide)} Guide</span>
+                          <span><img src={chiefCharmMaterialIcons.secret} alt="" />{formatNumber(total.secret)} Secret</span>
                         </div>
                       </article>
                     ))}
@@ -5154,15 +5398,15 @@ export default function Home() {
                   </div>
                   <div className="charm-inventory-inputs">
                     <label>
-                      <span>Charm Design</span>
+                      <span><img src={chiefCharmMaterialIcons.design} alt="" />Charm Design</span>
                       <input value={ownedCharmDesign} onChange={(event) => setOwnedCharmDesign(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
                     </label>
                     <label>
-                      <span>Charm Guide</span>
+                      <span><img src={chiefCharmMaterialIcons.guide} alt="" />Charm Guide</span>
                       <input value={ownedCharmGuide} onChange={(event) => setOwnedCharmGuide(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
                     </label>
                     <label>
-                      <span>Jewel Secret</span>
+                      <span><img src={chiefCharmMaterialIcons.secret} alt="" />Jewel Secret</span>
                       <input value={ownedCharmSecret} onChange={(event) => setOwnedCharmSecret(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
                     </label>
                   </div>
@@ -5187,13 +5431,13 @@ export default function Home() {
 
               <section className="chief-charm-results" aria-label="Chief Charm material totals">
                 {[
-                  { label: "Charm Design", value: charmAllSlotCost.design, single: charmSingleCost.design, className: "design" },
-                  { label: "Charm Guide", value: charmAllSlotCost.guide, single: charmSingleCost.guide, className: "guide" },
-                  { label: "Jewel Secret", value: charmAllSlotCost.secret, single: charmSingleCost.secret, className: "secret" },
-                  { label: "Power Gain", value: charmAllSlotCost.power, single: charmSingleCost.power, className: "power" },
+                  { label: "Charm Design", value: charmAllSlotCost.design, single: charmSingleCost.design, className: "design", icon: chiefCharmMaterialIcons.design },
+                  { label: "Charm Guide", value: charmAllSlotCost.guide, single: charmSingleCost.guide, className: "guide", icon: chiefCharmMaterialIcons.guide },
+                  { label: "Jewel Secret", value: charmAllSlotCost.secret, single: charmSingleCost.secret, className: "secret", icon: chiefCharmMaterialIcons.secret },
+                  { label: "Power Gain", value: charmAllSlotCost.power, single: charmSingleCost.power, className: "power", icon: "" },
                 ].map((item) => (
                   <article className={`charm-result-card ${item.className}`} key={item.label}>
-                    <span>{item.label}</span>
+                    <span>{item.icon ? <img src={item.icon} alt="" /> : null}{item.label}</span>
                     <strong>{formatNumber(item.value)}</strong>
                     <small>{formatNumber(item.single)} for one charm</small>
                   </article>
@@ -5464,6 +5708,8 @@ export default function Home() {
                 </div>
               </section>
 
+              {foundryExportStatus && <p className="foundry-export-status global">{foundryExportStatus}</p>}
+
               {!authUser && (
                 <section className="foundry-signin-gate" aria-label="Foundry planner sign in required">
                   <div>
@@ -5600,7 +5846,6 @@ export default function Home() {
                     <h2>Edit Teams, Buildings, Leaders, and Joiners</h2>
                   </div>
                 </div>
-                {foundryExportStatus && <p className="foundry-export-status">{foundryExportStatus}</p>}
                 {allFoundryTeams.map((team, teamIndex) => (
                   <article className="foundry-team-table" key={team.id}>
                     <header>

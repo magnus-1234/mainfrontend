@@ -2792,6 +2792,147 @@ body {
   justify-self: start;
 }
 
+@media (max-width: 760px) {
+  .foundry-planner-page {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .foundry-hero,
+  .foundry-signin-gate,
+  .foundry-table-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .foundry-hero {
+    padding: 16px;
+  }
+
+  .foundry-hero h1 {
+    font-size: 2.15rem;
+  }
+
+  .foundry-hero-actions,
+  .foundry-table-head > div:last-child {
+    width: 100%;
+  }
+
+  .foundry-hero-actions button,
+  .foundry-signin-gate button {
+    width: 100%;
+  }
+
+  .foundry-setup-panel {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .foundry-planner-shell,
+  .foundry-team-editor {
+    padding: 10px;
+  }
+
+  .foundry-map-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .foundry-map-toolbar div {
+    width: 100%;
+  }
+
+  .foundry-map-toolbar button,
+  .foundry-map-toolbar strong {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .foundry-map-logo {
+    top: 8px;
+    right: 8px;
+    width: min(132px, 34vw);
+  }
+
+  .foundry-map-marker {
+    min-width: 52px;
+    max-width: 92px;
+    border-radius: 6px;
+    padding: 3px 5px;
+    font-size: 0.48rem;
+  }
+
+  .foundry-map-team-label {
+    max-width: 106px;
+    padding: 3px 6px;
+    font-size: 0.48rem;
+  }
+
+  .foundry-map-member {
+    grid-template-columns: 18px minmax(0, 1fr);
+    width: 84px;
+    min-height: 28px;
+    padding: 3px 5px 3px 3px;
+  }
+
+  .foundry-map-member-avatar {
+    width: 18px;
+    height: 18px;
+  }
+
+  .foundry-map-member-role {
+    font-size: 0.42rem;
+  }
+
+  .foundry-map-member strong {
+    font-size: 0.52rem;
+  }
+
+  .foundry-team-table header {
+    grid-template-columns: 1fr;
+  }
+
+  .foundry-team-table header > span {
+    justify-content: flex-start;
+  }
+
+  .foundry-roster-row {
+    grid-template-columns: 88px 116px minmax(130px, 1fr) 64px minmax(86px, 0.8fr) 104px;
+    min-width: 640px;
+    padding: 5px 6px;
+  }
+
+  .foundry-roster-row button {
+    min-height: 32px;
+    padding: 0 8px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .foundry-map-frame {
+    border-radius: 6px;
+  }
+
+  .foundry-map-toolbar div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .foundry-map-toolbar strong {
+    min-height: 28px;
+  }
+
+  .foundry-export-note {
+    padding: 9px;
+  }
+
+  .foundry-roster-avatar {
+    width: 26px;
+    height: 26px;
+  }
+}
+
 .planner-page {
   display: flex;
   flex-direction: column;
@@ -11106,6 +11247,16 @@ body {
   text-transform: uppercase;
 }
 
+.charm-result-card span,
+.chief-gear-result span,
+.charm-inventory-inputs label > span,
+.chief-gear-inventory label > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
 .chief-charm-summary strong,
 .charm-result-card strong {
   position: relative;
@@ -11342,6 +11493,88 @@ body {
   font-size: 0.76rem;
 }
 
+.charm-visual-select {
+  display: grid;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 28%, var(--border));
+  border-radius: 8px;
+  padding: 10px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(250, 204, 21, 0.13), transparent 34%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.charm-visual-current,
+.charm-level-palette {
+  display: grid;
+  gap: 8px;
+}
+
+.charm-visual-current {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.charm-visual-current span,
+.charm-level-palette button,
+.chief-gear-compare span,
+.chief-gear-tier-palette button {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--background) 86%, transparent);
+}
+
+.charm-visual-current span {
+  gap: 4px;
+  padding: 8px 6px;
+}
+
+.charm-visual-current img,
+.charm-level-palette img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.28));
+}
+
+.charm-visual-current small,
+.charm-visual-current b,
+.charm-level-palette span {
+  color: var(--foreground);
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.charm-visual-current small {
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+
+.charm-level-palette {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.charm-level-palette button,
+.chief-gear-tier-palette button {
+  gap: 4px;
+  padding: 7px 4px;
+  color: var(--foreground);
+  cursor: pointer;
+  font: inherit;
+}
+
+.charm-level-palette button:hover,
+.charm-level-palette button.active,
+.chief-gear-tier-palette button:hover,
+.chief-gear-tier-palette button.active {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.12);
+}
+
 .charm-slot-list {
   display: grid;
   gap: 8px;
@@ -11395,6 +11628,10 @@ body {
 
 .charm-gear-total span {
   overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 7px 6px;
@@ -11405,6 +11642,18 @@ body {
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.charm-gear-total img,
+.charm-result-card span img,
+.charm-inventory-inputs label > span img,
+.chief-gear-card-total img,
+.chief-gear-result span img,
+.chief-gear-inventory label > span img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .charm-shortfall-list {
@@ -11619,8 +11868,12 @@ body {
   .charm-inventory-inputs,
   .charm-advice-grid,
   .exchange-grid,
-  .charm-level-strip {
+  .charm-level-palette {
     grid-template-columns: 1fr;
+  }
+
+  .charm-visual-current {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .chief-charm-art {
@@ -11992,6 +12245,86 @@ body {
   font-size: 0.72rem;
 }
 
+.chief-gear-visual-select {
+  display: grid;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 34%, var(--border));
+  border-radius: 8px;
+  padding: 10px;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(244, 129, 32, 0.16), transparent 34%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.chief-gear-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.chief-gear-compare > em {
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 950;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.chief-gear-compare span {
+  position: relative;
+  gap: 5px;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.chief-gear-compare span::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.7), transparent);
+}
+
+.chief-gear-compare span.target::before {
+  background: linear-gradient(90deg, rgba(244, 129, 32, 0.95), rgba(250, 204, 21, 0.72));
+}
+
+.chief-gear-compare img {
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.32));
+}
+
+.chief-gear-compare small,
+.chief-gear-compare b,
+.chief-gear-tier-palette span {
+  color: var(--foreground);
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.chief-gear-compare small {
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+
+.chief-gear-tier-palette {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.chief-gear-tier-palette img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.26));
+}
+
 .chief-gear-selects,
 .chief-gear-inventory {
   display: grid;
@@ -12031,6 +12364,10 @@ body {
 
 .chief-gear-card-total span {
   overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 7px 6px;
@@ -12132,6 +12469,14 @@ body {
   .chief-gear-exchange,
   .chief-gear-card-total {
     grid-template-columns: 1fr;
+  }
+
+  .chief-gear-tier-palette {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .chief-gear-compare {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .chief-gear-visual {
