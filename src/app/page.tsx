@@ -1531,6 +1531,7 @@ export default function Home() {
   const [plannerDragPreview, setPlannerDragPreview] = useState<PlannerDragPreview | null>(null);
   const [plannerHoverCell, setPlannerHoverCell] = useState<PlannerHoverCell | null>(null);
   const openedSharedIslandRef = useRef("");
+  const openedSharedTemplateRef = useRef("");
   const footerIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -2302,12 +2303,32 @@ export default function Home() {
     }
   };
 
-  const shareIsland = async (island: Island) => {
-    const shareUrl = shareUrlFor(island);
+  const copyTextToClipboard = async (value: string, promptLabel: string) => {
     if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(value);
     } else {
-      window.prompt("Copy island link", shareUrl);
+      window.prompt(promptLabel, value);
+    }
+  };
+
+  const qrCodeUrlFor = (value: string) =>
+    `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=12&data=${encodeURIComponent(value)}`;
+
+  const nativeShare = async (title: string, url: string, text?: string) => {
+    if (navigator.share) {
+      await navigator.share({ title, text, url });
+      return true;
+    }
+    await copyTextToClipboard(url, "Copy share link");
+    return false;
+  };
+
+  const shareIsland = async (island: Island, mode: "copy" | "native" = "copy") => {
+    const shareUrl = shareUrlFor(island);
+    if (mode === "native") {
+      await nativeShare(island.title, shareUrl, `${island.title} by ${island.player.nickname}`);
+    } else {
+      await copyTextToClipboard(shareUrl, "Copy island link");
     }
 
     const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}/share`, { method: "POST" });
@@ -2316,7 +2337,7 @@ export default function Home() {
       updateIsland(data.island);
     }
 
-    setStatus("Share link copied.");
+    setStatus(mode === "native" ? "Share opened." : "Share link copied.");
   };
 
   const refreshTemplates = async () => {
@@ -2489,15 +2510,17 @@ export default function Home() {
     }
   };
 
-  const templateShareUrlFor = (template: MessageTemplate) => `${window.location.origin}/message-templates?template=${encodeURIComponent(template.id)}`;
+  const templateShareUrlFor = (template: MessageTemplate, view: "card" | "image" = "card") =>
+    `${window.location.origin}/message-templates?template=${encodeURIComponent(template.id)}${view === "image" ? "&view=image" : ""}`;
 
-  const shareMessageTemplate = async (template: MessageTemplate) => {
-    const shareUrl = templateShareUrlFor(template);
+  const shareMessageTemplate = async (template: MessageTemplate, view: "card" | "image" = "card", mode: "copy" | "native" = "copy") => {
+    const shareUrl = templateShareUrlFor(template, view);
     try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard unavailable");
+      if (mode === "native") {
+        await nativeShare(template.title, shareUrl, `${template.title} message template`);
+      } else {
+        await copyTextToClipboard(shareUrl, "Copy template link");
       }
-      await navigator.clipboard.writeText(shareUrl);
     } catch {
       window.prompt("Copy template link", shareUrl);
     }
@@ -2510,7 +2533,7 @@ export default function Home() {
         setShareTemplateTarget(data.template);
       }
     }
-    setTemplateStatus("Template link copied.");
+    setTemplateStatus(mode === "native" ? "Template share opened." : "Template link copied.");
   };
 
   const copyGiftCode = async (code: string) => {
@@ -2802,10 +2825,9 @@ export default function Home() {
 
   const shareUrlFor = (island: Island) => `${window.location.origin}/daybreak/island/${encodeURIComponent(island.id)}`;
 
-  const downloadImage = async (island: Island) => {
-    const fileName = `${island.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "daybreak-island"}.jpg`;
+  const downloadUrl = async (url: string, fileName: string, onFallback?: () => void) => {
     try {
-      const response = await fetch(island.imageUrl);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error("download blocked");
       }
@@ -2820,28 +2842,47 @@ export default function Home() {
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch {
       const link = document.createElement("a");
-      link.href = island.imageUrl;
+      link.href = url;
       link.download = fileName;
       link.target = "_blank";
       link.rel = "noreferrer";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setStatus("Image opened in a new tab because the host blocked direct download.");
+      onFallback?.();
     }
   };
 
-  const socialShareUrl = (platform: "discord" | "whatsapp" | "x", island: Island) => {
-    const shareUrl = shareUrlFor(island);
-    const text = `${island.title} by ${island.player.nickname} at X:${island.coordinates.x} Y:${island.coordinates.y}`;
+  const downloadImage = async (island: Island) => {
+    const fileName = `${island.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "daybreak-island"}.jpg`;
+    await downloadUrl(island.imageUrl, fileName, () => setStatus("Image opened in a new tab because the host blocked direct download."));
+  };
 
-    if (platform === "discord") {
-      return `https://discord.com/channels/@me?message=${encodeURIComponent(`${text} ${shareUrl}`)}`;
+  const downloadTemplateImage = async (template: MessageTemplate) => {
+    if (!template.imageUrl) {
+      return;
     }
+    const fileName = `${template.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "message-template"}.jpg`;
+    await downloadUrl(template.imageUrl, fileName, () => setTemplateStatus("Image opened in a new tab because the host blocked direct download."));
+  };
+
+  const socialShareUrl = (platform: "whatsapp" | "x" | "facebook" | "linkedin" | "telegram" | "email", url: string, title: string, text = title) => {
     if (platform === "whatsapp") {
-      return `https://wa.me/?text=${encodeURIComponent(`${text} ${shareUrl}`)}`;
+      return `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
     }
-    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+    if (platform === "x") {
+      return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    }
+    if (platform === "facebook") {
+      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    }
+    if (platform === "linkedin") {
+      return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    }
+    if (platform === "telegram") {
+      return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+    }
+    return `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n${url}`)}`;
   };
 
   const availablePlannerBuildings = useMemo(
@@ -3651,8 +3692,11 @@ export default function Home() {
   const filteredWosBuildings = scrapedWosBuildings.filter((building) => building.category === activeBuildingFilter);
   const activeWikiHero = scrapedWosHeroes.find((hero) => hero.slug === activeWikiSlug);
   const activeWikiBuilding = scrapedWosBuildings.find((building) => building.slug === activeWikiSlug);
-  const allMessageTemplates = templateView === "gallery" ? [...messageTemplates, ...communityTemplates] : communityTemplates;
-  const filteredMessageTemplates = allMessageTemplates.filter((template) => {
+  const allMessageTemplates = useMemo(
+    () => (templateView === "gallery" ? [...messageTemplates, ...communityTemplates] : communityTemplates),
+    [communityTemplates, templateView],
+  );
+  const filteredMessageTemplates = useMemo(() => allMessageTemplates.filter((template) => {
     if (activeTemplateCategory !== "all" && template.category !== activeTemplateCategory) {
       return false;
     }
@@ -3660,8 +3704,38 @@ export default function Home() {
       return false;
     }
     return true;
-  });
-  const templateTagSuggestions = Array.from(new Set(allMessageTemplates.flatMap((template) => template.tags))).slice(0, 18);
+  }), [activeTemplateCategory, allMessageTemplates, selectedTemplateTag]);
+  const templateTagSuggestions = useMemo(
+    () => Array.from(new Set(allMessageTemplates.flatMap((template) => template.tags))).slice(0, 18),
+    [allMessageTemplates],
+  );
+
+  useEffect(() => {
+    if (activeMenu !== "templates") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get("template");
+    if (!targetId || openedSharedTemplateRef.current === `${targetId}:${params.get("view") || "card"}`) {
+      return;
+    }
+
+    const targetTemplate = allMessageTemplates.find((template) => template.id === targetId);
+    if (!targetTemplate) {
+      return;
+    }
+
+    const view = params.get("view") || "card";
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(`message-template-${targetId}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+      openedSharedTemplateRef.current = `${targetId}:${view}`;
+      if (view === "image" && targetTemplate.imageUrl) {
+        setTemplateImageViewer(targetTemplate);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeMenu, allMessageTemplates]);
 
   const navigateToMenu = (menu: ActiveMenu) => {
     setMobileMoreOpen(false);
@@ -4854,7 +4928,7 @@ export default function Home() {
 
               <section className="template-grid" aria-label="Template cards">
                 {filteredMessageTemplates.map((template) => (
-                  <article className="template-card" key={template.id}>
+                  <article className="template-card" id={`message-template-${template.id}`} key={template.id}>
                     <header className="template-card-title">
                       <div>
                         <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
@@ -5879,10 +5953,24 @@ export default function Home() {
         <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={`${templateImageViewer.title} preview image`} onClick={() => setTemplateImageViewer(null)}>
           <section className="image-viewer template-image-viewer" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setTemplateImageViewer(null)} aria-label="Close">x</button>
+            <div className="image-viewer-toolbar template-image-toolbar" aria-label="Template image controls">
+              <button type="button" onClick={() => void shareMessageTemplate(templateImageViewer, "image", "native")} aria-label="Share image link">
+                <Icon name="share" />
+              </button>
+              <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateImageViewer, "image"), "Copy image popup link")} aria-label="Copy image popup link">
+                <Icon name="copy" />
+              </button>
+              <a href={templateImageViewer.imageUrl} target="_blank" rel="noreferrer" aria-label="Open full image">
+                <Icon name="expand" />
+              </a>
+              <button type="button" onClick={() => void downloadTemplateImage(templateImageViewer)} aria-label="Download template image">
+                <Icon name="download" />
+              </button>
+            </div>
             <img src={templateImageViewer.imageUrl} alt={templateImageViewer.title} />
             <div>
               <strong>{templateImageViewer.title}</strong>
-              <span>{templateImageViewer.creatorName || "Community"}</span>
+              <span>{templateImageViewer.creatorName || "Community"} | {templateShareUrlFor(templateImageViewer, "image")}</span>
             </div>
           </section>
         </div>
@@ -5972,18 +6060,33 @@ export default function Home() {
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Share ${shareTemplateTarget.title}`} onClick={() => setShareTemplateTarget(null)}>
           <section className="share-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setShareTemplateTarget(null)} aria-label="Close">x</button>
-            <h2>Share Template</h2>
-            <p>{shareTemplateTarget.title}</p>
-            <div className="share-url-box">
-              <span>{templateShareUrlFor(shareTemplateTarget)}</span>
-              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget)} aria-label="Copy template URL">
-                <Icon name="copy" />
-              </button>
+            <div className="share-modal-head">
+              {shareTemplateTarget.imageUrl ? <img src={shareTemplateTarget.imageUrl} alt="" /> : <span><Icon name="message" /></span>}
+              <div>
+                <h2>Share Template</h2>
+                <p>{shareTemplateTarget.title}</p>
+              </div>
             </div>
-            <div className="share-icon-row">
-              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget)}>Copy URL</button>
-              <a href={`https://wa.me/?text=${encodeURIComponent(`${shareTemplateTarget.title} ${templateShareUrlFor(shareTemplateTarget)}`)}`} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}>WhatsApp</a>
-              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTemplateTarget.title)}&url=${encodeURIComponent(templateShareUrlFor(shareTemplateTarget))}`} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}>X</a>
+            <div className="share-preview-row">
+              <div className="share-url-box">
+                <span>{templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}</span>
+                <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")} aria-label="Copy template URL">
+                  <Icon name="copy" />
+                </button>
+              </div>
+              <img className="share-qr" src={qrCodeUrlFor(templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"))} alt="Template share QR code" />
+            </div>
+            <div className="share-icon-row share-option-grid">
+              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card", "native")}><Icon name="share" />Native</button>
+              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><Icon name="copy" />Copy</button>
+              <a href={templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
+              {shareTemplateTarget.imageUrl && <button type="button" onClick={() => { setTemplateImageViewer(shareTemplateTarget); setShareTemplateTarget(null); }}><Icon name="image" />Image</button>}
+              <a href={socialShareUrl("whatsapp", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>WhatsApp</a>
+              <a href={socialShareUrl("x", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>X</a>
+              <a href={socialShareUrl("facebook", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>Facebook</a>
+              <a href={socialShareUrl("linkedin", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>LinkedIn</a>
+              <a href={socialShareUrl("telegram", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>Telegram</a>
+              <a href={socialShareUrl("email", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}>Email</a>
             </div>
           </section>
         </div>
@@ -5993,19 +6096,33 @@ export default function Home() {
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Share ${shareIslandTarget.title}`} onClick={() => setShareIslandTarget(null)}>
           <section className="share-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setShareIslandTarget(null)} aria-label="Close">x</button>
-            <h2>Share Island</h2>
-            <p>{shareIslandTarget.title}</p>
-            <div className="share-url-box">
-              <span>{shareUrlFor(shareIslandTarget)}</span>
-              <button type="button" onClick={() => shareIsland(shareIslandTarget)} aria-label="Copy island URL">
-                <Icon name="copy" />
-              </button>
+            <div className="share-modal-head">
+              <img src={shareIslandTarget.imageUrl} alt="" />
+              <div>
+                <h2>Share Island</h2>
+                <p>{shareIslandTarget.title}</p>
+              </div>
             </div>
-            <div className="share-icon-row">
-              <button type="button" onClick={() => shareIsland(shareIslandTarget)}>Copy URL</button>
-              <a href={socialShareUrl("discord", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Discord</a>
-              <a href={socialShareUrl("whatsapp", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>WhatsApp</a>
-              <a href={socialShareUrl("x", shareIslandTarget)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>X</a>
+            <div className="share-preview-row">
+              <div className="share-url-box">
+                <span>{shareUrlFor(shareIslandTarget)}</span>
+                <button type="button" onClick={() => shareIsland(shareIslandTarget)} aria-label="Copy island URL">
+                  <Icon name="copy" />
+                </button>
+              </div>
+              <img className="share-qr" src={qrCodeUrlFor(shareUrlFor(shareIslandTarget))} alt="Island share QR code" />
+            </div>
+            <div className="share-icon-row share-option-grid">
+              <button type="button" onClick={() => void shareIsland(shareIslandTarget, "native")}><Icon name="share" />Native</button>
+              <button type="button" onClick={() => shareIsland(shareIslandTarget)}><Icon name="copy" />Copy</button>
+              <a href={shareUrlFor(shareIslandTarget)} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
+              <button type="button" onClick={() => { setShareIslandTarget(null); void loadComments(shareIslandTarget); }}><Icon name="image" />Image</button>
+              <a href={socialShareUrl("whatsapp", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>WhatsApp</a>
+              <a href={socialShareUrl("x", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>X</a>
+              <a href={socialShareUrl("facebook", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Facebook</a>
+              <a href={socialShareUrl("linkedin", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>LinkedIn</a>
+              <a href={socialShareUrl("telegram", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}>Telegram</a>
+              <a href={socialShareUrl("email", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} onClick={() => void shareIsland(shareIslandTarget)}>Email</a>
             </div>
           </section>
         </div>

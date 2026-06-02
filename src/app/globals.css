@@ -5619,17 +5619,44 @@ body {
 .share-modal {
   position: relative;
   display: grid;
-  gap: 16px;
-  width: min(440px, calc(100vw - 32px));
+  gap: 14px;
+  width: min(640px, calc(100vw - 32px));
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 26px;
+  border-radius: 12px;
+  padding: 18px;
   background: var(--card);
   color: var(--foreground);
   box-shadow:
     0 28px 56px -12px rgba(12, 12, 13, 0.42),
     0 0 0 1px var(--gold-line),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.share-modal-head {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding-right: 34px;
+}
+
+.share-modal-head img,
+.share-modal-head > span {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--muted);
+  object-fit: cover;
+}
+
+.share-modal-head svg {
+  width: 24px;
+  height: 24px;
+  color: var(--gold);
 }
 
 .share-modal h2,
@@ -5644,8 +5671,18 @@ body {
 }
 
 .share-modal p {
+  overflow: hidden;
   color: var(--muted-foreground);
   font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-preview-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px;
+  align-items: stretch;
+  gap: 10px;
 }
 
 .share-url-box {
@@ -5666,6 +5703,15 @@ body {
   border-color: var(--gold-line);
   background: var(--gold-soft);
   color: var(--foreground);
+}
+
+.share-qr {
+  width: 104px;
+  height: 104px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  background: #fff;
 }
 
 .share-url-box span {
@@ -5702,16 +5748,17 @@ body {
 
 .share-icon-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
 .share-icon-row button,
 .share-icon-row a {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   border: 1px solid var(--border);
   border-radius: 9px;
   background: color-mix(in srgb, var(--background) 90%, var(--muted));
@@ -5719,7 +5766,13 @@ body {
   cursor: pointer;
   font-size: 12px;
   font-weight: 800;
+  text-align: center;
   transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.share-icon-row svg {
+  width: 15px;
+  height: 15px;
 }
 
 .share-icon-row button:hover,
@@ -11073,6 +11126,25 @@ body {
   .profile-modal,
   .island-detail-modal {
     width: min(100%, calc(100vw - 16px));
+  }
+
+  .share-modal {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .share-preview-row {
+    grid-template-columns: 1fr;
+  }
+
+  .share-qr {
+    width: 128px;
+    height: 128px;
+    justify-self: center;
+  }
+
+  .share-icon-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modal-backdrop {
