@@ -1498,6 +1498,7 @@ export default function Home() {
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
   const [templateImageLabel, setTemplateImageLabel] = useState("No image attached");
   const [templateImagePreviewUrl, setTemplateImagePreviewUrl] = useState("");
+  const [templateImageViewer, setTemplateImageViewer] = useState<MessageTemplate | null>(null);
   const [shareTemplateTarget, setShareTemplateTarget] = useState<MessageTemplate | null>(null);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [deletingTemplateId, setDeletingTemplateId] = useState("");
@@ -4878,9 +4879,9 @@ export default function Home() {
                     </header>
                     {template.description && <p>{template.description}</p>}
                     {template.imageUrl && (
-                      <div className="template-card-image" aria-label={`${template.title} attached image`}>
+                      <button className="template-card-image" type="button" onClick={() => setTemplateImageViewer(template)} aria-label={`Open ${template.title} preview image`}>
                         <img src={template.imageUrl} alt="" />
-                      </div>
+                      </button>
                     )}
                     <div className="template-chat-preview" aria-label={`${template.title} 28 character preview`}>
                       <div className="template-chat-top">
@@ -5870,6 +5871,19 @@ export default function Home() {
                 <button className="submit-button" type="submit" disabled={savingTemplate}>{savingTemplate ? "Saving..." : editingTemplate ? "Save Template" : "Publish Template"}</button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {templateImageViewer?.imageUrl && (
+        <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={`${templateImageViewer.title} preview image`} onClick={() => setTemplateImageViewer(null)}>
+          <section className="image-viewer template-image-viewer" onClick={(event) => event.stopPropagation()}>
+            <button className="close-button" type="button" onClick={() => setTemplateImageViewer(null)} aria-label="Close">x</button>
+            <img src={templateImageViewer.imageUrl} alt={templateImageViewer.title} />
+            <div>
+              <strong>{templateImageViewer.title}</strong>
+              <span>{templateImageViewer.creatorName || "Community"}</span>
+            </div>
           </section>
         </div>
       )}
