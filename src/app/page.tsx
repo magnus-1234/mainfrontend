@@ -429,6 +429,51 @@ Keep farming clean.`,
   },
 ];
 
+const wosPreviewIconMap: Record<string, string> = {
+  "\uE013": "🛠️",
+  "\uE014": "⚔️",
+  "\uE015": "🔬",
+  "\uE016": "🧪",
+  "\uE017": "📖",
+  "\uE019": "🧩",
+};
+
+const templatePreviewChar = (char: string) => wosPreviewIconMap[char] || char;
+
+const templatePreviewWidth = (char: string) => {
+  if (/[\uFE00-\uFE0F]/u.test(char)) {
+    return 0;
+  }
+  if (/\s/u.test(char)) {
+    return 1;
+  }
+  if (/[\u{1F000}-\u{1FAFF}]/u.test(char)) {
+    return 2;
+  }
+  return 1;
+};
+
+const templatePreviewLines = (text: string, maxWidth = 28) => {
+  const lines: string[] = [];
+  text.split("\n").forEach((sourceLine) => {
+    let current = "";
+    let width = 0;
+    Array.from(sourceLine).forEach((sourceChar) => {
+      const char = templatePreviewChar(sourceChar);
+      const charWidth = Math.max(1, templatePreviewWidth(char));
+      if (width > 0 && width + charWidth > maxWidth) {
+        lines.push(current.trimEnd() || " ");
+        current = "";
+        width = 0;
+      }
+      current += char;
+      width += charWidth;
+    });
+    lines.push(current || " ");
+  });
+  return lines;
+};
+
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
@@ -4492,7 +4537,9 @@ export default function Home() {
                         <span>WOS Chat Preview</span>
                         <small>28 chars</small>
                       </div>
-                      <pre>{template.text}</pre>
+                      <pre>{templatePreviewLines(template.text).map((line, index) => (
+                        <span key={`${template.id}-${index}`}>{line}</span>
+                      ))}</pre>
                     </div>
                     <footer className="template-card-footer">
                       <div className="template-tags">
