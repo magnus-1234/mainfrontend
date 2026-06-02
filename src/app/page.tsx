@@ -348,6 +348,55 @@ const messageTemplateCategories: { label: string; value: MessageTemplateCategory
   { label: "Alliance Recruit", value: "alliance-recruit" },
 ];
 
+const wosIconUnicodeTemplates: MessageTemplate[] = [
+  ["item_icon_101", "One Gem"],
+  ["item_icon_102", "Meat"],
+  ["item_icon_103", "Wood"],
+  ["item_icon_104", "Coal"],
+  ["item_icon_105", "Iron"],
+  ["item_icon_106", "Steel"],
+  ["item_icon_107", "XP"],
+  ["item_icon_109", "Wheel Coin"],
+  ["item_icon_100081", "Fire Crystal"],
+  ["item_icon_620116", "Thorn of Enigma"],
+  ["item_icon_100004", "Bag of Gems"],
+  ["item_icon_200201", "Building Speedup"],
+  ["item_icon_200301", "Troop Speedup"],
+  ["item_icon_200401", "Research Speedup"],
+  ["item_icon_500240", "Essence Stone"],
+  ["item_icon_200101", "Speedup"],
+  ["item_icon_620127", "Adventure Coin"],
+  ["item_icon_500220", "SSR Shard"],
+  ["item_icon_620129", "Vase"],
+  ["item_icon_620163", "Other Meat"],
+  ["item_icon_620189", "Sandwich"],
+  ["resource_icon_744", "Blue Completed"],
+  ["resource_icon_745", "Red Completed"],
+  ["resource_icon_743", "Red Flag"],
+  ["resource_icon_742", "Blue Flag"],
+  ["item_icon_620197", "Car Keys"],
+  ["item_icon_620203", "Small Bouquet"],
+  ["item_icon_620204", "Medium Bouquet"],
+  ["item_icon_620205", "Large Bouquet"],
+  ["item_icon_620206", "Clover"],
+  ["item_icon_620208", "Coin"],
+  ["item_icon_620210", "ChocoGift"],
+  ["accumulative_icon_001", "Top Up Coin"],
+  ["item_icon_620240", "Bread Loaf"],
+  ["item_icon_620261", "Recycle Token"],
+].map(([code, title]) => ({
+  id: `wos-icon-${code.replace(/_/g, "-")}`,
+  title,
+  category: "unicodes",
+  description: `Whiteout Survival icon code for ${title}.`,
+  builtin: true,
+  creatorName: "WhiteoutSurvival.dev",
+  likes: 0,
+  shares: 0,
+  tags: ["Unicode", "Emoji"],
+  text: `<${code}> ${title}`,
+}));
+
 const messageTemplates: MessageTemplate[] = [
   {
     id: "svs-prep-guide",
@@ -482,6 +531,7 @@ Ask R4 if unsure.
 Breaking NAP can cause war.
 Keep farming clean.`,
   },
+  ...wosIconUnicodeTemplates,
 ];
 
 const wosPreviewIconMap: Record<string, string> = {
