@@ -1528,6 +1528,7 @@ export default function Home() {
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
   const [templateImageLabel, setTemplateImageLabel] = useState("No image attached");
   const [templateImagePreviewUrl, setTemplateImagePreviewUrl] = useState("");
+  const [templateViewer, setTemplateViewer] = useState<MessageTemplate | null>(null);
   const [templateImageViewer, setTemplateImageViewer] = useState<MessageTemplate | null>(null);
   const [shareTemplateTarget, setShareTemplateTarget] = useState<MessageTemplate | null>(null);
   const [savingTemplate, setSavingTemplate] = useState(false);
@@ -2540,11 +2541,11 @@ export default function Home() {
     }
   };
 
-  const templateShareUrlFor = (template: MessageTemplate, view: "card" | "image" = "card") =>
-    `${window.location.origin}/message-templates?template=${encodeURIComponent(template.id)}${view === "image" ? "&view=image" : ""}`;
+  const templateShareUrlFor = (template: MessageTemplate) =>
+    `${window.location.origin}/message-templates?template=${encodeURIComponent(template.id)}&view=dialog`;
 
-  const shareMessageTemplate = async (template: MessageTemplate, view: "card" | "image" = "card", mode: "copy" | "native" = "copy") => {
-    const shareUrl = templateShareUrlFor(template, view);
+  const shareMessageTemplate = async (template: MessageTemplate, mode: "copy" | "native" = "copy") => {
+    const shareUrl = templateShareUrlFor(template);
     try {
       if (mode === "native") {
         await nativeShare(template.title, shareUrl, `${template.title} message template`);
@@ -3759,9 +3760,7 @@ export default function Home() {
     const frame = window.requestAnimationFrame(() => {
       document.getElementById(`message-template-${targetId}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
       openedSharedTemplateRef.current = `${targetId}:${view}`;
-      if (view === "image" && targetTemplate.imageUrl) {
-        setTemplateImageViewer(targetTemplate);
-      }
+      setTemplateViewer(targetTemplate);
     });
 
     return () => window.cancelAnimationFrame(frame);
@@ -4960,10 +4959,10 @@ export default function Home() {
                 {filteredMessageTemplates.map((template) => (
                   <article className="template-card" id={`message-template-${template.id}`} key={template.id}>
                     <header className="template-card-title">
-                      <div>
+                      <button className="template-title-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
                         <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
                         <h3>{template.title}</h3>
-                      </div>
+                      </button>
                       <div className="template-card-actions">
                         {template.canManage && !template.builtin && (
                           <button
@@ -4983,11 +4982,11 @@ export default function Home() {
                     </header>
                     {template.description && <p>{template.description}</p>}
                     {template.imageUrl && (
-                      <button className="template-card-image" type="button" onClick={() => setTemplateImageViewer(template)} aria-label={`Open ${template.title} preview image`}>
+                      <button className="template-card-image" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
                         <img src={template.imageUrl} alt="" />
                       </button>
                     )}
-                    <div className="template-chat-preview" aria-label={`${template.title} 28 character preview`}>
+                    <button className="template-chat-preview template-preview-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title} full preview`}>
                       <div className="template-chat-top">
                         <span>WOS Chat Preview</span>
                         <small>28 chars</small>
@@ -4995,7 +4994,7 @@ export default function Home() {
                       <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
                         <span key={`${template.id}-${index}`}>{line}</span>
                       ))}</pre>
-                    </div>
+                    </button>
                     <footer className="template-card-footer">
                       <div className="template-tags">
                         {template.tags.map((tag) => (
@@ -5979,15 +5978,66 @@ export default function Home() {
         </div>
       )}
 
+      {templateViewer && (
+        <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={`${templateViewer.title} template details`} onClick={() => setTemplateViewer(null)}>
+          <section className="template-detail-modal" onClick={(event) => event.stopPropagation()}>
+            <button className="close-button" type="button" onClick={() => setTemplateViewer(null)} aria-label="Close">x</button>
+            <div className="template-detail-media">
+              {templateViewer.imageUrl ? (
+                <button className="template-detail-image" type="button" onClick={() => setTemplateImageViewer(templateViewer)} aria-label={`Open ${templateViewer.title} image`}>
+                  <img src={templateViewer.imageUrl} alt={templateViewer.title} />
+                </button>
+              ) : (
+                <div className="template-detail-image empty">
+                  <Icon name="message" />
+                  <span>No preview image</span>
+                </div>
+              )}
+              <div className="template-chat-preview template-detail-preview" aria-label={`${templateViewer.title} full chat preview`}>
+                <div className="template-chat-top">
+                  <span>WOS Chat Preview</span>
+                  <small>28 chars</small>
+                </div>
+                <pre>{(templateViewer.previewText ? templateViewer.previewText.split("\n") : templatePreviewLines(templateViewer.text)).map((line, index) => (
+                  <span key={`${templateViewer.id}-detail-${index}`}>{line}</span>
+                ))}</pre>
+              </div>
+            </div>
+            <aside className="template-detail-panel">
+              <span className="section-kicker">{messageTemplateCategories.find((category) => category.value === templateViewer.category)?.label || "Template"}</span>
+              <h2>{templateViewer.title}</h2>
+              {templateViewer.description && <p>{templateViewer.description}</p>}
+              <div className="template-detail-meta">
+                <span>{templateViewer.creatorName || "Community"}</span>
+                <span>{Array.from(templateViewer.text).length} chars</span>
+                <span>{templateViewer.likes || 0} likes</span>
+                <span>{templateViewer.shares || 0} shares</span>
+              </div>
+              <div className="template-detail-tags">
+                {templateViewer.tags.map((tag) => (
+                  <button type="button" key={`${templateViewer.id}-viewer-${tag}`} onClick={() => { setSelectedTemplateTag(tag); setTemplateViewer(null); }}>#{tag}</button>
+                ))}
+              </div>
+              <div className="template-detail-actions">
+                <button type="button" onClick={() => void copyMessageTemplate(templateViewer)}><Icon name="copy" />Copy Text</button>
+                <button type="button" onClick={() => setShareTemplateTarget(templateViewer)}><Icon name="share" />Share</button>
+                <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateViewer), "Copy template link")}><Icon name="external" />Copy Link</button>
+                {templateViewer.imageUrl && <button type="button" onClick={() => void downloadTemplateImage(templateViewer)}><Icon name="download" />Download Image</button>}
+              </div>
+            </aside>
+          </section>
+        </div>
+      )}
+
       {templateImageViewer?.imageUrl && (
         <div className="modal-backdrop image-viewer-backdrop" role="dialog" aria-modal="true" aria-label={`${templateImageViewer.title} preview image`} onClick={() => setTemplateImageViewer(null)}>
           <section className="image-viewer template-image-viewer" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setTemplateImageViewer(null)} aria-label="Close">x</button>
             <div className="image-viewer-toolbar template-image-toolbar" aria-label="Template image controls">
-              <button type="button" onClick={() => void shareMessageTemplate(templateImageViewer, "image", "native")} aria-label="Share image link">
+              <button type="button" onClick={() => void shareMessageTemplate(templateImageViewer, "native")} aria-label="Share image link">
                 <Icon name="share" />
               </button>
-              <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateImageViewer, "image"), "Copy image popup link")} aria-label="Copy image popup link">
+              <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateImageViewer), "Copy template dialog link")} aria-label="Copy template dialog link">
                 <Icon name="copy" />
               </button>
               <a href={templateImageViewer.imageUrl} target="_blank" rel="noreferrer" aria-label="Open full image">
@@ -6000,7 +6050,7 @@ export default function Home() {
             <img src={templateImageViewer.imageUrl} alt={templateImageViewer.title} />
             <div>
               <strong>{templateImageViewer.title}</strong>
-              <span>{templateImageViewer.creatorName || "Community"} | {templateShareUrlFor(templateImageViewer, "image")}</span>
+              <span>{templateImageViewer.creatorName || "Community"} | {templateShareUrlFor(templateImageViewer)}</span>
             </div>
           </section>
         </div>
@@ -6099,24 +6149,24 @@ export default function Home() {
             </div>
             <div className="share-preview-row">
               <div className="share-url-box">
-                <span>{templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}</span>
-                <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")} aria-label="Copy template URL">
+                <span>{templateShareUrlFor(shareTemplateTarget)}</span>
+                <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget)} aria-label="Copy template URL">
                   <Icon name="copy" />
                 </button>
               </div>
-              <img className="share-qr" src={qrCodeUrlFor(templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"))} alt="Template share QR code" />
+              <img className="share-qr" src={qrCodeUrlFor(templateShareUrlFor(shareTemplateTarget))} alt="Template share QR code" />
             </div>
             <div className="share-icon-row share-option-grid">
-              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card", "native")}><Icon name="share" />Native</button>
-              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><Icon name="copy" />Copy</button>
-              <a href={templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
-              {shareTemplateTarget.imageUrl && <button type="button" onClick={() => { setTemplateImageViewer(shareTemplateTarget); setShareTemplateTarget(null); }}><Icon name="image" />Image</button>}
-              <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
-              <a className="brand-share x" href={socialShareUrl("x", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="x" /><span>X</span></a>
-              <a className="brand-share facebook" href={socialShareUrl("facebook", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="facebook" /><span>Facebook</span></a>
-              <a className="brand-share linkedin" href={socialShareUrl("linkedin", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
-              <a className="brand-share telegram" href={socialShareUrl("telegram", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="telegram" /><span>Telegram</span></a>
-              <a className="brand-share email" href={socialShareUrl("email", templateShareUrlFor(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card"), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} onClick={() => void shareMessageTemplate(shareTemplateTarget, shareTemplateTarget.imageUrl ? "image" : "card")}><BrandLogo brand="email" /><span>Email</span></a>
+              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget, "native")}><Icon name="share" />Native</button>
+              <button type="button" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><Icon name="copy" />Copy</button>
+              <a href={templateShareUrlFor(shareTemplateTarget)} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
+              {shareTemplateTarget.imageUrl && <button type="button" onClick={() => { setTemplateViewer(shareTemplateTarget); setShareTemplateTarget(null); }}><Icon name="image" />Image</button>}
+              <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+              <a className="brand-share x" href={socialShareUrl("x", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="x" /><span>X</span></a>
+              <a className="brand-share facebook" href={socialShareUrl("facebook", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="facebook" /><span>Facebook</span></a>
+              <a className="brand-share linkedin" href={socialShareUrl("linkedin", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
+              <a className="brand-share telegram" href={socialShareUrl("telegram", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="telegram" /><span>Telegram</span></a>
+              <a className="brand-share email" href={socialShareUrl("email", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="email" /><span>Email</span></a>
             </div>
           </section>
         </div>
@@ -6160,3 +6210,4 @@ export default function Home() {
     </main>
   );
 }
+
