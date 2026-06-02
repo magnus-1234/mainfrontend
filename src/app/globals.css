@@ -3749,9 +3749,6 @@ body {
 
 .templates-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
-  gap: clamp(18px, 4vw, 42px);
-  align-items: end;
   border-bottom: 1px solid var(--border);
   padding-bottom: clamp(18px, 3vw, 32px);
 }
@@ -3772,41 +3769,6 @@ body {
   color: var(--muted-foreground);
   font-size: clamp(15px, 1.6vw, 18px);
   line-height: 1.6;
-}
-
-.templates-chat-spec {
-  display: grid;
-  min-height: 150px;
-  place-items: center;
-  border: 1px solid var(--gold-line);
-  border-radius: 8px;
-  padding: 18px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 90%, transparent), color-mix(in srgb, var(--card) 86%, transparent));
-  box-shadow:
-    0 16px 38px rgba(12, 18, 20, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: var(--gold);
-  text-align: center;
-}
-
-.templates-chat-spec svg {
-  width: 28px;
-  height: 28px;
-}
-
-.templates-chat-spec strong {
-  color: var(--foreground);
-  font-size: 50px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.templates-chat-spec span {
-  color: var(--muted-foreground);
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .templates-howto {
@@ -6931,14 +6893,6 @@ body {
 
   .daybreak-hero {
     grid-template-columns: 1fr;
-  }
-
-  .templates-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .templates-chat-spec {
-    min-height: 112px;
   }
 
   .templates-howto {

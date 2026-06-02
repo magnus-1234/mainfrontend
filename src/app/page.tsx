@@ -4799,15 +4799,10 @@ export default function Home() {
                   <h1>Message Templates</h1>
                   <p>Create, edit, share, and copy alliance chat templates with tags, likes, and a game chat preview.</p>
                 </div>
-                <div className="templates-chat-spec" aria-label="Game chat width">
-                  <Icon name="message" />
-                  <strong>28</strong>
-                  <span>chat width</span>
-                </div>
               </section>
 
               <section className="templates-howto" aria-label="How to use message templates">
-                {["Create or choose a template", "Preview the chat width", "Copy, like, or share"].map((step, index) => (
+                {["Create or choose a template", "Check the preview", "Copy, like, or share"].map((step, index) => (
                   <div key={step}>
                     <span>{index + 1}</span>
                     <strong>{step}</strong>
