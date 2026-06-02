@@ -649,7 +649,7 @@ const sidebarItems: {
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
-    { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
+    { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/#foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
     { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
@@ -670,6 +670,8 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#state-age": "stateAge",
   "#state-age-tracker": "stateAge",
   "#state-timeline": "stateAge",
+  "#foundry-team-planner": "planner",
+  "#foundry-planner": "planner",
   "#city-layout-planner": "planner",
   "#layout-planner": "planner",
   "#planner": "planner",
@@ -713,7 +715,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   gift: "/gift-codes",
   redeem: "/redeem",
   stateAge: "/state-age",
-  planner: "/#city-layout-planner",
+  planner: "/#foundry-team-planner",
   templates: "/message-templates",
   sneak: "/#sneak-peek",
   daybreak: "/#daybreak",
@@ -3703,7 +3705,106 @@ export default function Home() {
               )}
             </section>
           ) : activeMenu === "planner" ? (
-            <section className="home-page" id="city-layout-planner" aria-label="City Layout Planner" />
+            <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
+              <section className="foundry-hero">
+                <div>
+                  <span className="section-kicker">Foundry Battle</span>
+                  <h1>Foundry Team Planner</h1>
+                  <p>Plan teams around the real foundry map, split squads by objective, and keep rally lanes visible before the match starts.</p>
+                </div>
+                <div className="foundry-hero-actions">
+                  <a href="/foundry-team-planner-map.webp" target="_blank" rel="noreferrer">
+                    <Icon name="expand" />
+                    Open Map
+                  </a>
+                  <a href="/foundry-team-planner-map.webp" download>
+                    <Icon name="download" />
+                    Download
+                  </a>
+                </div>
+              </section>
+
+              <section className="foundry-planner-shell">
+                <div className="foundry-map-panel">
+                  <div className="foundry-map-toolbar">
+                    <span><Icon name="mapPin" /> Live map board</span>
+                    <div>
+                      <strong>Red</strong>
+                      <strong>Blue</strong>
+                      <strong>Neutral</strong>
+                    </div>
+                  </div>
+                  <div className="foundry-map-frame">
+                    <img src="/foundry-team-planner-map.webp" alt="Whiteout Survival Foundry battlefield map" />
+                    {[
+                      { label: "Blue Spawn", team: "blue", x: 8, y: 50 },
+                      { label: "Red Spawn", team: "red", x: 91, y: 50 },
+                      { label: "Central Furnace", team: "neutral", x: 50, y: 51 },
+                      { label: "North Left", team: "neutral", x: 34, y: 17 },
+                      { label: "North Right", team: "neutral", x: 59, y: 17 },
+                      { label: "South Left", team: "neutral", x: 35, y: 88 },
+                      { label: "South Right", team: "neutral", x: 60, y: 88 },
+                    ].map((marker) => (
+                      <span
+                        className={`foundry-map-marker ${marker.team}`}
+                        key={marker.label}
+                        style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                      >
+                        {marker.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <aside className="foundry-plan-panel" aria-label="Foundry team plan">
+                  <div className="foundry-panel-head">
+                    <span className="section-kicker">Squad Sheet</span>
+                    <h2>Team Assignments</h2>
+                    <p>Use this board during planning calls, then copy the roles into Discord or alliance chat.</p>
+                  </div>
+                  <div className="foundry-team-grid">
+                    {[
+                      ["Alpha", "Central Furnace", "Main rally, first occupation, reinforce on calls", "blue"],
+                      ["Bravo", "North Buildings", "Secure north pair and rotate to center if pressure drops", "neutral"],
+                      ["Charlie", "South Buildings", "Hold south pair, scout flanks, deny late steals", "neutral"],
+                      ["Delta", "Counter / Flex", "Fast marches, reset enemy occupations, cover weak side", "red"],
+                    ].map(([team, target, note, color]) => (
+                      <article className={`foundry-team-card ${color}`} key={team}>
+                        <div>
+                          <strong>{team}</strong>
+                          <span>{target}</span>
+                        </div>
+                        <p>{note}</p>
+                        <label>
+                          Lead
+                          <input type="text" placeholder="R4 / rally lead" />
+                        </label>
+                        <label>
+                          Members
+                          <input type="text" placeholder="Names or groups" />
+                        </label>
+                      </article>
+                    ))}
+                  </div>
+                </aside>
+              </section>
+
+              <section className="foundry-brief-grid" aria-label="Foundry planner checklist">
+                {[
+                  ["Opening", "Send Alpha to center, Bravo and Charlie split top and bottom, Delta watches enemy pathing."],
+                  ["Mid Match", "Reinforce occupied targets before rotating. Do not abandon double-held lanes without a call."],
+                  ["Final Push", "Stack speedups for last captures, collapse flex team into the weakest enemy-held objective."],
+                ].map(([title, body], index) => (
+                  <article key={title}>
+                    <span>{index + 1}</span>
+                    <div>
+                      <strong>{title}</strong>
+                      <p>{body}</p>
+                    </div>
+                  </article>
+                ))}
+              </section>
+            </section>
           ) : activeMenu === "templates" ? (
             <section className="home-page message-templates-page" id="message-templates" aria-label="Whiteout Survival message templates">
               <section className="templates-hero">
