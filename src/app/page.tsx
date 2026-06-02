@@ -5332,27 +5332,25 @@ export default function Home() {
                           <span>Live Operations</span>
                           <small>real-time dashboard feed</small>
                         </div>
-                        <strong>{botMetrics.discordMembers} Discord members</strong>
+                        <strong>Image previews</strong>
                       </div>
                       <div className="bot-preview-event">
                         <span>Gift Code</span>
                         <strong>Active Gift Code Detected</strong>
                         <p>Active gift code detected; auto redeem pending across configured servers.</p>
                       </div>
-                      <div className="bot-preview-stats">
-                        {[
-                          [botMetrics.members, "monitored members"],
-                          [botMetrics.monitors, "active monitors"],
-                          [botMetrics.redeemServers, "auto redeem servers"],
-                          [botMetrics.giftCodes, "active codes"],
-                        ].map(([value, label]) => (
-                          <span key={label}><strong>{value}</strong>{label}</span>
-                        ))}
+                      <div className="bot-preview-image-showcase" aria-label="Bot image previews">
+                        <figure className="bot-preview-image-card arena">
+                          <img src="/bot-preview-arena.png" alt="Whiteout Survival Discord arena alert preview" />
+                        </figure>
+                        <figure className="bot-preview-image-card dashboard">
+                          <img src="/bot-preview-dashboard-reference.png" alt="Whiteout Survival bot dashboard preview" />
+                        </figure>
                       </div>
                       <div className="bot-preview-process">
                         <div className="bot-preview-process-head">
                           <span>Live Process</span>
-                          <strong>60 records</strong>
+                          <strong>live feed</strong>
                         </div>
                         <article>
                           <b>GC</b>
