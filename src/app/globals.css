@@ -11000,6 +11000,175 @@ body {
   font-weight: 950;
 }
 
+.charm-gear-planner {
+  min-width: 0;
+}
+
+.charm-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.charm-quick-actions button {
+  min-height: 38px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--muted);
+  color: var(--foreground);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 950;
+  line-height: 1.15;
+  white-space: normal;
+}
+
+.charm-quick-actions button:hover {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+
+.charm-gear-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.charm-gear-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(245, 248, 252, 0.88)),
+    var(--card);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+}
+
+.dark .charm-gear-card {
+  background:
+    linear-gradient(135deg, rgba(21, 27, 38, 0.95), rgba(11, 18, 32, 0.9)),
+    var(--card);
+}
+
+.charm-gear-card.troop-infantry {
+  border-color: rgba(34, 197, 94, 0.32);
+}
+
+.charm-gear-card.troop-marksman {
+  border-color: rgba(59, 130, 246, 0.34);
+}
+
+.charm-gear-card.troop-lancer {
+  border-color: rgba(244, 129, 32, 0.36);
+}
+
+.charm-gear-card-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.charm-gear-card-head div {
+  display: grid;
+  gap: 3px;
+}
+
+.charm-gear-card-head span,
+.charm-slot-row > span,
+.charm-gear-card-head small {
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.charm-gear-card-head strong {
+  color: var(--foreground);
+  font-size: 1.12rem;
+}
+
+.charm-gear-card-head b {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.76rem;
+}
+
+.charm-slot-list {
+  display: grid;
+  gap: 8px;
+}
+
+.charm-slot-row {
+  display: grid;
+  grid-template-columns: minmax(62px, 0.7fr) repeat(2, minmax(76px, 1fr));
+  align-items: end;
+  gap: 8px;
+}
+
+.charm-slot-row label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.charm-slot-row small {
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.charm-slot-row select {
+  width: 100%;
+  min-height: 34px;
+  min-width: 0;
+  border: 1px solid var(--input);
+  border-radius: 6px;
+  padding: 0 8px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.charm-slot-row select:focus {
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+  outline: none;
+}
+
+.charm-gear-total {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.charm-gear-total span {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 6px;
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .charm-shortfall-list {
   display: grid;
   gap: 12px;
@@ -11171,6 +11340,7 @@ body {
 @media (max-width: 620px) {
   .chief-charm-page {
     padding: 10px;
+    overflow-x: hidden;
   }
 
   .chief-charm-hero {
@@ -11193,12 +11363,20 @@ body {
   .chief-charm-hero p {
     max-width: calc(100vw - 52px);
     font-size: 0.98rem;
+    overflow-wrap: anywhere;
+  }
+
+  .chief-charm-hero p span {
+    display: block;
+    max-width: 100%;
   }
 
   .chief-charm-hero-chips,
   .chief-charm-summary,
   .chief-charm-results,
   .chief-charm-sources,
+  .charm-quick-actions,
+  .charm-gear-grid,
   .charm-form-grid,
   .charm-inventory-inputs,
   .charm-advice-grid,
@@ -11209,6 +11387,47 @@ body {
 
   .chief-charm-art {
     min-height: 250px;
+  }
+
+  .chief-charm-panel-head {
+    display: grid;
+    gap: 6px;
+  }
+
+  .chief-charm-panel-head strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .charm-quick-actions button {
+    min-height: 42px;
+  }
+
+  .charm-gear-card {
+    padding: 10px;
+  }
+
+  .charm-gear-card-head {
+    display: grid;
+    align-items: start;
+  }
+
+  .charm-gear-card-head b {
+    justify-self: start;
+  }
+
+  .charm-slot-row {
+    grid-template-columns: minmax(58px, 0.62fr) repeat(2, minmax(86px, 1fr));
+    gap: 6px;
+  }
+
+  .charm-slot-row select {
+    padding: 0 5px;
+    font-size: 0.78rem;
+  }
+
+  .charm-gear-total {
+    grid-template-columns: 1fr;
   }
 
   .charm-gear-ring {
@@ -13675,5 +13894,21 @@ body {
   .chief-charm-hero p,
   .chief-charm-hero-chips {
     max-width: calc(100svw - 86px) !important;
+  }
+
+  .chief-charm-hero p,
+  .chief-charm-panel-head strong {
+    width: min(100%, 280px) !important;
+    max-width: calc(100vw - 112px) !important;
+    overflow-wrap: anywhere;
+  }
+
+  .chief-charm-hero p span {
+    width: min(100%, 280px) !important;
+    max-width: calc(100vw - 112px) !important;
+  }
+
+  .charm-gear-card-head {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

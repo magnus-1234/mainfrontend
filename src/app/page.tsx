@@ -88,6 +88,28 @@ type ChiefCharmLevel = {
   stat: number;
   power: number;
 };
+
+type ChiefCharmCost = {
+  design: number;
+  guide: number;
+  secret: number;
+  power: number;
+  statGain: number;
+};
+
+type ChiefCharmSlotState = {
+  from: number;
+  to: number;
+};
+
+type ChiefCharmGearPiece = {
+  id: string;
+  name: string;
+  troop: "Infantry" | "Marksman" | "Lancer";
+  stat: string;
+};
+
+type ChiefCharmGearState = Record<string, ChiefCharmSlotState[]>;
 type SiteLanguage = {
   code: string;
   name: string;
@@ -376,14 +398,24 @@ const chiefCharmLevels: ChiefCharmLevel[] = [
 ];
 
 const chiefCharmSlots = 18;
+const chiefCharmSlotsPerGear = 3;
+const chiefCharmGearPieces: ChiefCharmGearPiece[] = [
+  { id: "helmet", name: "Helmet", troop: "Infantry", stat: "Infantry Health / Lethality" },
+  { id: "armor", name: "Armor", troop: "Infantry", stat: "Infantry Health / Lethality" },
+  { id: "weapon", name: "Weapon", troop: "Marksman", stat: "Marksman Health / Lethality" },
+  { id: "belt", name: "Belt", troop: "Marksman", stat: "Marksman Health / Lethality" },
+  { id: "watch", name: "Watch", troop: "Lancer", stat: "Lancer Health / Lethality" },
+  { id: "boots", name: "Boots", troop: "Lancer", stat: "Lancer Health / Lethality" },
+];
+const chiefCharmTroops = ["Infantry", "Marksman", "Lancer"] as const;
 const chiefCharmUpgradeSources = [
-  "Official wiki: Furnace Lv.25 unlock, level 11 material exchange, Charm Design, Charm Guide, Charm Secret, power and stat tables.",
-  "H5Joy/WOS app calculator: level 1-16 material costs, stat totals, and exchange ratios.",
-  "Whiteout Survival Data: Jewel Secrets are required from level 12 through 16.",
-  "WOSC community database: calculator sums material needs between current and target levels.",
+  "Whiteout Survival Wiki: Chief Charms calculator reference and unlock context.",
+  "WoSTools: 18 charm slots, 3 slots per gear piece, and troop grouping model.",
+  "deepfriedmind/wos-toolkit: level 1-16 per-slot Charm Design, Charm Guide, and Jewel Secret costs.",
+  "Kingshot governor charm calculator: comparable slot-by-slot charm planner layout.",
 ];
 
-const emptyChiefCharmCost = { design: 0, guide: 0, secret: 0, power: 0, statGain: 0 };
+const emptyChiefCharmCost: ChiefCharmCost = { design: 0, guide: 0, secret: 0, power: 0, statGain: 0 };
 
 const levelDataFor = (level: number) => chiefCharmLevels.find((item) => item.level === level);
 
@@ -400,6 +432,28 @@ const charmTotalsBetween = (currentLevel: number, targetLevel: number) =>
       }),
       emptyChiefCharmCost,
     );
+
+const addCharmCost = (left: ChiefCharmCost, right: ChiefCharmCost): ChiefCharmCost => ({
+  design: left.design + right.design,
+  guide: left.guide + right.guide,
+  secret: left.secret + right.secret,
+  power: left.power + right.power,
+  statGain: left.statGain + right.statGain,
+});
+
+const multiplyCharmCost = (cost: ChiefCharmCost, multiplier: number): ChiefCharmCost => ({
+  design: cost.design * multiplier,
+  guide: cost.guide * multiplier,
+  secret: cost.secret * multiplier,
+  power: cost.power * multiplier,
+  statGain: cost.statGain * multiplier,
+});
+
+const createChiefCharmGearState = (from = 0, to = 0): ChiefCharmGearState =>
+  chiefCharmGearPieces.reduce<ChiefCharmGearState>((state, gear) => {
+    state[gear.id] = Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from, to }));
+    return state;
+  }, {});
 
 const formatNumber = (value: number) => new Intl.NumberFormat("en-US").format(Math.round(value));
 
@@ -1656,9 +1710,7 @@ export default function Home() {
   const [stateAgeRecentUpdatedAt, setStateAgeRecentUpdatedAt] = useState("");
   const [stateAgeRecentLoading, setStateAgeRecentLoading] = useState(false);
   const [stateAgeRecentStatus, setStateAgeRecentStatus] = useState("");
-  const [charmCurrentLevel, setCharmCurrentLevel] = useState(0);
-  const [charmTargetLevel, setCharmTargetLevel] = useState(11);
-  const [charmSlotCount, setCharmSlotCount] = useState(chiefCharmSlots);
+  const [charmGearState, setCharmGearState] = useState<ChiefCharmGearState>(() => createChiefCharmGearState(0, 11));
   const [ownedCharmDesign, setOwnedCharmDesign] = useState(0);
   const [ownedCharmGuide, setOwnedCharmGuide] = useState(0);
   const [ownedCharmSecret, setOwnedCharmSecret] = useState(0);
@@ -3148,18 +3200,56 @@ export default function Home() {
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive;
-  const charmTargetSafe = Math.max(charmCurrentLevel + 1, Math.min(16, charmTargetLevel));
-  const charmSlotSafe = Math.max(1, Math.min(chiefCharmSlots, charmSlotCount));
-  const charmSingleCost = charmTotalsBetween(charmCurrentLevel, charmTargetSafe);
-  const charmAllSlotCost = {
-    design: charmSingleCost.design * charmSlotSafe,
-    guide: charmSingleCost.guide * charmSlotSafe,
-    secret: charmSingleCost.secret * charmSlotSafe,
-    power: charmSingleCost.power * charmSlotSafe,
-    statGain: charmSingleCost.statGain * charmSlotSafe,
-  };
-  const charmCurrentData = levelDataFor(charmCurrentLevel);
-  const charmTargetData = levelDataFor(charmTargetSafe);
+  const updateCharmSlot = useCallback((gearId: string, slotIndex: number, field: keyof ChiefCharmSlotState, value: number) => {
+    setCharmGearState((current) => {
+      const gearSlots = current[gearId] || Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from: 0, to: 0 }));
+      const nextSlots = gearSlots.map((slot, index) => {
+        if (index !== slotIndex) {
+          return slot;
+        }
+
+        const nextSlot = { ...slot, [field]: value };
+        if (field === "from" && nextSlot.to < value) {
+          nextSlot.to = value;
+        }
+        if (field === "to" && nextSlot.from > value) {
+          nextSlot.from = value;
+        }
+        return nextSlot;
+      });
+
+      return { ...current, [gearId]: nextSlots };
+    });
+  }, []);
+  const applyCharmPreset = useCallback((from: number, to: number) => {
+    setCharmGearState(createChiefCharmGearState(from, to));
+  }, []);
+  const charmSlotRows = chiefCharmGearPieces.flatMap((gear) => {
+    const slots = charmGearState[gear.id] || [];
+    return Array.from({ length: chiefCharmSlotsPerGear }, (_, slotIndex) => {
+      const slot = slots[slotIndex] || { from: 0, to: 0 };
+      const from = Math.max(0, Math.min(16, slot.from));
+      const to = Math.max(from, Math.min(16, slot.to));
+      const cost = to > from ? charmTotalsBetween(from, to) : emptyChiefCharmCost;
+      return { gear, slotIndex, from, to, cost };
+    });
+  });
+  const charmAllSlotCost = charmSlotRows.reduce((total, slot) => addCharmCost(total, slot.cost), emptyChiefCharmCost);
+  const charmPlannedSlots = charmSlotRows.filter((slot) => slot.to > slot.from).length;
+  const charmMaxedSlots = charmSlotRows.filter((slot) => slot.to === 16).length;
+  const charmGearCosts = chiefCharmGearPieces.map((gear) => {
+    const slots = charmSlotRows.filter((slot) => slot.gear.id === gear.id);
+    const total = slots.reduce((sum, slot) => addCharmCost(sum, slot.cost), emptyChiefCharmCost);
+    const targetAverage = slots.reduce((sum, slot) => sum + slot.to, 0) / chiefCharmSlotsPerGear;
+    return { gear, slots, total, targetAverage };
+  });
+  const charmTroopCosts = chiefCharmTroops.map((troop) => {
+    const gearCosts = charmGearCosts.filter((item) => item.gear.troop === troop);
+    const total = gearCosts.reduce((sum, item) => addCharmCost(sum, item.total), emptyChiefCharmCost);
+    return { troop, total, gearCosts };
+  });
+  const charmSingleCost = charmPlannedSlots > 0 ? multiplyCharmCost(charmAllSlotCost, 1 / charmPlannedSlots) : emptyChiefCharmCost;
+  const charmTargetData = levelDataFor(Math.max(...charmSlotRows.map((slot) => slot.to), 0));
   const charmShortfall = {
     design: Math.max(0, charmAllSlotCost.design - ownedCharmDesign),
     guide: Math.max(0, charmAllSlotCost.guide - ownedCharmGuide),
@@ -3180,9 +3270,9 @@ export default function Home() {
   });
   const charmBestEfficiency = [...charmEfficiencyRows].sort((a, b) => b.efficiency - a.efficiency)[0];
   const charmRecommendation =
-    charmTargetSafe >= 12
-      ? "Plan Secrets before pushing level 12+. The exchange unlocks after one charm reaches level 11."
-      : "Level charms evenly across all 18 slots for cheaper early stat and power gains.";
+    charmAllSlotCost.secret > 0
+      ? "Jewel Secret pressure starts at Lv.12. Check that material before pushing late charm levels."
+      : "Early WOS charm value usually comes from leveling all 18 slots evenly before deep pushes.";
   const heroFilterCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
     const group = heroFilterFor(hero);
     counts[group] = (counts[group] || 0) + 1;
@@ -4233,45 +4323,45 @@ export default function Home() {
                   <span className="section-kicker">Chief Gear Calculator</span>
                   <h1>Chief Charm Calculator</h1>
                   <p>
-                    <span>Plan Charm Design, Charm Guide, and Charm Secret costs.</span>
-                    <span>Choose any current level, target level, and up to 18 chief gear charm slots.</span>
+                    <span>Plan Charm Design, Charm Guide, and Jewel Secret costs across every WOS charm slot.</span>
+                    <span>Configure all 18 slots: 3 charms on each chief gear piece, grouped by troop type.</span>
                   </p>
                   <div className="chief-charm-hero-chips" aria-label="Calculator facts">
                     <span><Icon name="flame" /> Furnace Lv.25 unlock</span>
-                    <span><Icon name="calculator" /> 18 charm slots</span>
-                    <span><Icon name="database" /> Lv.1-16 data</span>
-                    <span><Icon name="star" /> Exchange at Lv.11</span>
+                    <span><Icon name="calculator" /> 6 gear pieces</span>
+                    <span><Icon name="database" /> 18 independent slots</span>
+                    <span><Icon name="star" /> Jewel Secret from Lv.12</span>
                   </div>
                 </div>
                 <div className="chief-charm-art" aria-hidden="true">
                   <div className="charm-gear-ring">
-                    {Array.from({ length: 18 }, (_, index) => (
+                    {Array.from({ length: chiefCharmSlots }, (_, index) => (
                       <span key={index} style={{ ["--slot-angle" as string]: `${index * 20}deg` }} />
                     ))}
                   </div>
                   <div className="charm-core">
                     <Icon name="star" />
-                    <strong>Lv.{charmTargetSafe}</strong>
-                    <small>{formatPercent(charmTargetData?.stat || 0)} stat</small>
+                    <strong>{charmMaxedSlots}/{chiefCharmSlots}</strong>
+                    <small>Lv.16 slots</small>
                   </div>
                 </div>
               </section>
 
               <section className="chief-charm-summary" aria-label="Chief Charm result summary">
                 <article className="primary">
-                  <span>Total Power Gain</span>
+                  <span>Plan Power Gain</span>
                   <strong>{formatNumber(charmAllSlotCost.power)}</strong>
-                  <small>{charmSlotSafe} slot{charmSlotSafe === 1 ? "" : "s"} from Lv.{charmCurrentLevel || 0} to Lv.{charmTargetSafe}</small>
+                  <small>{charmPlannedSlots} slot{charmPlannedSlots === 1 ? "" : "s"} with pending upgrades</small>
                 </article>
                 <article>
-                  <span>Single Charm Cost</span>
+                  <span>Highest Target</span>
+                  <strong>{charmTargetData ? `Lv.${charmTargetData.level}` : "None"}</strong>
+                  <small>{charmTargetData ? `${formatPercent(charmTargetData.stat)} stat table level` : "No upgrades selected"}</small>
+                </article>
+                <article>
+                  <span>Average Cost</span>
                   <strong>{formatNumber(charmSingleCost.design + charmSingleCost.guide + charmSingleCost.secret)}</strong>
-                  <small>Raw materials across selected levels</small>
-                </article>
-                <article>
-                  <span>Total Stat Gain</span>
-                  <strong>{formatPercent(charmSingleCost.statGain)}</strong>
-                  <small>Per selected charm slot</small>
+                  <small>Per upgraded slot in this plan</small>
                 </article>
                 <article className={charmCanFinish ? "ready" : "short"}>
                   <span>Inventory Status</span>
@@ -4281,72 +4371,61 @@ export default function Home() {
               </section>
 
               <section className="chief-charm-workbench" aria-label="Chief Charm calculator controls">
-                <div className="chief-charm-panel charm-controls">
+                <div className="chief-charm-panel charm-controls charm-gear-planner">
                   <div className="chief-charm-panel-head">
-                    <span>Upgrade Plan</span>
-                    <strong>Current to Target</strong>
+                    <span>Slot Planner</span>
+                    <strong>Set current and target level for each WOS chief charm slot</strong>
                   </div>
-                  <div className="charm-form-grid">
-                    <label>
-                      <span>Current Level</span>
-                      <select
-                        value={charmCurrentLevel}
-                        onChange={(event) => {
-                          const next = Number(event.currentTarget.value);
-                          setCharmCurrentLevel(next);
-                          if (charmTargetLevel <= next) {
-                            setCharmTargetLevel(Math.min(16, next + 1));
-                          }
-                        }}
-                      >
-                        <option value={0}>Unactivated</option>
-                        {chiefCharmLevels.slice(0, 15).map((level) => (
-                          <option value={level.level} key={level.level}>Level {level.level}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Target Level</span>
-                      <select value={charmTargetSafe} onChange={(event) => setCharmTargetLevel(Number(event.currentTarget.value))}>
-                        {chiefCharmLevels.filter((level) => level.level > charmCurrentLevel).map((level) => (
-                          <option value={level.level} key={level.level}>Level {level.level}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Charm Slots</span>
-                      <input
-                        value={charmSlotCount}
-                        onChange={(event) => setCharmSlotCount(Number(event.currentTarget.value.replace(/\D/g, "")) || 1)}
-                        onBlur={() => setCharmSlotCount(charmSlotSafe)}
-                        inputMode="numeric"
-                      />
-                    </label>
+                  <div className="charm-quick-actions" aria-label="Chief charm presets">
+                    <button type="button" onClick={() => applyCharmPreset(0, 11)}>All new to Lv.11</button>
+                    <button type="button" onClick={() => applyCharmPreset(11, 16)}>All Lv.11 to Lv.16</button>
+                    <button type="button" onClick={() => applyCharmPreset(0, 16)}>Full max plan</button>
+                    <button type="button" onClick={() => applyCharmPreset(0, 0)}>Clear plan</button>
                   </div>
-                  <div className="charm-level-strip" aria-label="Selected charm level stats">
-                    <span>
-                      <small>Current</small>
-                      <strong>{charmCurrentData ? `${formatPercent(charmCurrentData.stat)} / ${formatNumber(charmCurrentData.power)}` : "Unactivated"}</strong>
-                    </span>
-                    <span>
-                      <small>Target</small>
-                      <strong>{formatPercent(charmTargetData?.stat || 0)} / {formatNumber(charmTargetData?.power || 0)}</strong>
-                    </span>
+                  <div className="charm-gear-grid">
+                    {charmGearCosts.map(({ gear, slots, total, targetAverage }) => (
+                      <article className={`charm-gear-card troop-${gear.troop.toLowerCase()}`} key={gear.id}>
+                        <div className="charm-gear-card-head">
+                          <div>
+                            <span>{gear.troop}</span>
+                            <strong>{gear.name}</strong>
+                            <small>{gear.stat}</small>
+                          </div>
+                          <b>Avg Lv.{targetAverage.toFixed(1)}</b>
+                        </div>
+                        <div className="charm-slot-list">
+                          {slots.map((slot) => (
+                            <div className="charm-slot-row" key={`${gear.id}-${slot.slotIndex}`}>
+                              <span>Charm {slot.slotIndex + 1}</span>
+                              <label>
+                                <small>From</small>
+                                <select value={slot.from} onChange={(event) => updateCharmSlot(gear.id, slot.slotIndex, "from", Number(event.currentTarget.value))}>
+                                  <option value={0}>0</option>
+                                  {chiefCharmLevels.map((level) => (
+                                    <option value={level.level} key={level.level}>Lv.{level.level}</option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                <small>To</small>
+                                <select value={slot.to} onChange={(event) => updateCharmSlot(gear.id, slot.slotIndex, "to", Number(event.currentTarget.value))}>
+                                  <option value={0}>0</option>
+                                  {chiefCharmLevels.map((level) => (
+                                    <option value={level.level} key={level.level}>Lv.{level.level}</option>
+                                  ))}
+                                </select>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="charm-gear-total">
+                          <span>{formatNumber(total.design)} Design</span>
+                          <span>{formatNumber(total.guide)} Guide</span>
+                          <span>{formatNumber(total.secret)} Secret</span>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                  <button
-                    className="charm-reset"
-                    type="button"
-                    onClick={() => {
-                      setCharmCurrentLevel(0);
-                      setCharmTargetLevel(11);
-                      setCharmSlotCount(chiefCharmSlots);
-                      setOwnedCharmDesign(0);
-                      setOwnedCharmGuide(0);
-                      setOwnedCharmSecret(0);
-                    }}
-                  >
-                    Reset Calculator
-                  </button>
                 </div>
 
                 <div className="chief-charm-panel charm-inventory">
@@ -4364,7 +4443,7 @@ export default function Home() {
                       <input value={ownedCharmGuide} onChange={(event) => setOwnedCharmGuide(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
                     </label>
                     <label>
-                      <span>Charm Secret</span>
+                      <span>Jewel Secret</span>
                       <input value={ownedCharmSecret} onChange={(event) => setOwnedCharmSecret(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
                     </label>
                   </div>
@@ -4372,7 +4451,7 @@ export default function Home() {
                     {[
                       { label: "Design", needed: charmAllSlotCost.design, owned: ownedCharmDesign, missing: charmShortfall.design, coverage: charmCoverage.design },
                       { label: "Guide", needed: charmAllSlotCost.guide, owned: ownedCharmGuide, missing: charmShortfall.guide, coverage: charmCoverage.guide },
-                      { label: "Secret", needed: charmAllSlotCost.secret, owned: ownedCharmSecret, missing: charmShortfall.secret, coverage: charmCoverage.secret },
+                      { label: "Jewel Secret", needed: charmAllSlotCost.secret, owned: ownedCharmSecret, missing: charmShortfall.secret, coverage: charmCoverage.secret },
                     ].map((item) => (
                       <div className="charm-shortfall-row" key={item.label}>
                         <div>
@@ -4391,7 +4470,7 @@ export default function Home() {
                 {[
                   { label: "Charm Design", value: charmAllSlotCost.design, single: charmSingleCost.design, className: "design" },
                   { label: "Charm Guide", value: charmAllSlotCost.guide, single: charmSingleCost.guide, className: "guide" },
-                  { label: "Charm Secret", value: charmAllSlotCost.secret, single: charmSingleCost.secret, className: "secret" },
+                  { label: "Jewel Secret", value: charmAllSlotCost.secret, single: charmSingleCost.secret, className: "secret" },
                   { label: "Power Gain", value: charmAllSlotCost.power, single: charmSingleCost.power, className: "power" },
                 ].map((item) => (
                   <article className={`charm-result-card ${item.className}`} key={item.label}>
@@ -4423,6 +4502,12 @@ export default function Home() {
                     <strong>{charmRecommendation}</strong>
                   </div>
                   <div className="charm-advice-grid">
+                    {charmTroopCosts.map((item) => (
+                      <span key={item.troop}>
+                        <small>{item.troop} cost</small>
+                        <strong>{formatNumber(item.total.design + item.total.guide + item.total.secret)}</strong>
+                      </span>
+                    ))}
                     <span>
                       <small>Best early power/material</small>
                       <strong>Lv.{charmBestEfficiency.level}</strong>
@@ -4430,10 +4515,6 @@ export default function Home() {
                     <span>
                       <small>Power per weighted material</small>
                       <strong>{formatNumber(charmBestEfficiency.efficiency)}</strong>
-                    </span>
-                    <span>
-                      <small>Secret wall starts</small>
-                      <strong>Lv.12</strong>
                     </span>
                   </div>
                 </article>
@@ -4465,7 +4546,7 @@ export default function Home() {
                     </thead>
                     <tbody>
                       {charmEfficiencyRows.map((level) => (
-                        <tr className={level.level > charmCurrentLevel && level.level <= charmTargetSafe ? "selected" : ""} key={level.level}>
+                        <tr className={charmSlotRows.some((slot) => level.level > slot.from && level.level <= slot.to) ? "selected" : ""} key={level.level}>
                           <td>Lv.{level.level}</td>
                           <td>{formatNumber(level.design)}</td>
                           <td>{formatNumber(level.guide)}</td>
