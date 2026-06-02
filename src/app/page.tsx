@@ -5836,10 +5836,6 @@ export default function Home() {
                   <input className="template-tags-input" name="tags" defaultValue={editingTemplate?.tags.map((tag) => `#${tag}`).join(" ") || ""} placeholder="#SVS #Prep #Recruit" />
                 </label>
               </div>
-              <label>
-                Preview override <span className="optional-red">optional</span>
-                <textarea className="template-preview-input" name="previewText" maxLength={4000} defaultValue={editingTemplate?.previewText || ""} placeholder="Use only if the website preview needs different display text." />
-              </label>
               <details className="template-image-details">
                 <summary><Icon name="image" /> Add preview image <span className="optional-red">optional</span></summary>
                 <section className="image-uploader template-image-uploader" aria-label="Template image source">
