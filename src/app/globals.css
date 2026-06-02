@@ -2704,16 +2704,24 @@ body {
   gap: 14px;
 }
 
-.foundry-export-status {
+.site-toast-stack {
   position: fixed;
   top: 18px;
   right: 18px;
   z-index: 80;
   display: grid;
+  gap: 10px;
+  width: min(420px, calc(100vw - 36px));
+  pointer-events: none;
+}
+
+.site-toast {
+  display: grid;
   grid-template-columns: 10px minmax(0, 1fr) 28px;
   align-items: center;
   gap: 10px;
-  width: min(420px, calc(100vw - 36px));
+  width: 100%;
+  pointer-events: auto;
   border: 1px solid rgba(250, 142, 31, 0.42);
   border-radius: 10px;
   padding: 10px 10px 10px 12px;
@@ -2728,19 +2736,19 @@ body {
   backdrop-filter: blur(12px);
 }
 
-.foundry-export-status.success {
+.site-toast.success {
   border-color: rgba(34, 197, 94, 0.44);
 }
 
-.foundry-export-status.error {
+.site-toast.error {
   border-color: rgba(239, 68, 68, 0.5);
 }
 
-.foundry-export-status.loading {
+.site-toast.loading {
   border-color: rgba(250, 142, 31, 0.54);
 }
 
-.foundry-export-status-dot {
+.site-toast-dot {
   width: 10px;
   height: 10px;
   border-radius: 999px;
@@ -2748,17 +2756,17 @@ body {
   box-shadow: 0 0 18px rgba(250, 142, 31, 0.6);
 }
 
-.foundry-export-status.success .foundry-export-status-dot {
+.site-toast.success .site-toast-dot {
   background: #22c55e;
   box-shadow: 0 0 18px rgba(34, 197, 94, 0.54);
 }
 
-.foundry-export-status.error .foundry-export-status-dot {
+.site-toast.error .site-toast-dot {
   background: #ef4444;
   box-shadow: 0 0 18px rgba(239, 68, 68, 0.54);
 }
 
-.foundry-export-status strong {
+.site-toast strong {
   min-width: 0;
   overflow: hidden;
   font-size: 0.92rem;
@@ -2767,7 +2775,7 @@ body {
   white-space: nowrap;
 }
 
-.foundry-export-status button {
+.site-toast button {
   display: grid;
   width: 28px;
   height: 28px;
@@ -2779,12 +2787,12 @@ body {
   cursor: pointer;
 }
 
-.foundry-export-status button:hover {
+.site-toast button:hover {
   border-color: var(--gold-line);
   color: var(--foreground);
 }
 
-.foundry-export-status svg {
+.site-toast svg {
   width: 15px;
   height: 15px;
 }
@@ -3042,7 +3050,7 @@ body {
     padding: 9px;
   }
 
-  .foundry-export-status {
+  .site-toast-stack {
     top: auto;
     right: 10px;
     bottom: 76px;
@@ -3050,7 +3058,7 @@ body {
     width: auto;
   }
 
-  .foundry-export-status strong {
+  .site-toast strong {
     white-space: normal;
   }
 
@@ -5574,37 +5582,6 @@ body {
 
 .template-image-uploader .image-uploader-controls {
   gap: 8px;
-}
-
-.daybreak-status {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--gold-line);
-  border-radius: 10px;
-  padding: 13px 16px;
-  background: linear-gradient(135deg, var(--gold-soft), color-mix(in srgb, var(--accent) 60%, transparent));
-  color: var(--accent-foreground);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.daybreak-status::before {
-  content: "";
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 6px var(--gold);
-}
-
-.dark .daybreak-status {
-  color: #ffd2a1;
 }
 
 .island-grid {
@@ -8278,18 +8255,6 @@ body {
   content: "";
 }
 
-.auth-status {
-  margin: 0 0 14px;
-  border: 1px solid var(--gold-line);
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: var(--gold-soft);
-  color: var(--foreground);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: left;
-}
-
 .profile-backdrop {
   align-items: start;
   overflow: auto;
@@ -9990,16 +9955,6 @@ body {
 .state-age-search svg {
   width: 17px;
   height: 17px;
-}
-
-.state-age-status {
-  margin: 0;
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  border-radius: 8px;
-  background: rgba(239, 68, 68, 0.09);
-  color: #ff8787;
-  padding: 12px 14px;
-  font-weight: 800;
 }
 
 .state-age-summary {
@@ -13608,7 +13563,6 @@ body {
   border-color: var(--gold-line);
 }
 
-.giftcodes-status,
 .giftcodes-empty {
   margin: 0;
   padding: 14px 16px;
@@ -14468,7 +14422,6 @@ body {
   .bot-web-card,
   .bot-gallery-card,
   .daybreak-hero,
-  .daybreak-status,
   .planner-panel,
   .planner-board-wrap {
     border-radius: 8px;

@@ -2063,6 +2063,16 @@ export default function Home() {
     : foundryExportStatus.match(/preparing|loading/i)
       ? "loading"
       : "success";
+  const siteToasts = [
+    { id: "foundry", message: foundryExportStatus, onDismiss: () => setFoundryExportStatus(""), tone: foundryStatusTone },
+    { id: "daybreak", message: status, onDismiss: () => setStatus(""), tone: status.match(/unable|failed|blocked|only|sign in|error/i) ? "error" : "success" },
+    { id: "template", message: templateStatus, onDismiss: () => setTemplateStatus(""), tone: templateStatus.match(/unable|failed|sign in|only|try again|error/i) ? "error" : "success" },
+    { id: "gift", message: giftCodeStatus, onDismiss: () => setGiftCodeStatus(""), tone: giftCodeStatus.match(/unavailable|longer|no active/i) ? "error" : "success" },
+    { id: "state-age", message: stateAgeStatus, onDismiss: () => setStateAgeStatus(""), tone: stateAgeStatus.match(/unable|valid|error/i) ? "error" : "success" },
+    { id: "state-recent", message: stateAgeRecentStatus, onDismiss: () => setStateAgeRecentStatus(""), tone: "error" },
+    { id: "auth", message: authStatus, onDismiss: () => setAuthStatus(""), tone: authStatus.match(/linked|success/i) ? "success" : "error" },
+    { id: "player-lookup", message: playerLookupStatus, onDismiss: () => setPlayerLookupStatus(""), tone: playerLookupStatus.match(/loaded/i) ? "success" : "error" },
+  ].filter((toast) => toast.message);
 
   const clearFooterIntentTimer = useCallback(() => {
     if (footerIntentTimerRef.current) {
@@ -4329,6 +4339,20 @@ export default function Home() {
       className={`app-shell ${theme === "dark" ? "dark" : "light"} ${collapsedSidebar ? "collapsed-sidebar" : ""} ${hideTopNav ? "hide-top-nav" : ""} width-${contentWidth} ${resizingSidebar ? "resizing-sidebar" : ""}`}
       style={shellStyle}
     >
+      {siteToasts.length > 0 && (
+        <div className="site-toast-stack" aria-live="polite" aria-label="Site notifications">
+          {siteToasts.slice(0, 3).map((toast) => (
+            <div className={`site-toast ${toast.tone}`} role="status" key={toast.id}>
+              <span className="site-toast-dot" aria-hidden="true" />
+              <strong>{toast.message}</strong>
+              <button type="button" onClick={toast.onDismiss} aria-label="Dismiss notification">
+                <Icon name="x" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <header className="ks-header">
         <div className="ks-header-inner">
           <button
@@ -4760,7 +4784,6 @@ export default function Home() {
                   </button>
                 </div>
 
-                {giftCodeStatus && <p className="giftcodes-status">{giftCodeStatus}</p>}
 
                 <div className="giftcodes-list">
                   {giftCodes.map((item) => (
@@ -4926,7 +4949,6 @@ export default function Home() {
                 </form>
               </section>
 
-              {stateAgeStatus && <p className="state-age-status">{stateAgeStatus}</p>}
 
               <section className="state-age-creation-panel" aria-label="State creation time">
                 <div className="state-age-creation-node">
@@ -5768,15 +5790,6 @@ export default function Home() {
                 </div>
               </section>
 
-              {foundryExportStatus && (
-                <div className={`foundry-export-status ${foundryStatusTone}`} role="status" aria-live="polite">
-                  <span className="foundry-export-status-dot" aria-hidden="true" />
-                  <strong>{foundryExportStatus}</strong>
-                  <button type="button" onClick={() => setFoundryExportStatus("")} aria-label="Dismiss Foundry status">
-                    <Icon name="x" />
-                  </button>
-                </div>
-              )}
 
               {!authUser && (
                 <section className="foundry-signin-gate" aria-label="Foundry planner sign in required">
@@ -6055,7 +6068,6 @@ export default function Home() {
                 </div>
               )}
 
-              {templateStatus && <p className="daybreak-status">{templateStatus}</p>}
 
               {templateTagSuggestions.length > 0 && templateView === "gallery" && (
                 <div className="template-tag-strip" aria-label="Template tag filters">
@@ -6512,7 +6524,6 @@ export default function Home() {
                 </div>
               )}
 
-              {status && <p className="daybreak-status">{status}</p>}
 
               <section className="island-grid">
                 {islands.length ? islands.map((island) => (
@@ -6694,7 +6705,6 @@ export default function Home() {
             <span className="section-kicker">Welcome back</span>
             <h2>Sign in to WhiteoutSurvival.dev</h2>
             <p>Use your community account to manage your profile and linked game accounts.</p>
-            {authStatus && <div className="auth-status">{authStatus}</div>}
             <div className="social-login-stack">
               <button className="social-login google" type="button" onClick={() => signInWith("google")}>
                 <span className="provider-mark"><SocialProviderLogo provider="google" /></span>
