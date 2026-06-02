@@ -277,6 +277,11 @@ type StateAgeResult = {
   events: StateTimelineEvent[];
 };
 
+type StateAgeRecentResult = {
+  sourceUpdatedAt: string;
+  recentlyOpenedStates: RecentlyOpenedState[];
+};
+
 const fallbackBotMetrics: BotMetrics = {
   servers: "48",
   members: "1.5K",
@@ -1217,6 +1222,14 @@ function Icon({ name }: { name: string }) {
         <path d="m21 21-4.3-4.3" />
       </>
     ),
+    refresh: (
+      <>
+        <path d="M21 12a9 9 0 0 1-15.4 6.4" />
+        <path d="M3 12A9 9 0 0 1 18.4 5.6" />
+        <path d="M18 2v4h-4" />
+        <path d="M6 22v-4h4" />
+      </>
+    ),
     logout: (
       <>
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -1639,6 +1652,10 @@ export default function Home() {
   const [stateAgeResult, setStateAgeResult] = useState<StateAgeResult | null>(null);
   const [stateAgeLoading, setStateAgeLoading] = useState(false);
   const [stateAgeStatus, setStateAgeStatus] = useState("");
+  const [stateAgeRecentStates, setStateAgeRecentStates] = useState<RecentlyOpenedState[]>([]);
+  const [stateAgeRecentUpdatedAt, setStateAgeRecentUpdatedAt] = useState("");
+  const [stateAgeRecentLoading, setStateAgeRecentLoading] = useState(false);
+  const [stateAgeRecentStatus, setStateAgeRecentStatus] = useState("");
   const [charmCurrentLevel, setCharmCurrentLevel] = useState(0);
   const [charmTargetLevel, setCharmTargetLevel] = useState(11);
   const [charmSlotCount, setCharmSlotCount] = useState(chiefCharmSlots);
@@ -2782,6 +2799,41 @@ export default function Home() {
     }).format(parsed);
   };
 
+  const loadRecentlyOpenedStates = useCallback(async () => {
+    if (stateAgeRecentLoading) {
+      return;
+    }
+
+    setStateAgeRecentLoading(true);
+    setStateAgeRecentStatus("");
+    try {
+      const response = await fetch("/api/state-age", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || "Unable to load recent state openings.");
+      }
+      const recentPayload = payload as StateAgeRecentResult;
+      setStateAgeRecentStates(recentPayload.recentlyOpenedStates || []);
+      setStateAgeRecentUpdatedAt(recentPayload.sourceUpdatedAt || "");
+    } catch (error) {
+      setStateAgeRecentStatus(error instanceof Error ? error.message : "Unable to load recent state openings.");
+    } finally {
+      setStateAgeRecentLoading(false);
+    }
+  }, [stateAgeRecentLoading]);
+
+  useEffect(() => {
+    if (activeMenu !== "stateAge" || stateAgeRecentStates.length || stateAgeRecentLoading) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => void loadRecentlyOpenedStates(), 0);
+    return () => window.clearTimeout(timer);
+  }, [activeMenu, loadRecentlyOpenedStates, stateAgeRecentLoading, stateAgeRecentStates.length]);
+
   const submitStateAge = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const state = stateAgeInput.replace(/\D/g, "");
@@ -2802,7 +2854,10 @@ export default function Home() {
       if (!response.ok) {
         throw new Error(payload?.error || "State not found.");
       }
-      setStateAgeResult(payload as StateAgeResult);
+      const nextResult = payload as StateAgeResult;
+      setStateAgeResult(nextResult);
+      setStateAgeRecentStates(nextResult.recentlyOpenedStates || []);
+      setStateAgeRecentUpdatedAt(nextResult.sourceUpdatedAt || "");
       window.history.pushState(null, "", `/state-age?state=${encodeURIComponent(state)}`);
     } catch (error) {
       setStateAgeResult(null);
@@ -2822,7 +2877,7 @@ export default function Home() {
   const upcomingStateAgeEvents = stateAgeEvents.filter((event) => event.status === "upcoming").length;
   const maybeStateAgeEvents = stateAgeEvents.filter((event) => event.status === "maybe").length;
   const stateAgeImageCount = stateAgeEvents.reduce((count, event) => count + event.items.filter((item) => item.image).length, 0);
-  const recentlyOpenedStateGroups = (stateAgeResult?.recentlyOpenedStates || []).reduce<{
+  const recentlyOpenedStateGroups = stateAgeRecentStates.reduce<{
     dayLabel: string;
     states: RecentlyOpenedState[];
   }[]>((groups, item) => {
@@ -4054,22 +4109,33 @@ export default function Home() {
                   <div>
                     <span>Recently Opened Servers</span>
                     <strong>Last 3 Days</strong>
+                    <small>{stateAgeRecentUpdatedAt ? `Source updated ${stateAgeRecentUpdatedAt}` : "Live opening feed from the state timeline source"}</small>
                   </div>
-                  <small>{stateAgeResult ? `${stateAgeResult.recentlyOpenedStates?.length || 0} states found` : "Search a state to load live openings"}</small>
+                  <div className="state-age-recent-actions">
+                    <span>{stateAgeRecentLoading ? "Refreshing" : `${stateAgeRecentStates.length} states`}</span>
+                    <button type="button" onClick={() => void loadRecentlyOpenedStates()} disabled={stateAgeRecentLoading}>
+                      <Icon name="refresh" />
+                      Refresh
+                    </button>
+                  </div>
                 </div>
                 {recentlyOpenedStateGroups.length > 0 ? (
                   <div className="state-age-recent-groups">
-                    {recentlyOpenedStateGroups.map((group) => (
-                      <article className="state-age-recent-group" key={group.dayLabel}>
+                    {recentlyOpenedStateGroups.map((group, groupIndex) => (
+                      <article className={`state-age-recent-group ${groupIndex === 0 ? "is-latest" : ""}`} key={group.dayLabel}>
                         <div className="state-age-recent-day">
                           <Icon name="calendar" />
-                          <span>{group.dayLabel}</span>
+                          <span>
+                            <strong>{group.dayLabel}</strong>
+                            <small>{group.states.length} opened</small>
+                          </span>
                         </div>
                         <div className="state-age-recent-states">
-                          {group.states.map((item) => (
+                          {group.states.map((item, itemIndex) => (
                             <span className="state-age-recent-chip" key={item.state} title={`Opened ${item.openedAt}`}>
-                              <strong>State {item.state}</strong>
-                              <small>{item.openedAt}</small>
+                              {groupIndex === 0 && itemIndex === 0 && <em>Newest</em>}
+                              <strong>State #{item.state}</strong>
+                              <small>Opened {item.openedAt}</small>
                             </span>
                           ))}
                         </div>
@@ -4077,7 +4143,7 @@ export default function Home() {
                     ))}
                   </div>
                 ) : (
-                  <p className="state-age-recent-empty">The latest state openings appear here after a successful lookup.</p>
+                  <p className="state-age-recent-empty">{stateAgeRecentStatus || (stateAgeRecentLoading ? "Loading recent state openings..." : "Recent state openings will appear here automatically.")}</p>
                 )}
               </section>
 

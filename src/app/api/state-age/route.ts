@@ -258,9 +258,6 @@ const getRecentlyOpenedStates = async (nonce: string, requestedState: number): P
 
 export async function GET(request: Request) {
   const state = new URL(request.url).searchParams.get("state")?.replace(/\D/g, "") || "";
-  if (!state) {
-    return NextResponse.json({ error: "Enter a valid state number." }, { status: 400 });
-  }
 
   try {
     const page = await fetch(sourceUrl, { cache: "no-store" }).then((response) => response.text());
@@ -271,6 +268,14 @@ export async function GET(request: Request) {
 
     if (!nonce) {
       throw new Error("Source nonce not found.");
+    }
+
+    if (!state) {
+      return NextResponse.json({
+        sourceUrl,
+        sourceUpdatedAt: cleanText(sourceUpdatedAt),
+        recentlyOpenedStates: await getRecentlyOpenedStates(nonce, 3000),
+      });
     }
 
     const timeline = await fetchTimelineHtml(nonce, Number(state));

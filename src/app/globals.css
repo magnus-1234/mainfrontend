@@ -10071,13 +10071,14 @@ body {
 
 .state-age-recent-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 72%, rgba(43, 132, 170, 0.28));
   border-radius: 8px;
-  padding: 14px;
+  padding: 16px;
   background:
-    linear-gradient(135deg, rgba(43, 132, 170, 0.12), color-mix(in srgb, var(--card) 94%, transparent)),
+    radial-gradient(circle at 0 0, rgba(43, 132, 170, 0.2), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card) 86%, rgba(43, 132, 170, 0.12)), color-mix(in srgb, var(--card) 96%, transparent)),
     var(--card);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.045),
@@ -10116,7 +10117,56 @@ body {
   line-height: 1.1;
 }
 
-.state-age-recent-head small,
+.state-age-recent-head small {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.state-age-recent-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.state-age-recent-actions > span {
+  border: 1px solid color-mix(in srgb, var(--info) 42%, var(--border));
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--background) 42%, transparent);
+  color: var(--foreground);
+  font-size: 0.78rem;
+  text-transform: none;
+}
+
+.state-age-recent-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  border: 1px solid color-mix(in srgb, var(--info) 44%, var(--border));
+  border-radius: 8px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--info) 14%, var(--card));
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.state-age-recent-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.state-age-recent-actions svg {
+  width: 15px;
+  height: 15px;
+}
+
 .state-age-recent-empty {
   color: var(--muted-foreground);
   font-weight: 800;
@@ -10128,21 +10178,25 @@ body {
 }
 
 .state-age-recent-group {
-  min-height: 54px;
+  min-height: 62px;
   justify-content: space-between;
   gap: 12px;
   border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   border-radius: 8px;
-  padding: 9px;
-  background: color-mix(in srgb, var(--background) 38%, transparent);
+  padding: 10px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--background) 42%, transparent), color-mix(in srgb, var(--card) 68%, transparent));
+}
+
+.state-age-recent-group.is-latest {
+  border-color: color-mix(in srgb, var(--info) 42%, var(--border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--info) 78%, transparent);
 }
 
 .state-age-recent-day {
-  flex: 0 0 116px;
+  flex: 0 0 134px;
   gap: 8px;
   color: var(--foreground);
-  font-size: 0.88rem;
-  font-weight: 950;
 }
 
 .state-age-recent-day svg {
@@ -10151,28 +10205,55 @@ body {
   color: var(--info);
 }
 
+.state-age-recent-day span {
+  display: grid;
+  gap: 2px;
+}
+
+.state-age-recent-day strong {
+  color: var(--foreground);
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.state-age-recent-day small {
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
 .state-age-recent-states {
   flex: 1;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 7px;
+  gap: 8px;
 }
 
 .state-age-recent-chip {
+  position: relative;
   display: grid;
-  min-width: 112px;
-  gap: 2px;
+  min-width: 132px;
+  gap: 3px;
   border: 1px solid color-mix(in srgb, var(--info) 34%, var(--border));
   border-radius: 8px;
-  padding: 7px 9px;
+  padding: 9px 10px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--card) 78%, rgba(43, 132, 170, 0.12)), color-mix(in srgb, var(--background) 54%, transparent));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+.state-age-recent-chip em {
+  color: var(--info);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .state-age-recent-chip strong {
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.96rem;
   line-height: 1.1;
 }
 
