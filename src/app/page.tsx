@@ -318,22 +318,26 @@ const botWebDashboardScreens = [
 ];
 
 const foundryMapImage = "/foundry-team-planner-map.webp";
+const foundryLogoImage = "/whiteout-survival-logo.png";
 
 const foundryBuildings: FoundryBuilding[] = [
-  { id: "blue-zone", name: "Blue Zone", shortName: "Blue", x: 8, y: 50, phase: "Spawn" },
-  { id: "red-zone", name: "Red Zone", shortName: "Red", x: 91, y: 50, phase: "Spawn" },
-  { id: "imperial-foundry", name: "Imperial Foundry", shortName: "Imperial", x: 50, y: 51, phase: "Phase 2" },
-  { id: "prototype-site-1", name: "Prototype Site 1", shortName: "Proto 1", x: 46, y: 27, phase: "Phase 1" },
-  { id: "prototype-site-2", name: "Prototype Site 2", shortName: "Proto 2", x: 47, y: 75, phase: "Phase 1" },
-  { id: "boiler-room", name: "Boiler Room", shortName: "Boiler", x: 34, y: 17, phase: "Phase 1" },
-  { id: "transit-station", name: "Transit Station", shortName: "Transit", x: 59, y: 17, phase: "Phase 1" },
-  { id: "munitions-warehouse", name: "Munitions Warehouse", shortName: "Munitions", x: 74, y: 48, phase: "Phase 2" },
-  { id: "mercenary-camp", name: "Mercenary Camp", shortName: "Mercenary", x: 26, y: 55, phase: "Phase 2" },
-  { id: "repair-facility-1", name: "Repair Facility 1", shortName: "Repair 1", x: 31, y: 43, phase: "Phase 1" },
-  { id: "repair-facility-2", name: "Repair Facility 2", shortName: "Repair 2", x: 66, y: 59, phase: "Phase 1" },
-  { id: "repair-facility-3", name: "Repair Facility 3", shortName: "Repair 3", x: 35, y: 88, phase: "Phase 1" },
-  { id: "repair-facility-4", name: "Repair Facility 4", shortName: "Repair 4", x: 60, y: 88, phase: "Phase 1" },
-  { id: "weapon-workshop", name: "Weapon Workshop", shortName: "Workshop", x: 50, y: 9, phase: "Phase 3" },
+  { id: "blue-zone", name: "Blue Safe Zone", shortName: "Safe Zone", x: 8, y: 50, phase: "Spawn" },
+  { id: "red-zone", name: "Red Safe Zone", shortName: "Safe Zone", x: 91, y: 50, phase: "Spawn" },
+  { id: "boiler-room", name: "Boiler", shortName: "Boiler", x: 34, y: 18, phase: "Phase 1" },
+  { id: "repair-north", name: "Repair - North", shortName: "Repair", x: 59, y: 18, phase: "Phase 1" },
+  { id: "workshop-north-west", name: "Workshop - North West", shortName: "Workshop", x: 33, y: 30, phase: "Phase 3" },
+  { id: "mercenary-camp", name: "Mercenary", shortName: "Mercenary", x: 47, y: 36, phase: "Phase 2" },
+  { id: "workshop-north-east", name: "Workshop - North East", shortName: "Workshop", x: 75, y: 36, phase: "Phase 3" },
+  { id: "prototype-west", name: "Prototype - West", shortName: "Prototype", x: 27, y: 48, phase: "Phase 1" },
+  { id: "repair-east", name: "Repair - East", shortName: "Repair", x: 76, y: 48, phase: "Phase 1" },
+  { id: "repair-west", name: "Repair - West", shortName: "Repair", x: 18, y: 58, phase: "Phase 1" },
+  { id: "imperial-foundry", name: "Imperial", shortName: "Imperial", x: 50, y: 58, phase: "Phase 2" },
+  { id: "prototype-east", name: "Prototype - East", shortName: "Prototype", x: 69, y: 62, phase: "Phase 1" },
+  { id: "workshop-south-west", name: "Workshop - South West", shortName: "Workshop", x: 31, y: 72, phase: "Phase 3" },
+  { id: "munition", name: "Munition", shortName: "Munition", x: 48, y: 79, phase: "Phase 2" },
+  { id: "workshop-south-east", name: "Workshop - South East", shortName: "Workshop", x: 63, y: 76, phase: "Phase 3" },
+  { id: "repair-south", name: "Repair - South", shortName: "Repair", x: 34, y: 91, phase: "Phase 1" },
+  { id: "transit-station", name: "Transit Station", shortName: "Transit Station", x: 65, y: 91, phase: "Phase 1" },
 ];
 
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
@@ -404,6 +408,14 @@ const createFoundryTeam = (index: number): FoundryTeam => ({
 });
 
 const createFoundryTeams = (count: number) => Array.from({ length: count }, (_, index) => createFoundryTeam(index));
+
+const createFoundryLooterTeam = (): FoundryTeam => ({
+  id: "looter-team",
+  name: "Looter Team",
+  buildingId: "workshop-south-east",
+  rallyLeader: createFoundryMember("leader", "looter"),
+  joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `looter-${joinerIndex + 1}`)),
+});
 
 const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
   { label: "All", value: "all" },
@@ -1247,11 +1259,12 @@ function Icon({ name }: { name: string }) {
   );
 }
 
-type ShareBrand = "whatsapp" | "x" | "facebook" | "linkedin" | "telegram" | "email";
+type ShareBrand = "whatsapp" | "discord" | "x" | "facebook" | "linkedin" | "telegram" | "email";
 
 function BrandLogo({ brand }: { brand: ShareBrand }) {
   const logos: Record<ShareBrand, string> = {
     whatsapp: "https://cdn.simpleicons.org/whatsapp/white",
+    discord: "https://cdn.simpleicons.org/discord/white",
     x: "https://cdn.simpleicons.org/x/white",
     facebook: "https://cdn.simpleicons.org/facebook/white",
     linkedin: "https://cdn.simpleicons.org/linkedin/white",
@@ -1261,6 +1274,9 @@ function BrandLogo({ brand }: { brand: ShareBrand }) {
   const logo = logos[brand];
   if (brand === "whatsapp") {
     return <span className="brand-logo whatsapp" aria-hidden="true"><img src={logo} alt="" /></span>;
+  }
+  if (brand === "discord") {
+    return <span className="brand-logo discord" aria-hidden="true"><img src={logo} alt="" /></span>;
   }
   if (brand === "x") {
     return <span className="brand-logo x" aria-hidden="true"><img src={logo} alt="" /></span>;
@@ -1624,6 +1640,8 @@ export default function Home() {
   const [foundryUtcTime, setFoundryUtcTime] = useState("");
   const [foundryTeamCount, setFoundryTeamCount] = useState(4);
   const [foundryTeams, setFoundryTeams] = useState<FoundryTeam[]>(() => createFoundryTeams(4));
+  const [foundryIncludeLooter, setFoundryIncludeLooter] = useState(false);
+  const [foundryLooterTeam, setFoundryLooterTeam] = useState<FoundryTeam>(() => createFoundryLooterTeam());
   const [foundryExportStatus, setFoundryExportStatus] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
@@ -1640,6 +1658,7 @@ export default function Home() {
   const [templateViewer, setTemplateViewer] = useState<MessageTemplate | null>(null);
   const [templateImageViewer, setTemplateImageViewer] = useState<MessageTemplate | null>(null);
   const [shareTemplateTarget, setShareTemplateTarget] = useState<MessageTemplate | null>(null);
+  const [shareSneakPeekOpen, setShareSneakPeekOpen] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [deletingTemplateId, setDeletingTemplateId] = useState("");
   const [islands, setIslands] = useState<Island[]>([]);
@@ -2654,6 +2673,24 @@ export default function Home() {
     setTemplateStatus(mode === "native" ? "Template share opened." : "Template link copied.");
   };
 
+  const sneakPeekTitle = "Chief Concierge: Sneak Peek";
+  const sneakPeekShareText = "Whiteout Survival Childhood Memory Festival sneak peek";
+  const sneakPeekShareUrl = () => `${window.location.origin}/#sneak-peek`;
+
+  const shareSneakPeek = async (mode: "copy" | "native" = "copy") => {
+    const shareUrl = sneakPeekShareUrl();
+    try {
+      if (mode === "native") {
+        await nativeShare(sneakPeekTitle, shareUrl, sneakPeekShareText);
+      } else {
+        await copyTextToClipboard(shareUrl, "Copy sneak peek link");
+      }
+    } catch {
+      window.prompt("Copy sneak peek link", shareUrl);
+    }
+    setStatus(mode === "native" ? "Sneak peek share opened." : "Sneak peek link copied.");
+  };
+
   const copyGiftCode = async (code: string) => {
     try {
       if (!navigator.clipboard?.writeText) {
@@ -2984,9 +3021,12 @@ export default function Home() {
     await downloadUrl(template.imageUrl, fileName, () => setTemplateStatus("Image opened in a new tab because the host blocked direct download."));
   };
 
-  const socialShareUrl = (platform: "whatsapp" | "x" | "facebook" | "linkedin" | "telegram" | "email", url: string, title: string, text = title) => {
+  const socialShareUrl = (platform: "whatsapp" | "discord" | "x" | "facebook" | "linkedin" | "telegram" | "email", url: string, title: string, text = title) => {
     if (platform === "whatsapp") {
       return `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+    }
+    if (platform === "discord") {
+      return "https://discord.com/channels/@me";
     }
     if (platform === "x") {
       return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
@@ -3098,6 +3138,10 @@ export default function Home() {
     () => Array.from(new Set(allMessageTemplates.flatMap((template) => template.tags))).slice(0, 18),
     [allMessageTemplates],
   );
+  const allFoundryTeams = useMemo(
+    () => (foundryIncludeLooter ? [...foundryTeams, foundryLooterTeam] : foundryTeams),
+    [foundryIncludeLooter, foundryLooterTeam, foundryTeams],
+  );
 
   useEffect(() => {
     if (activeMenu !== "templates") {
@@ -3141,10 +3185,26 @@ export default function Home() {
   };
 
   const updateFoundryTeam = (teamId: string, updates: Partial<Pick<FoundryTeam, "name" | "buildingId">>) => {
+    if (teamId === foundryLooterTeam.id) {
+      setFoundryLooterTeam((team) => ({ ...team, ...updates }));
+      return;
+    }
     setFoundryTeams((teams) => teams.map((team) => (team.id === teamId ? { ...team, ...updates } : team)));
   };
 
   const updateFoundryMember = (teamId: string, memberId: string, updates: Partial<FoundryMember>) => {
+    if (teamId === foundryLooterTeam.id) {
+      setFoundryLooterTeam((team) => {
+        if (team.rallyLeader.id === memberId) {
+          return { ...team, rallyLeader: { ...team.rallyLeader, ...updates } };
+        }
+        return {
+          ...team,
+          joiners: team.joiners.map((joiner) => (joiner.id === memberId ? { ...joiner, ...updates } : joiner)),
+        };
+      });
+      return;
+    }
     setFoundryTeams((teams) => teams.map((team) => {
       if (team.id !== teamId) {
         return team;
@@ -3162,6 +3222,13 @@ export default function Home() {
   };
 
   const addFoundryJoiner = (teamId: string) => {
+    if (teamId === foundryLooterTeam.id) {
+      setFoundryLooterTeam((team) => ({
+        ...team,
+        joiners: [...team.joiners, createFoundryMember("joiner", `${team.id}-${team.joiners.length + 1}-${Date.now()}`)],
+      }));
+      return;
+    }
     setFoundryTeams((teams) => teams.map((team) => (
       team.id === teamId
         ? { ...team, joiners: [...team.joiners, createFoundryMember("joiner", `${team.id}-${team.joiners.length + 1}-${Date.now()}`)] }
@@ -3170,6 +3237,10 @@ export default function Home() {
   };
 
   const removeFoundryJoiner = (teamId: string, memberId: string) => {
+    if (teamId === foundryLooterTeam.id) {
+      setFoundryLooterTeam((team) => ({ ...team, joiners: team.joiners.filter((joiner) => joiner.id !== memberId) }));
+      return;
+    }
     setFoundryTeams((teams) => teams.map((team) => (
       team.id === teamId
         ? { ...team, joiners: team.joiners.filter((joiner) => joiner.id !== memberId) }
@@ -3238,10 +3309,17 @@ export default function Home() {
     image.src = foundryMapImage;
   });
 
+  const loadFoundryLogoForExport = () => new Promise<HTMLImageElement | null>((resolve) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = foundryLogoImage;
+  });
+
   const exportFoundryMapImage = async () => {
     setFoundryExportStatus("Preparing map image...");
     try {
-      const image = await loadFoundryMapForExport();
+      const [image, logo] = await Promise.all([loadFoundryMapForExport(), loadFoundryLogoForExport()]);
       const canvas = document.createElement("canvas");
       canvas.width = 1800;
       canvas.height = 1452;
@@ -3258,12 +3336,15 @@ export default function Home() {
       context.fillText("Foundry Team Planner", 34, 38);
       context.font = "700 22px Arial";
       context.fillText(`Legion ${foundryLegion} | ${foundryUtcTime || "UTC time not set"} UTC`, 34, 68);
+      if (logo) {
+        context.drawImage(logo, canvas.width - 326, 18, 286, 66);
+      }
 
       foundryBuildings.forEach((building) => {
         const x = (building.x / 100) * canvas.width;
         const y = (building.y / 100) * canvas.height;
         context.fillStyle = "rgba(12, 18, 20, 0.78)";
-        context.strokeStyle = building.phase === "Spawn" ? "#38bdf8" : "#fbbf24";
+        context.strokeStyle = building.phase === "Spawn" ? "#38bdf8" : building.id.includes("workshop") ? "#22c55e" : "#fbbf24";
         context.lineWidth = 3;
         context.beginPath();
         context.roundRect(x - 70, y - 17, 140, 34, 10);
@@ -3275,7 +3356,7 @@ export default function Home() {
         context.fillText(building.shortName, x, y + 6);
       });
 
-      foundryTeams.forEach((team, teamIndex) => {
+      allFoundryTeams.forEach((team, teamIndex) => {
         const building = foundryBuildings.find((item) => item.id === team.buildingId) || foundryBuildings[2];
         const color = foundryTeamColors[teamIndex % foundryTeamColors.length];
         const centerX = (building.x / 100) * canvas.width;
@@ -3329,9 +3410,9 @@ export default function Home() {
     }
   };
 
-  const exportFoundryTableImage = () => {
+  const exportFoundryTableImage = async () => {
     setFoundryExportStatus("Preparing team table...");
-    const rows = foundryTeams.flatMap((team) => {
+    const rows = allFoundryTeams.flatMap((team) => {
       const building = foundryBuildings.find((item) => item.id === team.buildingId);
       return [team.rallyLeader, ...team.joiners].map((member) => ({
         team: team.name,
@@ -3354,12 +3435,16 @@ export default function Home() {
 
     context.fillStyle = "#101314";
     context.fillRect(0, 0, canvas.width, canvas.height);
+    const logo = await loadFoundryLogoForExport();
     context.fillStyle = "#f48120";
     context.font = "900 36px Arial";
     context.fillText("Foundry Team Table", 34, 48);
     context.fillStyle = "#f0ede6";
     context.font = "800 22px Arial";
     context.fillText(`Legion ${foundryLegion} | ${foundryUtcTime || "UTC time not set"} UTC`, 34, 84);
+    if (logo) {
+      context.drawImage(logo, canvas.width - 322, 18, 282, 65);
+    }
 
     const columns = [
       ["Team", 34, 180],
@@ -3392,7 +3477,7 @@ export default function Home() {
 
   const exportFoundryPlanImages = async () => {
     await exportFoundryMapImage();
-    exportFoundryTableImage();
+    await exportFoundryTableImage();
   };
 
   const navigateToMenu = (menu: ActiveMenu) => {
@@ -4028,7 +4113,10 @@ export default function Home() {
                 <div className="chief-charm-hero-copy">
                   <span className="section-kicker">Chief Gear Calculator</span>
                   <h1>Chief Charm Calculator</h1>
-                  <p>Plan Charm Design, Charm Guide, and Charm Secret costs from any current level to any target level, for one charm or all 18 chief gear charm slots.</p>
+                  <p>
+                    <span>Plan Charm Design, Charm Guide, and Charm Secret costs.</span>
+                    <span>Choose any current level, target level, and up to 18 chief gear charm slots.</span>
+                  </p>
                   <div className="chief-charm-hero-chips" aria-label="Calculator facts">
                     <span><Icon name="flame" /> Furnace Lv.25 unlock</span>
                     <span><Icon name="calculator" /> 18 charm slots</span>
@@ -4449,6 +4537,7 @@ export default function Home() {
             <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
               <section className="foundry-hero">
                 <div>
+                  <img className="foundry-logo" src={foundryLogoImage} alt="Whiteout Survival" />
                   <span className="section-kicker">Planner Setup</span>
                   <h1>Foundry Team Planner</h1>
                   <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan can be exported as a map image and a team table image.</p>
@@ -4482,8 +4571,11 @@ export default function Home() {
                   </select>
                 </label>
                 <div className="foundry-export-note">
-                  <strong>{foundryTeams.length}</strong>
-                  <span>editable team table rows</span>
+                  <label className="foundry-looter-toggle">
+                    <input type="checkbox" checked={foundryIncludeLooter} onChange={(event) => setFoundryIncludeLooter(event.target.checked)} />
+                    <span>Add Looter Team</span>
+                  </label>
+                  <small>{allFoundryTeams.length} editable team table rows</small>
                 </div>
               </section>
 
@@ -4500,7 +4592,7 @@ export default function Home() {
                     <img src={foundryMapImage} alt="Whiteout Survival Foundry battlefield map" />
                     {foundryBuildings.map((building) => (
                       <span
-                        className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : "building"}`}
+                        className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"}`}
                         key={building.id}
                         style={{ left: `${building.x}%`, top: `${building.y}%` }}
                       >
@@ -4508,7 +4600,7 @@ export default function Home() {
                         <small>{building.phase}</small>
                       </span>
                     ))}
-                    {foundryTeams.map((team, teamIndex) => {
+                    {allFoundryTeams.map((team, teamIndex) => {
                       const building = foundryBuildings.find((item) => item.id === team.buildingId);
                       if (!building) {
                         return null;
@@ -4568,11 +4660,11 @@ export default function Home() {
                   </div>
                   <div>
                     <button type="button" onClick={() => void exportFoundryMapImage()}><Icon name="image" />Map Image</button>
-                    <button type="button" onClick={exportFoundryTableImage}><Icon name="barChart" />Table Image</button>
+                    <button type="button" onClick={() => void exportFoundryTableImage()}><Icon name="barChart" />Table Image</button>
                   </div>
                 </div>
                 {foundryExportStatus && <p className="foundry-export-status">{foundryExportStatus}</p>}
-                {foundryTeams.map((team, teamIndex) => (
+                {allFoundryTeams.map((team, teamIndex) => (
                   <article className="foundry-team-table" key={team.id}>
                     <header>
                       <label>
@@ -4808,6 +4900,10 @@ export default function Home() {
               <article className="sneak-peek-frame">
                 <header className="sneak-peek-frame-title">
                   <h2>Chief Concierge: Sneak Peek</h2>
+                  <button className="sneak-peek-share-button" type="button" onClick={() => setShareSneakPeekOpen(true)} aria-label="Share sneak peek">
+                    <Icon name="share" />
+                    <span>Share</span>
+                  </button>
                 </header>
                 <div className="sneak-peek-content">
                   <figure className="sneak-peek-main-image">
@@ -5924,11 +6020,48 @@ export default function Home() {
               <a href={templateShareUrlFor(shareTemplateTarget)} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
               {shareTemplateTarget.imageUrl && <button type="button" onClick={() => { setTemplateViewer(shareTemplateTarget); setShareTemplateTarget(null); }}><Icon name="image" />Image</button>}
               <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+              <a className="brand-share discord" href={socialShareUrl("discord", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="discord" /><span>Discord</span></a>
               <a className="brand-share x" href={socialShareUrl("x", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="x" /><span>X</span></a>
               <a className="brand-share facebook" href={socialShareUrl("facebook", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="facebook" /><span>Facebook</span></a>
               <a className="brand-share linkedin" href={socialShareUrl("linkedin", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
               <a className="brand-share telegram" href={socialShareUrl("telegram", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} target="_blank" rel="noreferrer" onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="telegram" /><span>Telegram</span></a>
               <a className="brand-share email" href={socialShareUrl("email", templateShareUrlFor(shareTemplateTarget), shareTemplateTarget.title, `${shareTemplateTarget.title} message template`)} onClick={() => void shareMessageTemplate(shareTemplateTarget)}><BrandLogo brand="email" /><span>Email</span></a>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {shareSneakPeekOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`Share ${sneakPeekTitle}`} onClick={() => setShareSneakPeekOpen(false)}>
+          <section className="share-modal" onClick={(event) => event.stopPropagation()}>
+            <button className="close-button" type="button" onClick={() => setShareSneakPeekOpen(false)} aria-label="Close">x</button>
+            <div className="share-modal-head">
+              <img src="/sneak-peek/sneak-01.png" alt="" />
+              <div>
+                <h2>Share Sneak Peek</h2>
+                <p>{sneakPeekTitle}</p>
+              </div>
+            </div>
+            <div className="share-preview-row">
+              <div className="share-url-box">
+                <span>{sneakPeekShareUrl()}</span>
+                <button type="button" onClick={() => void shareSneakPeek()} aria-label="Copy sneak peek URL">
+                  <Icon name="copy" />
+                </button>
+              </div>
+              <img className="share-qr" src={qrCodeUrlFor(sneakPeekShareUrl())} alt="Sneak peek share QR code" />
+            </div>
+            <div className="share-icon-row share-option-grid">
+              <button type="button" onClick={() => void shareSneakPeek("native")}><Icon name="share" />Native</button>
+              <button type="button" onClick={() => void shareSneakPeek()}><Icon name="copy" />Copy</button>
+              <a href={sneakPeekShareUrl()} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
+              <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", sneakPeekShareUrl(), sneakPeekTitle, sneakPeekShareText)} target="_blank" rel="noreferrer" onClick={() => void shareSneakPeek()}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+              <a className="brand-share discord" href={socialShareUrl("discord", sneakPeekShareUrl(), sneakPeekTitle, sneakPeekShareText)} target="_blank" rel="noreferrer" onClick={() => void shareSneakPeek()}><BrandLogo brand="discord" /><span>Discord</span></a>
+              <a className="brand-share x" href={socialShareUrl("x", sneakPeekShareUrl(), sneakPeekTitle, sneakPeekShareText)} target="_blank" rel="noreferrer" onClick={() => void shareSneakPeek()}><BrandLogo brand="x" /><span>X</span></a>
+              <a className="brand-share facebook" href={socialShareUrl("facebook", sneakPeekShareUrl(), sneakPeekTitle)} target="_blank" rel="noreferrer" onClick={() => void shareSneakPeek()}><BrandLogo brand="facebook" /><span>Facebook</span></a>
+              <a className="brand-share linkedin" href={socialShareUrl("linkedin", sneakPeekShareUrl(), sneakPeekTitle)} target="_blank" rel="noreferrer" onClick={() => void shareSneakPeek()}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
+              <a className="brand-share telegram" href={socialShareUrl("telegram", sneakPeekShareUrl(), sneakPeekTitle, sneakPeekShareText)} target="_blank" rel="noreferrer" onClick={() => void shareSneakPeek()}><BrandLogo brand="telegram" /><span>Telegram</span></a>
+              <a className="brand-share email" href={socialShareUrl("email", sneakPeekShareUrl(), sneakPeekTitle, sneakPeekShareText)} onClick={() => void shareSneakPeek()}><BrandLogo brand="email" /><span>Email</span></a>
             </div>
           </section>
         </div>
@@ -5960,6 +6093,7 @@ export default function Home() {
               <a href={shareUrlFor(shareIslandTarget)} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
               <button type="button" onClick={() => { setShareIslandTarget(null); void loadComments(shareIslandTarget); }}><Icon name="image" />Image</button>
               <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+              <a className="brand-share discord" href={socialShareUrl("discord", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="discord" /><span>Discord</span></a>
               <a className="brand-share x" href={socialShareUrl("x", shareUrlFor(shareIslandTarget), shareIslandTarget.title, `${shareIslandTarget.title} by ${shareIslandTarget.player.nickname}`)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="x" /><span>X</span></a>
               <a className="brand-share facebook" href={socialShareUrl("facebook", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="facebook" /><span>Facebook</span></a>
               <a className="brand-share linkedin" href={socialShareUrl("linkedin", shareUrlFor(shareIslandTarget), shareIslandTarget.title)} target="_blank" rel="noreferrer" onClick={() => void shareIsland(shareIslandTarget)}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>

@@ -23,6 +23,14 @@ const nextConfig: NextConfig = {
         destination: "/?menu=state-age",
       },
       {
+        source: "/chief-charm-calculator",
+        destination: "/?menu=chief-charm-calculator",
+      },
+      {
+        source: "/chief-charms",
+        destination: "/?menu=chief-charms",
+      },
+      {
         source: "/message-templates",
         destination: "/?menu=message-templates",
       },
