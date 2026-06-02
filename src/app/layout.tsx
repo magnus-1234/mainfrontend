@@ -34,13 +34,12 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "/",
     siteName: "WhiteoutSurvival.dev",
     title: siteTitle,
     description: siteDescription,
     images: [
       {
-        url: "/social-preview.png",
+        url: "/social-preview-v2.png",
         width: 1200,
         height: 630,
         alt: "Whiteout Survival tools, guides, calculators, planners, and Discord bot preview",
@@ -51,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteTitle,
     description: siteDescription,
-    images: ["/social-preview.png"],
+    images: ["/social-preview-v2.png"],
   },
 };
 
