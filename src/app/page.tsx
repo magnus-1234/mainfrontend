@@ -5031,7 +5031,7 @@ export default function Home() {
                       </button>
                     </article>
                   ) : (
-                    <article className="template-card" id={`message-template-${template.id}`} key={template.id}>
+                    <article className={`template-card ${template.imageUrl ? "template-card-has-image" : ""}`} id={`message-template-${template.id}`} key={template.id}>
                       <header className="template-card-title">
                         <button className="template-title-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
                           <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>

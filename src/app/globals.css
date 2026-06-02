@@ -3915,7 +3915,7 @@ body {
 
 .template-card {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) max-content max-content;
+  grid-template-rows: auto auto minmax(0, 1fr) max-content max-content;
   height: 438px;
   align-content: stretch;
   overflow: hidden;
@@ -3926,6 +3926,10 @@ body {
     0 4px 12px rgba(12, 18, 20, 0.06),
     0 1px 3px rgba(12, 18, 20, 0.04);
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+.template-card-has-image {
+  grid-template-rows: auto auto auto minmax(0, 1fr) max-content max-content;
 }
 
 .template-card-unicode {
