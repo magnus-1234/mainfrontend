@@ -10844,47 +10844,105 @@ body {
 
 .chief-charm-summary article,
 .charm-result-card {
+  position: relative;
+  overflow: hidden;
   display: grid;
   gap: 7px;
-  min-height: 126px;
-  padding: 16px;
+  min-height: 138px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 48%, var(--border));
+  border-radius: 8px;
+  padding: 18px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--card) 94%, transparent), color-mix(in srgb, var(--background) 72%, transparent)),
+    var(--card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 34px rgba(15, 23, 42, 0.14);
+}
+
+.chief-charm-summary article::before,
+.charm-result-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(244, 129, 32, 0.9), rgba(250, 204, 21, 0.72));
+}
+
+.chief-charm-summary article::after,
+.charm-result-card::after {
+  content: "";
+  position: absolute;
+  right: -34px;
+  top: -46px;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.16), transparent 68%);
+  pointer-events: none;
 }
 
 .chief-charm-summary article.primary,
 .charm-result-card.power {
+  border-color: rgba(244, 129, 32, 0.72);
   background:
-    linear-gradient(135deg, rgba(244, 129, 32, 0.18), color-mix(in srgb, var(--card) 90%, transparent)),
+    linear-gradient(135deg, rgba(244, 129, 32, 0.24), color-mix(in srgb, var(--card) 84%, transparent)),
     var(--card);
 }
 
 .chief-charm-summary article.ready {
-  border-color: rgba(34, 197, 94, 0.38);
+  border-color: rgba(34, 197, 94, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(34, 197, 94, 0.14),
+    0 16px 34px rgba(21, 128, 61, 0.16);
+}
+
+.chief-charm-summary article.ready::before {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.95), rgba(134, 239, 172, 0.68));
 }
 
 .chief-charm-summary article.short {
-  border-color: rgba(244, 129, 32, 0.46);
+  border-color: rgba(244, 129, 32, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(244, 129, 32, 0.18),
+    0 16px 34px rgba(194, 65, 12, 0.16);
+}
+
+.chief-charm-summary article.short::before {
+  background: linear-gradient(90deg, rgba(244, 129, 32, 0.95), rgba(251, 146, 60, 0.72));
 }
 
 .chief-charm-summary span,
 .charm-result-card span,
 .chief-charm-panel-head span {
-  color: var(--muted-foreground);
-  font-size: 0.72rem;
+  position: relative;
+  z-index: 1;
+  color: color-mix(in srgb, var(--foreground) 76%, var(--muted-foreground));
+  font-size: 0.75rem;
   font-weight: 950;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .chief-charm-summary strong,
 .charm-result-card strong {
+  position: relative;
+  z-index: 1;
   color: var(--foreground);
-  font-size: clamp(1.35rem, 2.2vw, 2.1rem);
+  font-size: clamp(1.65rem, 2.55vw, 2.45rem);
   line-height: 1.05;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 .chief-charm-summary small,
 .charm-result-card small {
+  position: relative;
+  z-index: 1;
   color: var(--muted-foreground);
-  font-weight: 800;
+  font-weight: 900;
+  line-height: 1.35;
 }
 
 .chief-charm-workbench,
