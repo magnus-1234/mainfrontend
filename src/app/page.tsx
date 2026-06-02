@@ -2058,6 +2058,11 @@ export default function Home() {
     .filter((tag) => tag.toLowerCase().includes(activeEditTagQuery))
     .filter((tag) => !selectedEditTags.includes(tag.toLowerCase()))
     .slice(0, 6);
+  const foundryStatusTone = foundryExportStatus.match(/unable|could not|sign in|not available/i)
+    ? "error"
+    : foundryExportStatus.match(/preparing|loading/i)
+      ? "loading"
+      : "success";
 
   const clearFooterIntentTimer = useCallback(() => {
     if (footerIntentTimerRef.current) {
@@ -5763,7 +5768,15 @@ export default function Home() {
                 </div>
               </section>
 
-              {foundryExportStatus && <p className="foundry-export-status global">{foundryExportStatus}</p>}
+              {foundryExportStatus && (
+                <div className={`foundry-export-status ${foundryStatusTone}`} role="status" aria-live="polite">
+                  <span className="foundry-export-status-dot" aria-hidden="true" />
+                  <strong>{foundryExportStatus}</strong>
+                  <button type="button" onClick={() => setFoundryExportStatus("")} aria-label="Dismiss Foundry status">
+                    <Icon name="x" />
+                  </button>
+                </div>
+              )}
 
               {!authUser && (
                 <section className="foundry-signin-gate" aria-label="Foundry planner sign in required">
