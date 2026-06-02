@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
-import type { CSSProperties, ChangeEvent, FormEvent, PointerEvent as ReactPointerEvent, ReactNode, WheelEvent as ReactWheelEvent } from "react";
+import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import wikiBuildingsData from "@/data/wiki/buildings.json";
 import wikiHeroesData from "@/data/wiki/heroes.json";
@@ -116,70 +116,6 @@ type AuthUser = {
   providers: ("google" | "discord")[];
   playerAccounts: LinkedPlayerAccount[];
   createdAt: string;
-};
-
-type PlannerTool = "select" | "pan" | "erase";
-type PlannerMode = "base" | "castle";
-type PlannerAlliance = "main" | "farm";
-type PlannerBuildingId = "flag" | "city" | "trap" | "hq" | "node" | "obstacle" | "enemy";
-
-type PlannerBuilding = {
-  id: PlannerBuildingId;
-  label: string;
-  shortcut: string;
-  width: number;
-  height: number;
-  color: string;
-  castleOnly?: boolean;
-};
-
-type PlannerObject = {
-  id: string;
-  type: PlannerBuildingId;
-  label: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  alliance: PlannerAlliance;
-};
-
-type PlannerDragState =
-  | {
-      kind: "pan";
-      pointerId: number;
-      startX: number;
-      startY: number;
-      scrollLeft: number;
-      scrollTop: number;
-      moved: boolean;
-    }
-  | {
-      kind: "object";
-      pointerId: number;
-      objectId: string;
-      offsetX: number;
-      offsetY: number;
-      moved: boolean;
-    };
-
-type PlannerDragPreview = {
-  id: string;
-  x: number;
-  y: number;
-  valid: boolean;
-};
-
-type PlannerHoverCell = {
-  x: number;
-  y: number;
-};
-
-type PlannerLayoutPayload = {
-  version?: number;
-  mode: PlannerMode;
-  alliance: PlannerAlliance;
-  objects: PlannerObject[];
 };
 
 const localApiHost = () => {
@@ -709,15 +645,15 @@ const sidebarItems: {
   beta?: boolean;
   mobilePrimary?: boolean;
 }[] = [
-  { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
-  { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
-  { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
-  { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
-  { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
-  { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
-  { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
-  { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
-];
+    { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
+    { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
+    { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
+    { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
+    { label: "City Layout Planner", mobileLabel: "Planner", icon: "grid", menu: "planner", href: "/#city-layout-planner", beta: true },
+    { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
+    { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
+    { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
+  ];
 
 const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu: "wikiBuildings" | "wikiHeroes"; href: string }[] = [
   { label: "Buildings", mobileLabel: "Build", icon: "database", menu: "wikiBuildings", href: "/wiki/buildings" },
@@ -828,60 +764,6 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   return "home";
 };
-
-const plannerFacilitiesRaw: [number, number][][] = [[[1068, 138], [537, 138], [138, 138], [138, 666], [138, 1038], [666, 1068], [1068, 567], [1068, 1068]], [[486, 327], [768, 867], [867, 567], [327, 666]], [[666, 138], [438, 267], [138, 537], [237, 768], [537, 1038], [738, 957], [1068, 666], [957, 438]], [[816, 717], [387, 717], [588, 327]], [[957, 237], [666, 267], [237, 237], [267, 537], [237, 957], [537, 936], [936, 537], [957, 957]], [[867, 327], [327, 327], [327, 867], [867, 867]], [[867, 138], [366, 138], [138, 438], [138, 867], [438, 1068], [1068, 327], [1068, 867], [867, 1068]], [[816, 486], [387, 486], [588, 867]], [[957, 138], [537, 87], [138, 237], [87, 666], [267, 1068], [636, 1137], [1137, 567], [1068, 936]], [[1068, 237], [768, 138], [237, 138], [138, 327], [138, 957], [327, 1038], [1068, 747], [957, 1068]], [[237, 486], [138, 747], [486, 957], [768, 1038], [957, 747], [1068, 486], [486, 138], [768, 237]], [[768, 327], [327, 567], [486, 867], [867, 666]]];
-const plannerResourcesRaw: [number, number, string][] = [[312,635,"iron"],[313,314,"meat"],[314,308,"iron"],[318,634,"coal"],[318,643,"meat"],[319,318,"wood"],[319,624,"coal"],[324,630,"iron"],[324,648,"iron"],[326,602,"meat"],[326,622,"meat"],[327,591,"coal"],[329,308,"coal"],[329,613,"wood"],[330,21,"meat"],[330,649,"meat"],[331,57,"wood"],[332,597,"coal"],[332,622,"coal"],[333,675,"iron"],[334,51,"coal"],[335,7,"meat"],[338,37,"meat"],[339,125,"coal"],[339,663,"iron"],[340,116,"wood"],[340,605,"coal"],[341,53,"wood"],[341,669,"iron"],[342,90,"wood"],[342,649,"iron"],[344,322,"wood"],[344,577,"wood"],[345,63,"meat"],[345,82,"wood"],[346,617,"iron"],[346,659,"wood"],[347,679,"meat"],[349,666,"wood"],[350,154,"meat"],[350,581,"iron"],[352,136,"wood"],[352,177,"wood"],[353,315,"iron"],[353,564,"iron"],[354,161,"wood"],[354,622,"coal"],[355,123,"meat"],[355,666,"coal"],[355,685,"iron"],[356,609,"coal"],[356,632,"wood"],[357,598,"meat"],[358,309,"meat"],[359,301,"coal"],[360,560,"wood"],[360,652,"coal"],[361,661,"iron"],[362,610,"coal"],[363,161,"meat"],[363,572,"iron"],[365,273,"meat"],[365,633,"meat"],[366,280,"wood"],[367,678,"coal"],[370,305,"coal"],[370,610,"iron"],[371,603,"iron"],[371,716,"wood"],[372,630,"coal"],[372,666,"wood"],[376,654,"meat"],[376,676,"wood"],[380,697,"meat"],[385,676,"coal"],[387,686,"meat"],[388,699,"meat"],[391,661,"coal"],[396,688,"iron"],[408,397,"coal"],[409,379,"iron"],[411,681,"meat"],[413,672,"coal"],[413,694,"meat"],[414,387,"coal"],[415,355,"iron"],[416,376,"iron"],[422,374,"coal"],[422,380,"meat"],[423,684,"iron"],[425,368,"wood"],[425,402,"wood"],[425,674,"iron"],[427,390,"meat"],[428,425,"meat"],[429,435,"meat"],[431,686,"wood"],[433,399,"coal"],[435,428,"meat"],[435,680,"wood"],[437,606,"meat"],[438,387,"meat"],[438,577,"meat"],[438,697,"meat"],[440,399,"meat"],[440,664,"meat"],[441,653,"iron"],[442,362,"iron"],[442,571,"coal"],[442,597,"coal"],[446,342,"coal"],[447,401,"iron"],[448,568,"iron"],[449,649,"iron"],[450,394,"coal"],[450,585,"iron"],[451,603,"iron"],[451,612,"iron"],[452,561,"coal"],[452,629,"coal"],[453,434,"iron"],[455,650,"iron"],[456,339,"coal"],[456,709,"coal"],[457,410,"meat"],[457,592,"iron"],[457,622,"iron"],[457,680,"meat"],[458,564,"iron"],[458,606,"iron"],[458,607,"iron"],[458,757,"wood"],[459,390,"iron"],[459,643,"iron"],[459,788,"meat"],[462,690,"coal"],[463,578,"iron"],[464,601,"coal"],[464,765,"wood"],[465,419,"wood"],[465,592,"coal"],[465,745,"iron"],[465,788,"wood"],[467,629,"iron"],[467,648,"coal"],[467,680,"coal"],[468,614,"coal"],[468,659,"iron"],[469,348,"iron"],[469,717,"coal"],[471,425,"iron"],[471,667,"coal"],[472,674,"meat"],[473,782,"iron"],[473,788,"coal"],[474,772,"wood"],[475,350,"coal"],[475,432,"iron"],[475,651,"coal"],[476,638,"meat"],[476,702,"iron"],[476,765,"wood"],[479,750,"iron"],[480,378,"coal"],[480,714,"coal"],[481,346,"iron"],[482,426,"wood"],[483,643,"meat"],[484,391,"wood"],[485,359,"meat"],[485,439,"coal"],[487,369,"iron"],[487,748,"iron"],[492,460,"wood"],[494,373,"wood"],[495,471,"coal"],[497,396,"wood"],[497,437,"meat"],[498,647,"iron"],[499,880,"iron"],[500,358,"meat"],[500,774,"meat"],[501,389,"coal"],[501,780,"meat"],[502,447,"iron"],[503,459,"iron"],[504,757,"coal"],[505,763,"meat"],[506,473,"iron"],[507,396,"wood"],[508,384,"wood"],[509,448,"wood"],[509,772,"iron"],[512,483,"iron"],[512,489,"meat"],[513,378,"meat"],[514,459,"coal"],[514,881,"iron"],[516,395,"wood"],[517,451,"iron"],[518,757,"meat"],[520,490,"coal"],[521,893,"meat"],[522,471,"iron"],[523,456,"iron"],[523,462,"iron"],[524,398,"meat"],[524,431,"coal"],[524,443,"wood"],[524,758,"coal"],[525,722,"wood"],[527,487,"iron"],[527,734,"coal"],[528,883,"coal"],[528,899,"wood"],[530,770,"coal"],[531,724,"coal"],[532,428,"coal"],[532,877,"meat"],[533,758,"iron"],[534,475,"iron"],[534,747,"iron"],[536,441,"iron"],[536,484,"coal"],[536,714,"wood"],[538,731,"coal"],[539,450,"meat"],[540,786,"meat"],[541,708,"coal"],[541,759,"coal"],[541,771,"wood"],[541,780,"coal"],[541,905,"meat"],[542,420,"iron"],[542,877,"coal"],[544,744,"coal"],[546,702,"coal"],[547,753,"coal"],[548,673,"coal"],[548,895,"wood"],[549,590,"iron"],[549,781,"iron"],[552,438,"iron"],[552,729,"coal"],[552,737,"coal"],[553,704,"iron"],[555,780,"wood"],[555,867,"iron"],[555,883,"meat"],[556,457,"iron"],[556,490,"iron"],[556,712,"meat"],[557,683,"iron"],[558,720,"coal"],[560,676,"iron"],[560,690,"iron"],[560,752,"wood"],[560,762,"wood"],[560,874,"meat"],[561,449,"coal"],[562,459,"coal"],[562,743,"coal"],[563,433,"wood"],[563,506,"wood"],[563,737,"iron"],[565,778,"iron"],[566,708,"iron"],[566,766,"wood"],[568,476,"coal"],[568,676,"meat"],[568,699,"coal"],[568,718,"iron"],[570,739,"iron"],[572,684,"iron"],[572,732,"coal"],[573,706,"iron"],[573,860,"coal"],[575,470,"iron"],[575,877,"coal"],[577,464,"coal"],[577,675,"meat"],[577,753,"meat"],[580,721,"coal"],[581,771,"wood"],[582,747,"coal"],[584,679,"iron"],[584,690,"iron"],[585,731,"coal"],[585,877,"meat"],[586,757,"meat"],[587,737,"coal"],[591,726,"coal"],[592,691,"iron"],[592,707,"iron"],[592,745,"iron"],[592,770,"meat"],[595,675,"meat"],[595,701,"iron"],[599,689,"iron"],[600,764,"iron"],[601,433,"iron"],[601,698,"coal"],[601,711,"wood"],[601,733,"coal"],[602,745,"coal"],[602,756,"wood"],[603,476,"wood"],[604,679,"coal"],[606,442,"meat"],[607,456,"meat"],[607,700,"meat"],[611,433,"wood"],[611,732,"iron"],[611,765,"wood"],[613,454,"meat"],[613,691,"meat"],[614,481,"iron"],[614,754,"meat"],[615,683,"iron"],[616,676,"wood"],[616,711,"iron"],[617,433,"wood"],[618,770,"iron"],[619,734,"iron"],[620,452,"coal"],[621,478,"coal"],[622,360,"iron"],[622,443,"iron"],[622,465,"coal"],[622,471,"coal"],[624,369,"coal"],[626,725,"meat"],[626,736,"iron"],[627,673,"coal"],[627,754,"wood"],[629,696,"iron"],[630,431,"meat"],[630,468,"coal"],[630,800,"coal"],[631,439,"wood"],[631,762,"wood"],[632,393,"iron"],[632,808,"meat"],[632,823,"coal"],[633,706,"meat"],[633,780,"iron"],[634,456,"iron"],[634,680,"wood"],[635,413,"iron"],[635,755,"iron"],[636,432,"meat"],[637,375,"wood"],[638,717,"iron"],[639,727,"iron"],[639,767,"wood"],[640,447,"coal"],[640,482,"meat"],[640,743,"iron"],[642,392,"iron"],[642,827,"coal"],[643,435,"wood"],[643,476,"iron"],[644,385,"meat"],[645,752,"wood"],[645,817,"meat"],[646,443,"meat"],[647,704,"iron"],[648,459,"meat"],[648,495,"coal"],[648,733,"meat"],[648,743,"iron"],[650,416,"iron"],[650,451,"coal"],[650,791,"meat"],[651,382,"meat"],[651,429,"wood"],[651,776,"coal"],[652,750,"coal"],[653,409,"wood"],[653,435,"coal"],[653,468,"wood"],[653,723,"wood"],[653,770,"coal"],[654,492,"meat"],[655,484,"iron"],[655,759,"coal"],[657,381,"wood"],[658,402,"meat"],[658,417,"coal"],[658,748,"iron"],[658,806,"iron"],[658,822,"coal"],[658,828,"wood"],[662,372,"meat"],[662,437,"wood"],[662,486,"coal"],[662,775,"coal"],[663,391,"iron"],[663,459,"wood"],[664,417,"meat"],[664,747,"coal"],[664,784,"wood"],[664,817,"meat"],[666,805,"coal"],[668,731,"coal"],[669,398,"iron"],[670,720,"iron"],[671,439,"iron"],[671,766,"wood"],[671,811,"coal"],[673,464,"iron"],[673,772,"meat"],[676,402,"coal"],[676,745,"iron"],[677,723,"iron"],[677,797,"wood"],[679,812,"meat"],[679,820,"meat"],[680,715,"iron"],[682,782,"coal"],[683,749,"iron"],[685,405,"iron"],[687,789,"iron"],[689,730,"coal"],[689,738,"iron"],[690,705,"iron"],[690,767,"meat"],[690,812,"coal"],[691,749,"coal"],[693,782,"meat"],[695,791,"iron"],[695,801,"iron"],[696,711,"coal"],[698,760,"iron"],[699,705,"coal"],[701,746,"iron"],[705,674,"wood"],[705,809,"meat"],[707,695,"coal"],[707,777,"coal"],[713,747,"wood"],[713,774,"wood"],[714,711,"iron"],[715,723,"wood"],[715,788,"iron"],[715,794,"iron"],[715,807,"meat"],[716,693,"coal"],[717,737,"iron"],[720,744,"meat"],[721,683,"iron"],[721,785,"wood"],[721,810,"meat"],[722,651,"iron"],[723,733,"coal"],[724,721,"wood"],[726,670,"iron"],[728,759,"iron"],[729,715,"iron"],[729,734,"iron"],[730,579,"iron"],[730,681,"coal"],[731,694,"coal"],[731,721,"meat"],[731,771,"iron"],[732,640,"meat"],[732,741,"wood"],[733,475,"iron"],[733,786,"coal"],[734,468,"meat"],[734,491,"coal"],[734,752,"meat"],[735,654,"wood"],[735,809,"wood"],[736,499,"coal"],[736,816,"iron"],[737,461,"coal"],[737,686,"coal"],[739,704,"coal"],[739,721,"iron"],[740,693,"coal"],[742,599,"iron"],[742,741,"wood"],[742,763,"coal"],[743,802,"coal"],[744,452,"meat"],[744,498,"iron"],[744,784,"iron"],[745,670,"coal"],[745,721,"iron"],[745,731,"wood"],[747,693,"iron"],[747,749,"iron"],[748,764,"meat"],[749,681,"coal"],[749,702,"coal"],[749,712,"coal"],[749,794,"meat"],[750,455,"meat"],[750,466,"meat"],[750,775,"wood"],[752,664,"coal"],[752,721,"coal"],[753,785,"coal"],[754,801,"meat"],[755,500,"coal"],[755,587,"coal"],[755,601,"wood"],[755,753,"iron"],[756,688,"meat"],[757,777,"wood"],[758,737,"meat"],[759,578,"coal"],[762,452,"meat"],[763,799,"iron"],[764,678,"iron"],[764,750,"wood"],[766,688,"coal"],[766,792,"meat"],[767,494,"wood"],[767,713,"meat"],[767,742,"coal"],[768,433,"wood"],[768,707,"meat"],[768,735,"meat"],[769,451,"coal"],[769,501,"coal"],[769,660,"meat"],[769,756,"iron"],[771,477,"coal"],[773,467,"wood"],[773,714,"wood"],[774,685,"wood"],[775,656,"wood"],[777,450,"iron"],[782,793,"wood"],[784,662,"meat"],[784,806,"meat"],[785,472,"iron"],[787,726,"iron"],[788,746,"iron"],[790,756,"meat"],[792,463,"meat"],[792,478,"meat"],[793,665,"meat"],[793,736,"iron"],[795,470,"wood"],[797,719,"iron"],[798,750,"wood"],[799,660,"wood"],[799,757,"meat"],[800,667,"iron"],[800,733,"iron"],[806,665,"meat"],[807,757,"coal"],[808,751,"coal"],[812,660,"iron"],[816,755,"coal"],[820,656,"meat"],[824,663,"iron"],[828,541,"wood"],[830,753,"wood"],[834,655,"iron"],[835,546,"coal"],[835,649,"coal"],[840,533,"wood"],[851,679,"coal"],[853,754,"meat"],[854,546,"iron"],[855,745,"meat"],[859,656,"wood"],[860,683,"iron"],[862,576,"iron"],[862,689,"iron"],[863,749,"wood"],[866,558,"wood"],[866,703,"wood"],[868,603,"iron"],[869,731,"wood"],[870,682,"iron"],[871,711,"coal"],[871,725,"wood"],[874,675,"coal"],[874,738,"wood"],[876,684,"wood"],[876,691,"wood"],[880,587,"wood"],[881,555,"iron"],[881,702,"iron"],[883,655,"meat"],[883,661,"iron"],[884,760,"meat"],[885,743,"coal"],[886,579,"wood"],[886,610,"coal"],[887,561,"meat"],[888,708,"wood"],[888,777,"coal"],[889,672,"meat"],[890,758,"wood"],[892,660,"wood"],[893,723,"meat"],[894,682,"coal"],[894,694,"meat"],[894,715,"meat"],[895,671,"iron"],[896,756,"coal"],[896,763,"iron"],[898,688,"wood"],[898,706,"wood"],[904,658,"coal"],[906,537,"meat"],[906,656,"meat"],[926,557,"meat"],[929,520,"coal"],[951,503,"coal"],[1192,1194,"wood"]];
-const plannerStrongholdsRaw: [number, number][] = [];
-const plannerFortressesRaw: [number, number][] = [];
-const plannerGridSize = 1200;
-const plannerStorageKey = "city-layout-planner-v1";
-
-const plannerBuildings: PlannerBuilding[] = [
-  { id: "flag", label: "Flag", shortcut: "1", width: 1, height: 1, color: "#f48120" },
-  { id: "city", label: "City", shortcut: "2", width: 2, height: 2, color: "#59a6de" },
-  { id: "trap", label: "Trap", shortcut: "3", width: 3, height: 3, color: "#dc2626" },
-  { id: "hq", label: "HQ", shortcut: "4", width: 4, height: 4, color: "#9b5de5" },
-  { id: "node", label: "Node", shortcut: "5", width: 2, height: 2, color: "#22c55e" },
-  { id: "obstacle", label: "Obstacle", shortcut: "6", width: 1, height: 1, color: "#64748b" },
-  { id: "enemy", label: "Enemy Zone", shortcut: "7", width: 3, height: 3, color: "#ef4444", castleOnly: true },
-];
-
-function encodePlannerLayoutPayload(payload: PlannerLayoutPayload) {
-  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-}
-
-function decodePlannerLayoutPayload(value: string): PlannerLayoutPayload {
-  const parsed = JSON.parse(decodeURIComponent(escape(atob(value.trim())))) as Partial<PlannerLayoutPayload>;
-
-  if (!Array.isArray(parsed.objects)) {
-    throw new Error("Layout code does not contain objects.");
-  }
-
-  return {
-    version: parsed.version,
-    mode: parsed.mode === "castle" ? "castle" : "base",
-    alliance: parsed.alliance === "farm" ? "farm" : "main",
-    objects: parsed.objects,
-  };
-}
-
-function readStoredPlannerLayout(): PlannerLayoutPayload | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const saved = localStorage.getItem(plannerStorageKey);
-  if (!saved) {
-    return null;
-  }
-
-  try {
-    return decodePlannerLayoutPayload(saved);
-  } catch {
-    localStorage.removeItem(plannerStorageKey);
-    return null;
-  }
-}
 
 const defaultDaybreakTags = [
   "TreeOfLife",
@@ -1295,15 +1177,15 @@ function StateTransferCountdown() {
             {hasEnded
               ? "Window ended"
               : countdownUnits.map(([suffix, key]) => {
-                  const value = now === null ? "--" : key === "days" ? String(countdown[key]) : String(countdown[key]).padStart(2, "0");
+                const value = now === null ? "--" : key === "days" ? String(countdown[key]) : String(countdown[key]).padStart(2, "0");
 
-                  return (
-                    <span className="state-transfer-time-unit" key={suffix}>
-                      <span>{value}</span>
-                      <small>{suffix}</small>
-                    </span>
-                  );
-                })}
+                return (
+                  <span className="state-transfer-time-unit" key={suffix}>
+                    <span>{value}</span>
+                    <small>{suffix}</small>
+                  </span>
+                );
+              })}
           </strong>
         </span>
         <small>{navStatus}</small>
@@ -1600,35 +1482,11 @@ export default function Home() {
   const [selectedTag, setSelectedTag] = useState("");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [plannerTool, setPlannerTool] = useState<PlannerTool>("select");
-  const [plannerMode, setPlannerMode] = useState<PlannerMode>(() => readStoredPlannerLayout()?.mode || "base");
-  const [plannerAlliance, setPlannerAlliance] = useState<PlannerAlliance>(() => readStoredPlannerLayout()?.alliance || "main");
-  const [selectedPlannerBuilding, setSelectedPlannerBuilding] = useState<PlannerBuildingId>("city");
-  const [plannerObstacleSize, setPlannerObstacleSize] = useState(1);
-  const [plannerObjects, setPlannerObjects] = useState<PlannerObject[]>(() => readStoredPlannerLayout()?.objects || []);
-  const [selectedPlannerObjectId, setSelectedPlannerObjectId] = useState("");
-  const [plannerHistory, setPlannerHistory] = useState<PlannerObject[][]>([]);
-  const [plannerFuture, setPlannerFuture] = useState<PlannerObject[][]>([]);
-  const [plannerZoom, setPlannerZoom] = useState(100);
-  const [plannerImportCode, setPlannerImportCode] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    return localStorage.getItem(plannerStorageKey) || "";
-  });
-  const [plannerStatus, setPlannerStatus] = useState("");
-  const [plannerDragPreview, setPlannerDragPreview] = useState<PlannerDragPreview | null>(null);
-  const [plannerHoverCell, setPlannerHoverCell] = useState<PlannerHoverCell | null>(null);
   const openedSharedIslandRef = useRef("");
   const openedSharedTemplateRef = useRef("");
   const footerIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const plannerBoardRef = useRef<HTMLElement | null>(null);
-  const plannerGridRef = useRef<HTMLDivElement | null>(null);
-  const plannerDragRef = useRef<PlannerDragState | null>(null);
-  const plannerSuppressClickRef = useRef(false);
   const giftCodeRefreshRef = useRef(false);
   const [viewerId] = useState(() => {
     if (typeof window === "undefined") {
@@ -2977,770 +2835,6 @@ export default function Home() {
     return `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n${url}`)}`;
   };
 
-  const availablePlannerBuildings = useMemo(
-    () => plannerBuildings.filter((building) => plannerMode === "castle" || !building.castleOnly),
-    [plannerMode],
-  );
-
-  const selectedPlannerTemplate =
-    plannerBuildings.find((building) => building.id === selectedPlannerBuilding) || plannerBuildings[1];
-
-  const plannerStats = useMemo(
-    () => {
-      const usedCells = plannerObjects.reduce((total, item) => total + item.width * item.height, 0);
-      return {
-        flags: plannerObjects.filter((item) => item.type === "flag").length,
-        cities: plannerObjects.filter((item) => item.type === "city").length,
-        traps: plannerObjects.filter((item) => item.type === "trap" && item.alliance === "main").length,
-        hq: plannerObjects.filter((item) => item.type === "hq").length,
-        nodes: plannerObjects.filter((item) => item.type === "node").length,
-        obstacles: plannerObjects.filter((item) => item.type === "obstacle").length,
-        usedCells,
-        utilization: Math.round((usedCells / (plannerGridSize * plannerGridSize)) * 100),
-      };
-    },
-    [plannerObjects],
-  );
-
-  const plannerHealth = useMemo(() => {
-    const warnings: string[] = [];
-    if (plannerStats.hq === 0) warnings.push("Add an HQ anchor for alliance planning.");
-    if (plannerStats.traps > 2) warnings.push("Main alliance has more than 2 Bear Traps.");
-    if (plannerStats.flags < 4 && plannerObjects.length > 4) warnings.push("Consider more flags for territory lines.");
-    if (plannerStats.utilization > 72) warnings.push("Layout is dense; leave room for future edits.");
-    return warnings;
-  }, [plannerObjects.length, plannerStats.flags, plannerStats.hq, plannerStats.traps, plannerStats.utilization]);
-
-  
-
-  const selectedPlannerObject = useMemo(
-    () => plannerObjects.find((item) => item.id === selectedPlannerObjectId) || null,
-    [plannerObjects, selectedPlannerObjectId],
-  );
-
-  const sortedPlannerObjects = useMemo(
-    () => [...plannerObjects].sort((a, b) => a.type.localeCompare(b.type) || a.label.localeCompare(b.label)),
-    [plannerObjects],
-  );
-
-  const encodePlannerLayout = (objects = plannerObjects) => {
-    const payload: PlannerLayoutPayload = {
-      version: 1,
-      mode: plannerMode,
-      alliance: plannerAlliance,
-      objects,
-    };
-
-    return encodePlannerLayoutPayload(payload);
-  };
-
-  const objectAtPlannerCell = (x: number, y: number) =>
-    [...plannerObjects]
-      .reverse()
-      .find((item) => x >= item.x && x < item.x + item.width && y >= item.y && y < item.y + item.height);
-
-  const getPlannerCellFromPointer = (clientX: number, clientY: number) => {
-    const grid = plannerGridRef.current;
-    if (!grid) {
-      return null;
-    }
-
-    const rect = grid.getBoundingClientRect();
-    const innerLeft = rect.left + grid.clientLeft;
-    const innerTop = rect.top + grid.clientTop;
-    const innerWidth = Math.max(1, grid.clientWidth);
-    const innerHeight = Math.max(1, grid.clientHeight);
-    const cellWidth = innerWidth / plannerGridSize;
-    const cellHeight = innerHeight / plannerGridSize;
-    return {
-      x: Math.min(plannerGridSize - 1, Math.max(0, Math.floor((clientX - innerLeft) / cellWidth))),
-      y: Math.min(plannerGridSize - 1, Math.max(0, Math.floor((clientY - innerTop) / cellHeight))),
-    };
-  };
-
-  const clampPlannerObjectPosition = (x: number, y: number, width: number, height: number) => ({
-    x: Math.min(plannerGridSize - width, Math.max(0, x)),
-    y: Math.min(plannerGridSize - height, Math.max(0, y)),
-  });
-
-  const plannerObjectSizeForTemplate = (template: PlannerBuilding = selectedPlannerTemplate) => ({
-    width: template.id === "obstacle" ? plannerObstacleSize : template.width,
-    height: template.id === "obstacle" ? plannerObstacleSize : template.height,
-  });
-
-  const anchoredPlannerPosition = (cellX: number, cellY: number, width: number, height: number) =>
-    clampPlannerObjectPosition(cellX - Math.floor(width / 2), cellY - Math.floor(height / 2), width, height);
-
-  const canPlacePlannerObject = (
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    ignoreId = "",
-    objects = plannerObjects,
-  ) => {
-    if (x < 0 || y < 0 || x + width > plannerGridSize || y + height > plannerGridSize) {
-      return false;
-    }
-
-    return !objects.some((item) => {
-      if (item.id === ignoreId) {
-        return false;
-      }
-
-      return x < item.x + item.width && x + width > item.x && y < item.y + item.height && y + height > item.y;
-    });
-  };
-
-  const plannerPlacementPreview = useMemo(() => {
-    if (!plannerHoverCell || plannerDragPreview || plannerTool !== "select" || selectedPlannerObject) {
-      return null;
-    }
-
-    const { width, height } = plannerObjectSizeForTemplate(selectedPlannerTemplate);
-    const next = anchoredPlannerPosition(plannerHoverCell.x, plannerHoverCell.y, width, height);
-    return {
-      ...next,
-      width,
-      height,
-      color: selectedPlannerTemplate.color,
-      label: selectedPlannerTemplate.label,
-      valid: canPlacePlannerObject(next.x, next.y, width, height),
-    };
-    // Preview validation needs the current planner snapshot; canPlacePlannerObject is recreated with that snapshot.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plannerDragPreview, plannerHoverCell, plannerObstacleSize, plannerTool, selectedPlannerObject, selectedPlannerTemplate, plannerObjects]);
-
-  const commitPlannerObjects = (nextObjects: PlannerObject[], message = "") => {
-    setPlannerHistory((history) => [...history.slice(-39), plannerObjects]);
-    setPlannerFuture([]);
-    setPlannerObjects(nextObjects);
-    setPlannerStatus(message);
-  };
-
-  const updatePlannerObject = (objectId: string, patch: Partial<PlannerObject>, message = "Planner updated.") => {
-    const target = plannerObjects.find((item) => item.id === objectId);
-    if (!target) {
-      return;
-    }
-
-    const nextTarget = { ...target, ...patch };
-    const nextPosition = clampPlannerObjectPosition(nextTarget.x, nextTarget.y, nextTarget.width, nextTarget.height);
-    const normalizedTarget = { ...nextTarget, ...nextPosition };
-
-    if (!canPlacePlannerObject(normalizedTarget.x, normalizedTarget.y, normalizedTarget.width, normalizedTarget.height, normalizedTarget.id)) {
-      setPlannerStatus("That edit overlaps another building.");
-      return;
-    }
-
-    commitPlannerObjects(plannerObjects.map((item) => (item.id === objectId ? normalizedTarget : item)), message);
-  };
-
-  const placePlannerObject = (x: number, y: number) => {
-    const template = selectedPlannerTemplate;
-    if (template.castleOnly && plannerMode !== "castle") {
-      setPlannerStatus("Enemy Zone is available in Castle mode.");
-      return;
-    }
-
-    const { width, height } = plannerObjectSizeForTemplate(template);
-    const next = anchoredPlannerPosition(x, y, width, height);
-
-    if (!canPlacePlannerObject(next.x, next.y, width, height)) {
-      setPlannerStatus("That space is blocked or outside the planner grid.");
-      return;
-    }
-
-    const sameTypeCount = plannerObjects.filter((item) => item.type === template.id).length + 1;
-    const nextObject: PlannerObject = {
-      id: crypto.randomUUID(),
-      type: template.id,
-      label: template.id === "city" ? `City ${sameTypeCount}` : template.label,
-      x: next.x,
-      y: next.y,
-      width,
-      height,
-      alliance: plannerAlliance,
-    };
-
-    commitPlannerObjects([...plannerObjects, nextObject], `${template.label} placed.`);
-    setSelectedPlannerObjectId(nextObject.id);
-  };
-
-  const handlePlannerCellClick = (x: number, y: number) => {
-    if (plannerSuppressClickRef.current) {
-      plannerSuppressClickRef.current = false;
-      return;
-    }
-
-    const target = objectAtPlannerCell(x, y);
-
-    if (plannerTool === "erase") {
-      if (target) {
-        commitPlannerObjects(plannerObjects.filter((item) => item.id !== target.id), `${target.label} removed.`);
-        setSelectedPlannerObjectId("");
-      }
-      return;
-    }
-
-    if (plannerTool === "pan") {
-      setPlannerStatus("Use the board scrollbars or mouse wheel to pan the planner.");
-      return;
-    }
-
-    if (plannerTool === "select") {
-      if (target) {
-        setSelectedPlannerObjectId(target.id);
-        setPlannerStatus(`${target.label} selected.`);
-        return;
-      }
-
-      const selected = plannerObjects.find((item) => item.id === selectedPlannerObjectId);
-      if (selected && canPlacePlannerObject(x, y, selected.width, selected.height, selected.id)) {
-        commitPlannerObjects(
-          plannerObjects.map((item) => (item.id === selected.id ? { ...item, x, y } : item)),
-          `${selected.label} moved.`,
-        );
-        return;
-      }
-    }
-
-    placePlannerObject(x, y);
-  };
-
-  const startPlannerObjectDrag = (event: ReactPointerEvent<HTMLButtonElement>, object: PlannerObject) => {
-    if (plannerTool === "erase") {
-      commitPlannerObjects(plannerObjects.filter((item) => item.id !== object.id), `${object.label} removed.`);
-      setSelectedPlannerObjectId("");
-      return;
-    }
-
-    if (plannerTool === "pan") {
-      return;
-    }
-
-    const cell = getPlannerCellFromPointer(event.clientX, event.clientY);
-    if (!cell) {
-      return;
-    }
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setSelectedPlannerObjectId(object.id);
-    setPlannerStatus(`${object.label} selected.`);
-    plannerDragRef.current = {
-      kind: "object",
-      pointerId: event.pointerId,
-      objectId: object.id,
-      offsetX: Math.max(0, Math.min(object.width - 1, cell.x - object.x)),
-      offsetY: Math.max(0, Math.min(object.height - 1, cell.y - object.y)),
-      moved: false,
-    };
-  };
-
-  const startPlannerPan = (event: ReactPointerEvent<HTMLElement>) => {
-    if (plannerTool !== "pan" || event.button !== 0) {
-      return;
-    }
-
-    const board = plannerBoardRef.current;
-    if (!board) {
-      return;
-    }
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-    plannerDragRef.current = {
-      kind: "pan",
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      scrollLeft: board.scrollLeft,
-      scrollTop: board.scrollTop,
-      moved: false,
-    };
-    setPlannerStatus("Drag to pan the planner board.");
-  };
-
-  const handlePlannerWheel = (event: ReactWheelEvent<HTMLElement>) => {
-    if (!event.ctrlKey && !event.metaKey) {
-      return;
-    }
-
-    event.preventDefault();
-    setPlannerZoom((value) => Math.min(160, Math.max(60, value + (event.deltaY < 0 ? 10 : -10))));
-  };
-
-  const fitPlannerToView = () => {
-    const board = plannerBoardRef.current;
-    if (!board) {
-      return;
-    }
-
-    const available = Math.max(280, Math.min(board.clientWidth, board.clientHeight) - 42);
-    const nextZoom = Math.min(140, Math.max(60, Math.floor((available / 672) * 100)));
-    setPlannerZoom(nextZoom);
-    window.requestAnimationFrame(() => {
-      board.scrollLeft = Math.max(0, (board.scrollWidth - board.clientWidth) / 2);
-      board.scrollTop = Math.max(0, (board.scrollHeight - board.clientHeight) / 2);
-    });
-    setPlannerStatus("Planner fitted to view.");
-  };
-
-  const centerSelectedPlannerObject = () => {
-    const board = plannerBoardRef.current;
-    const grid = plannerGridRef.current;
-    if (!board || !grid || !selectedPlannerObject) {
-      setPlannerStatus("Select a building to center.");
-      return;
-    }
-
-    const cellSize = grid.getBoundingClientRect().width / plannerGridSize;
-    const centerX = (selectedPlannerObject.x + selectedPlannerObject.width / 2) * cellSize;
-    const centerY = (selectedPlannerObject.y + selectedPlannerObject.height / 2) * cellSize;
-    board.scrollTo({
-      left: Math.max(0, centerX - board.clientWidth / 2),
-      top: Math.max(0, centerY - board.clientHeight / 2),
-      behavior: "smooth",
-    });
-    setPlannerStatus(`${selectedPlannerObject.label} centered.`);
-  };
-
-  const nudgeSelectedPlannerObject = (deltaX: number, deltaY: number) => {
-    if (!selectedPlannerObject) {
-      return;
-    }
-
-    const next = clampPlannerObjectPosition(
-      selectedPlannerObject.x + deltaX,
-      selectedPlannerObject.y + deltaY,
-      selectedPlannerObject.width,
-      selectedPlannerObject.height,
-    );
-
-    if (next.x === selectedPlannerObject.x && next.y === selectedPlannerObject.y) {
-      setPlannerStatus("Selected building is at the edge.");
-      return;
-    }
-
-    updatePlannerObject(selectedPlannerObject.id, next, `${selectedPlannerObject.label} nudged.`);
-  };
-
-  const deleteSelectedPlannerObject = () => {
-    const selected = plannerObjects.find((item) => item.id === selectedPlannerObjectId);
-    if (!selected) {
-      setPlannerTool("erase");
-      setPlannerStatus("Erase mode enabled.");
-      return;
-    }
-
-    commitPlannerObjects(plannerObjects.filter((item) => item.id !== selected.id), `${selected.label} removed.`);
-    setSelectedPlannerObjectId("");
-  };
-
-  const undoPlanner = () => {
-    setPlannerHistory((history) => {
-      const previous = history.at(-1);
-      if (!previous) {
-        return history;
-      }
-
-      setPlannerFuture((future) => [plannerObjects, ...future.slice(0, 39)]);
-      setPlannerObjects(previous);
-      setSelectedPlannerObjectId("");
-      setPlannerStatus("Undo applied.");
-      return history.slice(0, -1);
-    });
-  };
-
-  const redoPlanner = () => {
-    setPlannerFuture((future) => {
-      const next = future[0];
-      if (!next) {
-        return future;
-      }
-
-      setPlannerHistory((history) => [...history.slice(-39), plannerObjects]);
-      setPlannerObjects(next);
-      setSelectedPlannerObjectId("");
-      setPlannerStatus("Redo applied.");
-      return future.slice(1);
-    });
-  };
-
-  const clearPlanner = () => {
-    if (!plannerObjects.length) {
-      return;
-    }
-
-    if (!window.confirm("Clear the current city layout?")) {
-      return;
-    }
-
-    commitPlannerObjects([], "Planner cleared.");
-    setSelectedPlannerObjectId("");
-  };
-
-  const duplicateSelectedPlannerObject = () => {
-    if (!selectedPlannerObject) {
-      setPlannerStatus("Select a building first.");
-      return;
-    }
-
-    for (let radius = 1; radius < plannerGridSize; radius += 1) {
-      for (let y = selectedPlannerObject.y - radius; y <= selectedPlannerObject.y + radius; y += 1) {
-        for (let x = selectedPlannerObject.x - radius; x <= selectedPlannerObject.x + radius; x += 1) {
-          const next = clampPlannerObjectPosition(x, y, selectedPlannerObject.width, selectedPlannerObject.height);
-          if (canPlacePlannerObject(next.x, next.y, selectedPlannerObject.width, selectedPlannerObject.height)) {
-            const duplicated = {
-              ...selectedPlannerObject,
-              ...next,
-              id: crypto.randomUUID(),
-              label: `${selectedPlannerObject.label} Copy`,
-            };
-            commitPlannerObjects([...plannerObjects, duplicated], `${selectedPlannerObject.label} duplicated.`);
-            setSelectedPlannerObjectId(duplicated.id);
-            return;
-          }
-        }
-      }
-    }
-
-    setPlannerStatus("No open space is available for a duplicate.");
-  };
-
-  const loadPlannerCode = (value: string) => {
-    if (plannerObjects.length && !window.confirm("Load this layout and replace the current planner?")) {
-      return;
-    }
-
-    const decoded = decodePlannerLayoutPayload(value);
-    const cleanedObjects = decoded.objects
-      .filter((item) =>
-        plannerBuildings.some((building) => building.id === item.type) &&
-        canPlacePlannerObject(item.x, item.y, item.width, item.height, item.id, decoded.objects),
-      )
-      .map((item): PlannerObject => ({
-        ...item,
-        alliance: item.alliance === "farm" ? "farm" : "main",
-      }));
-
-    setPlannerMode(decoded.mode === "castle" ? "castle" : "base");
-    setPlannerAlliance(decoded.alliance === "farm" ? "farm" : "main");
-    commitPlannerObjects(cleanedObjects, "Layout loaded.");
-    setSelectedPlannerObjectId("");
-  };
-
-  const applyPlannerShareCode = (value: string) => {
-    const decoded = decodePlannerLayoutPayload(value);
-    setPlannerMode(decoded.mode === "castle" ? "castle" : "base");
-    setPlannerAlliance(decoded.alliance === "farm" ? "farm" : "main");
-    setPlannerObjects(decoded.objects);
-    setPlannerHistory([]);
-    setPlannerFuture([]);
-    setSelectedPlannerObjectId("");
-    setPlannerImportCode(value);
-    setPlannerStatus("Shared layout loaded.");
-  };
-
-  const copyPlannerCode = async () => {
-    const code = encodePlannerLayout();
-    setPlannerImportCode(code);
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(code);
-    }
-    setPlannerStatus("Layout code copied.");
-  };
-
-  const plannerShareUrl = () => {
-    const url = new URL(window.location.href);
-    url.pathname = "/";
-    url.hash = "city-layout-planner";
-    url.searchParams.set("planner", encodePlannerLayout());
-    return url.toString();
-  };
-
-  const copyPlannerShareLink = async () => {
-    const shareUrl = plannerShareUrl();
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(shareUrl);
-    } else {
-      window.prompt("Copy planner share link", shareUrl);
-    }
-    setPlannerStatus("Planner share link copied.");
-  };
-
-  const exportPlannerCsv = () => {
-    const rows = ["type,label,alliance,x,y,width,height", ...plannerObjects.map((item) =>
-      [item.type, item.label, item.alliance, item.x, item.y, item.width, item.height]
-        .map((cell) => `"${String(cell).replaceAll('"', '""')}"`)
-        .join(","),
-    )];
-    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "city-layout-planner.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-    setPlannerStatus("CSV exported.");
-  };
-
-  const savePlannerPng = () => {
-    try {
-      const cellSize = 32;
-      const canvas = document.createElement("canvas");
-      canvas.width = plannerGridSize * cellSize;
-      canvas.height = plannerGridSize * cellSize;
-      const context = canvas.getContext("2d");
-      if (!context) {
-        throw new Error("PNG export is not available in this browser.");
-      }
-
-      context.fillStyle = theme === "dark" ? "#101314" : "#fbfaf7";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.strokeStyle = theme === "dark" ? "rgba(255,255,255,0.14)" : "rgba(25,23,20,0.16)";
-      context.lineWidth = 1;
-      for (let index = 0; index <= plannerGridSize; index += 1) {
-        context.beginPath();
-        context.moveTo(index * cellSize + 0.5, 0);
-        context.lineTo(index * cellSize + 0.5, canvas.height);
-        context.moveTo(0, index * cellSize + 0.5);
-        context.lineTo(canvas.width, index * cellSize + 0.5);
-        context.stroke();
-      }
-
-      plannerObjects.forEach((item) => {
-        const template = plannerBuildings.find((building) => building.id === item.type);
-        const x = item.x * cellSize + 3;
-        const y = item.y * cellSize + 3;
-        const width = item.width * cellSize - 6;
-        const height = item.height * cellSize - 6;
-        context.fillStyle = template?.color || "#64748b";
-        context.globalAlpha = item.alliance === "farm" ? 0.72 : 0.94;
-        context.fillRect(x, y, width, height);
-        context.globalAlpha = 1;
-        context.strokeStyle = "rgba(0,0,0,0.28)";
-        context.strokeRect(x, y, width, height);
-        context.fillStyle = "#ffffff";
-        context.font = "700 12px Arial";
-        context.textBaseline = "top";
-        context.fillText(item.label.slice(0, 16), x + 5, y + 5, Math.max(18, width - 10));
-        context.font = "700 10px Arial";
-        context.fillText(`${item.x},${item.y}`, x + 5, y + Math.min(height - 14, 22), Math.max(18, width - 10));
-      });
-
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          setPlannerStatus("PNG export failed.");
-          return;
-        }
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "city-layout-planner.png";
-        link.rel = "noopener";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-        setPlannerStatus("PNG exported.");
-      }, "image/png");
-    } catch (error) {
-      setPlannerStatus(error instanceof Error ? error.message : "PNG export failed.");
-    }
-  };
-
-  useEffect(() => {
-    const handlePointerMove = (event: PointerEvent) => {
-      const drag = plannerDragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) {
-        return;
-      }
-
-      if (drag.kind === "pan") {
-        const board = plannerBoardRef.current;
-        if (!board) {
-          return;
-        }
-
-        const deltaX = event.clientX - drag.startX;
-        const deltaY = event.clientY - drag.startY;
-        if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
-          drag.moved = true;
-          plannerSuppressClickRef.current = true;
-        }
-        board.scrollLeft = drag.scrollLeft - deltaX;
-        board.scrollTop = drag.scrollTop - deltaY;
-        return;
-      }
-
-      const target = plannerObjects.find((item) => item.id === drag.objectId);
-      const cell = getPlannerCellFromPointer(event.clientX, event.clientY);
-      if (!target || !cell) {
-        return;
-      }
-
-      const next = clampPlannerObjectPosition(cell.x - drag.offsetX, cell.y - drag.offsetY, target.width, target.height);
-      if (next.x !== target.x || next.y !== target.y) {
-        drag.moved = true;
-        plannerSuppressClickRef.current = true;
-      }
-
-      setPlannerDragPreview({
-        id: target.id,
-        x: next.x,
-        y: next.y,
-        valid: canPlacePlannerObject(next.x, next.y, target.width, target.height, target.id),
-      });
-    };
-
-    const handlePointerUp = (event: PointerEvent) => {
-      const drag = plannerDragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) {
-        return;
-      }
-
-      plannerDragRef.current = null;
-
-      if (drag.kind === "pan") {
-        if (drag.moved) {
-          plannerSuppressClickRef.current = true;
-          setPlannerStatus("Board panned.");
-        }
-        return;
-      }
-
-      const target = plannerObjects.find((item) => item.id === drag.objectId);
-      const cell = getPlannerCellFromPointer(event.clientX, event.clientY);
-      setPlannerDragPreview(null);
-
-      if (!target || !cell || !drag.moved) {
-        return;
-      }
-
-      const next = clampPlannerObjectPosition(cell.x - drag.offsetX, cell.y - drag.offsetY, target.width, target.height);
-      const valid = canPlacePlannerObject(next.x, next.y, target.width, target.height, target.id);
-
-      if (!valid) {
-        setPlannerStatus("Move blocked by another building.");
-        return;
-      }
-
-      commitPlannerObjects(
-        plannerObjects.map((item) => (item.id === target.id ? { ...item, x: next.x, y: next.y } : item)),
-        `${target.label} moved.`,
-      );
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
-
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-    };
-    // Pointer handlers intentionally close over the current planner snapshot for drag validation and commit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plannerObjects]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      plannerStorageKey,
-      encodePlannerLayoutPayload({
-        version: 1,
-        mode: plannerMode,
-        alliance: plannerAlliance,
-        objects: plannerObjects,
-      }),
-    );
-  }, [plannerAlliance, plannerMode, plannerObjects]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const plannerCode = params.get("planner");
-    if (!plannerCode) {
-      return;
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      try {
-        applyPlannerShareCode(plannerCode);
-        params.delete("planner");
-        const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}#city-layout-planner`;
-        window.history.replaceState(null, "", nextUrl);
-        setActiveMenu("planner");
-      } catch (error) {
-        setPlannerStatus(error instanceof Error ? error.message : "Unable to load shared planner link.");
-      }
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
-    const handlePlannerShortcut = (event: KeyboardEvent) => {
-      const target = event.target instanceof HTMLElement ? event.target : null;
-      if (target?.matches("input, textarea, select, [contenteditable='true']")) {
-        return;
-      }
-
-      if (activeMenu !== "planner") {
-        return;
-      }
-
-      if (event.ctrlKey || event.metaKey) {
-        if (event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          undoPlanner();
-        }
-        if (event.key.toLowerCase() === "y") {
-          event.preventDefault();
-          redoPlanner();
-        }
-        return;
-      }
-
-      const key = event.key.toLowerCase();
-      if (key === "q") setPlannerTool("select");
-      if (key === "w") setPlannerTool("pan");
-      if (key === "e") deleteSelectedPlannerObject();
-      if (key === "m") setPlannerMode((value) => (value === "base" ? "castle" : "base"));
-      if (key === "a") setPlannerAlliance((value) => (value === "main" ? "farm" : "main"));
-      if (key === "delete" || key === "backspace") deleteSelectedPlannerObject();
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        nudgeSelectedPlannerObject(0, -1);
-      }
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        nudgeSelectedPlannerObject(0, 1);
-      }
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        nudgeSelectedPlannerObject(-1, 0);
-      }
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        nudgeSelectedPlannerObject(1, 0);
-      }
-
-      const building = plannerBuildings.find((item) => item.shortcut === event.key);
-      if (building && (!building.castleOnly || plannerMode === "castle")) {
-        setSelectedPlannerBuilding(building.id);
-        setPlannerTool("select");
-        setSelectedPlannerObjectId("");
-        setPlannerStatus(`${building.label} ready to place.`);
-      }
-    };
-
-    window.addEventListener("keydown", handlePlannerShortcut);
-    return () => window.removeEventListener("keydown", handlePlannerShortcut);
-    // The shortcut handler needs the latest planner snapshot; the action helpers are intentionally recreated with it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMenu, plannerMode, plannerObjects, selectedPlannerObjectId]);
-
   const formatFurnaceLevel = (value?: number | string) => {
     if (value === undefined || value === null || value === "") {
       return "N/A";
@@ -4487,48 +3581,48 @@ export default function Home() {
                   <div className="wiki-scraped-content" dangerouslySetInnerHTML={{ __html: activeWikiHero.html }} />
                 </article>
               ) : (
-              <section className="wiki-panel" aria-label="Hero list">
-                <div className="wiki-panel-head">
-                  <div>
-                    <h2>{activeHeroFilter} Heroes</h2>
-                    <p>{filteredWosHeroes.length} hero{filteredWosHeroes.length === 1 ? "" : "es"} in this group. Open any hero to view stats, skills, shards, and tables inside this website.</p>
+                <section className="wiki-panel" aria-label="Hero list">
+                  <div className="wiki-panel-head">
+                    <div>
+                      <h2>{activeHeroFilter} Heroes</h2>
+                      <p>{filteredWosHeroes.length} hero{filteredWosHeroes.length === 1 ? "" : "es"} in this group. Open any hero to view stats, skills, shards, and tables inside this website.</p>
+                    </div>
                   </div>
-                </div>
-                <div className="wiki-filter-layout">
-                  <nav className="wiki-filter-rail" aria-label="Hero filters">
-                    {visibleHeroFilters.map((filter) => (
-                      <button
-                        className={activeHeroFilter === filter ? "active" : ""}
-                        type="button"
-                        key={filter}
-                        onClick={() => setActiveHeroFilter(filter)}
-                      >
-                        <span>{filter}</span>
-                        <small>{heroFilterCounts[filter]}</small>
-                      </button>
-                    ))}
-                  </nav>
-                  <div className="wiki-grid">
-                    {filteredWosHeroes.map((hero) => (
-                      <article className="wiki-card hero-card" key={hero.slug}>
-                        {hero.thumbnail && <img className="wiki-card-image" src={hero.thumbnail} alt="" />}
-                        <div className="wiki-card-title">
-                          <strong>{hero.name}</strong>
-                          <span className={`wiki-rarity rarity-${hero.rarity.toLowerCase()}`}>{hero.rarity}</span>
-                        </div>
-                        <div className="wiki-card-meta">
-                          <span><Icon name="shield" />{hero.heroClass}</span>
-                          <span><Icon name="star" />{hero.subClass}</span>
-                        </div>
-                        <button type="button" onClick={() => openWikiItem("wikiHeroes", hero.slug)}>
-                          View details
-                          <Icon name="chevron" />
+                  <div className="wiki-filter-layout">
+                    <nav className="wiki-filter-rail" aria-label="Hero filters">
+                      {visibleHeroFilters.map((filter) => (
+                        <button
+                          className={activeHeroFilter === filter ? "active" : ""}
+                          type="button"
+                          key={filter}
+                          onClick={() => setActiveHeroFilter(filter)}
+                        >
+                          <span>{filter}</span>
+                          <small>{heroFilterCounts[filter]}</small>
                         </button>
-                      </article>
-                    ))}
+                      ))}
+                    </nav>
+                    <div className="wiki-grid">
+                      {filteredWosHeroes.map((hero) => (
+                        <article className="wiki-card hero-card" key={hero.slug}>
+                          {hero.thumbnail && <img className="wiki-card-image" src={hero.thumbnail} alt="" />}
+                          <div className="wiki-card-title">
+                            <strong>{hero.name}</strong>
+                            <span className={`wiki-rarity rarity-${hero.rarity.toLowerCase()}`}>{hero.rarity}</span>
+                          </div>
+                          <div className="wiki-card-meta">
+                            <span><Icon name="shield" />{hero.heroClass}</span>
+                            <span><Icon name="star" />{hero.subClass}</span>
+                          </div>
+                          <button type="button" onClick={() => openWikiItem("wikiHeroes", hero.slug)}>
+                            View details
+                            <Icon name="chevron" />
+                          </button>
+                        </article>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </section>
+                </section>
               )}
             </section>
           ) : activeMenu === "wikiBuildings" ? (
@@ -4569,393 +3663,47 @@ export default function Home() {
                   <div className="wiki-scraped-content" dangerouslySetInnerHTML={{ __html: activeWikiBuilding.html }} />
                 </article>
               ) : (
-              <section className="wiki-panel" aria-label="Building list">
-                <div className="wiki-panel-head">
-                  <div>
-                    <h2>{buildingFilters.find((filter) => filter.value === activeBuildingFilter)?.label}</h2>
-                    <p>{filteredWosBuildings.length} building{filteredWosBuildings.length === 1 ? "" : "s"} in this category. Open any building to view descriptions, requirements, costs, timers, and power tables.</p>
+                <section className="wiki-panel" aria-label="Building list">
+                  <div className="wiki-panel-head">
+                    <div>
+                      <h2>{buildingFilters.find((filter) => filter.value === activeBuildingFilter)?.label}</h2>
+                      <p>{filteredWosBuildings.length} building{filteredWosBuildings.length === 1 ? "" : "s"} in this category. Open any building to view descriptions, requirements, costs, timers, and power tables.</p>
+                    </div>
                   </div>
-                </div>
-                <div className="wiki-building-tabs" aria-label="Building filters">
-                  {buildingFilters.map((filter) => (
-                    <button
-                      className={activeBuildingFilter === filter.value ? "active" : ""}
-                      type="button"
-                      key={filter.value}
-                      onClick={() => setActiveBuildingFilter(filter.value)}
-                    >
-                      <Icon name={filter.value === "Military" ? "shield" : filter.value === "Fire Crystal" ? "flame" : filter.value === "Inner City" ? "home" : "grid"} />
-                      <span>{filter.label}</span>
-                      <small>{buildingCategoryCounts[filter.value] || 0}</small>
-                    </button>
-                  ))}
-                </div>
-                <div className="wiki-grid buildings-grid">
-                  {filteredWosBuildings.map((building) => (
-                    <article className="wiki-card building-card" key={building.slug}>
-                      {building.thumbnail && <img className="wiki-card-image" src={building.thumbnail} alt="" />}
-                      <div className="wiki-card-title">
-                        <strong>{building.name}</strong>
-                        <span>{building.category}</span>
-                      </div>
-                      <button type="button" onClick={() => openWikiItem("wikiBuildings", building.slug)}>
-                        View details
-                        <Icon name="chevron" />
-                      </button>
-                    </article>
-                  ))}
-                </div>
-              </section>
-              )}
-            </section>
-          ) : activeMenu === "planner" ? (
-            <section className="home-page planner-page" id="city-layout-planner" aria-label="City Layout Planner">
-              <section className="planner-toolbar" aria-label="Planner controls">
-                <div className="planner-tool-group" aria-label="Tools">
-                  {(["select", "pan", "erase"] as const).map((tool) => (
-                    <button
-                      className={plannerTool === tool ? "selected" : ""}
-                      type="button"
-                      key={tool}
-                      onClick={() => setPlannerTool(tool)}
-                    >
-                      {tool === "select" ? "Select Q" : tool === "pan" ? "Pan W" : "Delete E"}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="planner-tool-group" aria-label="Mode">
-                  {(["base", "castle"] as const).map((mode) => (
-                    <button className={plannerMode === mode ? "selected" : ""} type="button" key={mode} onClick={() => setPlannerMode(mode)}>
-                      {mode === "base" ? "Base" : "Castle"}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="planner-tool-group" aria-label="Alliance">
-                  {(["main", "farm"] as const).map((alliance) => (
-                    <button className={plannerAlliance === alliance ? "selected" : ""} type="button" key={alliance} onClick={() => setPlannerAlliance(alliance)}>
-                      {alliance === "main" ? "Main" : "Farm"}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="planner-zoom" aria-label="Planner zoom">
-                  <button type="button" onClick={() => setPlannerZoom((value) => Math.max(70, value - 10))}>-</button>
-                  <span>{plannerZoom}%</span>
-                  <button type="button" onClick={() => setPlannerZoom((value) => Math.min(140, value + 10))}>+</button>
-                  <button type="button" onClick={() => setPlannerZoom(100)}>Reset</button>
-                  <button type="button" onClick={fitPlannerToView}>Fit</button>
-                  <button type="button" onClick={centerSelectedPlannerObject}>Center</button>
-                </div>
-              </section>
-
-              <section className="planner-workspace">
-                <aside className="planner-panel" aria-label="Buildings">
-                  <div className="planner-panel-head">
-                    <span className="section-kicker">City Layout Planner</span>
-                    <h2>Buildings</h2>
-                  </div>
-                  <div className="planner-building-list">
-                    {availablePlannerBuildings.map((building) => (
+                  <div className="wiki-building-tabs" aria-label="Building filters">
+                    {buildingFilters.map((filter) => (
                       <button
-                        className={selectedPlannerBuilding === building.id ? "selected" : ""}
+                        className={activeBuildingFilter === filter.value ? "active" : ""}
                         type="button"
-                        key={building.id}
-                        onClick={() => {
-                          setSelectedPlannerBuilding(building.id);
-                          setPlannerTool("select");
-                          setSelectedPlannerObjectId("");
-                          setPlannerStatus(`${building.label} ready to place.`);
-                        }}
+                        key={filter.value}
+                        onClick={() => setActiveBuildingFilter(filter.value)}
                       >
-                        <span className="planner-building-swatch" style={{ background: building.color }} />
-                        <span>{building.label}</span>
-                        <small>{building.shortcut}</small>
+                        <Icon name={filter.value === "Military" ? "shield" : filter.value === "Fire Crystal" ? "flame" : filter.value === "Inner City" ? "home" : "grid"} />
+                        <span>{filter.label}</span>
+                        <small>{buildingCategoryCounts[filter.value] || 0}</small>
                       </button>
                     ))}
                   </div>
-
-                  {selectedPlannerBuilding === "obstacle" && (
-                    <div className="planner-obstacle-size">
-                      <strong>Obstacle Size</strong>
-                      <div>
-                        {[1, 2, 3, 4].map((size) => (
-                          <button className={plannerObstacleSize === size ? "selected" : ""} type="button" key={size} onClick={() => setPlannerObstacleSize(size)}>
-                            {size}x{size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="planner-counts" aria-label="Planner counts">
-                    <span>Flags: {plannerStats.flags}</span>
-                    <span>Cities: {plannerStats.cities}</span>
-                    <span>BT(active): {plannerStats.traps}/2</span>
-                    <span>HQ: {plannerStats.hq}</span>
-                    <span>Nodes: {plannerStats.nodes}</span>
-                    <span>Obstacles: {plannerStats.obstacles}</span>
-                    <span>Used: {plannerStats.utilization}%</span>
-                  </div>
-                  <div className={`planner-health ${plannerHealth.length ? "warning" : "good"}`}>
-                    <strong>{plannerHealth.length ? "Layout Checks" : "Layout Healthy"}</strong>
-                    {plannerHealth.length ? (
-                      plannerHealth.map((item) => <span key={item}>{item}</span>)
-                    ) : (
-                      <span>No planning warnings for the current layout.</span>
-                    )}
-                  </div>
-                  <div className="planner-object-list" aria-label="Placed buildings">
-                    <strong>Placed Buildings</strong>
-                    {sortedPlannerObjects.length ? (
-                      sortedPlannerObjects.map((item) => {
-                        const template = plannerBuildings.find((building) => building.id === item.type);
-                        return (
-                          <button
-                            className={selectedPlannerObjectId === item.id ? "selected" : ""}
-                            type="button"
-                            key={item.id}
-                            onClick={() => {
-                              setSelectedPlannerObjectId(item.id);
-                              setPlannerStatus(`${item.label} selected.`);
-                            }}
-                          >
-                            <span className="planner-building-swatch" style={{ background: template?.color || "#64748b" }} />
-                            <span>{item.label}</span>
-                            <small>{item.x},{item.y}</small>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <p>No buildings placed yet.</p>
-                    )}
-                  </div>
-                </aside>
-
-                <section
-                  className="planner-board-wrap"
-                  aria-label="Planner grid"
-                  ref={plannerBoardRef}
-                  onPointerDown={startPlannerPan}
-                  onWheel={handlePlannerWheel}
-                >
-                  <div
-                    className={`planner-board planner-tool-${plannerTool}`}
-                    style={{
-                      "--planner-zoom": `${plannerZoom / 100}`,
-                    } as CSSProperties}
-                  >
-                    <div className="planner-grid" role="grid" aria-label="City planner grid" ref={plannerGridRef} onPointerLeave={() => setPlannerHoverCell(null)}
-                      onPointerMove={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const cellX = Math.floor(((e.clientX - rect.left) / rect.width) * plannerGridSize);
-                        const cellY = Math.floor(((e.clientY - rect.top) / rect.height) * plannerGridSize);
-                        if (plannerHoverCell?.x !== cellX || plannerHoverCell?.y !== cellY) setPlannerHoverCell({x: cellX, y: cellY});
-                      }}
-                      onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const cellX = Math.floor(((e.clientX - rect.left) / rect.width) * plannerGridSize);
-                        const cellY = Math.floor(((e.clientY - rect.top) / rect.height) * plannerGridSize);
-                        handlePlannerCellClick(cellX, cellY);
-                      }}>
-                                           {plannerPlacementPreview && (
-                        <div
-                          className={`planner-placement-preview ${plannerPlacementPreview.valid ? "valid" : "invalid"}`}
-                          style={{
-                            left: `${(plannerPlacementPreview.x / plannerGridSize) * 100}%`,
-                            top: `${(plannerPlacementPreview.y / plannerGridSize) * 100}%`,
-                            width: `${(plannerPlacementPreview.width / plannerGridSize) * 100}%`,
-                            height: `${(plannerPlacementPreview.height / plannerGridSize) * 100}%`,
-                            position: "absolute",
-                            "--planner-object-color": plannerPlacementPreview.color,
-                          } as CSSProperties}
-                          aria-hidden="true"
-                        >
-                          <span>{plannerPlacementPreview.label}</span>
+                  <div className="wiki-grid buildings-grid">
+                    {filteredWosBuildings.map((building) => (
+                      <article className="wiki-card building-card" key={building.slug}>
+                        {building.thumbnail && <img className="wiki-card-image" src={building.thumbnail} alt="" />}
+                        <div className="wiki-card-title">
+                          <strong>{building.name}</strong>
+                          <span>{building.category}</span>
                         </div>
-                      )}
-                      
-                      {plannerStrongholdsRaw.map((coord, i) => (
-                        <div key={`sh-${i}`} className="planner-object planner-sh" style={{
-                          left: `${(coord[0] / plannerGridSize) * 100}%`,
-                          top: `${(coord[1] / plannerGridSize) * 100}%`,
-                          width: `${(6 / plannerGridSize) * 100}%`,
-                          height: `${(6 / plannerGridSize) * 100}%`,
-                          position: "absolute",
-                          background: "#b71c1c",
-                          border: "2px solid #ff5252",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "white", fontSize: "0.5rem", borderRadius: "2px"
-                        }}><span>SH</span></div>
-                      ))}
-                      {plannerFortressesRaw.map((coord, i) => (
-                        <div key={`ft-${i}`} className="planner-object planner-ft" style={{
-                          left: `${(coord[0] / plannerGridSize) * 100}%`,
-                          top: `${(coord[1] / plannerGridSize) * 100}%`,
-                          width: `${(4 / plannerGridSize) * 100}%`,
-                          height: `${(4 / plannerGridSize) * 100}%`,
-                          position: "absolute",
-                          background: "#e65100",
-                          border: "2px solid #ffb74d",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "white", fontSize: "0.4rem", borderRadius: "2px"
-                        }}><span>FT</span></div>
-                      ))}
-                      {plannerFacilitiesRaw.flatMap((group, gIdx) => group.map((coord, i) => (
-                        <div key={`fac-${gIdx}-${i}`} className="planner-object planner-fac" style={{
-                          left: `${(coord[0] / plannerGridSize) * 100}%`,
-                          top: `${(coord[1] / plannerGridSize) * 100}%`,
-                          width: `${(2 / plannerGridSize) * 100}%`,
-                          height: `${(2 / plannerGridSize) * 100}%`,
-                          position: "absolute",
-                          background: "#0d47a1",
-                          border: "1px solid #64b5f6",
-                          borderRadius: "2px"
-                        }} />
-                      )))}
-                      {plannerResourcesRaw.map((res, i) => (
-                        <div key={`res-${i}`} className="planner-object planner-res" style={{
-                          left: `${(res[0] / plannerGridSize) * 100}%`,
-                          top: `${(res[1] / plannerGridSize) * 100}%`,
-                          width: `${(2 / plannerGridSize) * 100}%`,
-                          height: `${(2 / plannerGridSize) * 100}%`,
-                          position: "absolute",
-                          background: res[2] === "wood" ? "#2e7d32" : res[2] === "iron" ? "#757575" : res[2] === "coal" ? "#212121" : "#fbc02d",
-                          border: "1px solid rgba(255,255,255,0.2)",
-                          borderRadius: "50%"
-                        }} />
-                      ))}
-    
-                      {plannerObjects.map((item) => {
-                        const template = plannerBuildings.find((building) => building.id === item.type);
-                        const preview = plannerDragPreview?.id === item.id ? plannerDragPreview : null;
-                        return (
-                          <button
-                            className={`planner-object planner-${item.type} ${item.alliance === "farm" ? "farm" : "main"} ${selectedPlannerObjectId === item.id ? "selected" : ""} ${preview && !preview.valid ? "invalid" : ""} ${preview ? "dragging" : ""}`}
-                            type="button"
-                            key={item.id}
-                            style={{
-                              left: `${((preview?.x ?? item.x) / plannerGridSize) * 100}%`,
-                              top: `${((preview?.y ?? item.y) / plannerGridSize) * 100}%`, width: `${(item.width / plannerGridSize) * 100}%`, height: `${(item.height / plannerGridSize) * 100}%`, position: "absolute",
-                              "--planner-object-color": template?.color || "#64748b",
-                            } as CSSProperties}
-                            onPointerDown={(event) => startPlannerObjectDrag(event, item)}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              if (plannerSuppressClickRef.current) {
-                                plannerSuppressClickRef.current = false;
-                                return;
-                              }
-                              if (plannerTool === "erase") {
-                                commitPlannerObjects(plannerObjects.filter((object) => object.id !== item.id), `${item.label} removed.`);
-                                setSelectedPlannerObjectId("");
-                                return;
-                              }
-                              setSelectedPlannerObjectId(item.id);
-                              setPlannerStatus(`${item.label} selected.`);
-                            }}
-                          >
-                            <strong>{item.label}</strong>
-                            <span>{preview?.x ?? item.x},{preview?.y ?? item.y}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                        <button type="button" onClick={() => openWikiItem("wikiBuildings", building.slug)}>
+                          View details
+                          <Icon name="chevron" />
+                        </button>
+                      </article>
+                    ))}
                   </div>
                 </section>
-
-                <aside className="planner-panel planner-actions" aria-label="Actions">
-                  <div className="planner-panel-head">
-                    <h2>Actions</h2>
-                    <p>{plannerStatus || "Tap a cell to place the selected building."}</p>
-                  </div>
-                  {selectedPlannerObject && (
-                    <div className="planner-selected-editor" aria-label="Selected building editor">
-                      <strong>Selected</strong>
-                      <label>
-                        Name
-                        <input
-                          value={selectedPlannerObject.label}
-                          maxLength={32}
-                          onChange={(event) => updatePlannerObject(selectedPlannerObject.id, { label: event.currentTarget.value || selectedPlannerObject.label }, "Name updated.")}
-                        />
-                      </label>
-                      <div className="planner-coordinate-grid">
-                        <label>
-                          X
-                          <input
-                            type="number"
-                            min="0"
-                            max={plannerGridSize - selectedPlannerObject.width}
-                            value={selectedPlannerObject.x}
-                            onChange={(event) => updatePlannerObject(selectedPlannerObject.id, { x: Number(event.currentTarget.value) || 0 }, "Coordinates updated.")}
-                          />
-                        </label>
-                        <label>
-                          Y
-                          <input
-                            type="number"
-                            min="0"
-                            max={plannerGridSize - selectedPlannerObject.height}
-                            value={selectedPlannerObject.y}
-                            onChange={(event) => updatePlannerObject(selectedPlannerObject.id, { y: Number(event.currentTarget.value) || 0 }, "Coordinates updated.")}
-                          />
-                        </label>
-                      </div>
-                      <div className="planner-tool-group planner-editor-toggle" aria-label="Selected alliance">
-                        {(["main", "farm"] as const).map((alliance) => (
-                          <button
-                            className={selectedPlannerObject.alliance === alliance ? "selected" : ""}
-                            type="button"
-                            key={alliance}
-                            onClick={() => updatePlannerObject(selectedPlannerObject.id, { alliance }, "Alliance updated.")}
-                          >
-                            {alliance === "main" ? "Main" : "Farm"}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="planner-action-grid">
-                    <button type="button" onClick={undoPlanner} disabled={!plannerHistory.length}>Undo</button>
-                    <button type="button" onClick={redoPlanner} disabled={!plannerFuture.length}>Redo</button>
-                    <button type="button" onClick={deleteSelectedPlannerObject}>Delete</button>
-                    <button type="button" onClick={duplicateSelectedPlannerObject} disabled={!selectedPlannerObject}>Duplicate</button>
-                    <button type="button" onClick={clearPlanner} disabled={!plannerObjects.length}>Clear</button>
-                    <button type="button" onClick={savePlannerPng}>Save PNG</button>
-                    <button type="button" onClick={exportPlannerCsv}>Save CSV</button>
-                    <button type="button" onClick={() => void copyPlannerShareLink()}>Share Link</button>
-                  </div>
-                  <label className="planner-code-box">
-                    <span>Layout Code</span>
-                    <textarea value={plannerImportCode} onChange={(event) => setPlannerImportCode(event.currentTarget.value)} placeholder="Paste a saved layout code" />
-                  </label>
-                  <div className="planner-action-grid">
-                    <button type="button" onClick={() => void copyPlannerCode()}>Copy Code</button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try {
-                          loadPlannerCode(plannerImportCode);
-                        } catch (error) {
-                          setPlannerStatus(error instanceof Error ? error.message : "Unable to load layout.");
-                        }
-                      }}
-                    >
-                      Load
-                    </button>
-                  </div>
-                  <div className="planner-help">
-                    <strong>Shortcuts</strong>
-                    <span>Q Select, W Pan, E Delete/Erase</span>
-                    <span>1-7 Buildings, A Alliance, M Mode</span>
-                    <span>Arrow keys move the selected building</span>
-                    <span>Ctrl/Cmd+Z Undo, Ctrl/Cmd+Y Redo</span>
-                  </div>
-                </aside>
-              </section>
+              )}
             </section>
+          ) : activeMenu === "planner" ? (
+            <section className="home-page" id="city-layout-planner" aria-label="City Layout Planner" />
           ) : activeMenu === "templates" ? (
             <section className="home-page message-templates-page" id="message-templates" aria-label="Whiteout Survival message templates">
               <section className="templates-hero">
@@ -5054,21 +3802,21 @@ export default function Home() {
                           </button>
                         </div>
                       </header>
-                        {template.description && <p>{template.description}</p>}
-                        {template.imageUrl && (
-                          <button className="template-card-image" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
-                            <img src={template.imageUrl} alt="" />
-                          </button>
-                        )}
-                        <button className="template-chat-preview template-preview-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title} full preview`}>
-                          <div className="template-chat-top">
-                            <span>WOS Chat Preview</span>
-                            <small>{Array.from(template.text).length} chars</small>
-                          </div>
-                          <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
-                            <span key={`${template.id}-${index}`}>{line}</span>
-                          ))}</pre>
+                      {template.description && <p>{template.description}</p>}
+                      {template.imageUrl && (
+                        <button className="template-card-image" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
+                          <img src={template.imageUrl} alt="" />
                         </button>
+                      )}
+                      <button className="template-chat-preview template-preview-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title} full preview`}>
+                        <div className="template-chat-top">
+                          <span>WOS Chat Preview</span>
+                          <small>{Array.from(template.text).length} chars</small>
+                        </div>
+                        <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
+                          <span key={`${template.id}-${index}`}>{line}</span>
+                        ))}</pre>
+                      </button>
                       <footer className="template-card-footer">
                         <div className="template-tags">
                           {template.tags.map((tag) => (
@@ -5289,7 +4037,7 @@ export default function Home() {
                     <span className="bot-brand-name">Whiteout <span>Survival</span></span>
                   </div>
                   <p>
-                    Run your Discord server with DeepL auto-translation, welcome messages, smart reminders, admin tools, gift-code alerts, auto redeem, and alliance activity monitoring.
+                    Run your Discord server smarter with DeepL auto-translation, welcome messages, smart reminders, admin tools, gift-code alerts, auto redeem, and alliance activity monitoring.
                   </p>
                   <div className="bot-action-row">
                     <a className="bot-ad-action" href={botFrontendUrl} target="_blank" rel="noreferrer">
@@ -5398,166 +4146,166 @@ export default function Home() {
               </div>
             </section>
           ) : (
-          <section className="home-page daybreak-page" id="daybreak" aria-label="Daybreak Island community showcase">
-            <section className="daybreak-hero">
-              <div className="daybreak-hero-copy">
-                <span className="section-kicker">Community Showcase</span>
-                <h1>Daybreak Island</h1>
-                <p>Discover community island layouts, showcase your creations, and share your island with players across the Whiteout Survival community.</p>
-                <div className="hero-actions">
-                  <button className="primary-cta" type="button" onClick={openUploadModal}>Upload Island</button>
-                  <a className="secondary-cta" href="#showcase">Explore Showcase</a>
+            <section className="home-page daybreak-page" id="daybreak" aria-label="Daybreak Island community showcase">
+              <section className="daybreak-hero">
+                <div className="daybreak-hero-copy">
+                  <span className="section-kicker">Community Showcase</span>
+                  <h1>Daybreak Island</h1>
+                  <p>Discover community island layouts, showcase your creations, and share your island with players across the Whiteout Survival community.</p>
+                  <div className="hero-actions">
+                    <button className="primary-cta" type="button" onClick={openUploadModal}>Upload Island</button>
+                    <a className="secondary-cta" href="#showcase">Explore Showcase</a>
+                  </div>
                 </div>
-              </div>
-              <div className="daybreak-hero-art">
-                <Image src="/daybreak-island-tree-of-life.webp" alt="Daybreak Island Tree of Life showcase" width={1080} height={1042} priority />
-              </div>
-            </section>
-
-            <section className="showcase-head" id="showcase">
-              <div>
-                <h2>{daybreakView === "uploads" ? "My Uploads" : daybreakView === "favorites" ? "Favorites" : "Island Gallery"}</h2>
-              </div>
-              <div className="daybreak-controls">
-                <div className="daybreak-control-bar" aria-label="Daybreak showcase controls">
-                  {authUser && (
-                    <>
-                      <button className={daybreakView === "uploads" ? "selected" : ""} type="button" onClick={() => setSignedInDaybreakView("uploads")}>My Uploads</button>
-                      <button className={daybreakView === "favorites" ? "selected" : ""} type="button" onClick={() => setSignedInDaybreakView("favorites")}>Favorites</button>
-                      <span aria-hidden="true" className="daybreak-control-divider" />
-                    </>
-                  )}
-                  <button
-                    className={daybreakView === "gallery" && sort === "popular" ? "selected" : ""}
-                    type="button"
-                    onClick={() => {
-                      setSort("popular");
-                      setDaybreakView("gallery");
-                      setSelectedTag("");
-                    }}
-                  >
-                    Popular
-                  </button>
-                  <button
-                    className={daybreakView === "gallery" && sort === "recent" ? "selected" : ""}
-                    type="button"
-                    onClick={() => {
-                      setSort("recent");
-                      setDaybreakView("gallery");
-                      setSelectedTag("");
-                    }}
-                  >
-                    Recent
-                  </button>
+                <div className="daybreak-hero-art">
+                  <Image src="/daybreak-island-tree-of-life.webp" alt="Daybreak Island Tree of Life showcase" width={1080} height={1042} priority />
                 </div>
-              </div>
-            </section>
+              </section>
 
-            {selectedTag && daybreakView === "gallery" && (
-              <div className="active-tag-filter">
-                <span>#{selectedTag}</span>
-                <button type="button" onClick={() => setSelectedTag("")} aria-label="Clear tag filter">Clear</button>
-              </div>
-            )}
-
-            {status && <p className="daybreak-status">{status}</p>}
-
-            <section className="island-grid">
-              {islands.length ? islands.map((island) => (
-                <article className={`island-card ${linkedIslandId === island.id ? "island-card-linked" : ""}`} id={`island-${island.id}`} key={island.id}>
-                  <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
-                    <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
-                  </button>
-                  {canManageIsland(island) && (
-                    <button
-                      className="island-edit-fab"
-                      type="button"
-                      onClick={() => openEditIslandModal(island)}
-                      aria-label={`Edit ${island.title}`}
-                      title="Edit island details"
-                    >
-                      <Icon name="edit" />
-                    </button>
-                  )}
-                  <h3 className="compact-island-title">{island.title}</h3>
-                  <div className="island-card-body">
-                    <div className="player-strip card-player-strip">
-                      <div className="player-avatar">
-                        {island.player.avatarImage ? (
-                          <img src={island.player.avatarImage} alt="" />
-                        ) : (
-                          <Icon name="user" />
-                        )}
-                      </div>
-                      <div>
-                        <strong>{island.player.nickname}</strong>
-                        <span>ID {island.playerId}</span>
-                      </div>
-                    </div>
-                    <div className="card-meta-row">
-                      <div className="account-mini-meta">
-                        <span>FC {furnaceDisplay(island.player)}</span>
-                      </div>
-                      <div className="card-right-meta">
-                        <span className="state-pill">S{island.player.stateId || island.server || "N/A"}</span>
-                        <div className="coordinate-pill" aria-label={`Coordinates X ${island.coordinates.x} Y ${island.coordinates.y}`}>
-                          <span>X <strong>{island.coordinates.x}</strong></span>
-                          <span>Y <strong>{island.coordinates.y}</strong></span>
-                        </div>
-                      </div>
-                    </div>
-                    {island.description && island.description !== "Shared Daybreak Island layout." && (
-                      <p className="compact-island-description">{island.description}</p>
+              <section className="showcase-head" id="showcase">
+                <div>
+                  <h2>{daybreakView === "uploads" ? "My Uploads" : daybreakView === "favorites" ? "Favorites" : "Island Gallery"}</h2>
+                </div>
+                <div className="daybreak-controls">
+                  <div className="daybreak-control-bar" aria-label="Daybreak showcase controls">
+                    {authUser && (
+                      <>
+                        <button className={daybreakView === "uploads" ? "selected" : ""} type="button" onClick={() => setSignedInDaybreakView("uploads")}>My Uploads</button>
+                        <button className={daybreakView === "favorites" ? "selected" : ""} type="button" onClick={() => setSignedInDaybreakView("favorites")}>Favorites</button>
+                        <span aria-hidden="true" className="daybreak-control-divider" />
+                      </>
                     )}
+                    <button
+                      className={daybreakView === "gallery" && sort === "popular" ? "selected" : ""}
+                      type="button"
+                      onClick={() => {
+                        setSort("popular");
+                        setDaybreakView("gallery");
+                        setSelectedTag("");
+                      }}
+                    >
+                      Popular
+                    </button>
+                    <button
+                      className={daybreakView === "gallery" && sort === "recent" ? "selected" : ""}
+                      type="button"
+                      onClick={() => {
+                        setSort("recent");
+                        setDaybreakView("gallery");
+                        setSelectedTag("");
+                      }}
+                    >
+                      Recent
+                    </button>
                   </div>
-                  <div className="island-card-footer">
-                    <div className="island-actions">
-                      <button className={`card-icon-action ${likedIslands[island.id] ? "liked" : ""}`} type="button" onClick={() => likeIsland(island)} aria-label="Like island">
-                        <Icon name="heart" />
-                        {island.likes}
-                      </button>
-                      <button className="card-icon-action" type="button" onClick={() => setShareIslandTarget(island)} aria-label="Share island">
-                        <Icon name="share" />
-                        {island.shares}
-                      </button>
-                      <button className="card-icon-action" type="button" onClick={() => loadComments(island)} aria-label="Open details and comments">
-                        <Icon name="message" />
-                        {island.commentsCount}
-                      </button>
-                      {canManageIsland(island) && (
-                        <>
-                          <button
-                            className="card-icon-action"
-                            type="button"
-                            onClick={() => openEditIslandModal(island)}
-                            aria-label="Edit island"
-                          >
-                            <Icon name="edit" />
-                          </button>
-                          <button
-                            className="card-icon-action danger"
-                            type="button"
-                            onClick={() => void deleteIsland(island)}
-                            aria-label="Delete island"
-                            disabled={deletingIslandId === island.id}
-                          >
-                            <Icon name="trash" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              )) : (
-                <div className="empty-island-state">
-                  <Icon name={daybreakView === "favorites" ? "star" : "upload"} />
-                  <strong>{daybreakView === "favorites" ? "No favorites yet" : "No uploads yet"}</strong>
-                  <span>{daybreakView === "favorites" ? "Like islands from the gallery to save them here." : "Upload your first Daybreak Island to see it here."}</span>
+                </div>
+              </section>
+
+              {selectedTag && daybreakView === "gallery" && (
+                <div className="active-tag-filter">
+                  <span>#{selectedTag}</span>
+                  <button type="button" onClick={() => setSelectedTag("")} aria-label="Clear tag filter">Clear</button>
                 </div>
               )}
-            </section>
 
-          </section>
+              {status && <p className="daybreak-status">{status}</p>}
+
+              <section className="island-grid">
+                {islands.length ? islands.map((island) => (
+                  <article className={`island-card ${linkedIslandId === island.id ? "island-card-linked" : ""}`} id={`island-${island.id}`} key={island.id}>
+                    <button className="island-image" type="button" onClick={() => loadComments(island)} aria-label={`Open ${island.title}`}>
+                      <Image src={island.imageUrl} alt={island.title} width={720} height={520} />
+                    </button>
+                    {canManageIsland(island) && (
+                      <button
+                        className="island-edit-fab"
+                        type="button"
+                        onClick={() => openEditIslandModal(island)}
+                        aria-label={`Edit ${island.title}`}
+                        title="Edit island details"
+                      >
+                        <Icon name="edit" />
+                      </button>
+                    )}
+                    <h3 className="compact-island-title">{island.title}</h3>
+                    <div className="island-card-body">
+                      <div className="player-strip card-player-strip">
+                        <div className="player-avatar">
+                          {island.player.avatarImage ? (
+                            <img src={island.player.avatarImage} alt="" />
+                          ) : (
+                            <Icon name="user" />
+                          )}
+                        </div>
+                        <div>
+                          <strong>{island.player.nickname}</strong>
+                          <span>ID {island.playerId}</span>
+                        </div>
+                      </div>
+                      <div className="card-meta-row">
+                        <div className="account-mini-meta">
+                          <span>FC {furnaceDisplay(island.player)}</span>
+                        </div>
+                        <div className="card-right-meta">
+                          <span className="state-pill">S{island.player.stateId || island.server || "N/A"}</span>
+                          <div className="coordinate-pill" aria-label={`Coordinates X ${island.coordinates.x} Y ${island.coordinates.y}`}>
+                            <span>X <strong>{island.coordinates.x}</strong></span>
+                            <span>Y <strong>{island.coordinates.y}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+                      {island.description && island.description !== "Shared Daybreak Island layout." && (
+                        <p className="compact-island-description">{island.description}</p>
+                      )}
+                    </div>
+                    <div className="island-card-footer">
+                      <div className="island-actions">
+                        <button className={`card-icon-action ${likedIslands[island.id] ? "liked" : ""}`} type="button" onClick={() => likeIsland(island)} aria-label="Like island">
+                          <Icon name="heart" />
+                          {island.likes}
+                        </button>
+                        <button className="card-icon-action" type="button" onClick={() => setShareIslandTarget(island)} aria-label="Share island">
+                          <Icon name="share" />
+                          {island.shares}
+                        </button>
+                        <button className="card-icon-action" type="button" onClick={() => loadComments(island)} aria-label="Open details and comments">
+                          <Icon name="message" />
+                          {island.commentsCount}
+                        </button>
+                        {canManageIsland(island) && (
+                          <>
+                            <button
+                              className="card-icon-action"
+                              type="button"
+                              onClick={() => openEditIslandModal(island)}
+                              aria-label="Edit island"
+                            >
+                              <Icon name="edit" />
+                            </button>
+                            <button
+                              className="card-icon-action danger"
+                              type="button"
+                              onClick={() => void deleteIsland(island)}
+                              aria-label="Delete island"
+                              disabled={deletingIslandId === island.id}
+                            >
+                              <Icon name="trash" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )) : (
+                  <div className="empty-island-state">
+                    <Icon name={daybreakView === "favorites" ? "star" : "upload"} />
+                    <strong>{daybreakView === "favorites" ? "No favorites yet" : "No uploads yet"}</strong>
+                    <span>{daybreakView === "favorites" ? "Like islands from the gallery to save them here." : "Upload your first Daybreak Island to see it here."}</span>
+                  </div>
+                )}
+              </section>
+
+            </section>
           )}
 
           <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
