@@ -5327,13 +5327,6 @@ export default function Home() {
                       ))}
                     </div>
                     <div className="bot-preview-main">
-                      <div className="bot-preview-topbar">
-                        <div>
-                          <span>Live Operations</span>
-                          <small>real-time dashboard feed</small>
-                        </div>
-                        <strong>Image previews</strong>
-                      </div>
                       <div className="bot-preview-event">
                         <span>Gift Code</span>
                         <strong>Active Gift Code Detected</strong>
