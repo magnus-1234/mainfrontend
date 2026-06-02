@@ -4003,6 +4003,21 @@ body {
   line-height: 1.45;
 }
 
+.template-card-image {
+  height: 86px;
+  margin: 10px 10px 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--muted);
+}
+
+.template-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .template-chat-preview {
   margin: 10px;
   overflow: hidden;
@@ -4147,7 +4162,8 @@ body {
 }
 
 .template-composer-modal {
-  max-width: min(820px, calc(100vw - 28px));
+  width: min(720px, calc(100vw - 28px));
+  max-width: min(720px, calc(100vw - 28px));
 }
 
 .upload-form select {
@@ -4163,8 +4179,125 @@ body {
 }
 
 .template-source-input {
-  min-height: 180px;
+  min-height: 240px;
   font-family: var(--font-geist-mono), monospace;
+}
+
+.template-composer-form {
+  gap: 10px;
+}
+
+.template-composer-form .form-grid {
+  gap: 10px;
+}
+
+.template-composer-form input,
+.template-composer-form select {
+  min-height: 38px;
+}
+
+.template-main-text-field {
+  padding: 10px;
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--gold) 16%, transparent) 1px, transparent 0) 0 0 / 16px 16px,
+    color-mix(in srgb, var(--gold-soft) 46%, var(--card));
+}
+
+.template-main-text-field > span {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.template-main-text-field small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.template-main-text-field .template-source-input {
+  border-color: color-mix(in srgb, var(--gold-line) 82%, var(--input));
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.template-compact-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.62fr);
+  gap: 10px;
+}
+
+.template-description-input {
+  min-height: 58px !important;
+}
+
+.template-tags-input {
+  min-height: 38px !important;
+}
+
+.template-preview-input {
+  min-height: 76px !important;
+}
+
+.optional-red {
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.template-image-details {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--muted) 52%, transparent);
+}
+
+.template-image-details summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px;
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.template-image-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.template-image-details summary svg {
+  width: 16px;
+  height: 16px;
+  color: var(--gold);
+}
+
+.template-image-uploader {
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
+  margin: 0 10px 10px;
+  padding: 10px;
+}
+
+.template-image-uploader .image-uploader-preview {
+  min-height: 96px;
+}
+
+.template-image-uploader .file-dropzone {
+  min-height: 50px;
+}
+
+.template-image-uploader .image-uploader-controls {
+  gap: 8px;
 }
 
 .daybreak-status {
@@ -7097,6 +7230,15 @@ body {
   .template-grid,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .template-compact-row,
+  .template-image-uploader {
+    grid-template-columns: 1fr;
+  }
+
+  .template-source-input {
+    min-height: 210px;
   }
 
   .daybreak-stats div {

@@ -13,14 +13,16 @@ const forward = async (request: NextRequest, context: RouteContext) => {
   const path = (params.path || []).map((part) => encodeURIComponent(part)).join("/");
   const target = new URL(`${backendUrl.replace(/\/+$/, "")}/api/message-templates/${path}`);
   request.nextUrl.searchParams.forEach((value, key) => target.searchParams.set(key, value));
+  const contentType = request.headers.get("content-type") || "";
+  const isMultipart = contentType.includes("multipart/form-data");
 
   const response = await fetch(target, {
     method: request.method,
     headers: {
-      "Content-Type": request.headers.get("content-type") || "application/json",
+      ...(!isMultipart ? { "Content-Type": contentType || "application/json" } : {}),
       cookie: request.headers.get("cookie") || "",
     },
-    body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),
+    body: request.method === "GET" || request.method === "HEAD" ? undefined : isMultipart ? await request.formData() : await request.text(),
     cache: "no-store",
   });
 

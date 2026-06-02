@@ -227,6 +227,7 @@ type MessageTemplate = {
   description: string;
   text: string;
   previewText?: string;
+  imageUrl?: string;
   tags: string[];
   creatorName?: string;
   creatorUserId?: string;
@@ -1495,6 +1496,8 @@ export default function Home() {
   const [templateStatus, setTemplateStatus] = useState("");
   const [templateComposerOpen, setTemplateComposerOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+  const [templateImageLabel, setTemplateImageLabel] = useState("No image attached");
+  const [templateImagePreviewUrl, setTemplateImagePreviewUrl] = useState("");
   const [shareTemplateTarget, setShareTemplateTarget] = useState<MessageTemplate | null>(null);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [deletingTemplateId, setDeletingTemplateId] = useState("");
@@ -2344,12 +2347,47 @@ export default function Home() {
       return;
     }
     setEditingTemplate(null);
+    setTemplateImageLabel("No image attached");
+    setTemplateImagePreviewUrl("");
     setTemplateComposerOpen(true);
   };
 
   const closeTemplateComposer = () => {
     setTemplateComposerOpen(false);
     setEditingTemplate(null);
+    setTemplateImageLabel("No image attached");
+    setTemplateImagePreviewUrl("");
+  };
+
+  const openEditTemplateComposer = (template: MessageTemplate) => {
+    setEditingTemplate(template);
+    setTemplateImageLabel(template.imageUrl ? "Current image attached" : "No image attached");
+    setTemplateImagePreviewUrl(template.imageUrl || "");
+    setTemplateComposerOpen(true);
+  };
+
+  const handleTemplateImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) {
+      setTemplateImageLabel(editingTemplate?.imageUrl ? "Current image attached" : "No image attached");
+      setTemplateImagePreviewUrl(editingTemplate?.imageUrl || "");
+      return;
+    }
+
+    setTemplateImageLabel(file.name);
+    setTemplateImagePreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleTemplateImageUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value.trim();
+    if (!value) {
+      setTemplateImageLabel(editingTemplate?.imageUrl ? "Current image attached" : "No image attached");
+      setTemplateImagePreviewUrl(editingTemplate?.imageUrl || "");
+      return;
+    }
+
+    setTemplateImageLabel("Image link ready");
+    setTemplateImagePreviewUrl(value);
   };
 
   const handleTemplateSave = async (event: FormEvent<HTMLFormElement>) => {
@@ -2364,13 +2402,16 @@ export default function Home() {
     setTemplateStatus("");
     try {
       const form = event.currentTarget;
-      const body = Object.fromEntries(new FormData(form).entries());
+      const body = new FormData(form);
+      const imageFile = body.get("image");
+      if (!(imageFile instanceof File) || imageFile.size === 0) {
+        body.delete("image");
+      }
       const endpoint = editingTemplate ? `${apiBase}/api/message-templates/${editingTemplate.id}` : `${apiBase}/api/message-templates`;
       const response = await fetch(endpoint, {
         method: editingTemplate ? "PATCH" : "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body,
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
@@ -4847,10 +4888,7 @@ export default function Home() {
                         {template.canManage && !template.builtin && (
                           <button
                             type="button"
-                            onClick={() => {
-                              setEditingTemplate(template);
-                              setTemplateComposerOpen(true);
-                            }}
+                            onClick={() => openEditTemplateComposer(template)}
                             aria-label={`Edit ${template.title}`}
                           >
                             <Icon name="edit" />
@@ -4864,6 +4902,11 @@ export default function Home() {
                       </div>
                     </header>
                     {template.description && <p>{template.description}</p>}
+                    {template.imageUrl && (
+                      <div className="template-card-image" aria-label={`${template.title} attached image`}>
+                        <img src={template.imageUrl} alt="" />
+                      </div>
+                    )}
                     <div className="template-chat-preview" aria-label={`${template.title} 28 character preview`}>
                       <div className="template-chat-top">
                         <span>WOS Chat Preview</span>
@@ -5783,7 +5826,7 @@ export default function Home() {
               <span className="section-kicker">Message Templates</span>
               <h2>{editingTemplate ? "Edit message template" : "Create message template"}</h2>
             </div>
-            <form className="upload-form" onSubmit={handleTemplateSave}>
+            <form className="upload-form template-composer-form" onSubmit={handleTemplateSave}>
               <div className="form-grid">
                 <label>
                   Title
@@ -5798,22 +5841,59 @@ export default function Home() {
                   </select>
                 </label>
               </div>
+              <label className="template-main-text-field">
+                <span>Template text</span>
+                <small>Paste or create the exact message players should copy into WOS chat.</small>
+                <textarea className="template-source-input" name="text" maxLength={4000} defaultValue={editingTemplate?.text || ""} placeholder="Paste or create your template text here..." required />
+              </label>
+              <div className="template-compact-row">
+                <label>
+                  Description <span className="optional-red">optional</span>
+                  <textarea className="template-description-input" name="description" maxLength={360} defaultValue={editingTemplate?.description || ""} placeholder="Short note for this template." />
+                </label>
+                <label className="hashtag-field">
+                  Tags
+                  <input className="template-tags-input" name="tags" defaultValue={editingTemplate?.tags.map((tag) => `#${tag}`).join(" ") || ""} placeholder="#SVS #Prep #Recruit" />
+                </label>
+              </div>
               <label>
-                Description optional
-                <textarea name="description" maxLength={360} defaultValue={editingTemplate?.description || ""} placeholder="Short note about when to use this template." />
+                Preview override <span className="optional-red">optional</span>
+                <textarea className="template-preview-input" name="previewText" maxLength={4000} defaultValue={editingTemplate?.previewText || ""} placeholder="Use only if the website preview needs different display text." />
               </label>
-              <label>
-                Template text
-                <textarea className="template-source-input" name="text" maxLength={4000} defaultValue={editingTemplate?.text || ""} placeholder="Paste or write the exact text players should copy into WOS chat." required />
-              </label>
-              <label>
-                Preview override optional
-                <textarea name="previewText" maxLength={4000} defaultValue={editingTemplate?.previewText || ""} placeholder="Optional display-only preview if the game renders the pasted text differently." />
-              </label>
-              <label className="hashtag-field">
-                Tags
-                <input name="tags" defaultValue={editingTemplate?.tags.map((tag) => `#${tag}`).join(" ") || ""} placeholder="#SVS #Prep #Recruit" />
-              </label>
+              <details className="template-image-details">
+                <summary><Icon name="image" /> Add preview image <span className="optional-red">optional</span></summary>
+                <section className="image-uploader template-image-uploader" aria-label="Template image source">
+                  <div className="image-uploader-preview">
+                    {templateImagePreviewUrl ? (
+                      <img src={templateImagePreviewUrl} alt="Selected template preview" />
+                    ) : (
+                      <div className="preview-empty">
+                        <Icon name="upload" />
+                        <strong>Small image</strong>
+                        <span>Hidden until needed</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="image-uploader-controls">
+                    <div className="image-source-head">
+                      <strong>Attach image</strong>
+                      <span>Choose a file or paste a direct image URL.</span>
+                    </div>
+                    <label className="file-dropzone">
+                      <Icon name="upload" />
+                      <span>
+                        <strong>{templateImageLabel}</strong>
+                        <small>PNG, JPG, WEBP, GIF</small>
+                      </span>
+                      <input name="image" type="file" accept="image/*" onChange={handleTemplateImageChange} />
+                    </label>
+                    <label className="image-url-field">
+                      <span>Image link</span>
+                      <input name="imageUrl" type="url" placeholder="https://..." onChange={handleTemplateImageUrlChange} />
+                    </label>
+                  </div>
+                </section>
+              </details>
               <div className="edit-island-actions">
                 <button className="secondary-cta" type="button" onClick={closeTemplateComposer}>Cancel</button>
                 <button className="submit-button" type="submit" disabled={savingTemplate}>{savingTemplate ? "Saving..." : editingTemplate ? "Save Template" : "Publish Template"}</button>
