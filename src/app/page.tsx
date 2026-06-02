@@ -345,25 +345,8 @@ const messageTemplates: MessageTemplate[] = [
     description: "Compact SVS prep checklist for alliance chat.",
     tags: ["SVS", "Prep", "Checklist"],
     text: `👑 - SVS Prep Guide 🔎
- １   ２　３    ４    ５
-✅｜🆗｜🚫｜🚫｜🆗｜FC 
-🆗｜✅｜🚫｜🚫｜🆗｜FC Shards
-🚫｜✅｜🆗｜🚫｜🚫｜Hero Shard
-✅｜🆗｜🚫｜🚫｜🆗｜Construct
-🚫｜🚫｜🚫｜✅｜🆗｜Troops
-🆗｜✅｜🚫｜🚫｜🆗｜Research
-🚫｜✅｜🆗｜🚫｜🚫｜Wheel💎
-🚫｜✅｜🚫｜🚫｜🚫｜Gathering
-🆗｜✅｜🚫｜🚫｜🆗｜Learn
-🚫｜✅｜🆗｜🚫｜🚫｜Expert Sigils
-🚫｜✅｜🆗｜🚫｜🚫｜📚 Knowledge
-🚫｜🚫｜✅｜🚫｜🚫｜Beasts🐗
-🚫｜🚫｜🆗｜🚫｜✅｜Pets🐒
-🆗｜🚫｜🆗｜✅｜🚫｜Chief Charm
-🚫｜🚫｜🚫｜🚫｜✅｜Chief Gear
-🚫｜🚫｜🚫｜🆗｜✅｜Widgets
-🚫｜🚫｜🚫｜🆗｜✅｜Mithril🔮
-🚫｜🚫｜🚫｜🆗｜✅｜Stones`,
+ １   ２　３    ４    ５                   ✅｜🆗｜🚫｜🚫｜🆗｜FC 
+🆗｜✅｜🚫｜🚫｜🆗｜FC Shards 🚫｜✅｜🆗｜🚫｜🚫｜Hero Shard ✅｜🆗｜🚫｜🚫｜🆗｜Construct       🚫｜🚫｜🚫｜✅｜🆗｜Troops 🆗｜✅｜🚫｜🚫｜🆗｜Research 🚫｜✅｜🆗｜🚫｜🚫｜Wheel💎 🚫｜✅｜🚫｜🚫｜🚫｜Gathering 🆗｜✅｜🚫｜🚫｜🆗｜Learn 🚫｜✅｜🆗｜🚫｜🚫｜Expert Sigils 🚫｜✅｜🆗｜🚫｜🚫｜📚 Knowledge 🚫｜🚫｜✅｜🚫｜🚫｜Beasts🐗 🚫｜🚫｜🆗｜🚫｜✅｜Pets🐒                 🆗｜🚫｜🆗｜✅｜🚫｜Chief Charm 🚫｜🚫｜🚫｜🚫｜✅｜Chief Gear 🚫｜🚫｜🚫｜🆗｜✅｜Widgets 🚫｜🚫｜🚫｜🆗｜✅｜Mithril🔮 🚫｜🚫｜🚫｜🆗｜✅｜Stones`,
   },
   {
     id: "alliance-recruit-clean",
@@ -445,21 +428,6 @@ Breaking NAP can cause war.
 Keep farming clean.`,
   },
 ];
-
-const wrapTemplateLine = (line: string, width = 28) => {
-  const chars = Array.from(line);
-  if (chars.length <= width) {
-    return [line || " "];
-  }
-
-  const wrapped: string[] = [];
-  for (let index = 0; index < chars.length; index += width) {
-    wrapped.push(chars.slice(index, index + width).join(""));
-  }
-  return wrapped;
-};
-
-const templatePreviewLines = (text: string) => text.split("\n").flatMap((line) => wrapTemplateLine(line));
 
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
@@ -4524,9 +4492,7 @@ export default function Home() {
                         <span>WOS Chat Preview</span>
                         <small>28 chars</small>
                       </div>
-                      <pre>{templatePreviewLines(template.text).map((line, index) => (
-                        <span key={`${template.id}-${index}`}>{line}</span>
-                      ))}</pre>
+                      <pre>{template.text}</pre>
                     </div>
                     <footer className="template-card-footer">
                       <div className="template-tags">

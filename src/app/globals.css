@@ -3977,22 +3977,21 @@ body {
 }
 
 .template-chat-preview pre {
-  display: grid;
-  max-height: 320px;
-  overflow: auto;
-  margin: 0;
-  padding: 10px;
-  font-family: "Courier New", var(--font-geist-mono), monospace;
-  font-size: 13px;
-  line-height: 1.36;
-  white-space: pre;
-}
-
-.template-chat-preview pre span {
   display: block;
-  min-height: 1.36em;
   width: 28ch;
   max-width: 100%;
+  max-height: 520px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px 14px;
+  font-family: Arial, "Segoe UI Emoji", "Apple Color Emoji", var(--font-geist-sans), sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.48;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.42);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .template-card-footer {
