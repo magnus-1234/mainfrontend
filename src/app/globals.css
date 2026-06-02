@@ -3915,8 +3915,8 @@ body {
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
 }
 
 .template-card {
@@ -3945,11 +3945,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--gold-line) 70%, var(--border));
-  padding: 9px 10px;
+  padding: 7px 8px;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 88%, transparent), color-mix(in srgb, var(--card) 78%, var(--gold-soft)));
+}
+
+.template-card-title > div {
+  min-width: 0;
 }
 
 .template-card-title span {
@@ -3965,7 +3969,7 @@ body {
   margin: 2px 0 0;
   color: var(--gold);
   overflow: hidden;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -3974,17 +3978,17 @@ body {
 
 .template-card-title button {
   display: inline-flex;
-  height: 32px;
+  height: 30px;
   flex: 0 0 auto;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   border: 1px solid var(--gold-line);
   border-radius: 7px;
-  padding: 0 10px;
+  padding: 0 8px;
   background: var(--card);
   color: var(--foreground);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
 }
 
@@ -3993,7 +3997,7 @@ body {
   flex: 0 0 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 5px;
 }
 
 .template-card-title button:hover {
@@ -4008,16 +4012,16 @@ body {
 
 .template-card > p {
   margin: 0;
-  padding: 10px 10px 0;
+  padding: 8px 8px 0;
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.45;
 }
 
 .template-card-image {
-  height: 86px;
-  margin: 10px 10px 0;
+  height: 74px;
+  margin: 8px 8px 0;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -4031,7 +4035,7 @@ body {
 }
 
 .template-chat-preview {
-  margin: 10px;
+  margin: 8px;
   overflow: hidden;
   border: 2px solid #48c7d8;
   border-radius: 8px;
@@ -4049,29 +4053,29 @@ body {
   justify-content: space-between;
   gap: 10px;
   border-bottom: 1px solid rgba(14, 105, 120, 0.24);
-  padding: 7px 9px;
+  padding: 6px 8px;
   background: linear-gradient(180deg, #d7ffd4, #baf7bd);
 }
 
 .template-chat-top span,
 .template-chat-top small {
   color: #1d6b55;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
   line-height: 1;
 }
 
 .template-chat-preview pre {
   display: grid;
-  max-height: 520px;
+  max-height: 420px;
   overflow-x: hidden;
   overflow-y: auto;
   margin: 0;
-  padding: 12px 16px;
+  padding: 9px 12px;
   font-family: "Arial Rounded MT Bold", Arial, "Segoe UI Emoji", "Apple Color Emoji", var(--font-geist-sans), sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
-  line-height: 1.44;
+  line-height: 1.38;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62);
   white-space: pre;
 }
@@ -4086,9 +4090,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   border-top: 1px solid var(--border);
-  padding: 8px 10px;
+  padding: 7px 8px;
 }
 
 .template-tags {
@@ -4127,30 +4131,30 @@ body {
 .template-action-footer {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  padding: 8px 10px;
+  padding: 7px 8px;
 }
 
 .template-action-footer button {
   display: inline-flex;
-  min-height: 30px;
+  min-height: 28px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   border: 1px solid var(--border);
   border-radius: 7px;
-  padding: 0 10px;
+  padding: 0 8px;
   background: var(--muted);
   color: var(--foreground);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
 }
 
 .template-action-footer button svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
 .template-action-footer button.liked {
@@ -7239,9 +7243,13 @@ body {
 
   .daybreak-stats,
   .island-grid,
-  .template-grid,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .template-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .template-compact-row,
@@ -7277,14 +7285,95 @@ body {
     min-width: 0;
   }
 
+  .template-card {
+    border-radius: 7px;
+  }
+
   .template-card-title {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 6px;
   }
 
   .template-card-title button {
+    width: 29px;
+    height: 28px;
     justify-content: center;
-    width: 100%;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .template-card-title h3 {
+    font-size: 12px;
+  }
+
+  .template-card-title span {
+    font-size: 9px;
+  }
+
+  .template-card-title button svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .template-card > p {
+    padding: 6px 6px 0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .template-card-image {
+    height: 58px;
+    margin: 6px 6px 0;
+  }
+
+  .template-chat-preview {
+    margin: 6px;
+    border-width: 1px;
+  }
+
+  .template-chat-top {
+    padding: 5px 6px;
+  }
+
+  .template-chat-top span,
+  .template-chat-top small {
+    font-size: 9px;
+  }
+
+  .template-chat-preview pre {
+    max-height: 260px;
+    padding: 6px 7px;
+    font-size: 10px;
+    line-height: 1.28;
+  }
+
+  .template-card-footer,
+  .template-action-footer {
+    padding: 6px;
+  }
+
+  .template-card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .template-tags,
+  .template-metrics {
+    gap: 4px;
+  }
+
+  .template-tags button,
+  .template-metrics span {
+    min-height: 18px;
+    padding: 0 5px;
+    font-size: 9px;
+  }
+
+  .template-action-footer button {
+    min-height: 26px;
+    padding: 0 6px;
+    font-size: 10px;
   }
 
   .hero-copy h1 {

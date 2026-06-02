@@ -4797,7 +4797,7 @@ export default function Home() {
                 <div>
                   <span className="section-kicker">Alliance Chat Tools</span>
                   <h1>Message Templates</h1>
-                  <p>Create, edit, share, and copy alliance chat templates with tags, likes, and a 28-character game chat preview.</p>
+                  <p>Create, edit, share, and copy alliance chat templates with tags, likes, and a game chat preview.</p>
                 </div>
                 <div className="templates-chat-spec" aria-label="Game chat width">
                   <Icon name="message" />
