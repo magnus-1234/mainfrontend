@@ -5281,10 +5281,12 @@ export default function Home() {
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
               <div className="bot-commercial">
                 <div className="bot-commercial-copy">
-                  <h1>The Most Advanced, Feature-Rich Discord Bot for WOS</h1>
+                  <h1>
+                    The Most <span className="bot-title-highlight">Advanced</span>, Feature-Rich <span className="bot-title-highlight warm">Discord Bot</span> for WOS
+                  </h1>
                   <div className="bot-brand-row">
                     <Image className="bot-brand-logo" src="/molly-logo.png" alt="Whiteout Survival bot logo" width={58} height={58} />
-                    <span className="bot-brand-name">Whiteout Survival</span>
+                    <span className="bot-brand-name">Whiteout <span>Survival</span></span>
                   </div>
                   <p>
                     Run your Discord server with DeepL auto-translation, welcome messages, smart reminders, admin tools, gift-code alerts, auto redeem, and alliance activity monitoring.

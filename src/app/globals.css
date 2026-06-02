@@ -1582,11 +1582,30 @@ body {
   text-wrap: balance;
 }
 
+.bot-title-highlight {
+  color: #62c7ff;
+  text-shadow: 0 0 22px rgba(96, 165, 250, 0.36);
+}
+
+.bot-title-highlight.warm {
+  color: var(--primary);
+  text-shadow: 0 0 24px rgba(244, 129, 32, 0.34);
+}
+
 .bot-brand-name {
+  display: inline-flex;
+  min-height: clamp(64px, 6vw, 84px);
+  align-items: center;
   color: var(--foreground);
   font-size: clamp(22px, 2.2vw, 32px);
   font-weight: 900;
   line-height: 1.05;
+  text-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+}
+
+.bot-brand-name span {
+  color: var(--primary);
+  text-shadow: 0 0 20px rgba(244, 129, 32, 0.38);
 }
 
 .bot-commercial-copy p {
