@@ -2267,6 +2267,58 @@ body {
   color: #1d1208;
 }
 
+.foundry-hero-actions .foundry-primary-download {
+  min-height: 46px;
+  border-width: 2px;
+  padding: 0 18px;
+  box-shadow: 0 12px 28px rgba(244, 129, 32, 0.26);
+  font-size: 0.96rem;
+}
+
+.foundry-signin-gate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  padding: 18px;
+  background: var(--gold-soft);
+}
+
+.foundry-signin-gate h2,
+.foundry-signin-gate p {
+  margin: 0;
+}
+
+.foundry-signin-gate h2 {
+  margin-top: 4px;
+  font-size: 1.35rem;
+}
+
+.foundry-signin-gate p {
+  margin-top: 6px;
+  color: var(--muted-foreground);
+  line-height: 1.45;
+}
+
+.foundry-signin-gate button {
+  display: inline-flex;
+  min-height: 42px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--gold-line);
+  border-radius: 6px;
+  padding: 0 14px;
+  background: var(--primary);
+  color: #1d1208;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
 .foundry-map-toolbar button {
   min-height: 28px;
   border-radius: 999px;
@@ -2624,15 +2676,15 @@ body {
 
 .foundry-team-table {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   box-shadow: none;
 }
 
 .foundry-team-table header {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(190px, 1fr) auto;
-  gap: 10px;
+  grid-template-columns: minmax(140px, 1fr) minmax(180px, 1fr) auto;
+  gap: 8px;
   align-items: end;
 }
 
@@ -2662,12 +2714,12 @@ body {
 
 .foundry-roster-row {
   display: grid;
-  grid-template-columns: 128px 150px 52px minmax(120px, 1fr) 92px minmax(120px, 1fr) 160px;
-  gap: 8px;
+  grid-template-columns: 104px 136px minmax(150px, 1fr) 74px minmax(92px, 0.8fr) 118px;
+  gap: 6px;
   align-items: center;
-  min-width: 920px;
+  min-width: 760px;
   border-bottom: 1px solid var(--border);
-  padding: 8px;
+  padding: 6px 8px;
   background: var(--card);
 }
 
@@ -2686,7 +2738,7 @@ body {
 
 .foundry-roster-row strong {
   color: var(--foreground);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
 .foundry-roster-row span,
@@ -2708,10 +2760,16 @@ body {
   gap: 6px;
 }
 
+.foundry-roster-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .foundry-roster-avatar {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   overflow: hidden;
   border: 1px solid var(--border);

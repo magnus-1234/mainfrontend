@@ -407,6 +407,7 @@ const foundryBuildings: FoundryBuilding[] = [
   { id: "workshop-south-east", name: "Workshop - South East", shortName: "Workshop", x: 62, y: 72, phase: "Phase 3" },
   { id: "repair-facility-ii", name: "Repair Facility II", shortName: "Repair II", x: 34, y: 91, phase: "Phase 1" },
   { id: "transit-station", name: "Transit Station", shortName: "Transit Station", x: 62, y: 93, phase: "Phase 1" },
+  { id: "arsenal-supplies", name: "Arsenal Supplies", shortName: "Supplies", x: 18, y: 75, phase: "Looter" },
 ];
 
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
@@ -595,7 +596,7 @@ const createFoundryTeams = (count: number) => Array.from({ length: count }, (_, 
 const createFoundryLooterTeam = (): FoundryTeam => ({
   id: "looter-team",
   name: "Looter Team",
-  buildingId: "workshop-south-east",
+  buildingId: "arsenal-supplies",
   rallyLeader: createFoundryMember("leader", "looter"),
   joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `looter-${joinerIndex + 1}`)),
 });
@@ -604,6 +605,22 @@ const normalizeFoundryPlayerProfile = (player: PlayerProfile & { avatar?: string
   ...player,
   avatarImage: player.avatarImage || player.avatarUrl || player.avatar || player.avatar_image,
 });
+
+type FoundryShareMember = Pick<FoundryMember, "playerId">;
+type FoundryShareTeam = {
+  buildingId: string;
+  joiners: FoundryShareMember[];
+  name: string;
+  rallyLeader: FoundryShareMember;
+};
+type FoundryShareState = {
+  includeLooter: boolean;
+  legion: "1" | "2";
+  looterTeam: FoundryShareTeam;
+  teamCount: number;
+  teams: FoundryShareTeam[];
+  utcTime: string;
+};
 
 const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
   { label: "All", value: "all" },
@@ -1890,6 +1907,7 @@ export default function Home() {
   const [uploading, setUploading] = useState(false);
   const openedSharedIslandRef = useRef("");
   const openedSharedTemplateRef = useRef("");
+  const foundryShareLoadedRef = useRef(false);
   const footerIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -3576,6 +3594,100 @@ export default function Home() {
     () => (foundryIncludeLooter ? [...foundryTeams, foundryLooterTeam] : foundryTeams),
     [foundryIncludeLooter, foundryLooterTeam, foundryTeams],
   );
+  const foundrySelectableBuildings = useMemo(
+    () => foundryBuildings.filter((building) => building.phase !== "Spawn"),
+    [],
+  );
+
+  const foundryTeamToShare = (team: FoundryTeam): FoundryShareTeam => ({
+    buildingId: team.buildingId,
+    joiners: team.joiners.map((member) => ({ playerId: member.playerId })),
+    name: team.name,
+    rallyLeader: { playerId: team.rallyLeader.playerId },
+  });
+
+  const foundryTeamFromShare = (team: FoundryShareTeam, index: number): FoundryTeam => {
+    const fallback = createFoundryTeam(index);
+    return {
+      ...fallback,
+      buildingId: foundryBuildings.some((building) => building.id === team.buildingId) ? team.buildingId : fallback.buildingId,
+      joiners: (team.joiners?.length ? team.joiners : fallback.joiners).map((member, joinerIndex) => ({
+        ...createFoundryMember("joiner", `${index + 1}-${joinerIndex + 1}`),
+        playerId: member.playerId?.replace(/\D/g, "") || "",
+      })),
+      name: team.name || fallback.name,
+      rallyLeader: {
+        ...fallback.rallyLeader,
+        playerId: team.rallyLeader?.playerId?.replace(/\D/g, "") || "",
+      },
+    };
+  };
+
+  const foundrySharePayload = (): FoundryShareState => ({
+    includeLooter: foundryIncludeLooter,
+    legion: foundryLegion,
+    looterTeam: foundryTeamToShare(foundryLooterTeam),
+    teamCount: foundryTeamCount,
+    teams: foundryTeams.map(foundryTeamToShare),
+    utcTime: foundryUtcTime,
+  });
+
+  const foundryShareUrl = () => {
+    const payload = btoa(encodeURIComponent(JSON.stringify(foundrySharePayload())));
+    const url = new URL(window.location.href);
+    url.pathname = "/";
+    url.hash = "foundry-team-planner";
+    url.searchParams.set("foundry", payload);
+    return url.toString();
+  };
+
+  const shareFoundryPlanner = async () => {
+    if (!authUser) {
+      setFoundryExportStatus("Sign in to create and edit shared Foundry plans.");
+      setLoginOpen(true);
+      return;
+    }
+    await copyTextToClipboard(foundryShareUrl(), "Copy Foundry plan link");
+    setFoundryExportStatus("Editable Foundry plan link copied.");
+  };
+
+  useEffect(() => {
+    if (foundryShareLoadedRef.current || typeof window === "undefined") {
+      return;
+    }
+    const encoded = new URLSearchParams(window.location.search).get("foundry");
+    if (!encoded) {
+      foundryShareLoadedRef.current = true;
+      return;
+    }
+    try {
+      const parsed = JSON.parse(decodeURIComponent(atob(encoded))) as FoundryShareState;
+      window.setTimeout(() => {
+        const teams = (parsed.teams || []).map(foundryTeamFromShare);
+        if (teams.length) {
+          setFoundryTeams(teams);
+          setFoundryTeamCount(teams.length);
+        }
+        setFoundryLegion(parsed.legion === "2" ? "2" : "1");
+        setFoundryUtcTime(parsed.utcTime || "");
+        setFoundryIncludeLooter(Boolean(parsed.includeLooter));
+        if (parsed.looterTeam) {
+          setFoundryLooterTeam({
+            ...foundryTeamFromShare(parsed.looterTeam, 99),
+            id: "looter-team",
+            name: parsed.looterTeam.name || "Looter Team",
+          });
+        }
+        setFoundryExportStatus("Editable shared Foundry plan loaded.");
+      }, 0);
+    } catch {
+      window.setTimeout(() => {
+        setFoundryExportStatus("Shared Foundry plan link could not be loaded.");
+      }, 0);
+    } finally {
+      foundryShareLoadedRef.current = true;
+    }
+  }, []);
 
   useEffect(() => {
     if (activeMenu !== "templates") {
@@ -3727,6 +3839,7 @@ export default function Home() {
     y: number,
     width: number,
     color: string,
+    avatar?: HTMLImageElement | null,
   ) => {
     const role = member.role === "leader" ? "LEADER" : "JOINER";
     const label = foundryMemberName(member);
@@ -3742,20 +3855,38 @@ export default function Home() {
 
     context.fillStyle = color;
     context.beginPath();
-    context.roundRect(x + 8, y + 9, 50, 30, 8);
+    context.arc(x + 28, y + 24, 16, 0, Math.PI * 2);
+    context.fill();
+    if (avatar) {
+      context.save();
+      context.beginPath();
+      context.arc(x + 28, y + 24, 15, 0, Math.PI * 2);
+      context.clip();
+      context.drawImage(avatar, x + 13, y + 9, 30, 30);
+      context.restore();
+    } else {
+      context.fillStyle = "#101314";
+      context.font = "900 13px Arial";
+      context.textAlign = "center";
+      context.fillText(label.slice(0, 1).toUpperCase(), x + 28, y + 29);
+    }
+
+    context.fillStyle = color;
+    context.beginPath();
+    context.roundRect(x + 48, y + 8, 54, 15, 6);
     context.fill();
     context.fillStyle = "#101314";
-    context.font = "900 11px Arial";
+    context.font = "900 9px Arial";
     context.textAlign = "center";
-    context.fillText(role, x + 33, y + 28);
+    context.fillText(role, x + 75, y + 19);
 
     context.textAlign = "left";
     context.fillStyle = "#fff";
     context.font = "900 15px Arial";
-    context.fillText(label.slice(0, 18), x + 68, y + 20);
+    context.fillText(label.slice(0, 18), x + 112, y + 20);
     context.fillStyle = "#cbd5e1";
     context.font = "800 11px Arial";
-    context.fillText(`${member.playerId || "ID"} | ${furnace}`.slice(0, 24), x + 68, y + 36);
+    context.fillText(`${member.playerId || "ID"} | ${furnace}`.slice(0, 24), x + 112, y + 36);
   };
 
   const loadFoundryMapForExport = () => new Promise<HTMLImageElement>((resolve, reject) => {
@@ -3770,6 +3901,18 @@ export default function Home() {
     image.onload = () => resolve(image);
     image.onerror = () => resolve(null);
     image.src = foundryLogoImage;
+  });
+
+  const loadFoundryAvatarForExport = (url?: string) => new Promise<HTMLImageElement | null>((resolve) => {
+    if (!url) {
+      resolve(null);
+      return;
+    }
+    const image = new window.Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = url;
   });
 
   const exportFoundryMapImage = async () => {
@@ -3801,6 +3944,14 @@ export default function Home() {
       if (logo) {
         context.drawImage(logo, canvas.width - 354, 18, 314, 72);
       }
+
+      const avatarEntries = await Promise.all(
+        allFoundryTeams.flatMap((team) => [team.rallyLeader, ...team.joiners]).map(async (member) => [
+          member.id,
+          await loadFoundryAvatarForExport(member.profile?.avatarImage),
+        ] as const),
+      );
+      const avatarImages = new Map<string, HTMLImageElement | null>(avatarEntries);
 
       foundryBuildings.forEach((building) => {
         const x = (building.x / 100) * canvas.width;
@@ -3864,7 +4015,7 @@ export default function Home() {
           context.moveTo(centerX, centerY);
           context.lineTo(x + chipWidth / 2, y + 24);
           context.stroke();
-          drawFoundryMemberChip(context, member, x, y, chipWidth, color);
+          drawFoundryMemberChip(context, member, x, y, chipWidth, color, avatarImages.get(member.id));
         });
       });
 
@@ -3984,6 +4135,11 @@ export default function Home() {
   };
 
   const exportFoundryPlanImages = async () => {
+    if (!authUser) {
+      setFoundryExportStatus("Sign in to download Foundry plans.");
+      setLoginOpen(true);
+      return;
+    }
     await exportFoundryMapImage();
     await exportFoundryTableImage();
   };
@@ -5297,14 +5453,32 @@ export default function Home() {
                   <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan can be exported as a map image and a team table image.</p>
                 </div>
                 <div className="foundry-hero-actions">
-                  <button type="button" onClick={() => void exportFoundryPlanImages()}>
+                  <button className="foundry-primary-download" type="button" onClick={() => void exportFoundryPlanImages()}>
                     <Icon name="download" />
-                    Download Plan Images
+                    Download Map + Team Plan
+                  </button>
+                  <button type="button" onClick={() => void shareFoundryPlanner()}>
+                    <Icon name="share" />
+                    Share Editable Link
                   </button>
                 </div>
               </section>
 
-              <section className="foundry-setup-panel" aria-label="Foundry setup steps">
+              {!authUser && (
+                <section className="foundry-signin-gate" aria-label="Foundry planner sign in required">
+                  <div>
+                    <span className="section-kicker">Sign In Required</span>
+                    <h2>Sign in to build, edit, download, and share Foundry plans.</h2>
+                    <p>Editable planner links can be shared with alliance members, but every editor must sign in first.</p>
+                  </div>
+                  <button type="button" onClick={() => setLoginOpen(true)}>
+                    <Icon name="user" />
+                    Sign In to Use Planner
+                  </button>
+                </section>
+              )}
+
+              {authUser && <section className="foundry-setup-panel" aria-label="Foundry setup steps">
                 <label>
                   <span>1. Legion</span>
                   <select value={foundryLegion} onChange={(event) => setFoundryLegion(event.target.value as "1" | "2")}>
@@ -5331,9 +5505,9 @@ export default function Home() {
                   </label>
                   <small>{allFoundryTeams.length} editable team table rows</small>
                 </div>
-              </section>
+              </section>}
 
-              <section className="foundry-planner-shell">
+              {authUser && <section className="foundry-planner-shell">
                 <div className="foundry-map-panel">
                   <div className="foundry-map-toolbar">
                     <span><Icon name="mapPin" /> Building map</span>
@@ -5417,17 +5591,13 @@ export default function Home() {
                     })}
                   </div>
                 </div>
-              </section>
+              </section>}
 
-              <section className="foundry-team-editor" aria-label="Foundry team editor">
+              {authUser && <section className="foundry-team-editor" aria-label="Foundry team editor">
                 <div className="foundry-table-head">
                   <div>
                     <span className="section-kicker">4. Team Table</span>
                     <h2>Edit Teams, Buildings, Leaders, and Joiners</h2>
-                  </div>
-                  <div>
-                    <button type="button" onClick={() => void exportFoundryMapImage()}><Icon name="image" />Map Image</button>
-                    <button type="button" onClick={() => void exportFoundryTableImage()}><Icon name="barChart" />Table Image</button>
                   </div>
                 </div>
                 {foundryExportStatus && <p className="foundry-export-status">{foundryExportStatus}</p>}
@@ -5441,7 +5611,7 @@ export default function Home() {
                       <label>
                         Building
                         <select value={team.buildingId} onChange={(event) => updateFoundryTeam(team.id, { buildingId: event.target.value })}>
-                          {foundryBuildings.filter((building) => building.phase !== "Spawn").map((building) => (
+                          {foundrySelectableBuildings.map((building) => (
                             <option value={building.id} key={building.id}>{building.name}</option>
                           ))}
                         </select>
@@ -5454,8 +5624,7 @@ export default function Home() {
                       <div className="foundry-roster-row head">
                         <span>Role</span>
                         <span>Player ID</span>
-                        <span>PFP</span>
-                        <span>Name</span>
+                        <span>Player</span>
                         <span>Furnace</span>
                         <span>Status</span>
                         <span>Action</span>
@@ -5474,10 +5643,12 @@ export default function Home() {
                               }
                             }}
                           />
-                          <span className="foundry-roster-avatar">
-                            {member.profile?.avatarImage ? <img src={member.profile.avatarImage} alt="" /> : <Icon name="user" />}
+                          <span className="foundry-roster-player">
+                            <span className="foundry-roster-avatar">
+                              {member.profile?.avatarImage ? <img src={member.profile.avatarImage} alt="" /> : <Icon name="user" />}
+                            </span>
+                            <strong>{member.profile?.nickname || "-"}</strong>
                           </span>
-                          <span>{member.profile?.nickname || "-"}</span>
                           <span>{member.profile ? furnaceDisplay(member.profile) : "-"}</span>
                           <small>{member.loading ? "Fetching..." : member.status || "-"}</small>
                           <div>
@@ -5500,7 +5671,7 @@ export default function Home() {
                     </button>
                   </article>
                 ))}
-              </section>
+              </section>}
             </section>
           ) : activeMenu === "templates" ? (
             <section className="home-page message-templates-page" id="message-templates" aria-label="Whiteout Survival message templates">
