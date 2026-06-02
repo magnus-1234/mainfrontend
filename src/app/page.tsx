@@ -408,13 +408,6 @@ const chiefCharmGearPieces: ChiefCharmGearPiece[] = [
   { id: "boots", name: "Boots", troop: "Lancer", stat: "Lancer Health / Lethality" },
 ];
 const chiefCharmTroops = ["Infantry", "Marksman", "Lancer"] as const;
-const chiefCharmUpgradeSources = [
-  "Whiteout Survival Wiki: Chief Charms calculator reference and unlock context.",
-  "WoSTools: 18 charm slots, 3 slots per gear piece, and troop grouping model.",
-  "deepfriedmind/wos-toolkit: level 1-16 per-slot Charm Design, Charm Guide, and Jewel Secret costs.",
-  "Kingshot governor charm calculator: comparable slot-by-slot charm planner layout.",
-];
-
 const emptyChiefCharmCost: ChiefCharmCost = { design: 0, guide: 0, secret: 0, power: 0, statGain: 0 };
 
 const levelDataFor = (level: number) => chiefCharmLevels.find((item) => item.level === level);
@@ -4561,14 +4554,6 @@ export default function Home() {
                 </div>
               </section>
 
-              <section className="chief-charm-sources" aria-label="Chief Charm calculator sources">
-                {chiefCharmUpgradeSources.map((source) => (
-                  <article key={source}>
-                    <Icon name="database" />
-                    <span>{source}</span>
-                  </article>
-                ))}
-              </section>
             </section>
           ) : activeMenu === "wikiHeroes" ? (
             <section className="home-page wiki-page" id="wiki-heroes" aria-label="Whiteout Survival wiki heroes">
