@@ -12,13 +12,46 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteTitle = "Whiteout Survival Tools & Discord Bot | WhiteoutSurvival.dev";
+const siteDescription =
+  "The ultimate toolkit for Whiteout Survival. Access powerful tools, detailed guides, and an advanced Discord bot. Plan smarter, grow faster, and stay ahead of the competition.";
+
 export const metadata: Metadata = {
-  title: "WhiteoutSurvival.dev",
-  description: "WhiteoutSurvival.dev",
+  metadataBase: new URL("https://whiteoutsurvival.dev"),
+  title: {
+    default: siteTitle,
+    template: "%s | WhiteoutSurvival.dev",
+  },
+  description: siteDescription,
+  applicationName: "WhiteoutSurvival.dev",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/wos-logo.png",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "WhiteoutSurvival.dev",
+    title: siteTitle,
+    description: siteDescription,
+    images: [
+      {
+        url: "/social-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "Whiteout Survival tools, guides, calculators, planners, and Discord bot preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: ["/social-preview.png"],
   },
 };
 
