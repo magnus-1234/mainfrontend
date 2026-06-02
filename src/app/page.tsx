@@ -199,6 +199,7 @@ const botFrontendUrl =
 type BotMetrics = {
   servers: string;
   members: string;
+  discordMembers: string;
   monitors: string;
   redeemServers: string;
   giftCodes: string;
@@ -298,6 +299,7 @@ type StateAgeResult = {
 const fallbackBotMetrics: BotMetrics = {
   servers: "48",
   members: "1.5K",
+  discordMembers: "1.5K",
   monitors: "13",
   redeemServers: "19",
   giftCodes: "4",
@@ -1758,20 +1760,22 @@ export default function Home() {
 
     const loadBotMetrics = async () => {
       try {
-        const [statusResponse, feedResponse] = await Promise.all([
-          fetch("/api/bot-status", { headers: { Accept: "application/json" } }),
-          fetch("/api/bot-feed?limit=10", { headers: { Accept: "application/json" } }),
-        ]);
-        const status = statusResponse.ok ? await statusResponse.json() : {};
-        const feed = feedResponse.ok ? await feedResponse.json() : {};
-        const summary = feed.summary || {};
+        const response = await fetch("/api/bot-live", {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error("Bot live metrics unavailable.");
+        }
+        const metrics = await response.json();
 
         setBotMetrics({
-          servers: formatMetric(summary.servers ?? status.servers_count ?? status.guilds_count),
-          members: formatMetric(summary.members ?? status.total_members ?? status.members_count),
-          monitors: formatMetric(summary.active_monitors),
-          redeemServers: formatMetric(summary.auto_redeem_servers),
-          giftCodes: formatMetric(summary.active_gift_codes),
+          servers: formatMetric(metrics.servers),
+          members: formatMetric(metrics.monitoredMembers),
+          discordMembers: formatMetric(metrics.discordMembers),
+          monitors: formatMetric(metrics.activeMonitors),
+          redeemServers: formatMetric(metrics.autoRedeemServers),
+          giftCodes: formatMetric(metrics.activeGiftCodes),
         });
       } catch {
         setBotMetrics(fallbackBotMetrics);
@@ -5273,12 +5277,10 @@ export default function Home() {
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
               <div className="bot-commercial">
                 <div className="bot-commercial-copy">
+                  <h1>The Most Advanced, Feature-Rich Discord Bot for WOS</h1>
                   <div className="bot-brand-row">
                     <Image className="bot-brand-logo" src="/molly-logo.png" alt="Whiteout Survival bot logo" width={58} height={58} />
-                    <div>
-                      <span className="section-kicker">Whiteout Survival Discord Bot</span>
-                      <h1>Alliance operations for Whiteout Survival Discord servers.</h1>
-                    </div>
+                    <span className="bot-brand-name">Whiteout Survival</span>
                   </div>
                   <p>
                     Run your Discord server with DeepL auto-translation, welcome messages, smart reminders, admin tools, gift-code alerts, auto redeem, and alliance activity monitoring.
@@ -5294,8 +5296,10 @@ export default function Home() {
                   </div>
                   <div className="bot-proof-grid" aria-label="Bot highlights">
                     <span><strong>{botMetrics.servers}</strong> servers</span>
+                    <span><strong>{botMetrics.members}</strong> monitored members</span>
                     <span><strong>{botMetrics.monitors}</strong> active monitors</span>
                     <span><strong>{botMetrics.redeemServers}</strong> redeem servers</span>
+                    <span><strong>{botMetrics.giftCodes}</strong> active codes</span>
                   </div>
                   <div className="bot-feature-list" aria-label="Core bot capabilities">
                     <span><Icon name="bot" /> AI chat</span>
@@ -5319,13 +5323,14 @@ export default function Home() {
                     <div className="bot-preview-main">
                       <div className="bot-preview-topbar">
                         <span>Live Operations</span>
-                        <strong>{botMetrics.servers} servers</strong>
+                        <strong>{botMetrics.discordMembers} Discord members</strong>
                       </div>
                       <div className="bot-preview-stats">
                         {[
                           [botMetrics.members, "members"],
                           [botMetrics.monitors, "monitors"],
                           [botMetrics.giftCodes, "active codes"],
+                          [botMetrics.redeemServers, "redeem servers"],
                         ].map(([value, label]) => (
                           <span key={label}><strong>{value}</strong>{label}</span>
                         ))}
