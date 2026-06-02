@@ -227,6 +227,9 @@ type MessageTemplate = {
   description: string;
   text: string;
   previewText?: string;
+  iconCode?: string;
+  iconGlyph?: string;
+  iconVisual?: string;
   imageUrl?: string;
   tags: string[];
   creatorName?: string;
@@ -349,52 +352,56 @@ const messageTemplateCategories: { label: string; value: MessageTemplateCategory
 ];
 
 const wosIconUnicodeTemplates: MessageTemplate[] = [
-  ["item_icon_101", "One Gem"],
-  ["item_icon_102", "Meat"],
-  ["item_icon_103", "Wood"],
-  ["item_icon_104", "Coal"],
-  ["item_icon_105", "Iron"],
-  ["item_icon_106", "Steel"],
-  ["item_icon_107", "XP"],
-  ["item_icon_109", "Wheel Coin"],
-  ["item_icon_100081", "Fire Crystal"],
-  ["item_icon_620116", "Thorn of Enigma"],
-  ["item_icon_100004", "Bag of Gems"],
-  ["item_icon_200201", "Building Speedup"],
-  ["item_icon_200301", "Troop Speedup"],
-  ["item_icon_200401", "Research Speedup"],
-  ["item_icon_500240", "Essence Stone"],
-  ["item_icon_200101", "Speedup"],
-  ["item_icon_620127", "Adventure Coin"],
-  ["item_icon_500220", "SSR Shard"],
-  ["item_icon_620129", "Vase"],
-  ["item_icon_620163", "Other Meat"],
-  ["item_icon_620189", "Sandwich"],
-  ["resource_icon_744", "Blue Completed"],
-  ["resource_icon_745", "Red Completed"],
-  ["resource_icon_743", "Red Flag"],
-  ["resource_icon_742", "Blue Flag"],
-  ["item_icon_620197", "Car Keys"],
-  ["item_icon_620203", "Small Bouquet"],
-  ["item_icon_620204", "Medium Bouquet"],
-  ["item_icon_620205", "Large Bouquet"],
-  ["item_icon_620206", "Clover"],
-  ["item_icon_620208", "Coin"],
-  ["item_icon_620210", "ChocoGift"],
-  ["accumulative_icon_001", "Top Up Coin"],
-  ["item_icon_620240", "Bread Loaf"],
-  ["item_icon_620261", "Recycle Token"],
-].map(([code, title]) => ({
+  ["item_icon_101", "One Gem", "\uE001", "💎"],
+  ["item_icon_102", "Meat", "\uE002", "🥩"],
+  ["item_icon_103", "Wood", "\uE003", "🪵"],
+  ["item_icon_104", "Coal", "\uE004", "◼"],
+  ["item_icon_105", "Iron", "\uE005", "▣"],
+  ["item_icon_106", "Steel", "\uE006", "🔩"],
+  ["item_icon_107", "XP", "\uE007", "⭐"],
+  ["item_icon_109", "Wheel Coin", "\uE009", "🪙"],
+  ["item_icon_100081", "Fire Crystal", "\uE010", "🔥"],
+  ["item_icon_620116", "Thorn of Enigma", "\uE011", "✦"],
+  ["item_icon_100004", "Bag of Gems", "\uE012", "💰"],
+  ["item_icon_200201", "Building Speedup", "\uE013", "🏗️"],
+  ["item_icon_200301", "Troop Speedup", "\uE014", "⚔️"],
+  ["item_icon_200401", "Research Speedup", "\uE015", "🔬"],
+  ["item_icon_500240", "Essence Stone", "\uE016", "🔷"],
+  ["item_icon_200101", "Speedup", "\uE017", "⏩"],
+  ["item_icon_620127", "Adventure Coin", "\uE018", "🎟️"],
+  ["item_icon_500220", "SSR Shard", "\uE019", "🧩"],
+  ["item_icon_620129", "Vase", "\uE020", "🏺"],
+  ["item_icon_620163", "Other Meat", "\uE021", "🍖"],
+  ["item_icon_620189", "Sandwich", "\uE022", "🥪"],
+  ["resource_icon_744", "Blue Completed", "\uE024", "🔵"],
+  ["resource_icon_745", "Red Completed", "\uE025", "🔴"],
+  ["resource_icon_743", "Red Flag", "\uE026", "🚩"],
+  ["resource_icon_742", "Blue Flag", "\uE027", "🏳️"],
+  ["item_icon_620197", "Car Keys", "\uE029", "🔑"],
+  ["item_icon_620203", "Small Bouquet", "\uE030", "💐"],
+  ["item_icon_620204", "Medium Bouquet", "\uE031", "🌸"],
+  ["item_icon_620205", "Large Bouquet", "\uE032", "🌺"],
+  ["item_icon_620206", "Clover", "\uE033", "🍀"],
+  ["item_icon_620208", "Coin", "\uE034", "🪙"],
+  ["item_icon_620210", "ChocoGift", "\uE035", "🍫"],
+  ["accumulative_icon_001", "Top Up Coin", "\uE037", "👑"],
+  ["item_icon_620240", "Bread Loaf", "\uE039", "🍞"],
+  ["item_icon_620261", "Recycle Token", "\uE040", "♻️"],
+].map(([code, title, glyph, visual]) => ({
   id: `wos-icon-${code.replace(/_/g, "-")}`,
   title,
   category: "unicodes",
-  description: `Whiteout Survival icon code for ${title}.`,
+  description: `<${code}>`,
   builtin: true,
   creatorName: "WhiteoutSurvival.dev",
   likes: 0,
   shares: 0,
   tags: ["Unicode", "Emoji"],
-  text: `<${code}> ${title}`,
+  text: glyph,
+  previewText: glyph,
+  iconCode: `<${code}>`,
+  iconGlyph: glyph,
+  iconVisual: visual,
 }));
 
 const messageTemplates: MessageTemplate[] = [
@@ -5005,9 +5012,9 @@ export default function Home() {
                 </div>
               )}
 
-              <section className="template-grid" aria-label="Template cards">
+              <section className={`template-grid ${activeTemplateCategory === "unicodes" ? "template-grid-unicodes" : ""}`} aria-label="Template cards">
                 {filteredMessageTemplates.map((template) => (
-                  <article className="template-card" id={`message-template-${template.id}`} key={template.id}>
+                  <article className={`template-card ${template.iconGlyph ? "template-card-unicode" : ""}`} id={`message-template-${template.id}`} key={template.id}>
                     <header className="template-card-title">
                       <button className="template-title-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
                         <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
@@ -5030,21 +5037,31 @@ export default function Home() {
                         </button>
                       </div>
                     </header>
-                    {template.description && <p>{template.description}</p>}
-                    {template.imageUrl && (
-                      <button className="template-card-image" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
-                        <img src={template.imageUrl} alt="" />
+                    {template.iconGlyph ? (
+                      <button className="template-unicode-tile" type="button" onClick={() => void copyMessageTemplate(template)} aria-label={`Copy ${template.title} unicode`}>
+                        <span className="template-unicode-glyph" aria-hidden="true">{template.iconVisual || template.iconGlyph}</span>
+                        <strong>{template.title}</strong>
+                        {template.iconCode && <small>{template.iconCode}</small>}
                       </button>
+                    ) : (
+                      <>
+                        {template.description && <p>{template.description}</p>}
+                        {template.imageUrl && (
+                          <button className="template-card-image" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
+                            <img src={template.imageUrl} alt="" />
+                          </button>
+                        )}
+                        <button className="template-chat-preview template-preview-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title} full preview`}>
+                          <div className="template-chat-top">
+                            <span>WOS Chat Preview</span>
+                            <small>{Array.from(template.text).length} chars</small>
+                          </div>
+                          <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
+                            <span key={`${template.id}-${index}`}>{line}</span>
+                          ))}</pre>
+                        </button>
+                      </>
                     )}
-                    <button className="template-chat-preview template-preview-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title} full preview`}>
-                      <div className="template-chat-top">
-                        <span>WOS Chat Preview</span>
-                        <small>{Array.from(template.text).length} chars</small>
-                      </div>
-                      <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
-                        <span key={`${template.id}-${index}`}>{line}</span>
-                      ))}</pre>
-                    </button>
                     <footer className="template-card-footer">
                       <div className="template-tags">
                         {template.tags.map((tag) => (

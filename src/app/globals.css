@@ -3889,6 +3889,19 @@ body {
   gap: 10px;
 }
 
+.template-grid-unicodes {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 8px;
+}
+
+.template-grid-unicodes .template-card {
+  height: 190px;
+}
+
+.template-grid-unicodes .template-card:not(.template-card-unicode) .template-chat-preview {
+  display: none;
+}
+
 .template-card {
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
@@ -3902,6 +3915,11 @@ body {
     0 4px 12px rgba(12, 18, 20, 0.06),
     0 1px 3px rgba(12, 18, 20, 0.04);
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+.template-card-unicode {
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  height: 190px;
 }
 
 .template-card:hover {
@@ -4033,6 +4051,67 @@ body {
   height: auto;
   object-fit: cover;
   object-position: top center;
+}
+
+.template-unicode-tile {
+  display: grid;
+  min-height: 0;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  margin: 8px;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 64%, var(--border));
+  border-radius: 8px;
+  padding: 10px 8px;
+  background:
+    radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--gold-soft) 82%, transparent), transparent 58%),
+    color-mix(in srgb, var(--card) 92%, var(--gold-soft));
+  color: var(--foreground);
+  cursor: pointer;
+  text-align: center;
+}
+
+.template-unicode-tile:hover {
+  border-color: var(--gold-line);
+  background:
+    radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--gold-soft) 96%, transparent), transparent 62%),
+    var(--card);
+}
+
+.template-unicode-glyph {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--gold-line) 72%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--muted) 84%, transparent);
+  color: var(--gold);
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Symbol", var(--font-geist-sans), sans-serif;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.template-unicode-tile strong {
+  max-width: 100%;
+  color: var(--gold);
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.template-unicode-tile small {
+  max-width: 100%;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .template-chat-preview {
