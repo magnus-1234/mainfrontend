@@ -7149,6 +7149,88 @@ body {
   background: rgba(234, 67, 53, 0.08);
 }
 
+.foundry-share-modal {
+  width: min(700px, calc(100vw - 24px));
+  border-color: rgba(250, 142, 31, 0.42);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 38%),
+    color-mix(in srgb, var(--card) 92%, #101418);
+  box-shadow:
+    0 36px 72px -18px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(250, 142, 31, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.foundry-share-modal .share-modal-head {
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.foundry-share-modal .share-modal-head img {
+  width: 58px;
+  height: 58px;
+  border-color: rgba(250, 142, 31, 0.38);
+}
+
+.foundry-share-modal .share-preview-row {
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 10px;
+}
+
+.foundry-share-modal .share-url-box {
+  min-height: 110px;
+  border-color: rgba(250, 142, 31, 0.7);
+  border-radius: 10px;
+  padding: 12px 10px 12px 14px;
+  background: rgba(92, 47, 16, 0.48);
+  font-size: 12px;
+}
+
+.foundry-share-modal .share-url-box button {
+  width: 36px;
+  height: 36px;
+  border-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+.foundry-share-modal .share-qr {
+  width: 112px;
+  height: 112px;
+  border-radius: 10px;
+}
+
+.foundry-share-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.foundry-share-summary span {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted-foreground);
+  font-size: 0.76rem;
+}
+
+.foundry-share-summary svg {
+  grid-row: span 2;
+  width: 20px;
+  height: 20px;
+  color: var(--gold);
+}
+
+.foundry-share-summary strong {
+  color: var(--foreground);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
 .share-icon-row button:hover,
 .share-icon-row a:hover {
   border-color: var(--gold-line);
@@ -14380,6 +14462,15 @@ body {
 
   .share-icon-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .foundry-share-modal .share-preview-row,
+  .foundry-share-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .foundry-share-modal .share-url-box {
+    min-height: 92px;
   }
 
   .template-detail-modal {
