@@ -5350,7 +5350,7 @@ body {
 
 .template-detail-media {
   display: grid;
-  grid-template-rows: minmax(160px, 0.42fr) minmax(260px, 0.58fr);
+  grid-template-rows: auto minmax(260px, 1fr);
   min-height: 0;
   gap: 10px;
   overflow: hidden;
@@ -5379,19 +5379,6 @@ body {
   min-height: 100%;
   object-fit: cover;
   object-position: top center;
-}
-
-.template-detail-image.empty {
-  gap: 8px;
-  color: var(--muted-foreground);
-  cursor: default;
-  font-weight: 900;
-}
-
-.template-detail-image.empty svg {
-  width: 30px;
-  height: 30px;
-  color: var(--gold);
 }
 
 .template-detail-preview {

@@ -4989,7 +4989,7 @@ export default function Home() {
                     <button className="template-chat-preview template-preview-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title} full preview`}>
                       <div className="template-chat-top">
                         <span>WOS Chat Preview</span>
-                        <small>28 chars</small>
+                        <small>{Array.from(template.text).length} chars</small>
                       </div>
                       <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
                         <span key={`${template.id}-${index}`}>{line}</span>
@@ -5983,20 +5983,15 @@ export default function Home() {
           <section className="template-detail-modal" onClick={(event) => event.stopPropagation()}>
             <button className="close-button" type="button" onClick={() => setTemplateViewer(null)} aria-label="Close">x</button>
             <div className="template-detail-media">
-              {templateViewer.imageUrl ? (
+              {templateViewer.imageUrl && (
                 <button className="template-detail-image" type="button" onClick={() => setTemplateImageViewer(templateViewer)} aria-label={`Open ${templateViewer.title} image`}>
                   <img src={templateViewer.imageUrl} alt={templateViewer.title} />
                 </button>
-              ) : (
-                <div className="template-detail-image empty">
-                  <Icon name="message" />
-                  <span>No preview image</span>
-                </div>
               )}
               <div className="template-chat-preview template-detail-preview" aria-label={`${templateViewer.title} full chat preview`}>
                 <div className="template-chat-top">
                   <span>WOS Chat Preview</span>
-                  <small>28 chars</small>
+                  <small>{Array.from(templateViewer.text).length} chars</small>
                 </div>
                 <pre>{(templateViewer.previewText ? templateViewer.previewText.split("\n") : templatePreviewLines(templateViewer.text)).map((line, index) => (
                   <span key={`${templateViewer.id}-detail-${index}`}>{line}</span>
