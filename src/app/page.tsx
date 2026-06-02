@@ -1489,8 +1489,8 @@ export default function Home() {
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
   const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
-  const [templateView, setTemplateView] = useState<TemplateView>("gallery");
-  const [templateSort, setTemplateSort] = useState<"popular" | "recent">("popular");
+  const [templateView] = useState<TemplateView>("gallery");
+  const [templateSort] = useState<"popular" | "recent">("popular");
   const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
   const [likedTemplates, setLikedTemplates] = useState<Record<string, boolean>>({});
   const [templateStatus, setTemplateStatus] = useState("");
@@ -4817,29 +4817,9 @@ export default function Home() {
 
               <section className="showcase-head templates-head">
                 <div>
-                  <h2>{templateView === "uploads" ? "My Templates" : templateView === "favorites" ? "Liked Templates" : "Message Gallery"}</h2>
+                  <h2>Message Gallery</h2>
                 </div>
                 <div className="daybreak-controls">
-                  <div className="daybreak-control-bar templates-view-bar" aria-label="Message template view controls">
-                    <button className={templateView === "gallery" ? "selected" : ""} type="button" onClick={() => setTemplateView("gallery")}>Gallery</button>
-                    <button
-                      className={templateView === "uploads" ? "selected" : ""}
-                      type="button"
-                      onClick={() => (authUser ? setTemplateView("uploads") : requireTemplateSignIn("Sign in to view your message templates."))}
-                    >
-                      My Templates
-                    </button>
-                    <button
-                      className={templateView === "favorites" ? "selected" : ""}
-                      type="button"
-                      onClick={() => (authUser ? setTemplateView("favorites") : requireTemplateSignIn("Sign in to view liked templates."))}
-                    >
-                      Liked
-                    </button>
-                    <span aria-hidden="true" className="daybreak-control-divider" />
-                    <button className={templateSort === "popular" ? "selected" : ""} type="button" onClick={() => setTemplateSort("popular")}>Popular</button>
-                    <button className={templateSort === "recent" ? "selected" : ""} type="button" onClick={() => setTemplateSort("recent")}>Recent</button>
-                  </div>
                   <div className="daybreak-control-bar templates-filter-bar" aria-label="Message template category filter">
                     {messageTemplateCategories.map((category) => (
                       <button

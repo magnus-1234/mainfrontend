@@ -3850,27 +3850,39 @@ body {
   margin-top: 0;
 }
 
-.templates-filter-bar button {
-  min-width: 82px;
+.templates-head .daybreak-controls {
+  align-items: center;
+  gap: 8px;
 }
 
-.templates-view-bar button {
-  min-width: 88px;
+.templates-head .daybreak-control-bar {
+  gap: 4px;
+  min-height: 38px;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.templates-filter-bar button {
+  min-width: auto;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 7px;
+  font-size: 12px;
 }
 
 .template-create-button {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 38px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
   border: 1px solid var(--gold-line);
   border-radius: 8px;
-  padding: 0 14px;
+  padding: 0 12px;
   background: var(--gold-soft);
   color: var(--gold);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
 }
 
