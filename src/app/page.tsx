@@ -225,6 +225,7 @@ type MessageTemplate = {
   category: Exclude<MessageTemplateCategory, "all">;
   description: string;
   text: string;
+  previewText?: string;
   tags: string[];
 };
 
@@ -347,6 +348,26 @@ const messageTemplates: MessageTemplate[] = [
     text: `👑 - SVS Prep Guide 🔎
  １   ２　３    ４    ５                   ✅｜🆗｜🚫｜🚫｜🆗｜FC 
 🆗｜✅｜🚫｜🚫｜🆗｜FC Shards 🚫｜✅｜🆗｜🚫｜🚫｜Hero Shard ✅｜🆗｜🚫｜🚫｜🆗｜Construct       🚫｜🚫｜🚫｜✅｜🆗｜Troops 🆗｜✅｜🚫｜🚫｜🆗｜Research 🚫｜✅｜🆗｜🚫｜🚫｜Wheel💎 🚫｜✅｜🚫｜🚫｜🚫｜Gathering 🆗｜✅｜🚫｜🚫｜🆗｜Learn 🚫｜✅｜🆗｜🚫｜🚫｜Expert Sigils 🚫｜✅｜🆗｜🚫｜🚫｜📚 Knowledge 🚫｜🚫｜✅｜🚫｜🚫｜Beasts🐗 🚫｜🚫｜🆗｜🚫｜✅｜Pets🐒                 🆗｜🚫｜🆗｜✅｜🚫｜Chief Charm 🚫｜🚫｜🚫｜🚫｜✅｜Chief Gear 🚫｜🚫｜🚫｜🆗｜✅｜Widgets 🚫｜🚫｜🚫｜🆗｜✅｜Mithril🔮 🚫｜🚫｜🚫｜🆗｜✅｜Stones`,
+    previewText: `👑 - SVS Prep Guide 🔎
+  1    2    3    4    5
+✅ | 🆗 | 🚫 | 🚫 | 🆗 | FC 🧪
+🆗 | ✅ | 🚫 | 🚫 | 🆗 | FC Shards
+🚫 | ✅ | 🆗 | 🚫 | 🚫 | Hero Shard🧩
+✅ | 🆗 | 🚫 | 🚫 | 🆗 | Construct🛠️
+🚫 | 🚫 | 🚫 | ✅ | 🆗 | Troops⚔️
+🆗 | ✅ | 🚫 | 🚫 | 🆗 | Research🔬
+🚫 | ✅ | 🆗 | 🚫 | 🚫 | Wheel💎
+🚫 | ✅ | 🚫 | 🚫 | 🚫 | Gathering
+🆗 | ✅ | 🚫 | 🚫 | 🆗 | Learn📖
+🚫 | ✅ | 🆗 | 🚫 | 🚫 | Expert Sigils
+🚫 | ✅ | 🆗 | 🚫 | 🚫 | 📚 Knowledge
+🚫 | 🚫 | ✅ | 🚫 | 🚫 | Beasts🐗
+🚫 | 🚫 | 🆗 | 🚫 | ✅ | Pets🐒
+🆗 | 🚫 | 🆗 | ✅ | 🚫 | Chief Charm
+🚫 | 🚫 | 🚫 | 🚫 | ✅ | Chief Gear
+🚫 | 🚫 | 🚫 | 🆗 | ✅ | Widgets
+🚫 | 🚫 | 🚫 | 🆗 | ✅ | Mithril🔮
+🚫 | 🚫 | 🚫 | 🆗 | ✅ | Stones🧪`,
   },
   {
     id: "alliance-recruit-clean",
@@ -4537,7 +4558,7 @@ export default function Home() {
                         <span>WOS Chat Preview</span>
                         <small>28 chars</small>
                       </div>
-                      <pre>{templatePreviewLines(template.text).map((line, index) => (
+                      <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
                         <span key={`${template.id}-${index}`}>{line}</span>
                       ))}</pre>
                     </div>
