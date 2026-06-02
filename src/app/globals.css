@@ -7491,15 +7491,19 @@ body {
   height: 24px;
   place-items: center;
   border-radius: 999px;
-  background: var(--muted);
-  color: var(--foreground);
-  font-size: 13px;
-  font-weight: 900;
+  background: #fff;
+  overflow: hidden;
 }
 
-.discord .provider-mark {
-  background: #5865f2;
-  color: #fff;
+.provider-logo {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.discord-logo {
+  width: 24px;
+  height: 24px;
 }
 
 .login-divider {

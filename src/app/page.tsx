@@ -808,6 +808,26 @@ const countdownUnits = [
   ["s", "seconds"],
 ] as const;
 
+function SocialProviderLogo({ provider }: { provider: "google" | "discord" }) {
+  if (provider === "google") {
+    return (
+      <svg className="provider-logo google-logo" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+        <path fill="#4285f4" d="M17.64 9.204c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.909c1.702-1.567 2.683-3.874 2.683-6.615z" />
+        <path fill="#34a853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.259c-.806.54-1.837.859-3.047.859-2.344 0-4.328-1.583-5.036-3.71H.957v2.332A8.998 8.998 0 0 0 9 18z" />
+        <path fill="#fbbc05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" />
+        <path fill="#ea4335" d="M9 3.58c1.322 0 2.508.454 3.44 1.346l2.582-2.58C13.463.891 11.426 0 9 0A8.998 8.998 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="provider-logo discord-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="#5865f2" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" />
+      <path fill="#fff" d="M16.93 7.22a12.28 12.28 0 0 0-3.02-.93.08.08 0 0 0-.09.04c-.13.24-.28.55-.38.79a11.39 11.39 0 0 0-3.4 0 8.08 8.08 0 0 0-.39-.79.08.08 0 0 0-.08-.04 12.24 12.24 0 0 0-3.03.93.07.07 0 0 0-.03.03c-1.91 2.86-2.44 5.65-2.18 8.4 0 .02.01.04.03.05a12.35 12.35 0 0 0 3.71 1.88.09.09 0 0 0 .09-.03c.29-.39.54-.81.75-1.25a.08.08 0 0 0-.04-.11 8.14 8.14 0 0 1-1.16-.55.08.08 0 0 1-.01-.13l.23-.18a.08.08 0 0 1 .08-.01c2.43 1.11 5.06 1.11 7.46 0a.08.08 0 0 1 .09.01l.23.18a.08.08 0 0 1-.01.13c-.37.22-.75.41-1.16.55a.08.08 0 0 0-.04.11c.22.44.47.86.75 1.25a.08.08 0 0 0 .09.03 12.32 12.32 0 0 0 3.72-1.88.08.08 0 0 0 .03-.05c.32-3.18-.52-5.94-2.18-8.4a.06.06 0 0 0-.04-.03zM9.05 13.98c-.73 0-1.33-.67-1.33-1.49s.59-1.49 1.33-1.49c.75 0 1.35.67 1.33 1.49 0 .82-.59 1.49-1.33 1.49zm4.88 0c-.73 0-1.33-.67-1.33-1.49s.59-1.49 1.33-1.49c.75 0 1.34.67 1.33 1.49 0 .82-.58 1.49-1.33 1.49z" />
+    </svg>
+  );
+}
+
 function Icon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
     home: (
@@ -4494,12 +4514,12 @@ export default function Home() {
             {authStatus && <div className="auth-status">{authStatus}</div>}
             <div className="social-login-stack">
               <button className="social-login google" type="button" onClick={() => signInWith("google")}>
-                <span className="provider-mark">G</span>
+                <span className="provider-mark"><SocialProviderLogo provider="google" /></span>
                 Continue with Google
               </button>
               <div className="login-divider"><span>Or continue with</span></div>
               <button className="social-login discord" type="button" onClick={() => signInWith("discord")}>
-                <span className="provider-mark">D</span>
+                <span className="provider-mark"><SocialProviderLogo provider="discord" /></span>
                 Continue with Discord
               </button>
             </div>
