@@ -331,22 +331,22 @@ const foundryLogoImage = "/whiteout-survival-logo.png";
 
 const foundryBuildings: FoundryBuilding[] = [
   { id: "blue-zone", name: "Blue Safe Zone", shortName: "Safe Zone", x: 8, y: 50, phase: "Spawn" },
-  { id: "red-zone", name: "Red Safe Zone", shortName: "Safe Zone", x: 91, y: 50, phase: "Spawn" },
-  { id: "boiler-room", name: "Boiler", shortName: "Boiler", x: 34, y: 18, phase: "Phase 1" },
-  { id: "repair-north", name: "Repair - North", shortName: "Repair", x: 59, y: 18, phase: "Phase 1" },
-  { id: "workshop-north-west", name: "Workshop - North West", shortName: "Workshop", x: 33, y: 30, phase: "Phase 3" },
-  { id: "mercenary-camp", name: "Mercenary", shortName: "Mercenary", x: 47, y: 36, phase: "Phase 2" },
-  { id: "workshop-north-east", name: "Workshop - North East", shortName: "Workshop", x: 75, y: 36, phase: "Phase 3" },
-  { id: "prototype-west", name: "Prototype - West", shortName: "Prototype", x: 27, y: 48, phase: "Phase 1" },
-  { id: "repair-east", name: "Repair - East", shortName: "Repair", x: 76, y: 48, phase: "Phase 1" },
-  { id: "repair-west", name: "Repair - West", shortName: "Repair", x: 18, y: 58, phase: "Phase 1" },
-  { id: "imperial-foundry", name: "Imperial", shortName: "Imperial", x: 50, y: 58, phase: "Phase 2" },
-  { id: "prototype-east", name: "Prototype - East", shortName: "Prototype", x: 69, y: 62, phase: "Phase 1" },
-  { id: "workshop-south-west", name: "Workshop - South West", shortName: "Workshop", x: 31, y: 72, phase: "Phase 3" },
-  { id: "munition", name: "Munition", shortName: "Munition", x: 48, y: 79, phase: "Phase 2" },
-  { id: "workshop-south-east", name: "Workshop - South East", shortName: "Workshop", x: 63, y: 76, phase: "Phase 3" },
-  { id: "repair-south", name: "Repair - South", shortName: "Repair", x: 34, y: 91, phase: "Phase 1" },
-  { id: "transit-station", name: "Transit Station", shortName: "Transit Station", x: 65, y: 91, phase: "Phase 1" },
+  { id: "red-zone", name: "Red Safe Zone", shortName: "Safe Zone", x: 92, y: 50, phase: "Spawn" },
+  { id: "boiler-room", name: "Boiler Room", shortName: "Boiler Room", x: 34, y: 19, phase: "Phase 1" },
+  { id: "repair-facility-iii", name: "Repair Facility III", shortName: "Repair III", x: 61, y: 19, phase: "Phase 1" },
+  { id: "workshop-north-west", name: "Workshop - North West", shortName: "Workshop", x: 27, y: 29, phase: "Phase 3" },
+  { id: "mercenary-camp", name: "Mercenary Camp", shortName: "Mercenary", x: 45, y: 35, phase: "Phase 2" },
+  { id: "workshop-north-east", name: "Workshop - North East", shortName: "Workshop", x: 65, y: 34, phase: "Phase 3" },
+  { id: "prototype-site-i", name: "Prototype Site I", shortName: "Prototype I", x: 27, y: 48, phase: "Phase 1" },
+  { id: "repair-facility-iv", name: "Repair Facility IV", shortName: "Repair IV", x: 78, y: 51, phase: "Phase 1" },
+  { id: "repair-facility-i", name: "Repair Facility I", shortName: "Repair I", x: 18, y: 59, phase: "Phase 1" },
+  { id: "imperial-foundry", name: "Imperial Foundry", shortName: "Imperial", x: 48, y: 58, phase: "Phase 2" },
+  { id: "prototype-site-ii", name: "Prototype Site II", shortName: "Prototype II", x: 69, y: 63, phase: "Phase 1" },
+  { id: "workshop-south-west", name: "Workshop - South West", shortName: "Workshop", x: 31, y: 70, phase: "Phase 3" },
+  { id: "munition-warehouse", name: "Munition Warehouse", shortName: "Munition", x: 47, y: 81, phase: "Phase 2" },
+  { id: "workshop-south-east", name: "Workshop - South East", shortName: "Workshop", x: 62, y: 72, phase: "Phase 3" },
+  { id: "repair-facility-ii", name: "Repair Facility II", shortName: "Repair II", x: 34, y: 91, phase: "Phase 1" },
+  { id: "transit-station", name: "Transit Station", shortName: "Transit Station", x: 62, y: 93, phase: "Phase 1" },
 ];
 
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
@@ -3091,9 +3091,8 @@ export default function Home() {
 
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
-  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
-  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive;
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
+  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive;
   const charmTargetSafe = Math.max(charmCurrentLevel + 1, Math.min(16, charmTargetLevel));
   const charmSlotSafe = Math.max(1, Math.min(chiefCharmSlots, charmSlotCount));
   const charmSingleCost = charmTotalsBetween(charmCurrentLevel, charmTargetSafe);
