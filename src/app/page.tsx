@@ -478,6 +478,11 @@ const createFoundryLooterTeam = (): FoundryTeam => ({
   joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `looter-${joinerIndex + 1}`)),
 });
 
+const normalizeFoundryPlayerProfile = (player: PlayerProfile & { avatar?: string; avatarUrl?: string; avatar_image?: string }): PlayerProfile => ({
+  ...player,
+  avatarImage: player.avatarImage || player.avatarUrl || player.avatar || player.avatar_image,
+});
+
 const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
   { label: "All", value: "all" },
   { label: "Unicodes", value: "unicodes" },
@@ -1714,6 +1719,8 @@ export default function Home() {
   const [foundryIncludeLooter, setFoundryIncludeLooter] = useState(false);
   const [foundryLooterTeam, setFoundryLooterTeam] = useState<FoundryTeam>(() => createFoundryLooterTeam());
   const [foundryExportStatus, setFoundryExportStatus] = useState("");
+  const [foundryShowBuildingLabels, setFoundryShowBuildingLabels] = useState(true);
+  const [foundryShowTeamRoster, setFoundryShowTeamRoster] = useState(true);
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
   const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
@@ -3423,7 +3430,7 @@ export default function Home() {
       }
       updateFoundryMember(teamId, member.id, {
         playerId: cleanedPlayerId,
-        profile: data.player,
+        profile: normalizeFoundryPlayerProfile(data.player),
         status: "Loaded",
         loading: false,
       });
@@ -3506,13 +3513,13 @@ export default function Home() {
         context.strokeStyle = building.phase === "Spawn" ? "#38bdf8" : building.id.includes("workshop") ? "#22c55e" : "#fbbf24";
         context.lineWidth = 3;
         context.beginPath();
-        context.roundRect(x - 70, y - 17, 140, 34, 10);
+        context.roundRect(x - 106, y - 20, 212, 40, 10);
         context.fill();
         context.stroke();
         context.fillStyle = "#fff";
         context.font = "800 16px Arial";
         context.textAlign = "center";
-        context.fillText(building.shortName, x, y + 6);
+        context.fillText(building.name.slice(0, 24), x, y + 6);
       });
 
       allFoundryTeams.forEach((team, teamIndex) => {
@@ -3541,7 +3548,7 @@ export default function Home() {
           const y = centerY + Math.sin(angle) * radius;
           const label = member.profile?.nickname || member.playerId || "Player";
           const furnace = member.profile ? furnaceDisplay(member.profile) : "";
-          const role = member.role === "leader" ? "RL" : "J";
+          const role = member.role === "leader" ? "LEADER" : "JOINER";
 
           context.fillStyle = "rgba(8, 10, 11, 0.86)";
           context.strokeStyle = color;
@@ -3551,8 +3558,8 @@ export default function Home() {
           context.fill();
           context.stroke();
           context.fillStyle = color;
-          context.font = "900 14px Arial";
-          context.fillText(role, x - 62, y - 8);
+          context.font = "900 12px Arial";
+          context.fillText(role, x - 45, y - 8);
           context.fillStyle = "#fff";
           context.font = "800 15px Arial";
           context.fillText(label.slice(0, 18), x + 12, y - 8);
@@ -4722,7 +4729,6 @@ export default function Home() {
             <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
               <section className="foundry-hero">
                 <div>
-                  <img className="foundry-logo" src={foundryLogoImage} alt="Whiteout Survival" />
                   <span className="section-kicker">Planner Setup</span>
                   <h1>Foundry Team Planner</h1>
                   <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan can be exported as a map image and a team table image.</p>
@@ -4769,72 +4775,85 @@ export default function Home() {
                   <div className="foundry-map-toolbar">
                     <span><Icon name="mapPin" /> Building map</span>
                     <div>
+                      <button
+                        className={foundryShowBuildingLabels ? "active" : ""}
+                        type="button"
+                        onClick={() => setFoundryShowBuildingLabels((value) => !value)}
+                      >
+                        {foundryShowBuildingLabels ? "Hide Names" : "Show Names"}
+                      </button>
+                      <button
+                        className={foundryShowTeamRoster ? "active" : ""}
+                        type="button"
+                        onClick={() => setFoundryShowTeamRoster((value) => !value)}
+                      >
+                        {foundryShowTeamRoster ? "Hide Players" : "Show Players"}
+                      </button>
                       <strong>Legion {foundryLegion}</strong>
                       <strong>{foundryUtcTime || "UTC time not set"}</strong>
                     </div>
                   </div>
                   <div className="foundry-map-frame">
                     <img src={foundryMapImage} alt="Whiteout Survival Foundry battlefield map" />
-                    {foundryBuildings.map((building) => (
+                    <img className="foundry-map-logo" src={foundryLogoImage} alt="Whiteout Survival" />
+                    {foundryShowBuildingLabels && foundryBuildings.map((building) => (
                       <span
                         className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"}`}
                         key={building.id}
                         style={{ left: `${building.x}%`, top: `${building.y}%` }}
                       >
-                        {building.shortName}
-                        <small>{building.phase}</small>
+                        {building.name}
                       </span>
                     ))}
-                    {allFoundryTeams.map((team, teamIndex) => {
+                    {foundryShowTeamRoster && allFoundryTeams.map((team, teamIndex) => {
                       const building = foundryBuildings.find((item) => item.id === team.buildingId);
                       if (!building) {
                         return null;
                       }
                       const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
+                      const rosterRadius = building.id === "imperial-foundry" ? 14 : 11;
+                      const teamRadius = rosterRadius + (teamIndex % 3) * 3;
                       return (
-                        <div
-                          className="foundry-map-team"
-                          key={team.id}
-                          style={{
-                            left: `${building.x}%`,
-                            top: `${building.y}%`,
-                            ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length],
-                          }}
-                        >
-                          <strong>{team.name}</strong>
-                          <span>{building.shortName}</span>
-                          <div className="foundry-map-roster">
-                            {members.slice(0, 6).map((member) => (
-                              <small className={member.role} key={member.id}>
-                                {member.role === "leader" ? "RL" : "J"} {member.profile?.nickname || member.playerId}
-                              </small>
-                            ))}
-                          </div>
+                        <div key={team.id}>
+                          <span
+                            className="foundry-map-team-label"
+                            style={{
+                              left: `${Math.max(8, Math.min(92, building.x))}%`,
+                              top: `${Math.max(7, Math.min(93, building.y - teamRadius - 4))}%`,
+                              ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length],
+                            }}
+                          >
+                            {team.name} - {building.name}
+                          </span>
+                          {members.map((member, memberIndex) => {
+                            const angle = ((Math.PI * 2) / Math.max(members.length, 1)) * memberIndex - Math.PI / 2;
+                            const left = Math.max(6, Math.min(94, building.x + Math.cos(angle) * teamRadius));
+                            const top = Math.max(8, Math.min(92, building.y + Math.sin(angle) * teamRadius));
+                            const roleLabel = member.role === "leader" ? "Rally Leader" : "Joiner";
+                            return (
+                              <span
+                                className={`foundry-map-member ${member.role}`}
+                                key={member.id}
+                                style={{
+                                  left: `${left}%`,
+                                  top: `${top}%`,
+                                  ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length],
+                                }}
+                              >
+                                <span className="foundry-map-member-avatar">
+                                  {member.profile?.avatarImage ? <img src={member.profile.avatarImage} alt="" /> : <Icon name="user" />}
+                                </span>
+                                <span className="foundry-map-member-role">{roleLabel}</span>
+                                <strong>{member.profile?.nickname || member.playerId}</strong>
+                                <small>{member.playerId || "ID"}{member.profile ? ` | F${furnaceDisplay(member.profile)}` : ""}</small>
+                              </span>
+                            );
+                          })}
                         </div>
                       );
                     })}
                   </div>
                 </div>
-
-                <aside className="foundry-plan-panel" aria-label="Foundry building list">
-                  <div className="foundry-panel-head">
-                    <span className="section-kicker">Building Names</span>
-                    <h2>Selectable Targets</h2>
-                    <p>Building names are marked on the map and available in every team row.</p>
-                  </div>
-                  <div className="foundry-building-list">
-                    {foundryBuildings.map((building) => (
-                      <button
-                        type="button"
-                        key={building.id}
-                        onClick={() => updateFoundryTeam(foundryTeams[0]?.id || "", { buildingId: building.id })}
-                      >
-                        <span>{building.name}</span>
-                        <small>{building.phase}</small>
-                      </button>
-                    ))}
-                  </div>
-                </aside>
               </section>
 
               <section className="foundry-team-editor" aria-label="Foundry team editor">
@@ -4872,6 +4891,7 @@ export default function Home() {
                       <div className="foundry-roster-row head">
                         <span>Role</span>
                         <span>Player ID</span>
+                        <span>PFP</span>
                         <span>Name</span>
                         <span>Furnace</span>
                         <span>Status</span>
@@ -4891,6 +4911,9 @@ export default function Home() {
                               }
                             }}
                           />
+                          <span className="foundry-roster-avatar">
+                            {member.profile?.avatarImage ? <img src={member.profile.avatarImage} alt="" /> : <Icon name="user" />}
+                          </span>
                           <span>{member.profile?.nickname || "-"}</span>
                           <span>{member.profile ? furnaceDisplay(member.profile) : "-"}</span>
                           <small>{member.loading ? "Fetching..." : member.status || "-"}</small>
