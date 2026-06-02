@@ -48,10 +48,46 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "chiefCharm" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
+type FoundryMemberRole = "leader" | "joiner";
+
+type FoundryMember = {
+  id: string;
+  role: FoundryMemberRole;
+  playerId: string;
+  status: string;
+  loading: boolean;
+  profile?: PlayerProfile;
+};
+
+type FoundryTeam = {
+  id: string;
+  name: string;
+  buildingId: string;
+  rallyLeader: FoundryMember;
+  joiners: FoundryMember[];
+};
+
+type FoundryBuilding = {
+  id: string;
+  name: string;
+  shortName: string;
+  x: number;
+  y: number;
+  phase: string;
+};
+
+type ChiefCharmLevel = {
+  level: number;
+  design: number;
+  guide: number;
+  secret: number;
+  stat: number;
+  power: number;
+};
 type SiteLanguage = {
   code: string;
   name: string;
@@ -280,6 +316,94 @@ const botWebDashboardScreens = [
   { label: "Auto Redeem", image: "/dashboard-auto-redeem.png", alt: "Whiteout Survival bot auto-redeem settings dashboard screenshot" },
   { label: "Reminders", image: "/dashboard-reminders.png", alt: "Whiteout Survival bot reminders dashboard screenshot" },
 ];
+
+const foundryMapImage = "/foundry-team-planner-map.webp";
+
+const foundryBuildings: FoundryBuilding[] = [
+  { id: "blue-zone", name: "Blue Zone", shortName: "Blue", x: 8, y: 50, phase: "Spawn" },
+  { id: "red-zone", name: "Red Zone", shortName: "Red", x: 91, y: 50, phase: "Spawn" },
+  { id: "imperial-foundry", name: "Imperial Foundry", shortName: "Imperial", x: 50, y: 51, phase: "Phase 2" },
+  { id: "prototype-site-1", name: "Prototype Site 1", shortName: "Proto 1", x: 46, y: 27, phase: "Phase 1" },
+  { id: "prototype-site-2", name: "Prototype Site 2", shortName: "Proto 2", x: 47, y: 75, phase: "Phase 1" },
+  { id: "boiler-room", name: "Boiler Room", shortName: "Boiler", x: 34, y: 17, phase: "Phase 1" },
+  { id: "transit-station", name: "Transit Station", shortName: "Transit", x: 59, y: 17, phase: "Phase 1" },
+  { id: "munitions-warehouse", name: "Munitions Warehouse", shortName: "Munitions", x: 74, y: 48, phase: "Phase 2" },
+  { id: "mercenary-camp", name: "Mercenary Camp", shortName: "Mercenary", x: 26, y: 55, phase: "Phase 2" },
+  { id: "repair-facility-1", name: "Repair Facility 1", shortName: "Repair 1", x: 31, y: 43, phase: "Phase 1" },
+  { id: "repair-facility-2", name: "Repair Facility 2", shortName: "Repair 2", x: 66, y: 59, phase: "Phase 1" },
+  { id: "repair-facility-3", name: "Repair Facility 3", shortName: "Repair 3", x: 35, y: 88, phase: "Phase 1" },
+  { id: "repair-facility-4", name: "Repair Facility 4", shortName: "Repair 4", x: 60, y: 88, phase: "Phase 1" },
+  { id: "weapon-workshop", name: "Weapon Workshop", shortName: "Workshop", x: 50, y: 9, phase: "Phase 3" },
+];
+
+const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
+
+const chiefCharmLevels: ChiefCharmLevel[] = [
+  { level: 1, design: 5, guide: 5, secret: 0, stat: 9, power: 205700 },
+  { level: 2, design: 15, guide: 40, secret: 0, stat: 12, power: 288000 },
+  { level: 3, design: 40, guide: 60, secret: 0, stat: 16, power: 370000 },
+  { level: 4, design: 100, guide: 80, secret: 0, stat: 19, power: 452000 },
+  { level: 5, design: 200, guide: 100, secret: 0, stat: 25, power: 576000 },
+  { level: 6, design: 300, guide: 120, secret: 0, stat: 30, power: 700000 },
+  { level: 7, design: 400, guide: 140, secret: 0, stat: 35, power: 824000 },
+  { level: 8, design: 400, guide: 200, secret: 0, stat: 40, power: 948000 },
+  { level: 9, design: 400, guide: 300, secret: 0, stat: 45, power: 1072000 },
+  { level: 10, design: 420, guide: 420, secret: 0, stat: 50, power: 1196000 },
+  { level: 11, design: 420, guide: 560, secret: 0, stat: 55, power: 1320000 },
+  { level: 12, design: 450, guide: 580, secret: 15, stat: 64, power: 1444000 },
+  { level: 13, design: 450, guide: 580, secret: 30, stat: 73, power: 1568000 },
+  { level: 14, design: 500, guide: 600, secret: 45, stat: 82, power: 1692000 },
+  { level: 15, design: 500, guide: 600, secret: 70, stat: 91, power: 1816000 },
+  { level: 16, design: 550, guide: 650, secret: 100, stat: 100, power: 1940000 },
+];
+
+const chiefCharmSlots = 18;
+const chiefCharmUpgradeSources = [
+  "Official wiki: Furnace Lv.25 unlock, level 11 material exchange, Charm Design, Charm Guide, Charm Secret, power and stat tables.",
+  "H5Joy/WOS app calculator: level 1-16 material costs, stat totals, and exchange ratios.",
+  "Whiteout Survival Data: Jewel Secrets are required from level 12 through 16.",
+  "WOSC community database: calculator sums material needs between current and target levels.",
+];
+
+const emptyChiefCharmCost = { design: 0, guide: 0, secret: 0, power: 0, statGain: 0 };
+
+const levelDataFor = (level: number) => chiefCharmLevels.find((item) => item.level === level);
+
+const charmTotalsBetween = (currentLevel: number, targetLevel: number) =>
+  chiefCharmLevels
+    .filter((item) => item.level > currentLevel && item.level <= targetLevel)
+    .reduce(
+      (total, item) => ({
+        design: total.design + item.design,
+        guide: total.guide + item.guide,
+        secret: total.secret + item.secret,
+        power: total.power + item.power,
+        statGain: total.statGain + item.stat,
+      }),
+      emptyChiefCharmCost,
+    );
+
+const formatNumber = (value: number) => new Intl.NumberFormat("en-US").format(Math.round(value));
+
+const formatPercent = (value: number) => `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
+
+const createFoundryMember = (role: FoundryMemberRole, seed: string): FoundryMember => ({
+  id: `${role}-${seed}`,
+  role,
+  playerId: "",
+  status: "",
+  loading: false,
+});
+
+const createFoundryTeam = (index: number): FoundryTeam => ({
+  id: `team-${index + 1}`,
+  name: `Team ${index + 1}`,
+  buildingId: foundryBuildings.filter((building) => building.phase !== "Spawn")[index % (foundryBuildings.length - 2)].id,
+  rallyLeader: createFoundryMember("leader", `${index + 1}`),
+  joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `${index + 1}-${joinerIndex + 1}`)),
+});
+
+const createFoundryTeams = (count: number) => Array.from({ length: count }, (_, index) => createFoundryTeam(index));
 
 const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
   { label: "All", value: "all" },
@@ -530,7 +654,7 @@ const FOOTER_HIDE_DELAY_MS = 900;
 
 const menuItems = [
   { label: "Browse", icon: "grid", status: "Soon" },
-  { label: "Calculators", icon: "calculator", status: "Soon" },
+  { label: "Calculators", icon: "calculator", status: "Live", menu: "chiefCharm" as ActiveMenu },
   { label: "Tools", icon: "wrench", status: "Soon" },
   { label: "Database", icon: "database", status: "Soon" },
   { label: "More", icon: "book", status: "Soon" },
@@ -649,6 +773,7 @@ const sidebarItems: {
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
+    { label: "Chief Charm Calculator", mobileLabel: "Charms", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator", mobilePrimary: true },
     { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/#foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
@@ -670,6 +795,9 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#state-age": "stateAge",
   "#state-age-tracker": "stateAge",
   "#state-timeline": "stateAge",
+  "#chief-charm-calculator": "chiefCharm",
+  "#chief-charms": "chiefCharm",
+  "#charm-calculator": "chiefCharm",
   "#foundry-team-planner": "planner",
   "#foundry-planner": "planner",
   "#city-layout-planner": "planner",
@@ -699,6 +827,9 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   "state-age": "stateAge",
   stateage: "stateAge",
   timeline: "stateAge",
+  "chief-charm-calculator": "chiefCharm",
+  "chief-charms": "chiefCharm",
+  charms: "chiefCharm",
   planner: "planner",
   templates: "templates",
   "message-templates": "templates",
@@ -715,6 +846,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   gift: "/gift-codes",
   redeem: "/redeem",
   stateAge: "/state-age",
+  chiefCharm: "/chief-charm-calculator",
   planner: "/#foundry-team-planner",
   templates: "/message-templates",
   sneak: "/#sneak-peek",
@@ -750,6 +882,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/state-age")) {
     return "stateAge";
+  }
+
+  if (location.pathname.startsWith("/chief-charm-calculator") || location.pathname.startsWith("/chief-charms")) {
+    return "chiefCharm";
   }
 
   if (location.pathname.startsWith("/message-templates")) {
@@ -811,19 +947,18 @@ const countdownUnits = [
 function SocialProviderLogo({ provider }: { provider: "google" | "discord" }) {
   if (provider === "google") {
     return (
-      <svg className="provider-logo google-logo" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
-        <path fill="#4285f4" d="M17.64 9.204c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.909c1.702-1.567 2.683-3.874 2.683-6.615z" />
-        <path fill="#34a853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.259c-.806.54-1.837.859-3.047.859-2.344 0-4.328-1.583-5.036-3.71H.957v2.332A8.998 8.998 0 0 0 9 18z" />
-        <path fill="#fbbc05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" />
-        <path fill="#ea4335" d="M9 3.58c1.322 0 2.508.454 3.44 1.346l2.582-2.58C13.463.891 11.426 0 9 0A8.998 8.998 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" />
+      <svg className="provider-logo google-logo" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.223 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+        <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
       </svg>
     );
   }
 
   return (
     <svg className="provider-logo discord-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="#5865f2" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z" />
-      <path fill="#fff" d="M16.93 7.22a12.28 12.28 0 0 0-3.02-.93.08.08 0 0 0-.09.04c-.13.24-.28.55-.38.79a11.39 11.39 0 0 0-3.4 0 8.08 8.08 0 0 0-.39-.79.08.08 0 0 0-.08-.04 12.24 12.24 0 0 0-3.03.93.07.07 0 0 0-.03.03c-1.91 2.86-2.44 5.65-2.18 8.4 0 .02.01.04.03.05a12.35 12.35 0 0 0 3.71 1.88.09.09 0 0 0 .09-.03c.29-.39.54-.81.75-1.25a.08.08 0 0 0-.04-.11 8.14 8.14 0 0 1-1.16-.55.08.08 0 0 1-.01-.13l.23-.18a.08.08 0 0 1 .08-.01c2.43 1.11 5.06 1.11 7.46 0a.08.08 0 0 1 .09.01l.23.18a.08.08 0 0 1-.01.13c-.37.22-.75.41-1.16.55a.08.08 0 0 0-.04.11c.22.44.47.86.75 1.25a.08.08 0 0 0 .09.03 12.32 12.32 0 0 0 3.72-1.88.08.08 0 0 0 .03-.05c.32-3.18-.52-5.94-2.18-8.4a.06.06 0 0 0-.04-.03zM9.05 13.98c-.73 0-1.33-.67-1.33-1.49s.59-1.49 1.33-1.49c.75 0 1.35.67 1.33 1.49 0 .82-.59 1.49-1.33 1.49zm4.88 0c-.73 0-1.33-.67-1.33-1.49s.59-1.49 1.33-1.49c.75 0 1.34.67 1.33 1.49 0 .82-.58 1.49-1.33 1.49z" />
+      <path fill="#5865F2" d="M20.317 4.369a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.445.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.371-.291a.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.009c.12.099.245.198.372.292a.077.077 0 0 1-.007.128 12.299 12.299 0 0 1-1.873.891.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.332c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.419 0 1.334-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.419 0 1.334-.946 2.419-2.157 2.419z" />
     </svg>
   );
 }
@@ -1479,6 +1614,17 @@ export default function Home() {
   const [stateAgeResult, setStateAgeResult] = useState<StateAgeResult | null>(null);
   const [stateAgeLoading, setStateAgeLoading] = useState(false);
   const [stateAgeStatus, setStateAgeStatus] = useState("");
+  const [charmCurrentLevel, setCharmCurrentLevel] = useState(0);
+  const [charmTargetLevel, setCharmTargetLevel] = useState(11);
+  const [charmSlotCount, setCharmSlotCount] = useState(chiefCharmSlots);
+  const [ownedCharmDesign, setOwnedCharmDesign] = useState(0);
+  const [ownedCharmGuide, setOwnedCharmGuide] = useState(0);
+  const [ownedCharmSecret, setOwnedCharmSecret] = useState(0);
+  const [foundryLegion, setFoundryLegion] = useState<"1" | "2">("1");
+  const [foundryUtcTime, setFoundryUtcTime] = useState("");
+  const [foundryTeamCount, setFoundryTeamCount] = useState(4);
+  const [foundryTeams, setFoundryTeams] = useState<FoundryTeam[]>(() => createFoundryTeams(4));
+  const [foundryExportStatus, setFoundryExportStatus] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
   const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
@@ -2886,6 +3032,41 @@ export default function Home() {
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu);
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
+  const charmTargetSafe = Math.max(charmCurrentLevel + 1, Math.min(16, charmTargetLevel));
+  const charmSlotSafe = Math.max(1, Math.min(chiefCharmSlots, charmSlotCount));
+  const charmSingleCost = charmTotalsBetween(charmCurrentLevel, charmTargetSafe);
+  const charmAllSlotCost = {
+    design: charmSingleCost.design * charmSlotSafe,
+    guide: charmSingleCost.guide * charmSlotSafe,
+    secret: charmSingleCost.secret * charmSlotSafe,
+    power: charmSingleCost.power * charmSlotSafe,
+    statGain: charmSingleCost.statGain * charmSlotSafe,
+  };
+  const charmCurrentData = levelDataFor(charmCurrentLevel);
+  const charmTargetData = levelDataFor(charmTargetSafe);
+  const charmShortfall = {
+    design: Math.max(0, charmAllSlotCost.design - ownedCharmDesign),
+    guide: Math.max(0, charmAllSlotCost.guide - ownedCharmGuide),
+    secret: Math.max(0, charmAllSlotCost.secret - ownedCharmSecret),
+  };
+  const charmCoverage = {
+    design: charmAllSlotCost.design > 0 ? Math.min(100, (ownedCharmDesign / charmAllSlotCost.design) * 100) : 100,
+    guide: charmAllSlotCost.guide > 0 ? Math.min(100, (ownedCharmGuide / charmAllSlotCost.guide) * 100) : 100,
+    secret: charmAllSlotCost.secret > 0 ? Math.min(100, (ownedCharmSecret / charmAllSlotCost.secret) * 100) : 100,
+  };
+  const charmExchangeToSecret = Math.floor(ownedCharmDesign / 40) + Math.floor(ownedCharmGuide / 40);
+  const charmCanFinish = charmShortfall.design === 0 && charmShortfall.guide === 0 && charmShortfall.secret === 0;
+  const charmEfficiencyRows = chiefCharmLevels.map((level) => {
+    const previous = levelDataFor(level.level - 1);
+    const powerGain = previous ? level.power - previous.power : level.power;
+    const materialCost = level.design + level.guide + level.secret * 40;
+    return { ...level, powerGain, efficiency: materialCost > 0 ? powerGain / materialCost : 0 };
+  });
+  const charmBestEfficiency = [...charmEfficiencyRows].sort((a, b) => b.efficiency - a.efficiency)[0];
+  const charmRecommendation =
+    charmTargetSafe >= 12
+      ? "Plan Secrets before pushing level 12+. The exchange unlocks after one charm reaches level 11."
+      : "Level charms evenly across all 18 slots for cheaper early stat and power gains.";
   const heroFilterCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
     const group = heroFilterFor(hero);
     counts[group] = (counts[group] || 0) + 1;
@@ -2942,6 +3123,277 @@ export default function Home() {
 
     return () => window.cancelAnimationFrame(frame);
   }, [activeMenu, allMessageTemplates]);
+
+  const updateFoundryTeamCount = (count: number) => {
+    setFoundryTeamCount(count);
+    setFoundryTeams((currentTeams) => {
+      if (currentTeams.length === count) {
+        return currentTeams;
+      }
+      if (currentTeams.length > count) {
+        return currentTeams.slice(0, count);
+      }
+      return [
+        ...currentTeams,
+        ...Array.from({ length: count - currentTeams.length }, (_, index) => createFoundryTeam(currentTeams.length + index)),
+      ];
+    });
+  };
+
+  const updateFoundryTeam = (teamId: string, updates: Partial<Pick<FoundryTeam, "name" | "buildingId">>) => {
+    setFoundryTeams((teams) => teams.map((team) => (team.id === teamId ? { ...team, ...updates } : team)));
+  };
+
+  const updateFoundryMember = (teamId: string, memberId: string, updates: Partial<FoundryMember>) => {
+    setFoundryTeams((teams) => teams.map((team) => {
+      if (team.id !== teamId) {
+        return team;
+      }
+
+      if (team.rallyLeader.id === memberId) {
+        return { ...team, rallyLeader: { ...team.rallyLeader, ...updates } };
+      }
+
+      return {
+        ...team,
+        joiners: team.joiners.map((joiner) => (joiner.id === memberId ? { ...joiner, ...updates } : joiner)),
+      };
+    }));
+  };
+
+  const addFoundryJoiner = (teamId: string) => {
+    setFoundryTeams((teams) => teams.map((team) => (
+      team.id === teamId
+        ? { ...team, joiners: [...team.joiners, createFoundryMember("joiner", `${team.id}-${team.joiners.length + 1}-${Date.now()}`)] }
+        : team
+    )));
+  };
+
+  const removeFoundryJoiner = (teamId: string, memberId: string) => {
+    setFoundryTeams((teams) => teams.map((team) => (
+      team.id === teamId
+        ? { ...team, joiners: team.joiners.filter((joiner) => joiner.id !== memberId) }
+        : team
+    )));
+  };
+
+  const lookupFoundryPlayer = async (teamId: string, member: FoundryMember) => {
+    const cleanedPlayerId = member.playerId.replace(/\D/g, "");
+    if (!/^\d{8,9}$/.test(cleanedPlayerId)) {
+      updateFoundryMember(teamId, member.id, { profile: undefined, status: "Enter an 8 or 9 digit ID." });
+      return;
+    }
+
+    updateFoundryMember(teamId, member.id, { loading: true, status: "Fetching player..." });
+    try {
+      const response = await fetch(`${apiBase}/api/daybreak/players/${cleanedPlayerId}`);
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to fetch player.");
+      }
+      updateFoundryMember(teamId, member.id, {
+        playerId: cleanedPlayerId,
+        profile: data.player,
+        status: "Loaded",
+        loading: false,
+      });
+    } catch (error) {
+      updateFoundryMember(teamId, member.id, {
+        profile: undefined,
+        status: error instanceof Error ? error.message : "Unable to fetch player.",
+        loading: false,
+      });
+    }
+  };
+
+  const downloadCanvas = (canvas: HTMLCanvasElement, filename: string) => {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = filename;
+    link.click();
+  };
+
+  const drawFoundryText = (context: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number) => {
+    const words = text.split(" ");
+    let line = "";
+    let lineY = y;
+    words.forEach((word) => {
+      const testLine = line ? `${line} ${word}` : word;
+      if (context.measureText(testLine).width > maxWidth && line) {
+        context.fillText(line, x, lineY);
+        line = word;
+        lineY += 26;
+      } else {
+        line = testLine;
+      }
+    });
+    context.fillText(line, x, lineY);
+    return lineY;
+  };
+
+  const loadFoundryMapForExport = () => new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = foundryMapImage;
+  });
+
+  const exportFoundryMapImage = async () => {
+    setFoundryExportStatus("Preparing map image...");
+    try {
+      const image = await loadFoundryMapForExport();
+      const canvas = document.createElement("canvas");
+      canvas.width = 1800;
+      canvas.height = 1452;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        throw new Error("Canvas export is not available.");
+      }
+
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      context.fillStyle = "rgba(8, 10, 11, 0.72)";
+      context.fillRect(0, 0, canvas.width, 88);
+      context.fillStyle = "#fff";
+      context.font = "700 34px Arial";
+      context.fillText("Foundry Team Planner", 34, 38);
+      context.font = "700 22px Arial";
+      context.fillText(`Legion ${foundryLegion} | ${foundryUtcTime || "UTC time not set"} UTC`, 34, 68);
+
+      foundryBuildings.forEach((building) => {
+        const x = (building.x / 100) * canvas.width;
+        const y = (building.y / 100) * canvas.height;
+        context.fillStyle = "rgba(12, 18, 20, 0.78)";
+        context.strokeStyle = building.phase === "Spawn" ? "#38bdf8" : "#fbbf24";
+        context.lineWidth = 3;
+        context.beginPath();
+        context.roundRect(x - 70, y - 17, 140, 34, 10);
+        context.fill();
+        context.stroke();
+        context.fillStyle = "#fff";
+        context.font = "800 16px Arial";
+        context.textAlign = "center";
+        context.fillText(building.shortName, x, y + 6);
+      });
+
+      foundryTeams.forEach((team, teamIndex) => {
+        const building = foundryBuildings.find((item) => item.id === team.buildingId) || foundryBuildings[2];
+        const color = foundryTeamColors[teamIndex % foundryTeamColors.length];
+        const centerX = (building.x / 100) * canvas.width;
+        const centerY = (building.y / 100) * canvas.height;
+        const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
+        const radius = 92 + (teamIndex % 3) * 34;
+
+        context.strokeStyle = color;
+        context.fillStyle = color;
+        context.lineWidth = 4;
+        context.beginPath();
+        context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        context.stroke();
+
+        context.textAlign = "center";
+        context.font = "900 22px Arial";
+        context.fillStyle = color;
+        context.fillText(team.name, centerX, centerY - radius - 12);
+
+        members.forEach((member, memberIndex) => {
+          const angle = ((Math.PI * 2) / Math.max(members.length, 1)) * memberIndex - Math.PI / 2;
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+          const label = member.profile?.nickname || member.playerId || "Player";
+          const furnace = member.profile ? furnaceDisplay(member.profile) : "";
+          const role = member.role === "leader" ? "RL" : "J";
+
+          context.fillStyle = "rgba(8, 10, 11, 0.86)";
+          context.strokeStyle = color;
+          context.lineWidth = 3;
+          context.beginPath();
+          context.roundRect(x - 82, y - 32, 164, 64, 12);
+          context.fill();
+          context.stroke();
+          context.fillStyle = color;
+          context.font = "900 14px Arial";
+          context.fillText(role, x - 62, y - 8);
+          context.fillStyle = "#fff";
+          context.font = "800 15px Arial";
+          context.fillText(label.slice(0, 18), x + 12, y - 8);
+          context.fillStyle = "#d8dee9";
+          context.font = "700 12px Arial";
+          context.fillText(`${member.playerId || "ID"} ${furnace ? `| F${furnace}` : ""}`.slice(0, 24), x, y + 14);
+        });
+      });
+
+      downloadCanvas(canvas, `foundry-legion-${foundryLegion}-map-plan.png`);
+      setFoundryExportStatus("Map image downloaded.");
+    } catch (error) {
+      setFoundryExportStatus(error instanceof Error ? error.message : "Unable to export map image.");
+    }
+  };
+
+  const exportFoundryTableImage = () => {
+    setFoundryExportStatus("Preparing team table...");
+    const rows = foundryTeams.flatMap((team) => {
+      const building = foundryBuildings.find((item) => item.id === team.buildingId);
+      return [team.rallyLeader, ...team.joiners].map((member) => ({
+        team: team.name,
+        building: building?.name || "Unassigned",
+        role: member.role === "leader" ? "Rally Leader" : "Joiner",
+        playerId: member.playerId || "-",
+        nickname: member.profile?.nickname || "-",
+        furnace: member.profile ? furnaceDisplay(member.profile) : "-",
+      }));
+    });
+    const rowHeight = 42;
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600;
+    canvas.height = 150 + Math.max(rows.length, 1) * rowHeight;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      setFoundryExportStatus("Canvas export is not available.");
+      return;
+    }
+
+    context.fillStyle = "#101314";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#f48120";
+    context.font = "900 36px Arial";
+    context.fillText("Foundry Team Table", 34, 48);
+    context.fillStyle = "#f0ede6";
+    context.font = "800 22px Arial";
+    context.fillText(`Legion ${foundryLegion} | ${foundryUtcTime || "UTC time not set"} UTC`, 34, 84);
+
+    const columns = [
+      ["Team", 34, 180],
+      ["Building", 245, 330],
+      ["Role", 590, 180],
+      ["Player ID", 780, 180],
+      ["Nickname", 990, 300],
+      ["Furnace", 1320, 130],
+    ] as const;
+    context.fillStyle = "#1f2527";
+    context.fillRect(24, 110, 1548, 42);
+    context.font = "900 17px Arial";
+    context.fillStyle = "#f7b267";
+    columns.forEach(([label, x]) => context.fillText(label, x, 137));
+    context.font = "700 17px Arial";
+    rows.forEach((row, index) => {
+      const y = 152 + index * rowHeight;
+      context.fillStyle = index % 2 ? "#15191b" : "#111416";
+      context.fillRect(24, y, 1548, rowHeight);
+      context.fillStyle = "#f0ede6";
+      [row.team, row.building, row.role, row.playerId, row.nickname, row.furnace].forEach((value, columnIndex) => {
+        const [, x, width] = columns[columnIndex];
+        drawFoundryText(context, String(value).slice(0, 34), x, y + 27, width);
+      });
+    });
+
+    downloadCanvas(canvas, `foundry-legion-${foundryLegion}-team-table.png`);
+    setFoundryExportStatus("Team table image downloaded.");
+  };
+
+  const exportFoundryPlanImages = async () => {
+    await exportFoundryMapImage();
+    exportFoundryTableImage();
+  };
 
   const navigateToMenu = (menu: ActiveMenu) => {
     setMobileMoreOpen(false);
@@ -3033,7 +3485,16 @@ export default function Home() {
               </div>
             </div>
             {menuItems.map((item) => (
-              <button type="button" className="menu-trigger" key={item.label}>
+              <button
+                type="button"
+                className={`menu-trigger ${item.menu && activeMenu === item.menu ? "active" : ""}`}
+                key={item.label}
+                onClick={() => {
+                  if (item.menu) {
+                    navigateToMenu(item.menu);
+                  }
+                }}
+              >
                 <span className="menu-status">{item.status}</span>
                 <span className="menu-main">
                   <Icon name={item.icon} />
@@ -3561,6 +4022,266 @@ export default function Home() {
                 )}
               </section>
             </section>
+          ) : activeMenu === "chiefCharm" ? (
+            <section className="home-page chief-charm-page" id="chief-charm-calculator" aria-label="Whiteout Survival Chief Charm calculator">
+              <section className="chief-charm-hero">
+                <div className="chief-charm-hero-copy">
+                  <span className="section-kicker">Chief Gear Calculator</span>
+                  <h1>Chief Charm Calculator</h1>
+                  <p>Plan Charm Design, Charm Guide, and Charm Secret costs from any current level to any target level, for one charm or all 18 chief gear charm slots.</p>
+                  <div className="chief-charm-hero-chips" aria-label="Calculator facts">
+                    <span><Icon name="flame" /> Furnace Lv.25 unlock</span>
+                    <span><Icon name="calculator" /> 18 charm slots</span>
+                    <span><Icon name="database" /> Lv.1-16 data</span>
+                    <span><Icon name="star" /> Exchange at Lv.11</span>
+                  </div>
+                </div>
+                <div className="chief-charm-art" aria-hidden="true">
+                  <div className="charm-gear-ring">
+                    {Array.from({ length: 18 }, (_, index) => (
+                      <span key={index} style={{ ["--slot-angle" as string]: `${index * 20}deg` }} />
+                    ))}
+                  </div>
+                  <div className="charm-core">
+                    <Icon name="star" />
+                    <strong>Lv.{charmTargetSafe}</strong>
+                    <small>{formatPercent(charmTargetData?.stat || 0)} stat</small>
+                  </div>
+                </div>
+              </section>
+
+              <section className="chief-charm-summary" aria-label="Chief Charm result summary">
+                <article className="primary">
+                  <span>Total Power Gain</span>
+                  <strong>{formatNumber(charmAllSlotCost.power)}</strong>
+                  <small>{charmSlotSafe} slot{charmSlotSafe === 1 ? "" : "s"} from Lv.{charmCurrentLevel || 0} to Lv.{charmTargetSafe}</small>
+                </article>
+                <article>
+                  <span>Single Charm Cost</span>
+                  <strong>{formatNumber(charmSingleCost.design + charmSingleCost.guide + charmSingleCost.secret)}</strong>
+                  <small>Raw materials across selected levels</small>
+                </article>
+                <article>
+                  <span>Total Stat Gain</span>
+                  <strong>{formatPercent(charmSingleCost.statGain)}</strong>
+                  <small>Per selected charm slot</small>
+                </article>
+                <article className={charmCanFinish ? "ready" : "short"}>
+                  <span>Inventory Status</span>
+                  <strong>{charmCanFinish ? "Ready" : "Short"}</strong>
+                  <small>{charmCanFinish ? "Owned materials cover this plan" : "Shortfalls listed below"}</small>
+                </article>
+              </section>
+
+              <section className="chief-charm-workbench" aria-label="Chief Charm calculator controls">
+                <div className="chief-charm-panel charm-controls">
+                  <div className="chief-charm-panel-head">
+                    <span>Upgrade Plan</span>
+                    <strong>Current to Target</strong>
+                  </div>
+                  <div className="charm-form-grid">
+                    <label>
+                      <span>Current Level</span>
+                      <select
+                        value={charmCurrentLevel}
+                        onChange={(event) => {
+                          const next = Number(event.currentTarget.value);
+                          setCharmCurrentLevel(next);
+                          if (charmTargetLevel <= next) {
+                            setCharmTargetLevel(Math.min(16, next + 1));
+                          }
+                        }}
+                      >
+                        <option value={0}>Unactivated</option>
+                        {chiefCharmLevels.slice(0, 15).map((level) => (
+                          <option value={level.level} key={level.level}>Level {level.level}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Target Level</span>
+                      <select value={charmTargetSafe} onChange={(event) => setCharmTargetLevel(Number(event.currentTarget.value))}>
+                        {chiefCharmLevels.filter((level) => level.level > charmCurrentLevel).map((level) => (
+                          <option value={level.level} key={level.level}>Level {level.level}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Charm Slots</span>
+                      <input
+                        value={charmSlotCount}
+                        onChange={(event) => setCharmSlotCount(Number(event.currentTarget.value.replace(/\D/g, "")) || 1)}
+                        onBlur={() => setCharmSlotCount(charmSlotSafe)}
+                        inputMode="numeric"
+                      />
+                    </label>
+                  </div>
+                  <div className="charm-level-strip" aria-label="Selected charm level stats">
+                    <span>
+                      <small>Current</small>
+                      <strong>{charmCurrentData ? `${formatPercent(charmCurrentData.stat)} / ${formatNumber(charmCurrentData.power)}` : "Unactivated"}</strong>
+                    </span>
+                    <span>
+                      <small>Target</small>
+                      <strong>{formatPercent(charmTargetData?.stat || 0)} / {formatNumber(charmTargetData?.power || 0)}</strong>
+                    </span>
+                  </div>
+                  <button
+                    className="charm-reset"
+                    type="button"
+                    onClick={() => {
+                      setCharmCurrentLevel(0);
+                      setCharmTargetLevel(11);
+                      setCharmSlotCount(chiefCharmSlots);
+                      setOwnedCharmDesign(0);
+                      setOwnedCharmGuide(0);
+                      setOwnedCharmSecret(0);
+                    }}
+                  >
+                    Reset Calculator
+                  </button>
+                </div>
+
+                <div className="chief-charm-panel charm-inventory">
+                  <div className="chief-charm-panel-head">
+                    <span>Owned Inventory</span>
+                    <strong>Shortfall Check</strong>
+                  </div>
+                  <div className="charm-inventory-inputs">
+                    <label>
+                      <span>Charm Design</span>
+                      <input value={ownedCharmDesign} onChange={(event) => setOwnedCharmDesign(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
+                    </label>
+                    <label>
+                      <span>Charm Guide</span>
+                      <input value={ownedCharmGuide} onChange={(event) => setOwnedCharmGuide(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
+                    </label>
+                    <label>
+                      <span>Charm Secret</span>
+                      <input value={ownedCharmSecret} onChange={(event) => setOwnedCharmSecret(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)} inputMode="numeric" />
+                    </label>
+                  </div>
+                  <div className="charm-shortfall-list">
+                    {[
+                      { label: "Design", needed: charmAllSlotCost.design, owned: ownedCharmDesign, missing: charmShortfall.design, coverage: charmCoverage.design },
+                      { label: "Guide", needed: charmAllSlotCost.guide, owned: ownedCharmGuide, missing: charmShortfall.guide, coverage: charmCoverage.guide },
+                      { label: "Secret", needed: charmAllSlotCost.secret, owned: ownedCharmSecret, missing: charmShortfall.secret, coverage: charmCoverage.secret },
+                    ].map((item) => (
+                      <div className="charm-shortfall-row" key={item.label}>
+                        <div>
+                          <strong>{item.label}</strong>
+                          <span>{formatNumber(item.owned)} / {formatNumber(item.needed)}</span>
+                        </div>
+                        <div className="charm-progress" style={{ ["--coverage" as string]: `${item.coverage}%` }}><span /></div>
+                        <small>{item.missing > 0 ? `${formatNumber(item.missing)} short` : "Covered"}</small>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="chief-charm-results" aria-label="Chief Charm material totals">
+                {[
+                  { label: "Charm Design", value: charmAllSlotCost.design, single: charmSingleCost.design, className: "design" },
+                  { label: "Charm Guide", value: charmAllSlotCost.guide, single: charmSingleCost.guide, className: "guide" },
+                  { label: "Charm Secret", value: charmAllSlotCost.secret, single: charmSingleCost.secret, className: "secret" },
+                  { label: "Power Gain", value: charmAllSlotCost.power, single: charmSingleCost.power, className: "power" },
+                ].map((item) => (
+                  <article className={`charm-result-card ${item.className}`} key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{formatNumber(item.value)}</strong>
+                    <small>{formatNumber(item.single)} for one charm</small>
+                  </article>
+                ))}
+              </section>
+
+              <section className="chief-charm-deep-grid">
+                <article className="chief-charm-panel charm-exchange">
+                  <div className="chief-charm-panel-head">
+                    <span>Material Exchange</span>
+                    <strong>Unlocked after one Lv.11 charm</strong>
+                  </div>
+                  <div className="exchange-grid">
+                    <span><strong>2</strong> Guide <Icon name="chevron" /> <strong>1</strong> Design</span>
+                    <span><strong>2</strong> Design <Icon name="chevron" /> <strong>1</strong> Guide</span>
+                    <span><strong>40</strong> Guide <Icon name="chevron" /> <strong>1</strong> Secret</span>
+                    <span><strong>40</strong> Design <Icon name="chevron" /> <strong>1</strong> Secret</span>
+                  </div>
+                  <p>Your current Design and Guide inventory could convert into up to <strong>{formatNumber(charmExchangeToSecret)}</strong> Secrets before any game-side exchange limits.</p>
+                </article>
+
+                <article className="chief-charm-panel charm-advice">
+                  <div className="chief-charm-panel-head">
+                    <span>Upgrade Advice</span>
+                    <strong>{charmRecommendation}</strong>
+                  </div>
+                  <div className="charm-advice-grid">
+                    <span>
+                      <small>Best early power/material</small>
+                      <strong>Lv.{charmBestEfficiency.level}</strong>
+                    </span>
+                    <span>
+                      <small>Power per weighted material</small>
+                      <strong>{formatNumber(charmBestEfficiency.efficiency)}</strong>
+                    </span>
+                    <span>
+                      <small>Secret wall starts</small>
+                      <strong>Lv.12</strong>
+                    </span>
+                  </div>
+                </article>
+              </section>
+
+              <section className="chief-charm-chart" aria-label="Chief Charm level chart">
+                <div className="chief-charm-chart-head">
+                  <div>
+                    <span className="section-kicker">Reference Chart</span>
+                    <h2>Upgrade Cost, Stat, and Power by Level</h2>
+                  </div>
+                  <a href="https://www.whiteoutsurvival.wiki/wos-calculator/chief-charms/" target="_blank" rel="noreferrer">
+                    Source
+                    <Icon name="external" />
+                  </a>
+                </div>
+                <div className="chief-charm-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Level</th>
+                        <th>Design</th>
+                        <th>Guide</th>
+                        <th>Secret</th>
+                        <th>Stat Total</th>
+                        <th>Power</th>
+                        <th>Gain</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {charmEfficiencyRows.map((level) => (
+                        <tr className={level.level > charmCurrentLevel && level.level <= charmTargetSafe ? "selected" : ""} key={level.level}>
+                          <td>Lv.{level.level}</td>
+                          <td>{formatNumber(level.design)}</td>
+                          <td>{formatNumber(level.guide)}</td>
+                          <td>{level.secret ? formatNumber(level.secret) : "-"}</td>
+                          <td>{formatPercent(level.stat)}</td>
+                          <td>{formatNumber(level.power)}</td>
+                          <td>{formatNumber(level.powerGain)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section className="chief-charm-sources" aria-label="Chief Charm calculator sources">
+                {chiefCharmUpgradeSources.map((source) => (
+                  <article key={source}>
+                    <Icon name="database" />
+                    <span>{source}</span>
+                  </article>
+                ))}
+              </section>
+            </section>
           ) : activeMenu === "wikiHeroes" ? (
             <section className="home-page wiki-page" id="wiki-heroes" aria-label="Whiteout Survival wiki heroes">
               <section className="wiki-hero">
@@ -3728,99 +4449,192 @@ export default function Home() {
             <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
               <section className="foundry-hero">
                 <div>
-                  <span className="section-kicker">Foundry Battle</span>
+                  <span className="section-kicker">Planner Setup</span>
                   <h1>Foundry Team Planner</h1>
-                  <p>Plan teams around the real foundry map, split squads by objective, and keep rally lanes visible before the match starts.</p>
+                  <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan can be exported as a map image and a team table image.</p>
                 </div>
                 <div className="foundry-hero-actions">
-                  <a href="/foundry-team-planner-map.webp" target="_blank" rel="noreferrer">
-                    <Icon name="expand" />
-                    Open Map
-                  </a>
-                  <a href="/foundry-team-planner-map.webp" download>
+                  <button type="button" onClick={() => void exportFoundryPlanImages()}>
                     <Icon name="download" />
-                    Download
-                  </a>
+                    Download Plan Images
+                  </button>
+                </div>
+              </section>
+
+              <section className="foundry-setup-panel" aria-label="Foundry setup steps">
+                <label>
+                  <span>1. Legion</span>
+                  <select value={foundryLegion} onChange={(event) => setFoundryLegion(event.target.value as "1" | "2")}>
+                    <option value="1">Legion 1</option>
+                    <option value="2">Legion 2</option>
+                  </select>
+                </label>
+                <label>
+                  <span>2. Battle Time UTC</span>
+                  <input type="datetime-local" value={foundryUtcTime} onChange={(event) => setFoundryUtcTime(event.target.value)} />
+                </label>
+                <label>
+                  <span>3. Number of Teams</span>
+                  <select value={foundryTeamCount} onChange={(event) => updateFoundryTeamCount(Number(event.target.value))}>
+                    {Array.from({ length: 8 }, (_, index) => index + 1).map((count) => (
+                      <option value={count} key={count}>{count} team{count > 1 ? "s" : ""}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="foundry-export-note">
+                  <strong>{foundryTeams.length}</strong>
+                  <span>editable team table rows</span>
                 </div>
               </section>
 
               <section className="foundry-planner-shell">
                 <div className="foundry-map-panel">
                   <div className="foundry-map-toolbar">
-                    <span><Icon name="mapPin" /> Live map board</span>
+                    <span><Icon name="mapPin" /> Building map</span>
                     <div>
-                      <strong>Red</strong>
-                      <strong>Blue</strong>
-                      <strong>Neutral</strong>
+                      <strong>Legion {foundryLegion}</strong>
+                      <strong>{foundryUtcTime || "UTC time not set"}</strong>
                     </div>
                   </div>
                   <div className="foundry-map-frame">
-                    <img src="/foundry-team-planner-map.webp" alt="Whiteout Survival Foundry battlefield map" />
-                    {[
-                      { label: "Blue Spawn", team: "blue", x: 8, y: 50 },
-                      { label: "Red Spawn", team: "red", x: 91, y: 50 },
-                      { label: "Central Furnace", team: "neutral", x: 50, y: 51 },
-                      { label: "North Left", team: "neutral", x: 34, y: 17 },
-                      { label: "North Right", team: "neutral", x: 59, y: 17 },
-                      { label: "South Left", team: "neutral", x: 35, y: 88 },
-                      { label: "South Right", team: "neutral", x: 60, y: 88 },
-                    ].map((marker) => (
+                    <img src={foundryMapImage} alt="Whiteout Survival Foundry battlefield map" />
+                    {foundryBuildings.map((building) => (
                       <span
-                        className={`foundry-map-marker ${marker.team}`}
-                        key={marker.label}
-                        style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                        className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : "building"}`}
+                        key={building.id}
+                        style={{ left: `${building.x}%`, top: `${building.y}%` }}
                       >
-                        {marker.label}
+                        {building.shortName}
+                        <small>{building.phase}</small>
                       </span>
                     ))}
+                    {foundryTeams.map((team, teamIndex) => {
+                      const building = foundryBuildings.find((item) => item.id === team.buildingId);
+                      if (!building) {
+                        return null;
+                      }
+                      const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
+                      return (
+                        <div
+                          className="foundry-map-team"
+                          key={team.id}
+                          style={{
+                            left: `${building.x}%`,
+                            top: `${building.y}%`,
+                            ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length],
+                          }}
+                        >
+                          <strong>{team.name}</strong>
+                          <span>{building.shortName}</span>
+                          <div className="foundry-map-roster">
+                            {members.slice(0, 6).map((member) => (
+                              <small className={member.role} key={member.id}>
+                                {member.role === "leader" ? "RL" : "J"} {member.profile?.nickname || member.playerId}
+                              </small>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <aside className="foundry-plan-panel" aria-label="Foundry team plan">
+                <aside className="foundry-plan-panel" aria-label="Foundry building list">
                   <div className="foundry-panel-head">
-                    <span className="section-kicker">Squad Sheet</span>
-                    <h2>Team Assignments</h2>
-                    <p>Use this board during planning calls, then copy the roles into Discord or alliance chat.</p>
+                    <span className="section-kicker">Building Names</span>
+                    <h2>Selectable Targets</h2>
+                    <p>Building names are marked on the map and available in every team row.</p>
                   </div>
-                  <div className="foundry-team-grid">
-                    {[
-                      ["Alpha", "Central Furnace", "Main rally, first occupation, reinforce on calls", "blue"],
-                      ["Bravo", "North Buildings", "Secure north pair and rotate to center if pressure drops", "neutral"],
-                      ["Charlie", "South Buildings", "Hold south pair, scout flanks, deny late steals", "neutral"],
-                      ["Delta", "Counter / Flex", "Fast marches, reset enemy occupations, cover weak side", "red"],
-                    ].map(([team, target, note, color]) => (
-                      <article className={`foundry-team-card ${color}`} key={team}>
-                        <div>
-                          <strong>{team}</strong>
-                          <span>{target}</span>
-                        </div>
-                        <p>{note}</p>
-                        <label>
-                          Lead
-                          <input type="text" placeholder="R4 / rally lead" />
-                        </label>
-                        <label>
-                          Members
-                          <input type="text" placeholder="Names or groups" />
-                        </label>
-                      </article>
+                  <div className="foundry-building-list">
+                    {foundryBuildings.map((building) => (
+                      <button
+                        type="button"
+                        key={building.id}
+                        onClick={() => updateFoundryTeam(foundryTeams[0]?.id || "", { buildingId: building.id })}
+                      >
+                        <span>{building.name}</span>
+                        <small>{building.phase}</small>
+                      </button>
                     ))}
                   </div>
                 </aside>
               </section>
 
-              <section className="foundry-brief-grid" aria-label="Foundry planner checklist">
-                {[
-                  ["Opening", "Send Alpha to center, Bravo and Charlie split top and bottom, Delta watches enemy pathing."],
-                  ["Mid Match", "Reinforce occupied targets before rotating. Do not abandon double-held lanes without a call."],
-                  ["Final Push", "Stack speedups for last captures, collapse flex team into the weakest enemy-held objective."],
-                ].map(([title, body], index) => (
-                  <article key={title}>
-                    <span>{index + 1}</span>
-                    <div>
-                      <strong>{title}</strong>
-                      <p>{body}</p>
+              <section className="foundry-team-editor" aria-label="Foundry team editor">
+                <div className="foundry-table-head">
+                  <div>
+                    <span className="section-kicker">4. Team Table</span>
+                    <h2>Edit Teams, Buildings, Leaders, and Joiners</h2>
+                  </div>
+                  <div>
+                    <button type="button" onClick={() => void exportFoundryMapImage()}><Icon name="image" />Map Image</button>
+                    <button type="button" onClick={exportFoundryTableImage}><Icon name="barChart" />Table Image</button>
+                  </div>
+                </div>
+                {foundryExportStatus && <p className="foundry-export-status">{foundryExportStatus}</p>}
+                {foundryTeams.map((team, teamIndex) => (
+                  <article className="foundry-team-table" key={team.id}>
+                    <header>
+                      <label>
+                        Team Name
+                        <input value={team.name} onChange={(event) => updateFoundryTeam(team.id, { name: event.target.value })} />
+                      </label>
+                      <label>
+                        Building
+                        <select value={team.buildingId} onChange={(event) => updateFoundryTeam(team.id, { buildingId: event.target.value })}>
+                          {foundryBuildings.filter((building) => building.phase !== "Spawn").map((building) => (
+                            <option value={building.id} key={building.id}>{building.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <span style={{ ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length] }}>
+                        Team {teamIndex + 1}
+                      </span>
+                    </header>
+                    <div className="foundry-roster-table">
+                      <div className="foundry-roster-row head">
+                        <span>Role</span>
+                        <span>Player ID</span>
+                        <span>Name</span>
+                        <span>Furnace</span>
+                        <span>Status</span>
+                        <span>Action</span>
+                      </div>
+                      {[team.rallyLeader, ...team.joiners].map((member) => (
+                        <div className="foundry-roster-row" key={member.id}>
+                          <strong>{member.role === "leader" ? "Rally Leader" : "Joiner"}</strong>
+                          <input
+                            value={member.playerId}
+                            inputMode="numeric"
+                            placeholder="Player ID"
+                            onChange={(event) => updateFoundryMember(team.id, member.id, { playerId: event.target.value.replace(/\D/g, ""), status: "", profile: undefined })}
+                            onBlur={() => {
+                              if (member.playerId) {
+                                void lookupFoundryPlayer(team.id, member);
+                              }
+                            }}
+                          />
+                          <span>{member.profile?.nickname || "-"}</span>
+                          <span>{member.profile ? furnaceDisplay(member.profile) : "-"}</span>
+                          <small>{member.loading ? "Fetching..." : member.status || "-"}</small>
+                          <div>
+                            <button type="button" onClick={() => void lookupFoundryPlayer(team.id, member)} disabled={member.loading}>
+                              <Icon name="search" />
+                              Fetch
+                            </button>
+                            {member.role === "joiner" && (
+                              <button type="button" className="danger" onClick={() => removeFoundryJoiner(team.id, member.id)}>
+                                <Icon name="trash" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
+                    <button className="foundry-add-joiner" type="button" onClick={() => addFoundryJoiner(team.id)}>
+                      <Icon name="plus" />
+                      Add Joiner
+                    </button>
                   </article>
                 ))}
               </section>
