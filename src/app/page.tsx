@@ -5001,10 +5001,6 @@ export default function Home() {
                           <button type="button" key={`${template.id}-${tag}`} onClick={() => setSelectedTemplateTag(tag)}>{tag}</button>
                         ))}
                       </div>
-                      <div className="template-metrics">
-                        <span>{template.creatorName || "Community"}</span>
-                        <span>{Array.from(template.text).length} chars</span>
-                      </div>
                     </footer>
                     <footer className="template-action-footer">
                       <button
@@ -6003,8 +5999,6 @@ export default function Home() {
               <h2>{templateViewer.title}</h2>
               {templateViewer.description && <p>{templateViewer.description}</p>}
               <div className="template-detail-meta">
-                <span>{templateViewer.creatorName || "Community"}</span>
-                <span>{Array.from(templateViewer.text).length} chars</span>
                 <span>{templateViewer.likes || 0} likes</span>
                 <span>{templateViewer.shares || 0} shares</span>
               </div>

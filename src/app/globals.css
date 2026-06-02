@@ -4105,7 +4105,6 @@ body {
 
 .template-card-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(94px, 0.42fr);
   align-items: start;
   gap: 7px;
   border-top: 1px solid var(--border);
@@ -4121,8 +4120,7 @@ body {
   overflow: hidden;
 }
 
-.template-tags button,
-.template-metrics span {
+.template-tags button {
   display: inline-flex;
   min-height: 20px;
   align-items: center;
@@ -4139,19 +4137,6 @@ body {
 
 .template-tags button {
   cursor: pointer;
-}
-
-.template-metrics {
-  display: grid;
-  align-content: start;
-  gap: 4px;
-}
-
-.template-metrics span {
-  min-width: 0;
-  justify-content: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .template-action-footer {
@@ -7712,8 +7697,7 @@ body {
     gap: 5px;
   }
 
-  .template-tags,
-  .template-metrics {
+  .template-tags {
     gap: 4px;
   }
 
@@ -7721,12 +7705,7 @@ body {
     max-height: 40px;
   }
 
-  .template-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .template-tags button,
-  .template-metrics span {
+  .template-tags button {
     min-height: 18px;
     padding: 0 5px;
     font-size: 9px;
