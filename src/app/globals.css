@@ -17137,10 +17137,18 @@ body {
 .primary-cta,
 .secondary-cta,
 .submit-button {
-  border-color: var(--control-border);
+  border: 1px solid var(--control-border);
   background-color: var(--control-surface);
   color: var(--foreground);
   box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent);
+}
+
+.menu-trigger,
+.sidebar-item,
+.mobile-more-item,
+.language-button,
+.sign-in {
+  color: color-mix(in srgb, var(--foreground) 88%, var(--muted-foreground));
 }
 
 .dark :is(
