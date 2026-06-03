@@ -6838,7 +6838,39 @@ export default function Home() {
             </section>
           )}
 
-          <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
+          <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`} aria-label="Site footer">
+            <div className="footer-brand-block">
+              <span className="footer-brand-mark">
+                <Image src="/wos-logo.png" alt="" width={34} height={34} />
+              </span>
+              <div>
+                <strong>WhiteoutSurvival.dev</strong>
+                <p>Your companion for Whiteout Survival tools, guides, calculators, and Discord bot features.</p>
+                <small>This is a fan-made website for Whiteout Survival, not the official game website.</small>
+              </div>
+            </div>
+            <nav className="footer-link-groups" aria-label="Footer links">
+              <div>
+                <strong>Popular Tools</strong>
+                <a href="/gift-codes" onClick={(event) => { event.preventDefault(); navigateToMenu("gift"); }}>Gift Codes</a>
+                <a href="/chief-gear-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefGear"); }}>Chief Gear</a>
+                <a href="/state-age" onClick={(event) => { event.preventDefault(); navigateToMenu("stateAge"); }}>State Age Tracker</a>
+              </div>
+              <div>
+                <strong>Resources</strong>
+                <a href="/wiki/heroes" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiHeroes"); }}>Heroes Wiki</a>
+                <a href="/wiki/buildings" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiBuildings"); }}>Buildings Wiki</a>
+                <a href="/message-templates" onClick={(event) => { event.preventDefault(); navigateToMenu("templates"); }}>Message Templates</a>
+              </div>
+              <div>
+                <strong>Community</strong>
+                <a className="footer-discord-link" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
+                  <Image src="/discord-logo.png" alt="" width={18} height={18} />
+                  Discord Community
+                </a>
+                <a href="#discord-bot" onClick={(event) => { event.preventDefault(); navigateToMenu("bot"); }}>Discord Bot</a>
+              </div>
+            </nav>
             <p className="footer-credit">
               <span>Built for WOS community - By</span>
               <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
