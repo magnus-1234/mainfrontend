@@ -3488,17 +3488,35 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
 
     setDeletingTemplateId(template.id);
     setTemplateStatus("");
+    const deleteTemplateLocally = () => {
+      const nextStored = readStoredMessageTemplates().filter((item) => item.id !== template.id);
+      writeStoredMessageTemplates(nextStored);
+      setCommunityTemplates((current) => current.filter((item) => item.id !== template.id));
+      setTemplateViewer((current) => (current?.id === template.id ? null : current));
+      setTemplateImageViewer((current) => (current?.id === template.id ? null : current));
+      setShareTemplateTarget((current) => (current?.id === template.id ? null : current));
+      setTemplateStatus("Template deleted.");
+    };
     try {
+      if (template.id.startsWith("local-template-")) {
+        deleteTemplateLocally();
+        return;
+      }
       const response = await fetch(`${apiBase}/api/message-templates/${template.id}`, {
         method: "DELETE",
         credentials: "include",
-      });
+      }).catch(() => null);
+      if (!response) {
+        deleteTemplateLocally();
+        return;
+      }
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to delete template");
+        deleteTemplateLocally();
+        setTemplateStatus(data?.error ? `Template removed locally. Remote delete failed: ${data.error}` : "Template removed locally.");
+        return;
       }
-      setCommunityTemplates((current) => current.filter((item) => item.id !== template.id));
-      setTemplateStatus("Template deleted.");
+      deleteTemplateLocally();
     } catch (error) {
       setTemplateStatus(error instanceof Error ? error.message : "Unable to delete template");
     } finally {
