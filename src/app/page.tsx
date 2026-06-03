@@ -304,6 +304,7 @@ type MessageTemplate = {
   categories?: MessageTemplateAssignableCategory[];
   description: string;
   text: string;
+  rawText?: string;
   previewText?: string;
   iconCode?: string;
   iconGlyph?: string;
@@ -912,6 +913,26 @@ const messageTemplatesStorageKey = "whiteoutsurvival-message-templates-local-v1"
 
 const normalizeTemplateCopyText = (text: string) => text.replace(/\r\n?/g, "\n");
 
+const templateCopyTextFor = (template: MessageTemplate) => normalizeTemplateCopyText(template.rawText ?? template.text ?? "");
+
+const copyPlainTextExact = async (text: string) => {
+  if (!navigator.clipboard) {
+    throw new Error("Clipboard unavailable");
+  }
+  if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/plain": new Blob([text], { type: "text/plain" }),
+      }),
+    ]);
+    return;
+  }
+  if (!navigator.clipboard.writeText) {
+    throw new Error("Clipboard unavailable");
+  }
+  await navigator.clipboard.writeText(text);
+};
+
 const exactTemplateTextFromForm = (form: HTMLFormElement) => {
   const textField = form.elements.namedItem("text");
   if (textField instanceof HTMLTextAreaElement) {
@@ -928,6 +949,7 @@ const normalizeLocalMessageTemplate = (template: MessageTemplate): MessageTempla
     categories,
     canManage: true,
     text: normalizeTemplateCopyText(template.text || ""),
+    rawText: normalizeTemplateCopyText(template.rawText ?? template.text ?? ""),
   };
 };
 
@@ -3317,6 +3339,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       categories: categories.length ? categories : ["state-transfer-chat"],
       description: String(body.get("description") || "").trim(),
       text: normalizeTemplateCopyText(String(body.get("text") ?? "")),
+      rawText: normalizeTemplateCopyText(String(body.get("text") ?? "")),
       imageUrl: String(body.get("imageUrl") || "").trim() || existingTemplate?.imageUrl || "",
       tags: String(body.get("tags") || "")
         .split(/[\s,#]+/)
@@ -3613,27 +3636,13 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   };
 
   const copyMessageTemplate = async (template: MessageTemplate) => {
-    const copyText = normalizeTemplateCopyText(template.text || "");
+    const copyText = templateCopyTextFor(template);
     setCopiedTemplateId(template.id);
     window.setTimeout(() => setCopiedTemplateId((current) => (current === template.id ? "" : current)), 1600);
     try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard unavailable");
-      }
-      await navigator.clipboard.writeText(copyText);
+      await copyPlainTextExact(copyText);
     } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = copyText;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      const copied = document.execCommand("copy");
-      document.body.removeChild(textarea);
-      if (!copied) {
-        window.setTimeout(() => window.prompt("Copy message template", copyText), 0);
-      }
+      setTemplateStatus("Clipboard unavailable. Use a browser that allows clipboard access for exact WOS art copy.");
     }
   };
 
