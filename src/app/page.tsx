@@ -910,6 +910,16 @@ const templateCategoryLabelsFor = (template: MessageTemplate) =>
 
 const messageTemplatesStorageKey = "whiteoutsurvival-message-templates-local-v1";
 
+const normalizeTemplateCopyText = (text: string) => text.replace(/\r\n?/g, "\n");
+
+const exactTemplateTextFromForm = (form: HTMLFormElement) => {
+  const textField = form.elements.namedItem("text");
+  if (textField instanceof HTMLTextAreaElement) {
+    return normalizeTemplateCopyText(textField.value);
+  }
+  return normalizeTemplateCopyText(String(new FormData(form).get("text") ?? ""));
+};
+
 const normalizeLocalMessageTemplate = (template: MessageTemplate): MessageTemplate => {
   const categories = templateCategoriesFor(template);
   return {
@@ -917,6 +927,7 @@ const normalizeLocalMessageTemplate = (template: MessageTemplate): MessageTempla
     category: categories[0],
     categories,
     canManage: true,
+    text: normalizeTemplateCopyText(template.text || ""),
   };
 };
 
@@ -3305,7 +3316,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       category: categories[0] || "state-transfer-chat",
       categories: categories.length ? categories : ["state-transfer-chat"],
       description: String(body.get("description") || "").trim(),
-      text: String(body.get("text") ?? ""),
+      text: normalizeTemplateCopyText(String(body.get("text") ?? "")),
       imageUrl: String(body.get("imageUrl") || "").trim() || existingTemplate?.imageUrl || "",
       tags: String(body.get("tags") || "")
         .split(/[\s,#]+/)
@@ -3347,6 +3358,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       const form = event.currentTarget;
       const body = new FormData(form);
       const title = String(body.get("title") || "").trim();
+      const exactText = exactTemplateTextFromForm(form);
       const categories = body
         .getAll("categories")
         .map((value) => String(value).trim())
@@ -3356,6 +3368,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       body.set("title", title || "Untitled template");
       body.delete("categories");
       body.set("category", primaryCategory);
+      body.set("text", exactText);
       body.set("tags", tags);
       const imageFile = body.get("image");
       if (!(imageFile instanceof File) || imageFile.size === 0) {
@@ -3600,16 +3613,17 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   };
 
   const copyMessageTemplate = async (template: MessageTemplate) => {
+    const copyText = normalizeTemplateCopyText(template.text || "");
     setCopiedTemplateId(template.id);
     window.setTimeout(() => setCopiedTemplateId((current) => (current === template.id ? "" : current)), 1600);
     try {
       if (!navigator.clipboard?.writeText) {
         throw new Error("Clipboard unavailable");
       }
-      await navigator.clipboard.writeText(template.text);
+      await navigator.clipboard.writeText(copyText);
     } catch {
       const textarea = document.createElement("textarea");
-      textarea.value = template.text;
+      textarea.value = copyText;
       textarea.setAttribute("readonly", "");
       textarea.style.position = "fixed";
       textarea.style.left = "-9999px";
@@ -3618,7 +3632,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       const copied = document.execCommand("copy");
       document.body.removeChild(textarea);
       if (!copied) {
-        window.setTimeout(() => window.prompt("Copy message template", template.text), 0);
+        window.setTimeout(() => window.prompt("Copy message template", copyText), 0);
       }
     }
   };
