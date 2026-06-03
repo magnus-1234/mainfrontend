@@ -32,7 +32,7 @@ const validCategories = new Set([
 ]);
 
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || "";
-const mongoDbName = process.env.MONGODB_DB || process.env.MONGO_DB || "wosbot";
+const mongoDbName = process.env.MONGODB_DB || process.env.MONGO_DB || process.env.MONGO_DB_NAME || "wosbot";
 
 declare global {
   var messageTemplatesMongoClient: MongoClient | undefined;
