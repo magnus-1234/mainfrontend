@@ -1,5 +1,7 @@
 import { MongoClient, type Collection, type Document } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import fs from "node:fs";
+import path from "node:path";
 
 type MessageTemplateDoc = {
   id: string;
@@ -31,8 +33,52 @@ const validCategories = new Set([
   "nsfw",
 ]);
 
-const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || "";
-const mongoDbName = process.env.MONGODB_DB || process.env.MONGO_DB || process.env.MONGO_DB_NAME || "wosbot";
+let envFileValues: Record<string, string> | null = null;
+
+const readEnvFileValues = () => {
+  if (envFileValues) {
+    return envFileValues;
+  }
+
+  envFileValues = {};
+  const candidates = [
+    process.cwd(),
+    path.resolve(process.cwd(), ".."),
+    path.resolve(process.cwd(), "..", ".."),
+  ].flatMap((dir) => [path.join(dir, ".env.local"), path.join(dir, ".env.production"), path.join(dir, ".env")]);
+
+  for (const filePath of candidates) {
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+    const content = fs.readFileSync(filePath, "utf8");
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
+        continue;
+      }
+      const [key, ...rest] = trimmed.split("=");
+      const value = rest.join("=").trim().replace(/^['"]|['"]$/g, "");
+      if (key && !(key in envFileValues)) {
+        envFileValues[key.trim()] = value;
+      }
+    }
+  }
+
+  return envFileValues;
+};
+
+const envValue = (...names: string[]) => {
+  const fromProcess = names.map((name) => process.env[name]).find((value) => value && value.trim());
+  if (fromProcess) {
+    return fromProcess;
+  }
+  const fromFile = readEnvFileValues();
+  return names.map((name) => fromFile[name]).find((value) => value && value.trim()) || "";
+};
+
+const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
+const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "wosbot";
 
 declare global {
   var messageTemplatesMongoClient: MongoClient | undefined;
