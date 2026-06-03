@@ -306,6 +306,7 @@ type MessageTemplate = {
 };
 
 const giftCodesStorageKey = "whiteoutsurvival-gift-codes-cache-v1";
+const feedbackBannerStorageKey = "whiteoutsurvival-feedback-banner-hidden-until";
 
 const readStoredGiftCodes = (): GiftCodePayload | null => {
   if (typeof window === "undefined") {
@@ -2047,6 +2048,14 @@ function LanguageSwitcher() {
 export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
   const [layoutOpen, setLayoutOpen] = useState(false);
+  const [feedbackBannerVisible, setFeedbackBannerVisible] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+
+    const hiddenUntil = Number(localStorage.getItem(feedbackBannerStorageKey) || "0");
+    return !hiddenUntil || hiddenUntil <= Date.now();
+  });
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
   const [hideTopNav, setHideTopNav] = useState(false);
@@ -2176,6 +2185,12 @@ export default function Home() {
     localStorage.setItem("daybreak-viewer-id", stored);
     return stored;
   });
+  const hideFeedbackBanner = () => {
+    const hiddenUntil = Date.now() + 14 * 24 * 60 * 60 * 1000;
+    localStorage.setItem(feedbackBannerStorageKey, String(hiddenUntil));
+    setFeedbackBannerVisible(false);
+  };
+
   const effectiveSidebarWidth = collapsedSidebar ? 48 : sidebarWidth;
   const linkedUploadPlayerIds = authUser?.playerAccounts.map((player) => player.playerId) || [];
   const defaultUploadPlayerId = authUser?.playerAccounts[0]?.playerId || "";
@@ -4690,6 +4705,24 @@ export default function Home() {
         </div>
       )}
 
+      {feedbackBannerVisible && (
+        <section className="feedback-banner" aria-label="Website feedback notice">
+          <span className="feedback-banner-icon"><Icon name="shield" /></span>
+          <p>
+            This site is still in progress. Please give us feedback on our{" "}
+            <a href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">Discord community</a>.
+          </p>
+          <button className="feedback-banner-hide" type="button" onClick={hideFeedbackBanner}>
+            <Icon name="x" />
+            Hide for 14 days
+          </button>
+          <a className="feedback-banner-discord" href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">
+            <img src="/discord-logo.png" alt="" />
+            Join our Discord community
+          </a>
+        </section>
+      )}
+
       <header className="ks-header">
         <div className="ks-header-inner">
           <button
@@ -5108,40 +5141,6 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
-
-                <aside className="landing-updates" aria-label="Recently updated">
-                  <div className="landing-updates-head">
-                    <div>
-                      <span className="section-kicker">Recently updated</span>
-                      <h2>Latest improvements</h2>
-                    </div>
-                    <button type="button" onClick={() => navigateToMenu("sneak")}>View all</button>
-                  </div>
-                  <div className="landing-update-list">
-                    {[
-                      ["v 2.4", "Home page rebuilt as a cleaner companion portal."],
-                      ["v 2.3", "Chief gear and charm calculators refined for upgrade planning."],
-                      ["v 2.2", "Foundry planner sharing and message templates expanded."],
-                    ].map(([version, text]) => (
-                      <article key={version}>
-                        <span>{version}</span>
-                        <p>{text}</p>
-                      </article>
-                    ))}
-                  </div>
-                  <div className="landing-stat-row" aria-label="Site stats">
-                    {[
-                      [`${giftCodes.length || fallbackBotMetrics.giftCodes}`, "Active codes"],
-                      [botMetrics.servers, "Bot servers"],
-                      ["12", "Tools"],
-                    ].map(([value, label]) => (
-                      <span key={label}>
-                        <strong>{value}</strong>
-                        <small>{label}</small>
-                      </span>
-                    ))}
-                  </div>
-                </aside>
               </section>
 
               <section className="landing-section" aria-label="Featured tools">
