@@ -1,29 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const blockedUserAgentPatterns = [
-  /ahrefs/i,
-  /archive\.org/i,
-  /baiduspider/i,
-  /bot\b/i,
-  /crawler/i,
   /curl/i,
-  /facebookexternalhit/i,
   /go-http-client/i,
   /headless/i,
   /httpclient/i,
   /libwww-perl/i,
-  /lighthouse/i,
   /masscan/i,
   /nikto/i,
   /nmap/i,
-  /petalbot/i,
   /python-requests/i,
   /scrapy/i,
-  /semrush/i,
-  /slurp/i,
-  /spider/i,
   /wget/i,
-  /yandex/i,
   /zgrab/i,
 ];
 
@@ -50,7 +38,6 @@ const guardedApiPrefixes = [
 const blockedResponseHeaders = {
   "Cache-Control": "no-store",
   "X-Content-Type-Options": "nosniff",
-  "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
 };
 
 const isLikelyAutomated = (request: NextRequest) => {
@@ -84,9 +71,7 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  const response = NextResponse.next();
-  response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet, noimageindex");
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

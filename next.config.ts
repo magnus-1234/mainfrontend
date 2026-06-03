@@ -68,10 +68,6 @@ const securityHeaders = [
     key: "X-Permitted-Cross-Domain-Policies",
     value: "none",
   },
-  {
-    key: "X-Robots-Tag",
-    value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
-  },
 ];
 
 const nextConfig: NextConfig = {
@@ -105,6 +101,10 @@ const nextConfig: NextConfig = {
         destination: "/?menu=state-age",
       },
       {
+        source: "/foundry-team-planner",
+        destination: "/?menu=planner",
+      },
+      {
         source: "/chief-charm-calculator",
         destination: "/?menu=chief-charm-calculator",
       },
@@ -123,6 +123,18 @@ const nextConfig: NextConfig = {
       {
         source: "/message-templates",
         destination: "/?menu=message-templates",
+      },
+      {
+        source: "/sneak-peek",
+        destination: "/?menu=sneak",
+      },
+      {
+        source: "/daybreak-island",
+        destination: "/?menu=daybreak",
+      },
+      {
+        source: "/discord-bot",
+        destination: "/?menu=bot",
       },
       {
         source: "/wiki/heroes",
