@@ -22,8 +22,6 @@ type GiftCodeInput = {
 const backendCandidates = [
   process.env.BACKEND_URL,
   process.env.NEXT_PUBLIC_API_BASE_URL,
-  "http://localhost:3001",
-  "http://140.245.201.209:3001",
 ].filter(Boolean) as string[];
 
 const clean = (value: unknown, fallback = "") => {
@@ -33,7 +31,7 @@ const clean = (value: unknown, fallback = "") => {
 
 const toCode = (value: unknown) => clean(value).replace(/[^A-Za-z0-9]/g, "");
 
-const fetchWithTimeout = (url: string, init: RequestInit = {}, timeoutMs = 7000) =>
+const fetchWithTimeout = (url: string, init: RequestInit = {}, timeoutMs = 5000) =>
   fetch(url, {
     ...init,
     signal: AbortSignal.timeout(timeoutMs),

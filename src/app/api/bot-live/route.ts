@@ -14,6 +14,20 @@ const numberFrom = (...values: unknown[]) => {
   return 0;
 };
 
+const countActiveGiftCodes = (feed: Record<string, unknown>, summary: Record<string, unknown>) => {
+  const giftCodes = Array.isArray(feed.gift_codes) ? feed.gift_codes : null;
+  if (giftCodes) {
+    return giftCodes.filter((item) => {
+      if (!item || typeof item !== "object") {
+        return false;
+      }
+      return String((item as Record<string, unknown>).status || "").toLowerCase() === "active";
+    }).length;
+  }
+
+  return numberFrom(summary.active_gift_codes);
+};
+
 export async function GET() {
   try {
     const [statusResponse, feedResponse] = await Promise.all([
@@ -38,7 +52,7 @@ export async function GET() {
       monitoredMembers: numberFrom(summary.monitored_members, summary.members),
       activeMonitors: numberFrom(summary.active_monitors),
       autoRedeemServers: numberFrom(summary.auto_redeem_servers),
-      activeGiftCodes: numberFrom(summary.active_gift_codes),
+      activeGiftCodes: countActiveGiftCodes(feed, summary),
       latencyMs: numberFrom(summary.latency_ms, status.latency_ms),
       source: "bot-dashboard-live",
     });
