@@ -413,6 +413,37 @@ const foundryBuildings: FoundryBuilding[] = [
 ];
 
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
+const foundryLeaderColor = "#facc15";
+
+const foundryMapStackOffset = (memberIndex: number, memberCount: number) => {
+  if (memberIndex === 0) {
+    return { x: 0, y: -3.2 };
+  }
+  const joiners = Math.max(1, memberCount - 1);
+  const columns = Math.min(2, joiners);
+  const joinerIndex = memberIndex - 1;
+  const column = joinerIndex % columns;
+  const row = Math.floor(joinerIndex / columns);
+  return {
+    x: (column - (columns - 1) / 2) * 8.8,
+    y: 2.4 + row * 4.4,
+  };
+};
+
+const foundryExportStackOffset = (memberIndex: number, memberCount: number) => {
+  if (memberIndex === 0) {
+    return { x: 0, y: -54 };
+  }
+  const joiners = Math.max(1, memberCount - 1);
+  const columns = Math.min(2, joiners);
+  const joinerIndex = memberIndex - 1;
+  const column = joinerIndex % columns;
+  const row = Math.floor(joinerIndex / columns);
+  return {
+    x: (column - (columns - 1) / 2) * 206,
+    y: 8 + row * 58,
+  };
+};
 
 const chiefCharmLevels: ChiefCharmLevel[] = [
   { level: 1, design: 5, guide: 5, secret: 0, stat: 9, power: 205700 },
@@ -4068,7 +4099,7 @@ export default function Home() {
     color: string,
     avatar?: HTMLImageElement | null,
   ) => {
-    const role = member.role === "leader" ? "LEADER" : "JOINER";
+    const role = member.role === "leader" ? "RALLY" : "JOINER";
     const label = foundryMemberName(member);
 
     context.fillStyle = "rgba(10, 14, 16, 0.9)";
@@ -4219,50 +4250,37 @@ export default function Home() {
 
       allFoundryTeams.forEach((team, teamIndex) => {
         const building = foundryBuildings.find((item) => item.id === team.buildingId) || foundryBuildings[2];
-        const color = foundryTeamColors[teamIndex % foundryTeamColors.length];
+        const teamColor = foundryTeamColors[teamIndex % foundryTeamColors.length];
         const centerX = (building.x / 100) * canvas.width;
         const centerY = (building.y / 100) * canvas.height;
         const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
         if (!members.length) {
           return;
         }
+        const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
+        const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
+        const stackY = (buildingTeamIndex - (teamsAtBuilding.length - 1) / 2) * 180;
 
-        const radiusX = 176 + (teamIndex % 2) * 42;
-        const radiusY = 116 + (teamIndex % 3) * 28;
-        context.strokeStyle = color;
-        context.lineWidth = 2;
-        context.setLineDash([8, 10]);
-        context.beginPath();
-        context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
-        context.stroke();
-        context.setLineDash([]);
-
-        context.fillStyle = "rgba(8, 10, 11, 0.88)";
-        context.strokeStyle = color;
+        context.fillStyle = "rgba(8, 10, 11, 0.9)";
+        context.strokeStyle = teamColor;
         context.lineWidth = 2;
         context.beginPath();
-        context.roundRect(centerX - 112, centerY - radiusY - 54, 224, 36, 12);
+        context.roundRect(centerX - 124, centerY - 108 + stackY, 248, 36, 12);
         context.fill();
         context.stroke();
         context.textAlign = "center";
-        context.fillStyle = color;
+        context.fillStyle = teamColor;
         context.font = "900 15px Arial";
-        context.fillText(`${team.name} - ${building.name}`.slice(0, 34), centerX, centerY - radiusY - 31);
+        context.fillText(`${team.name} - ${building.name}`.slice(0, 36), centerX, centerY - 85 + stackY);
 
         members.forEach((member, memberIndex) => {
-          const angle = ((Math.PI * 2) / Math.max(members.length, 1)) * memberIndex - Math.PI / 2;
-          const chipWidth = member.role === "leader" ? 190 : 172;
-          const rawX = centerX + Math.cos(angle) * radiusX;
-          const rawY = centerY + Math.sin(angle) * radiusY;
+          const offset = foundryExportStackOffset(memberIndex, members.length);
+          const chipWidth = member.role === "leader" ? 206 : 176;
+          const rawX = centerX + offset.x;
+          const rawY = centerY + offset.y + stackY;
           const x = Math.max(24, Math.min(canvas.width - chipWidth - 24, rawX - chipWidth / 2));
           const y = Math.max(126, Math.min(canvas.height - 64, rawY - 24));
-          context.strokeStyle = "rgba(255, 255, 255, 0.72)";
-          context.lineWidth = 1;
-          context.beginPath();
-          context.moveTo(centerX, centerY);
-          context.lineTo(x + chipWidth / 2, y + 24);
-          context.stroke();
-          drawFoundryMemberChip(context, member, x, y, chipWidth, color, avatarImages.get(member.id));
+          drawFoundryMemberChip(context, member, x, y, chipWidth, member.role === "leader" ? foundryLeaderColor : teamColor, avatarImages.get(member.id));
         });
       });
 
@@ -5996,25 +6014,28 @@ export default function Home() {
                         return null;
                       }
                       const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
-                      const rosterRadius = building.id === "imperial-foundry" ? 10 : 8;
-                      const teamRadius = rosterRadius + (teamIndex % 3) * 2;
+                      const teamColor = foundryTeamColors[teamIndex % foundryTeamColors.length];
+                      const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
+                      const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
+                      const stackY = (buildingTeamIndex - (teamsAtBuilding.length - 1) / 2) * 9.2;
                       return (
                         <div key={team.id}>
                           <span
                             className="foundry-map-team-label"
                             style={{
                               left: `${Math.max(8, Math.min(92, building.x))}%`,
-                              top: `${Math.max(7, Math.min(93, building.y - teamRadius - 4))}%`,
-                              ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length],
+                              top: `${Math.max(7, Math.min(93, building.y - 7.4 + stackY))}%`,
+                              ["--foundry-team-color" as string]: teamColor,
                             }}
                           >
                             {team.name} - {building.name}
                           </span>
                           {members.map((member, memberIndex) => {
-                            const angle = ((Math.PI * 2) / Math.max(members.length, 1)) * memberIndex - Math.PI / 2;
-                            const left = Math.max(6, Math.min(94, building.x + Math.cos(angle) * teamRadius));
-                            const top = Math.max(8, Math.min(92, building.y + Math.sin(angle) * teamRadius));
-                            const roleLabel = member.role === "leader" ? "Rally Leader" : "Joiner";
+                            const offset = foundryMapStackOffset(memberIndex, members.length);
+                            const left = Math.max(6, Math.min(94, building.x + offset.x));
+                            const top = Math.max(8, Math.min(92, building.y + offset.y + stackY));
+                            const memberColor = member.role === "leader" ? foundryLeaderColor : teamColor;
+                            const roleLabel = member.role === "leader" ? "Rally" : "Joiner";
                             return (
                               <span
                                 className={`foundry-map-member ${member.role}`}
@@ -6022,7 +6043,8 @@ export default function Home() {
                                 style={{
                                   left: `${left}%`,
                                   top: `${top}%`,
-                                  ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length],
+                                  ["--foundry-team-color" as string]: teamColor,
+                                  ["--foundry-member-color" as string]: memberColor,
                                 }}
                               >
                                 <span className="foundry-map-member-avatar">
