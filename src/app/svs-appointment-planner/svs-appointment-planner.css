@@ -5,8 +5,8 @@
   --svs-bg: #070b12;
   --svs-panel: #0d1420;
   --svs-panel-2: #111b2a;
-  --svs-line: rgba(148, 163, 184, 0.22);
-  --svs-line-strong: rgba(125, 211, 252, 0.36);
+  --svs-line: #263449;
+  --svs-line-strong: #2f6f8d;
   --svs-text: #e5edf7;
   --svs-muted: #94a3b8;
   --svs-soft: #172235;
@@ -66,7 +66,7 @@
 .svs-analytics-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .svs-hero-metrics article,
@@ -105,14 +105,20 @@
 .svs-resource-cell button,
 .svs-settings-actions button,
 .svs-resource-modal button {
-  min-height: 38px;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--svs-line);
   border-radius: 8px;
-  padding: 0 14px;
-  background: var(--svs-panel-2);
+  padding: 0 12px;
+  background: #172235;
   color: var(--svs-text);
   cursor: pointer;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .svs-tabs button:hover,
@@ -123,7 +129,7 @@
 .svs-settings-actions button:hover,
 .svs-resource-modal button:hover {
   border-color: var(--svs-line-strong);
-  background: #14243a;
+  background: #20304a;
   color: var(--svs-primary);
 }
 
@@ -145,8 +151,8 @@
   display: grid;
   gap: 8px;
   justify-items: start;
-  min-height: 154px;
-  padding: 16px;
+  min-height: 136px;
+  padding: 14px;
   color: var(--svs-text);
   cursor: pointer;
   text-align: left;
@@ -155,9 +161,7 @@
 .svs-role-card:hover,
 .svs-role-card.active {
   border-color: var(--svs-line-strong);
-  background:
-    linear-gradient(135deg, rgba(125, 211, 252, 0.1), transparent 64%),
-    var(--svs-panel-2);
+  background: #111d2f;
 }
 
 .svs-role-card span {
@@ -212,6 +216,7 @@
 .svs-panel-actions {
   justify-content: flex-end;
   align-items: end;
+  gap: 8px;
 }
 
 .svs-panel-actions label {
@@ -257,7 +262,7 @@
 }
 
 .svs-panel-actions .danger {
-  border-color: rgba(248, 113, 113, 0.42);
+  border-color: #7f3540;
   color: var(--svs-danger);
 }
 
@@ -338,7 +343,7 @@
 }
 
 .svs-settings-actions .danger {
-  border-color: rgba(248, 113, 113, 0.42);
+  border-color: #7f3540;
   color: var(--svs-danger);
 }
 
@@ -360,7 +365,7 @@
 }
 
 .svs-row.filled {
-  background: rgba(125, 211, 252, 0.05);
+  background: #0f1a2a;
 }
 
 .svs-head {
@@ -409,6 +414,7 @@
 
 .svs-avatar {
   display: grid;
+  position: relative;
   width: 42px;
   height: 42px;
   place-items: center;
@@ -420,7 +426,15 @@
   font-weight: 900;
 }
 
+.svs-avatar b {
+  position: relative;
+  z-index: 1;
+}
+
 .svs-avatar img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
   object-fit: cover;

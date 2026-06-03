@@ -137,6 +137,11 @@ const normalizeAvatarUrl = (value?: string) => {
   return `https://gof-formal-avatar-cdn.centurygame.com/${value.replace(/^\/+/, "")}`;
 };
 
+const proxiedAvatarUrl = (value?: string) => {
+  const normalized = normalizeAvatarUrl(value);
+  return normalized && normalized.startsWith("http") ? `/api/avatar-proxy?url=${encodeURIComponent(normalized)}` : normalized;
+};
+
 const playerFromPayload = (data: unknown): PlayerProfile | undefined => {
   const record = data as {
     data?: unknown;
@@ -168,7 +173,7 @@ const playerFromPayload = (data: unknown): PlayerProfile | undefined => {
     nickname: payload.nickname || payload.name || "Unknown Player",
     furnaceLevel,
     furnaceLevelFormatted: payload.furnaceLevelFormatted,
-    avatarImage: normalizeAvatarUrl(payload.avatarImage || payload.avatarUrl || payload.avatar_url || payload.avatar || payload.avatar_image),
+    avatarImage: proxiedAvatarUrl(payload.avatarImage || payload.avatarUrl || payload.avatar_url || payload.avatar || payload.avatar_image),
     alliance: payload.alliance || "",
   };
 };
@@ -254,10 +259,9 @@ export default function SvsAppointmentPlanner() {
     return { role, filledCount, confirmedCount, total: slotsPerDay };
   }), [plannerState, slotMinutes, slotsPerDay, startMinutes]);
 
-  const totalFilled = roleStats.reduce((sum, row) => sum + row.filledCount, 0);
-  const totalConfirmed = roleStats.reduce((sum, row) => sum + row.confirmedCount, 0);
-  const totalSlots = roleStats.length * slotsPerDay;
-  const coverage = totalSlots ? Math.round((totalFilled / totalSlots) * 100) : 0;
+  const selectedRoleStats = roleStats.find((row) => row.role.id === selectedRole.id) || roleStats[0];
+  const selectedCoverage = selectedRoleStats?.total ? Math.round((selectedRoleStats.filledCount / selectedRoleStats.total) * 100) : 0;
+  const selectedOpenSlots = selectedRoleStats ? selectedRoleStats.total - selectedRoleStats.filledCount : 0;
 
   const editingSlot = editingResource ? plannerState[editingResource.roleId]?.[editingResource.slotKey] || createEmptySlot() : undefined;
 
@@ -315,7 +319,7 @@ export default function SvsAppointmentPlanner() {
         alliance: player.alliance || "",
         avatarImage: player.avatarImage || "",
         loading: false,
-        status: "Loaded",
+        status: "",
       });
     } catch {
       updateSlot(selectedRole.id, key, { loading: false, status: "Lookup failed" });
@@ -365,9 +369,9 @@ export default function SvsAppointmentPlanner() {
           <p>Schedule only Minister of Education and Vice President appointments. Enter a player ID to fetch player details, write the appointment description, and add resource needs from the edit resource button.</p>
         </div>
         <div className="svs-hero-metrics" aria-label="Planner summary">
-          <article><strong>{totalFilled}/{totalSlots}</strong><small>filled</small></article>
-          <article><strong>{totalConfirmed}</strong><small>confirmed</small></article>
-          <article><strong>{coverage}%</strong><small>coverage</small></article>
+          <article><strong>{selectedRoleStats?.filledCount || 0}/{selectedRoleStats?.total || slotsPerDay}</strong><small>{selectedRole.shortName} filled</small></article>
+          <article><strong>{selectedRoleStats?.confirmedCount || 0}</strong><small>confirmed</small></article>
+          <article><strong>{selectedCoverage}%</strong><small>coverage</small></article>
         </div>
       </section>
 
@@ -465,7 +469,10 @@ export default function SvsAppointmentPlanner() {
                       </button>
                     </div>
                     <div className="svs-player-cell">
-                      <span className="svs-avatar">{row.slot.avatarImage ? <img src={row.slot.avatarImage} alt="" /> : row.slot.playerName.slice(0, 1) || "?"}</span>
+                      <span className="svs-avatar">
+                        <b>{row.slot.playerName.slice(0, 1) || "?"}</b>
+                        {row.slot.avatarImage && <img src={row.slot.avatarImage} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                      </span>
                       <div>
                         <strong>{row.slot.playerName || "No player loaded"}</strong>
                         <small>{row.slot.furnace ? `FC ${row.slot.furnace}` : "Awaiting fetch"}{row.slot.alliance ? ` | ${row.slot.alliance}` : ""}</small>
@@ -555,9 +562,9 @@ export default function SvsAppointmentPlanner() {
       {activeTab === "analytics" && (
         <section className="svs-analytics" aria-label="Appointment planner analytics">
           <div className="svs-analytics-summary">
-            <article><strong>{totalFilled}</strong><small>Total filled slots</small></article>
-            <article><strong>{totalConfirmed}</strong><small>Total confirmed slots</small></article>
-            <article><strong>{totalSlots - totalFilled}</strong><small>Open slots</small></article>
+            <article><strong>{selectedRoleStats?.filledCount || 0}</strong><small>{selectedRole.shortName} filled slots</small></article>
+            <article><strong>{selectedRoleStats?.confirmedCount || 0}</strong><small>{selectedRole.shortName} confirmed</small></article>
+            <article><strong>{selectedOpenSlots}</strong><small>{selectedRole.shortName} open slots</small></article>
           </div>
           <div className="svs-analytics-bars">
             {roleStats.map(({ role, filledCount, confirmedCount, total }) => (
