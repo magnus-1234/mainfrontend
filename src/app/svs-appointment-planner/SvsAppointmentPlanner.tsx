@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type PlannerTab = "schedule" | "analytics" | "howto";
+type PlannerTab = "schedule" | "settings" | "analytics" | "howto";
 
 type AppointmentRole = {
   id: "education" | "vicePresident";
@@ -374,6 +374,7 @@ export default function SvsAppointmentPlanner() {
       <nav className="svs-tabs" aria-label="Appointment planner sections">
         {[
           ["schedule", "Schedule"],
+          ["settings", "Settings"],
           ["analytics", "Analytics"],
           ["howto", "How to Use"],
         ].map(([tab, label]) => (
@@ -488,6 +489,67 @@ export default function SvsAppointmentPlanner() {
             </div>
           </section>
         </>
+      )}
+
+      {activeTab === "settings" && (
+        <section className="svs-settings" aria-label="Appointment planner settings">
+          <article>
+            <span className="section-kicker">Planner Setup</span>
+            <h2>Settings</h2>
+            <div className="svs-settings-form">
+              <label>
+                <span>Plan Name</span>
+                <input value={plannerName} onChange={(event) => setPlannerName(event.currentTarget.value)} />
+              </label>
+              <label>
+                <span>Start Time UTC</span>
+                <input type="time" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} />
+              </label>
+              <label>
+                <span>Slot Length</span>
+                <select value={slotMinutes} onChange={(event) => setSlotMinutes(Number(event.currentTarget.value))}>
+                  <option value={30}>30 minutes</option>
+                  <option value={60}>60 minutes</option>
+                </select>
+              </label>
+              <label>
+                <span>Default Role</span>
+                <select value={selectedRoleId} onChange={(event) => setSelectedRoleId(event.currentTarget.value as AppointmentRole["id"])}>
+                  {appointmentRoles.map((role) => <option value={role.id} key={role.id}>{role.name}</option>)}
+                </select>
+              </label>
+            </div>
+          </article>
+
+          <article>
+            <span className="section-kicker">Resource Fields</span>
+            <h2>Tracked Resources</h2>
+            <div className="svs-resource-reference">
+              {resourceItems.map((item) => (
+                <span key={item.key}><img src={item.icon} alt="" />{item.label}</span>
+              ))}
+            </div>
+          </article>
+
+          <article>
+            <span className="section-kicker">Data</span>
+            <h2>Reset Planner</h2>
+            <p>Clear the current role or wipe both appointment tables. This does not change the two allowed roles.</p>
+            <div className="svs-settings-actions">
+              <button type="button" onClick={clearCurrentRole}>Clear Current Role</button>
+              <button
+                type="button"
+                className="danger"
+                onClick={() => {
+                  setPlannerState({ education: {}, vicePresident: {} });
+                  setNotice("All appointment schedules cleared.");
+                }}
+              >
+                Clear All Schedules
+              </button>
+            </div>
+          </article>
+        </section>
       )}
 
       {activeTab === "analytics" && (

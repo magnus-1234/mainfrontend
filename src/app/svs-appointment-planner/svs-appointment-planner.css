@@ -23,6 +23,7 @@
 .svs-tool-hero,
 .svs-role-card,
 .svs-schedule-panel,
+.svs-settings > article,
 .svs-analytics,
 .svs-howto > article,
 .svs-resource-modal {
@@ -102,6 +103,7 @@
 .svs-panel-actions button,
 .svs-player-id-cell button,
 .svs-resource-cell button,
+.svs-settings-actions button,
 .svs-resource-modal button {
   min-height: 38px;
   border: 1px solid var(--svs-line);
@@ -118,6 +120,7 @@
 .svs-panel-actions button:hover,
 .svs-player-id-cell button:hover,
 .svs-resource-cell button:hover,
+.svs-settings-actions button:hover,
 .svs-resource-modal button:hover {
   border-color: var(--svs-line-strong);
   background: #14243a;
@@ -222,6 +225,8 @@
 
 .svs-panel-actions input,
 .svs-panel-actions select,
+.svs-settings-form input,
+.svs-settings-form select,
 .svs-player-id-cell input,
 .svs-row textarea,
 .svs-resource-editor input {
@@ -242,6 +247,8 @@
 
 .svs-panel-actions input:focus,
 .svs-panel-actions select:focus,
+.svs-settings-form input:focus,
+.svs-settings-form select:focus,
 .svs-player-id-cell input:focus,
 .svs-row textarea:focus,
 .svs-resource-editor input:focus {
@@ -250,6 +257,87 @@
 }
 
 .svs-panel-actions .danger {
+  border-color: rgba(248, 113, 113, 0.42);
+  color: var(--svs-danger);
+}
+
+.svs-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.9fr);
+  gap: 14px;
+}
+
+.svs-settings > article {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 18px;
+}
+
+.svs-settings > article:last-child {
+  grid-column: 1 / -1;
+}
+
+.svs-settings h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.svs-settings p {
+  margin: 0;
+  color: var(--svs-muted);
+  line-height: 1.55;
+}
+
+.svs-settings-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.svs-settings-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.svs-settings-form label span {
+  color: var(--svs-muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.svs-resource-reference {
+  display: grid;
+  gap: 10px;
+}
+
+.svs-resource-reference span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  border: 1px solid var(--svs-line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #070b12;
+  color: var(--svs-text);
+  font-weight: 800;
+}
+
+.svs-resource-reference img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.svs-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.svs-settings-actions .danger {
   border-color: rgba(248, 113, 113, 0.42);
   color: var(--svs-danger);
 }
@@ -495,8 +583,13 @@
   .svs-tool-hero,
   .svs-schedule-panel > header,
   .svs-role-grid,
+  .svs-settings,
   .svs-howto {
     grid-template-columns: 1fr;
+  }
+
+  .svs-settings > article:last-child {
+    grid-column: auto;
   }
 
   .svs-panel-actions {
@@ -506,6 +599,7 @@
 
 @media (max-width: 640px) {
   .svs-tool-hero,
+  .svs-settings > article,
   .svs-resource-modal,
   .svs-analytics,
   .svs-howto > article {
@@ -517,8 +611,13 @@
   }
 
   .svs-panel-actions label,
-  .svs-panel-actions button {
+  .svs-panel-actions button,
+  .svs-settings-actions button {
     flex: 1 1 135px;
+  }
+
+  .svs-settings-form {
+    grid-template-columns: 1fr;
   }
 
   .svs-resource-editor label {
