@@ -423,6 +423,7 @@ const botWebDashboardScreens = [
 
 const foundryMapImage = "/foundry-team-planner-map.webp";
 const foundryLogoImage = "/whiteout-survival-logo.png";
+const foundryPlannerSaveKeyPrefix = "foundry-planner-save";
 
 const foundryBuildings: FoundryBuilding[] = [
   { id: "blue-zone", name: "Blue Safe Zone", shortName: "Safe Zone", x: 8, y: 50, phase: "Spawn" },
@@ -778,6 +779,22 @@ const formatFoundryUtcTime = (value: string) => {
   }).format(parsed) + " UTC";
 };
 
+const formatFoundrySavedAt = (value: string) => {
+  if (!value) {
+    return "";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short",
+  }).format(parsed);
+};
+
 const encodeFoundryShareState = (state: FoundryShareState) =>
   btoa(unescape(encodeURIComponent(JSON.stringify(state))))
     .replace(/\+/g, "-")
@@ -810,6 +827,10 @@ type FoundryShareState = {
   teamCount: number;
   teams: FoundryShareTeam[];
   utcTime: string;
+};
+
+type FoundrySavedState = FoundryShareState & {
+  savedAt: string;
 };
 
 const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
@@ -2096,6 +2117,7 @@ export default function Home() {
   const [foundryShowBuildingLabels, setFoundryShowBuildingLabels] = useState(true);
   const [foundryShowTeamRoster, setFoundryShowTeamRoster] = useState(true);
   const [foundryShareOpen, setFoundryShareOpen] = useState(false);
+  const [foundrySavedAt, setFoundrySavedAt] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
   const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
@@ -2127,6 +2149,7 @@ export default function Home() {
   const openedSharedIslandRef = useRef("");
   const openedSharedTemplateRef = useRef("");
   const foundryShareLoadedRef = useRef(false);
+  const foundrySavedLoadedRef = useRef(false);
   const footerIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const footerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -3866,7 +3889,7 @@ export default function Home() {
     rallyLeader: { playerId: team.rallyLeader.playerId, profile: team.rallyLeader.profile },
   });
 
-  const foundryTeamFromShare = (team: FoundryShareTeam, index: number): FoundryTeam => {
+  const foundryTeamFromShare = useCallback((team: FoundryShareTeam, index: number): FoundryTeam => {
     const fallback = createFoundryTeam(index);
     return {
       ...fallback,
@@ -3883,7 +3906,7 @@ export default function Home() {
         profile: team.rallyLeader?.profile ? normalizeFoundryPlayerProfile(team.rallyLeader.profile) : undefined,
       },
     };
-  };
+  }, []);
 
   const foundrySharePayload = (): FoundryShareState => ({
     includeLooter: foundryIncludeLooter,
@@ -3975,6 +3998,51 @@ export default function Home() {
     }));
   }, [fetchFoundryPlayerProfile]);
 
+  const applyFoundryPlanState = useCallback(async (parsed: FoundryShareState, options?: { savedAt?: string; status?: string }) => {
+    const teams = (parsed.teams || []).map(foundryTeamFromShare);
+    const looterTeam = parsed.looterTeam
+      ? {
+          ...foundryTeamFromShare(parsed.looterTeam, 99),
+          id: "looter-team",
+          name: parsed.looterTeam.name || "Looter Team",
+        }
+      : undefined;
+    const [hydratedTeams, hydratedLooterTeams] = await Promise.all([
+      hydrateFoundryTeamProfiles(teams),
+      looterTeam ? hydrateFoundryTeamProfiles([looterTeam]) : Promise.resolve([]),
+    ]);
+    if (hydratedTeams.length) {
+      setFoundryTeams(hydratedTeams);
+      setFoundryTeamCount(hydratedTeams.length);
+    }
+    setFoundryLegion(parsed.legion === "2" ? "2" : "1");
+    setFoundryUtcTime(parsed.utcTime || "");
+    setFoundryIncludeLooter(Boolean(parsed.includeLooter));
+    if (hydratedLooterTeams[0]) {
+      setFoundryLooterTeam(hydratedLooterTeams[0]);
+    }
+    setFoundrySavedAt(options?.savedAt || "");
+    if (options?.status) {
+      setFoundryExportStatus(options.status);
+    }
+  }, [foundryTeamFromShare, hydrateFoundryTeamProfiles]);
+
+  const saveFoundryPlanner = () => {
+    if (!authUser) {
+      setFoundryExportStatus("Sign in to save your Foundry planner progress.");
+      setLoginOpen(true);
+      return;
+    }
+    const savedAt = new Date().toISOString();
+    const payload: FoundrySavedState = {
+      ...foundrySharePayload(),
+      savedAt,
+    };
+    localStorage.setItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`, JSON.stringify(payload));
+    setFoundrySavedAt(savedAt);
+    setFoundryExportStatus("Foundry planner progress saved.");
+  };
+
   useEffect(() => {
     if (foundryShareLoadedRef.current || typeof window === "undefined") {
       return;
@@ -3988,29 +4056,7 @@ export default function Home() {
       const parsed = decodeFoundryShareState(encoded);
       window.setTimeout(() => {
         void (async () => {
-          const teams = (parsed.teams || []).map(foundryTeamFromShare);
-          const looterTeam = parsed.looterTeam
-            ? {
-                ...foundryTeamFromShare(parsed.looterTeam, 99),
-                id: "looter-team",
-                name: parsed.looterTeam.name || "Looter Team",
-              }
-            : undefined;
-          const [hydratedTeams, hydratedLooterTeams] = await Promise.all([
-            hydrateFoundryTeamProfiles(teams),
-            looterTeam ? hydrateFoundryTeamProfiles([looterTeam]) : Promise.resolve([]),
-          ]);
-          if (hydratedTeams.length) {
-            setFoundryTeams(hydratedTeams);
-            setFoundryTeamCount(hydratedTeams.length);
-          }
-          setFoundryLegion(parsed.legion === "2" ? "2" : "1");
-          setFoundryUtcTime(parsed.utcTime || "");
-          setFoundryIncludeLooter(Boolean(parsed.includeLooter));
-          if (hydratedLooterTeams[0]) {
-            setFoundryLooterTeam(hydratedLooterTeams[0]);
-          }
-          setFoundryExportStatus("Editable shared Foundry plan loaded.");
+          await applyFoundryPlanState(parsed, { status: "Editable shared Foundry plan loaded." });
         })();
       }, 0);
     } catch {
@@ -4020,7 +4066,35 @@ export default function Home() {
     } finally {
       foundryShareLoadedRef.current = true;
     }
-  }, [hydrateFoundryTeamProfiles]);
+  }, [applyFoundryPlanState]);
+
+  useEffect(() => {
+    if (foundrySavedLoadedRef.current || !authUser || typeof window === "undefined") {
+      return;
+    }
+    foundrySavedLoadedRef.current = true;
+    if (new URLSearchParams(window.location.search).get("foundry")) {
+      return;
+    }
+    const saved = localStorage.getItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`);
+    if (!saved) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(saved) as FoundrySavedState;
+      window.setTimeout(() => {
+        void applyFoundryPlanState(parsed, {
+          savedAt: parsed.savedAt,
+          status: "Saved Foundry planner progress loaded.",
+        });
+      }, 0);
+    } catch {
+      localStorage.removeItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`);
+      window.setTimeout(() => {
+        setFoundryExportStatus("Saved Foundry planner progress could not be loaded.");
+      }, 0);
+    }
+  }, [applyFoundryPlanState, authUser]);
 
   useEffect(() => {
     if (activeMenu !== "templates") {
@@ -5998,10 +6072,17 @@ export default function Home() {
                     <Icon name="download" />
                     Download Map + Team Plan
                   </button>
+                  {authUser && (
+                    <button type="button" onClick={saveFoundryPlanner}>
+                      <Icon name="copy" />
+                      Save Progress
+                    </button>
+                  )}
                   <button type="button" onClick={() => void shareFoundryPlanner()}>
                     <Icon name="share" />
                     Share Editable Link
                   </button>
+                  {authUser && foundrySavedAt && <small className="foundry-save-meta">Saved {formatFoundrySavedAt(foundrySavedAt)}</small>}
                 </div>
               </section>
 

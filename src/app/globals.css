@@ -2280,6 +2280,14 @@ body {
   font-size: 0.96rem;
 }
 
+.foundry-save-meta {
+  align-self: center;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .foundry-signin-gate {
   display: flex;
   align-items: center;
