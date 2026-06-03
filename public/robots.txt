@@ -1,6 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /share
 
 Sitemap: https://whiteoutsurvival.dev/sitemap.xml

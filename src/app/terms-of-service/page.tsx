@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const title = "Whiteout Survival Terms of Service";
+const description =
+  "Whiteout Survival terms of service for WhiteoutSurvival.dev tools, calculators, community pages, and Discord bot usage. Review the rules here.";
+
 export const metadata: Metadata = {
-  title: "Terms of Service",
-  description: "Terms of Service for WhiteoutSurvival.dev and the Whiteout Survival Discord bot.",
+  title,
+  description,
   alternates: {
-    canonical: "/terms-of-service",
+    canonical: "https://whiteoutsurvival.dev/terms-of-service",
   },
+  openGraph: { type: "website", url: "https://whiteoutsurvival.dev/terms-of-service", siteName: "WhiteoutSurvival.dev", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
 };
 
 export default function TermsOfServicePage() {
@@ -15,7 +21,7 @@ export default function TermsOfServicePage() {
       <section className="legal-hero">
         <Link className="legal-back-link" href="/">WhiteoutSurvival.dev</Link>
         <p className="legal-kicker">Effective June 3, 2026</p>
-        <h1>Terms of Service</h1>
+        <h1>Whiteout Survival Terms of Service</h1>
         <p>
           These terms apply when you use WhiteoutSurvival.dev, the Whiteout Survival Discord bot, and related tools, pages,
           calculators, community features, and bot commands.

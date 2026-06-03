@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival VIP Calculator";
 const description =
-  "Whiteout Survival VIP calculator for XP needed, VIP 12 progress, gem conversion, pack cost estimates, and pack efficiency comparison.";
+  "Whiteout Survival VIP calculator for VIP XP, gem value, VIP 12 progress, pack costs, and upgrade planning. Estimate your best upgrade path fast.";
 
 export const metadata: Metadata = {
   title,

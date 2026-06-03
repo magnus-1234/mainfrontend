@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const title = "Whiteout Survival Privacy Policy";
+const description =
+  "Whiteout Survival privacy policy for WhiteoutSurvival.dev tools and Discord bot data. Learn what we collect, use, store, protect, and share.";
+
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "Privacy Policy for WhiteoutSurvival.dev and the Whiteout Survival Discord bot.",
+  title,
+  description,
   alternates: {
-    canonical: "/privacy-policy",
+    canonical: "https://whiteoutsurvival.dev/privacy-policy",
   },
+  openGraph: { type: "website", url: "https://whiteoutsurvival.dev/privacy-policy", siteName: "WhiteoutSurvival.dev", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
 };
 
 export default function PrivacyPolicyPage() {
@@ -15,7 +21,7 @@ export default function PrivacyPolicyPage() {
       <section className="legal-hero">
         <Link className="legal-back-link" href="/">WhiteoutSurvival.dev</Link>
         <p className="legal-kicker">Effective June 3, 2026</p>
-        <h1>Privacy Policy</h1>
+        <h1>Whiteout Survival Privacy Policy</h1>
         <p>
           This policy explains how WhiteoutSurvival.dev and the Whiteout Survival Discord bot handle information when you use
           our website, calculators, community tools, Discord bot features, and related services.

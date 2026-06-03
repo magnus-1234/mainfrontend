@@ -21,6 +21,7 @@ const siteNavigationItems = [
   ["Gift Codes", "https://whiteoutsurvival.dev/gift-codes"],
   ["Gift Code Redeem", "https://whiteoutsurvival.dev/redeem"],
   ["State Age Tracker", "https://whiteoutsurvival.dev/state-age"],
+  ["VIP Calculator", "https://whiteoutsurvival.dev/vip-calculator"],
   ["Chief Gear Calculator", "https://whiteoutsurvival.dev/chief-gear-calculator"],
   ["Chief Charm Calculator", "https://whiteoutsurvival.dev/chief-charm-calculator"],
   ["Foundry Team Planner", "https://whiteoutsurvival.dev/foundry-team-planner"],
@@ -31,6 +32,7 @@ const siteNavigationItems = [
   ["Dreamscape Memory", "https://whiteoutsurvival.dev/dreamscape-memory"],
   ["Sneak Peek", "https://whiteoutsurvival.dev/sneak-peek"],
   ["Discord Bot", "https://whiteoutsurvival.dev/discord-bot"],
+  ["Site Map", "https://whiteoutsurvival.dev/site-map"],
   ["API Docs", "https://whiteoutsurvival.dev/api-docs"],
   ["Privacy Policy", "https://whiteoutsurvival.dev/privacy-policy"],
   ["Terms of Service", "https://whiteoutsurvival.dev/terms-of-service"],
@@ -56,6 +58,9 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   applicationName: "WhiteoutSurvival.dev",
+  alternates: {
+    canonical: "https://whiteoutsurvival.dev/",
+  },
   keywords: [
     "Whiteout Survival",
     "Whiteout Survival gift codes",
