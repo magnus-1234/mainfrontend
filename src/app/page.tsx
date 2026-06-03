@@ -943,7 +943,7 @@ const writeStoredMessageTemplates = (templates: MessageTemplate[]) => {
 
 const mergeMessageTemplates = (remoteTemplates: MessageTemplate[], localTemplates: MessageTemplate[]) => {
   const byId = new Map<string, MessageTemplate>();
-  [...localTemplates, ...remoteTemplates].forEach((template) => byId.set(template.id, template));
+  [...remoteTemplates, ...localTemplates].forEach((template) => byId.set(template.id, template));
   return Array.from(byId.values());
 };
 
@@ -3300,12 +3300,12 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   ) => {
     const now = new Date().toISOString();
     const localTemplate: MessageTemplate = normalizeLocalMessageTemplate({
-      id: existingTemplate?.id?.startsWith("local-template-") ? existingTemplate.id : `local-template-${Date.now()}`,
+      id: existingTemplate?.id || `local-template-${Date.now()}`,
       title: String(body.get("title") || "").trim() || "Untitled template",
       category: categories[0] || "state-transfer-chat",
       categories: categories.length ? categories : ["state-transfer-chat"],
       description: String(body.get("description") || "").trim(),
-      text: String(body.get("text") || "").trim(),
+      text: String(body.get("text") ?? ""),
       imageUrl: String(body.get("imageUrl") || "").trim() || existingTemplate?.imageUrl || "",
       tags: String(body.get("tags") || "")
         .split(/[\s,#]+/)
@@ -3388,9 +3388,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       }
 
       if (data?.template) {
+        const exactTemplate = saveTemplateLocally(body, categories, data.template);
         setCommunityTemplates((current) => {
-          const exists = current.some((template) => template.id === data.template.id);
-          return exists ? current.map((template) => (template.id === data.template.id ? data.template : template)) : [data.template, ...current];
+          const exists = current.some((template) => template.id === exactTemplate.id);
+          return exists ? current.map((template) => (template.id === exactTemplate.id ? exactTemplate : template)) : [exactTemplate, ...current];
         });
       }
       await refreshTemplates().catch(() => null);
