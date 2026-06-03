@@ -4732,8 +4732,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             This site is still in progress. Please give us feedback on our{" "}
             <a href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">Discord community</a>.
           </p>
-          <button className="feedback-banner-hide" type="button" onClick={hideFeedbackBanner}>
+          <button className="feedback-banner-close" type="button" onClick={hideFeedbackBanner} aria-label="Hide feedback banner">
             <Icon name="x" />
+          </button>
+          <button className="feedback-banner-hide" type="button" onClick={hideFeedbackBanner}>
             Hide for 14 days
           </button>
           <a className="feedback-banner-discord" href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">
