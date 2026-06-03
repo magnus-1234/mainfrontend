@@ -1144,6 +1144,10 @@ const wosWikiMenuItems: { label: string; icon: string; menu?: ActiveMenu; href?:
   { label: "Items", icon: "gift", status: "Next", disabled: true },
 ];
 
+const developerMenuItems: { label: string; mobileLabel: string; icon: string; href: string }[] = [
+  { label: "API & Docs", mobileLabel: "API Docs", icon: "database", href: "/api-docs" },
+];
+
 const scrapedWosHeroes = wikiHeroesData as unknown as WosWikiHero[];
 const scrapedWosBuildings = wikiBuildingsData as unknown as WosWikiBuilding[];
 
@@ -2170,6 +2174,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
   const [sidebarWikiOpen, setSidebarWikiOpen] = useState(false);
   const [sidebarCalculatorOpen, setSidebarCalculatorOpen] = useState(false);
+  const [sidebarDeveloperOpen, setSidebarDeveloperOpen] = useState(false);
   const [activeHeroFilter, setActiveHeroFilter] = useState<WosHeroFilter>("Rare");
   const [activeBuildingFilter, setActiveBuildingFilter] = useState<WosBuildingFilter>("Military");
   const [giftCodes, setGiftCodes] = useState<GiftCode[]>(() => readStoredGiftCodes()?.codes.filter((item) => item.isActive !== false) || []);
@@ -3844,7 +3849,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
   const calculatorMenuActive = activeMenu === "chiefGear" || activeMenu === "chiefCharm" || activeMenu === "vip";
-  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive || calculatorMenuActive;
+  const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive || calculatorMenuActive || sidebarDeveloperOpen;
   const updateCharmSlot = useCallback((gearId: string, slotIndex: number, field: keyof ChiefCharmSlotState, value: number) => {
     setCharmGearState((current) => {
       const gearSlots = current[gearId] || Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from: 0, to: 0 }));
@@ -4887,6 +4892,24 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 ))}
               </div>
             </div>
+            <div className="menu-trigger-wrap">
+              <button type="button" className="menu-trigger wiki-trigger" aria-haspopup="true">
+                <span className="menu-status">Dev</span>
+                <span className="menu-main">
+                  <Icon name="database" />
+                  <span>Developer</span>
+                  <Icon name="chevron" />
+                </span>
+              </button>
+              <div className="wiki-dropdown" role="menu" aria-label="Developer menu">
+                {developerMenuItems.map((item) => (
+                  <a href={item.href} key={item.label} role="menuitem">
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
             {menuItems.map((item) => (
               <button
                 type="button"
@@ -5088,6 +5111,36 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     ))}
                   </div>
                 </div>
+                <div className={`mobile-more-wiki ${sidebarDeveloperOpen ? "open" : ""}`}>
+                  <button
+                    className="mobile-more-item mobile-more-wiki-trigger"
+                    type="button"
+                    role="menuitem"
+                    aria-expanded={sidebarDeveloperOpen}
+                    onClick={() => setSidebarDeveloperOpen((value) => !value)}
+                  >
+                    <Icon name="database" />
+                    <span>
+                      <strong>Developer</strong>
+                      <small>API and docs</small>
+                    </span>
+                    <Icon name="chevron" />
+                  </button>
+                  <div className="mobile-more-wiki-submenu" aria-label="Developer submenu">
+                    {developerMenuItems.map((item) => (
+                      <a
+                        className="mobile-more-wiki-subitem"
+                        href={item.href}
+                        key={item.href}
+                        role="menuitem"
+                        onClick={() => setMobileMoreOpen(false)}
+                      >
+                        <Icon name={item.icon} />
+                        <span>{item.mobileLabel}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -5164,6 +5217,33 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       setSidebarWikiOpen(true);
                       navigateToMenu(item.menu);
                     }}
+                  >
+                    <Icon name={item.icon} />
+                    <span className="nav-label-desktop">{item.label}</span>
+                    <span className="nav-label-mobile">{item.mobileLabel}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div className={`sidebar-wiki-group mobile-primary ${sidebarDeveloperOpen ? "open" : ""}`}>
+              <button
+                className="sidebar-item sidebar-wiki-trigger"
+                type="button"
+                aria-expanded={sidebarDeveloperOpen}
+                aria-controls="sidebar-developer-submenu"
+                onClick={() => setSidebarDeveloperOpen((value) => !value)}
+              >
+                <Icon name="database" />
+                <span className="nav-label-desktop">Developer</span>
+                <span className="nav-label-mobile">Dev</span>
+                <Icon name="chevron" />
+              </button>
+              <div className="sidebar-wiki-submenu" id="sidebar-developer-submenu" aria-label="Developer submenu">
+                {developerMenuItems.map((item) => (
+                  <a
+                    className="sidebar-wiki-subitem"
+                    href={item.href}
+                    key={item.href}
                   >
                     <Icon name={item.icon} />
                     <span className="nav-label-desktop">{item.label}</span>
