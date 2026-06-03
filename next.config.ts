@@ -74,6 +74,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
   productionBrowserSourceMaps: false,
+  serverExternalPackages: ["mongodb"],
   async headers() {
     return [
       {
