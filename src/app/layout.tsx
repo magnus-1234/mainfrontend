@@ -31,6 +31,8 @@ const siteNavigationItems = [
   ["Dreamscape Memory", "https://whiteoutsurvival.dev/dreamscape-memory"],
   ["Sneak Peek", "https://whiteoutsurvival.dev/sneak-peek"],
   ["Discord Bot", "https://whiteoutsurvival.dev/discord-bot"],
+  ["Privacy Policy", "https://whiteoutsurvival.dev/privacy-policy"],
+  ["Terms of Service", "https://whiteoutsurvival.dev/terms-of-service"],
 ] as const;
 
 const siteNavigationJsonLd = {

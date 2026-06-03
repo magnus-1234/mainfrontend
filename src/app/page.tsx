@@ -51,7 +51,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
@@ -152,6 +152,19 @@ type SiteLanguage = {
   code: string;
   name: string;
   shortCode: string;
+};
+
+type VipLevel = {
+  level: number;
+  cumulativeXp: number;
+  xpForLevel: number | null;
+};
+
+type VipPack = {
+  label: string;
+  cost: number;
+  vipXp: number;
+  gems: number;
 };
 
 type WosWikiStat = {
@@ -374,12 +387,12 @@ type StateAgeRecentResult = {
 };
 
 const fallbackBotMetrics: BotMetrics = {
-  servers: "48",
-  members: "1.5K",
-  discordMembers: "1.5K",
-  monitors: "13",
-  redeemServers: "19",
-  giftCodes: "4",
+  servers: "...",
+  members: "...",
+  discordMembers: "...",
+  monitors: "...",
+  redeemServers: "...",
+  giftCodes: "...",
 };
 
 const botFeatureCards = [
@@ -637,6 +650,33 @@ const chiefGearMaterialIcons = {
   designPlans: "/woscalc/materials/Design-Plan.png",
   lunarAmber: "/woscalc/materials/lunar-amber.png",
 };
+
+const vipLevels: VipLevel[] = [
+  { level: 1, cumulativeXp: 0, xpForLevel: 2500 },
+  { level: 2, cumulativeXp: 2500, xpForLevel: 5000 },
+  { level: 3, cumulativeXp: 7500, xpForLevel: 12500 },
+  { level: 4, cumulativeXp: 20000, xpForLevel: 30000 },
+  { level: 5, cumulativeXp: 50000, xpForLevel: 40000 },
+  { level: 6, cumulativeXp: 90000, xpForLevel: 70000 },
+  { level: 7, cumulativeXp: 160000, xpForLevel: 100000 },
+  { level: 8, cumulativeXp: 260000, xpForLevel: 350000 },
+  { level: 9, cumulativeXp: 610000, xpForLevel: 600000 },
+  { level: 10, cumulativeXp: 1210000, xpForLevel: 1200000 },
+  { level: 11, cumulativeXp: 2410000, xpForLevel: 2400000 },
+  { level: 12, cumulativeXp: 4810000, xpForLevel: null },
+];
+
+const vipPacks: VipPack[] = [
+  { label: "$5", cost: 5, vipXp: 2500, gems: 2500 },
+  { label: "$10", cost: 10, vipXp: 4000, gems: 5000 },
+  { label: "$20", cost: 20, vipXp: 6000, gems: 10000 },
+  { label: "$50", cost: 50, vipXp: 12000, gems: 25000 },
+  { label: "$100", cost: 100, vipXp: 20000, gems: 50000 },
+];
+
+const vipLevelFor = (level: number) => vipLevels.find((item) => item.level === level) || vipLevels[0];
+const vipEffectivePackXp = (pack: VipPack, includeGemConversion: boolean) =>
+  pack.vipXp + (includeGemConversion ? pack.gems / 2 : 0);
 const chiefCharmMaterialIcons = {
   design: "/woscalc/materials/charm-design.png",
   guide: "/woscalc/materials/charm-guide.png",
@@ -1090,7 +1130,8 @@ const menuItems: { label: string; icon: string; status: string; menu?: ActiveMen
   { label: "More", icon: "book", status: "Soon" },
 ];
 
-const calculatorMenuItems: { label: string; icon: string; menu: "chiefGear" | "chiefCharm"; href: string }[] = [
+const calculatorMenuItems: { label: string; icon: string; menu: "chiefGear" | "chiefCharm" | "vip"; href: string }[] = [
+  { label: "VIP", icon: "star", menu: "vip", href: "/vip-calculator" },
   { label: "Chief Gear", icon: "shield", menu: "chiefGear", href: "/chief-gear-calculator" },
   { label: "Chief Charm", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
 ];
@@ -1220,7 +1261,8 @@ const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu
   { label: "Heroes", mobileLabel: "Heroes", icon: "user", menu: "wikiHeroes", href: "/wiki/heroes" },
 ];
 
-const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string; menu: "chiefGear" | "chiefCharm"; href: string }[] = [
+const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string; menu: "chiefGear" | "chiefCharm" | "vip"; href: string }[] = [
+  { label: "VIP", mobileLabel: "VIP", icon: "star", menu: "vip", href: "/vip-calculator" },
   { label: "Chief Gear", mobileLabel: "Gear", icon: "shield", menu: "chiefGear", href: "/chief-gear-calculator" },
   { label: "Chief Charm", mobileLabel: "Charm", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
 ];
@@ -1235,6 +1277,8 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#state-age": "stateAge",
   "#state-age-tracker": "stateAge",
   "#state-timeline": "stateAge",
+  "#vip-calculator": "vip",
+  "#vip": "vip",
   "#chief-charm-calculator": "chiefCharm",
   "#chief-charms": "chiefCharm",
   "#charm-calculator": "chiefCharm",
@@ -1272,6 +1316,8 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   "state-age": "stateAge",
   stateage: "stateAge",
   timeline: "stateAge",
+  "vip-calculator": "vip",
+  vip: "vip",
   "chief-charm-calculator": "chiefCharm",
   "chief-charms": "chiefCharm",
   charms: "chiefCharm",
@@ -1296,6 +1342,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   gift: "/gift-codes",
   redeem: "/redeem",
   stateAge: "/state-age",
+  vip: "/vip-calculator",
   chiefCharm: "/chief-charm-calculator",
   chiefGear: "/chief-gear-calculator",
   planner: "/foundry-team-planner",
@@ -1337,6 +1384,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/state-age")) {
     return "stateAge";
+  }
+
+  if (location.pathname.startsWith("/vip-calculator") || location.pathname.startsWith("/vip")) {
+    return "vip";
   }
 
   if (location.pathname.startsWith("/chief-charm-calculator") || location.pathname.startsWith("/chief-charms")) {
@@ -2148,6 +2199,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const [ownedChiefGearPolish, setOwnedChiefGearPolish] = useState(0);
   const [ownedChiefGearPlans, setOwnedChiefGearPlans] = useState(0);
   const [ownedChiefGearAmber, setOwnedChiefGearAmber] = useState(0);
+  const [vipCurrentLevel, setVipCurrentLevel] = useState(6);
+  const [vipCurrentXp, setVipCurrentXp] = useState(0);
+  const [vipTargetLevel, setVipTargetLevel] = useState(10);
+  const [vipIncludeGemConversion, setVipIncludeGemConversion] = useState(true);
   const [foundryLegion, setFoundryLegion] = useState<"1" | "2">("1");
   const [foundryUtcTime, setFoundryUtcTime] = useState("");
   const [foundryTeamCount, setFoundryTeamCount] = useState(4);
@@ -3788,7 +3843,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const furnaceDisplay = (player: PlayerProfile) => player.furnaceLevelFormatted || formatFurnaceLevel(player.furnaceLevel);
   const mobileMoreItems = sidebarItems.filter((item) => !item.mobilePrimary);
   const wikiMenuActive = activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings";
-  const calculatorMenuActive = activeMenu === "chiefGear" || activeMenu === "chiefCharm";
+  const calculatorMenuActive = activeMenu === "chiefGear" || activeMenu === "chiefCharm" || activeMenu === "vip";
   const mobileMoreActive = mobileMoreItems.some((item) => activeMenu === item.menu) || wikiMenuActive || calculatorMenuActive;
   const updateCharmSlot = useCallback((gearId: string, slotIndex: number, field: keyof ChiefCharmSlotState, value: number) => {
     setCharmGearState((current) => {
@@ -3937,6 +3992,27 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       troop,
     };
   });
+  const vipCurrentLevelData = vipLevelFor(vipCurrentLevel);
+  const vipTargetLevelData = vipLevelFor(Math.max(vipTargetLevel, vipCurrentLevel));
+  const vipMaxCurrentXp = vipCurrentLevelData.xpForLevel || 0;
+  const normalizedVipCurrentXp = Math.min(Math.max(0, vipCurrentXp), vipMaxCurrentXp);
+  const vipCurrentTotalXp = vipCurrentLevelData.cumulativeXp + normalizedVipCurrentXp;
+  const vipTargetTotalXp = vipTargetLevelData.cumulativeXp;
+  const vipXpNeeded = Math.max(0, vipTargetTotalXp - vipCurrentTotalXp);
+  const vipProgressPercent = vipTargetTotalXp > 0 ? Math.min(100, (vipCurrentTotalXp / vipTargetTotalXp) * 100) : 100;
+  const vipPackRows = vipPacks.map((pack) => {
+    const effectiveXp = vipEffectivePackXp(pack, vipIncludeGemConversion);
+    const packsNeeded = vipXpNeeded > 0 ? Math.ceil(vipXpNeeded / effectiveXp) : 0;
+    const totalCost = packsNeeded * pack.cost;
+    return {
+      ...pack,
+      effectiveXp,
+      packsNeeded,
+      totalCost,
+      xpPerDollar: effectiveXp / pack.cost,
+    };
+  });
+  const vipBestPack = [...vipPackRows].sort((a, b) => a.totalCost - b.totalCost || b.xpPerDollar - a.xpPerDollar)[0];
   const heroFilterCounts = scrapedWosHeroes.reduce<Record<string, number>>((counts, hero) => {
     const group = heroFilterFor(hero);
     counts[group] = (counts[group] || 0) + 1;
@@ -4681,7 +4757,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     if (menu !== "wikiHeroes" && menu !== "wikiBuildings") {
       setSidebarWikiOpen(false);
     }
-    if (menu !== "chiefGear" && menu !== "chiefCharm") {
+    if (menu !== "chiefGear" && menu !== "chiefCharm" && menu !== "vip") {
       setSidebarCalculatorOpen(false);
     }
     setActiveMenu(menu);
@@ -5192,6 +5268,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   title: "Game Calculators",
                   body: "Optimize your gameplay with focused calculation tools",
                   items: [
+                    ["vip" as const, "star", "VIP", "Calculate VIP XP needed and compare pack efficiency with gem conversion."],
                     ["chiefGear" as const, "calculator", "Chief Gear", "Calculate gear upgrade requirements, stats, and material shortfalls."],
                     ["chiefCharm" as const, "star", "Chief Charms", "Plan charm upgrades across all 18 slots with troop totals."],
                     ["stateAge" as const, "calendar", "State Age Tracker", "Check unlock timing and state progression milestones."],
@@ -5578,6 +5655,187 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     ))}
                   </div>
                 )}
+              </section>
+            </section>
+          ) : activeMenu === "vip" ? (
+            <section className="home-page chief-charm-page vip-calculator-page" id="vip-calculator" aria-label="Whiteout Survival VIP calculator">
+              <section className="chief-charm-hero vip-hero">
+                <div className="chief-charm-hero-copy">
+                  <span className="section-kicker">VIP Calculator</span>
+                  <h1>Whiteout Survival VIP Calculator</h1>
+                  <p>
+                    <span>Estimate VIP XP needed from your current level to any target up to VIP 12.</span>
+                    <span>Compare pack spend with optional gem conversion at 2 gems for 1 VIP XP.</span>
+                  </p>
+                  <div className="chief-charm-hero-chips" aria-label="VIP calculator facts">
+                    <span><Icon name="star" /> 12 VIP levels</span>
+                    <span><Icon name="database" /> 4.81M XP to VIP 12</span>
+                    <span><Icon name="gift" /> Pack comparison</span>
+                    <span><Icon name="calculator" /> 2:1 gem conversion</span>
+                  </div>
+                </div>
+                <div className="vip-hero-meter" aria-hidden="true">
+                  <span>VIP</span>
+                  <strong>{vipTargetLevel}</strong>
+                  <div className="vip-ring" style={{ ["--vip-progress" as string]: `${vipProgressPercent}%` }}>
+                    <b>{formatPercent(vipProgressPercent)}</b>
+                  </div>
+                  <small>{formatNumber(vipXpNeeded)} XP needed</small>
+                </div>
+              </section>
+
+              <section className="chief-charm-summary vip-summary" aria-label="VIP result summary">
+                <article className="primary">
+                  <span>XP Needed</span>
+                  <strong>{formatNumber(vipXpNeeded)}</strong>
+                  <small>From VIP {vipCurrentLevel} to VIP {vipTargetLevelData.level}</small>
+                </article>
+                <article>
+                  <span>Current Progress</span>
+                  <strong>{formatNumber(vipCurrentTotalXp)}</strong>
+                  <small>{formatPercent(vipProgressPercent)} of target cumulative XP</small>
+                </article>
+                <article>
+                  <span>Best Value</span>
+                  <strong>{vipXpNeeded ? vipBestPack.label : "Done"}</strong>
+                  <small>{vipXpNeeded ? `${formatNumber(vipBestPack.xpPerDollar)} XP per dollar${vipIncludeGemConversion ? " with gems" : ""}` : "Target already reached"}</small>
+                </article>
+                <article className={vipXpNeeded ? "short" : "ready"}>
+                  <span>Estimated Spend</span>
+                  <strong>${formatNumber(vipBestPack.totalCost)}</strong>
+                  <small>{vipBestPack.packsNeeded} pack{vipBestPack.packsNeeded === 1 ? "" : "s"} at {vipBestPack.label}</small>
+                </article>
+              </section>
+
+              <section className="chief-charm-workbench vip-workbench" aria-label="VIP calculator controls">
+                <div className="chief-charm-panel">
+                  <div className="chief-charm-panel-head">
+                    <span>Plan</span>
+                    <strong>Set your current VIP level, in-level XP, and target level</strong>
+                  </div>
+                  <div className="charm-form-grid vip-form-grid">
+                    <label>
+                      <span>Current VIP</span>
+                      <select
+                        value={vipCurrentLevel}
+                        onChange={(event) => {
+                          const nextLevel = Number(event.currentTarget.value);
+                          setVipCurrentLevel(nextLevel);
+                          setVipTargetLevel((current) => Math.max(current, nextLevel));
+                          setVipCurrentXp(0);
+                        }}
+                      >
+                        {vipLevels.map((level) => <option value={level.level} key={level.level}>VIP {level.level}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Current XP in Level</span>
+                      <input
+                        value={vipCurrentXp}
+                        onChange={(event) => setVipCurrentXp(Number(event.currentTarget.value.replace(/\D/g, "")) || 0)}
+                        inputMode="numeric"
+                        disabled={!vipMaxCurrentXp}
+                      />
+                    </label>
+                    <label>
+                      <span>Target VIP</span>
+                      <select value={vipTargetLevel} onChange={(event) => setVipTargetLevel(Number(event.currentTarget.value))}>
+                        {vipLevels.filter((level) => level.level >= vipCurrentLevel).map((level) => <option value={level.level} key={level.level}>VIP {level.level}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="vip-level-range">
+                    <input
+                      type="range"
+                      min="0"
+                      max={vipMaxCurrentXp}
+                      step="100"
+                      value={normalizedVipCurrentXp}
+                      onChange={(event) => setVipCurrentXp(Number(event.currentTarget.value))}
+                      disabled={!vipMaxCurrentXp}
+                      aria-label="Current VIP XP in this level"
+                    />
+                    <span>{formatNumber(normalizedVipCurrentXp)} / {vipMaxCurrentXp ? formatNumber(vipMaxCurrentXp) : "Max"} XP in VIP {vipCurrentLevel}</span>
+                  </div>
+                  <label className="vip-toggle">
+                    <input type="checkbox" checked={vipIncludeGemConversion} onChange={(event) => setVipIncludeGemConversion(event.currentTarget.checked)} />
+                    <span>Include gem conversion at 2 gems = 1 VIP XP</span>
+                  </label>
+                </div>
+
+                <aside className="chief-charm-panel">
+                  <div className="chief-charm-panel-head">
+                    <span>Pack Efficiency</span>
+                    <strong>{vipIncludeGemConversion ? "VIP XP plus converted gems" : "Base VIP XP only"}</strong>
+                  </div>
+                  <div className="vip-pack-list">
+                    {vipPackRows.map((pack) => (
+                      <article className={pack.label === vipBestPack.label && vipXpNeeded ? "best" : ""} key={pack.label}>
+                        <div>
+                          <strong>{pack.label}</strong>
+                          <span>{formatNumber(pack.effectiveXp)} XP effective</span>
+                        </div>
+                        <div>
+                          <b>{pack.packsNeeded}</b>
+                          <span>packs</span>
+                        </div>
+                        <div>
+                          <b>${formatNumber(pack.totalCost)}</b>
+                          <span>{formatNumber(pack.xpPerDollar)} XP/$</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </aside>
+              </section>
+
+              <section className="chief-charm-results vip-pack-cards" aria-label="VIP pack details">
+                {vipPacks.map((pack) => {
+                  const effectiveXp = vipEffectivePackXp(pack, vipIncludeGemConversion);
+                  return (
+                    <article className="charm-result-card" key={pack.label}>
+                      <span>{pack.label} Pack</span>
+                      <strong>{formatNumber(effectiveXp)}</strong>
+                      <small>{formatNumber(pack.vipXp)} VIP XP + {formatNumber(pack.gems)} gems, {formatNumber(effectiveXp / pack.cost)} XP per dollar</small>
+                    </article>
+                  );
+                })}
+              </section>
+
+              <section className="chief-charm-chart" aria-label="VIP level XP chart">
+                <div className="chief-charm-chart-head">
+                  <div>
+                    <span className="section-kicker">Reference Chart</span>
+                    <h2>VIP Level XP Requirements</h2>
+                  </div>
+                  <a href="https://whiteoutsurvivalhandbook.com/guides/whiteoutsurvival-vip-level-status-xp-guide" target="_blank" rel="noreferrer">
+                    Source
+                    <Icon name="external" />
+                  </a>
+                </div>
+                <div className="chief-charm-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Level</th>
+                        <th>Cumulative XP</th>
+                        <th>XP for This Level</th>
+                        <th>Gem Equivalent</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vipLevels.map((level) => (
+                        <tr className={level.level >= vipCurrentLevel && level.level <= vipTargetLevelData.level ? "selected" : ""} key={level.level}>
+                          <td>VIP {level.level}</td>
+                          <td>{formatNumber(level.cumulativeXp)}</td>
+                          <td>{level.xpForLevel ? formatNumber(level.xpForLevel) : "-"}</td>
+                          <td>{formatNumber(level.cumulativeXp * 2)} gems</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="vip-source-note">Uses the current 2026 community table with 70,000 XP for VIP 6 to VIP 7. Some older sources show 60,000, which makes the VIP 12 total 4,800,000 instead of 4,810,000.</p>
               </section>
             </section>
           ) : activeMenu === "chiefGear" ? (
@@ -6509,7 +6767,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="templates-hero">
                 <div>
                   <span className="section-kicker">Alliance Chat Tools</span>
-                  <h1>Whiteout Survival Message Templates</h1>
+                  <h1>
+                    <span>Whiteout Survival</span>
+                    <span>Message Templates</span>
+                  </h1>
                   <p>Create, edit, share, and copy alliance chat templates with tags, likes, and a game chat preview.</p>
                 </div>
               </section>
@@ -6832,7 +7093,11 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
               <div className="bot-commercial">
                 <div className="bot-commercial-copy">
-                  <h1>Whiteout Survival Discord Bot</h1>
+                  <h1>
+                    The Most <span className="bot-title-highlight">Advanced</span>,{" "}<br />
+                    Feature-Rich{" "}<br />
+                    <span className="bot-title-highlight warm">Discord Bot</span> for WOS
+                  </h1>
                   <div className="bot-brand-row">
                     <img className="bot-brand-logo" src="/bot-logo.gif" alt="Whiteout Survival bot logo" width={58} height={58} />
                     <span className="bot-brand-name">Whiteout <span>Survival</span></span>
@@ -7123,6 +7388,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <div>
                 <h2>Popular Tools</h2>
                 <a href="/gift-codes" onClick={(event) => { event.preventDefault(); navigateToMenu("gift"); }}>Gift Codes</a>
+                <a href="/vip-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("vip"); }}>VIP Calculator</a>
                 <a href="/chief-gear-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefGear"); }}>Chief Gear Calculator</a>
                 <a href="/chief-charm-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefCharm"); }}>Chief Charm Calculator</a>
                 <a href="/state-age" onClick={(event) => { event.preventDefault(); navigateToMenu("stateAge"); }}>State Age Tracker</a>
@@ -7141,9 +7407,18 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <a href="/daybreak-island" onClick={(event) => { event.preventDefault(); navigateToMenu("daybreak"); }}>Daybreak Island</a>
                 <a href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">Discord Server</a>
               </div>
+              <div className="bottom-legal-links" aria-label="Legal links">
+                <h2>Legal</h2>
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
+              </div>
             </nav>
             <div className="bottom-community-meta">
               <span>(c) 2026 WhiteoutSurvival.dev - All rights reserved.</span>
+              <span className="bottom-community-legal">
+                <a href="/privacy-policy">Privacy</a>
+                <a href="/terms-of-service">Terms</a>
+              </span>
               <span className="bottom-community-credit">
                 <span>Built for WOS community - By</span>
                 <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
@@ -7152,6 +7427,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
           </section>
 
           <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
+            <nav className="footer-legal-links" aria-label="Legal links">
+              <a href="/privacy-policy">Privacy</a>
+              <a href="/terms-of-service">Terms</a>
+            </nav>
             <p className="footer-credit">
               <span>Built for WOS community - By</span>
               <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
