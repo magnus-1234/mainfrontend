@@ -2608,6 +2608,7 @@ body {
 
 .foundry-map-member {
   --foundry-team-color: #f48120;
+  --foundry-member-color: var(--foundry-team-color);
   position: absolute;
   z-index: 5;
   display: grid;
@@ -2618,22 +2619,27 @@ body {
     "avatar meta";
   column-gap: 6px;
   align-items: center;
-  width: min(142px, 15vw);
-  min-height: 42px;
-  border: 1px solid var(--foundry-team-color);
+  width: min(136px, 14.5vw);
+  min-height: 40px;
+  border: 1px solid var(--foundry-member-color);
   border-radius: 12px;
   padding: 5px 8px 5px 5px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--foundry-team-color) 18%, transparent), transparent 55%),
-    rgba(8, 10, 11, 0.9);
+    linear-gradient(135deg, color-mix(in srgb, var(--foundry-member-color) 16%, transparent), transparent 58%),
+    rgba(8, 10, 11, 0.92);
   color: #fff;
   transform: translate(-50%, -50%);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24), 0 0 14px color-mix(in srgb, var(--foundry-team-color) 22%, transparent);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24), 0 0 14px color-mix(in srgb, var(--foundry-member-color) 22%, transparent);
 }
 
 .foundry-map-member.leader {
+  --foundry-member-color: #facc15;
+  z-index: 6;
   border-width: 2px;
-  background: color-mix(in srgb, var(--foundry-team-color) 16%, rgba(8, 10, 11, 0.9));
+  background:
+    linear-gradient(135deg, rgba(250, 204, 21, 0.24), rgba(8, 10, 11, 0.9) 62%),
+    rgba(8, 10, 11, 0.94);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(250, 204, 21, 0.14), 0 0 20px rgba(250, 204, 21, 0.28);
 }
 
 .foundry-map-member-avatar {
@@ -2644,9 +2650,9 @@ body {
   height: 26px;
   place-items: center;
   overflow: hidden;
-  border: 1px solid var(--foundry-team-color);
+  border: 1px solid var(--foundry-member-color);
   border-radius: 50%;
-  background: var(--foundry-team-color);
+  background: var(--foundry-member-color);
   color: #101314;
   font-size: 0.68rem;
   font-weight: 950;
@@ -2662,7 +2668,7 @@ body {
 
 .foundry-map-member-role {
   grid-area: role;
-  color: var(--foundry-team-color);
+  color: var(--foundry-member-color);
   font-size: 0.46rem;
   font-weight: 950;
   line-height: 1;
