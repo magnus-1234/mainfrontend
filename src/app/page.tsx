@@ -7636,10 +7636,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             </nav>
             <div className="bottom-community-meta">
               <span>(c) 2026 WhiteoutSurvival.dev - All rights reserved.</span>
-              <span className="bottom-community-legal">
-                <a href="/privacy-policy">Privacy</a>
-                <a href="/terms-of-service">Terms</a>
-              </span>
               <span className="bottom-community-credit">
                 <span>Built for WOS community - By</span>
                 <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
@@ -7648,10 +7644,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
           </section>
 
           <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
-            <nav className="footer-legal-links" aria-label="Legal links">
-              <a href="/privacy-policy">Privacy</a>
-              <a href="/terms-of-service">Terms</a>
-            </nav>
             <p className="footer-credit">
               <span>Built for WOS community - By</span>
               <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
