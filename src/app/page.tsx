@@ -52,7 +52,7 @@ type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
 type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
-type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
+type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
 type FoundryMemberRole = "leader" | "joiner";
@@ -875,6 +875,7 @@ type FoundrySavedState = FoundryShareState & {
 
 const messageTemplateCategories: { label: string; value: MessageTemplateCategory }[] = [
   { label: "All", value: "all" },
+  { label: "State Transfer Chat", value: "state-transfer-chat" },
   { label: "Unicodes", value: "unicodes" },
   { label: "Emojis", value: "emojis" },
   { label: "Funny", value: "funny" },
@@ -3239,6 +3240,12 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     try {
       const form = event.currentTarget;
       const body = new FormData(form);
+      const title = String(body.get("title") || "").trim();
+      const category = String(body.get("category") || "").trim();
+      const tags = String(body.get("tags") || "").trim();
+      body.set("title", title || "Untitled template");
+      body.set("category", category || "state-transfer-chat");
+      body.set("tags", tags);
       const imageFile = body.get("image");
       if (!(imageFile instanceof File) || imageFile.size === 0) {
         body.delete("image");
@@ -4996,6 +5003,143 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       </header>
 
       <div className="app-body">
+        {mobileMoreOpen && (
+          <button
+            className="mobile-more-backdrop"
+            type="button"
+            aria-label="Close mobile menu"
+            onClick={() => setMobileMoreOpen(false)}
+          />
+        )}
+        {mobileMoreOpen && (
+          <div className="mobile-more-panel" role="menu" aria-label="More navigation">
+            <div className="mobile-more-head">
+              <strong>More</strong>
+              <button type="button" aria-label="Close menu" onClick={() => setMobileMoreOpen(false)}>
+                <Icon name="x" />
+              </button>
+            </div>
+            <div className="mobile-more-list">
+              {mobileMoreItems.map((item) => (
+                <a
+                  className={`mobile-more-item ${activeMenu === item.menu ? "active" : ""}`}
+                  href={item.href}
+                  key={item.label}
+                  role="menuitem"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigateToMenu(item.menu);
+                  }}
+                >
+                  <Icon name={item.icon} />
+                  <span>
+                    <strong>{item.label}</strong>
+                    <small>{item.mobileLabel}</small>
+                  </span>
+                  {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
+                </a>
+              ))}
+              <div className={`mobile-more-wiki ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
+                <button
+                  className={`mobile-more-item mobile-more-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
+                  type="button"
+                  role="menuitem"
+                  aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
+                  onClick={() => setSidebarCalculatorOpen((value) => !value)}
+                >
+                  <Icon name="calculator" />
+                  <span>
+                    <strong>Calculators</strong>
+                    <small>Chief gear and charm</small>
+                  </span>
+                  <Icon name="chevron" />
+                </button>
+                <div className="mobile-more-wiki-submenu" aria-label="Calculators submenu">
+                  {sidebarCalculatorItems.map((item) => (
+                    <a
+                      className={`mobile-more-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
+                      href={item.href}
+                      key={item.menu}
+                      role="menuitem"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setSidebarCalculatorOpen(true);
+                        navigateToMenu(item.menu);
+                      }}
+                    >
+                      <Icon name={item.icon} />
+                      <span>{item.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div className={`mobile-more-wiki ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
+                <button
+                  className={`mobile-more-item mobile-more-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
+                  type="button"
+                  role="menuitem"
+                  aria-expanded={sidebarWikiOpen || wikiMenuActive}
+                  onClick={() => setSidebarWikiOpen((value) => !value)}
+                >
+                  <Icon name="book" />
+                  <span>
+                    <strong>WOS Wiki</strong>
+                    <small>Heroes and buildings</small>
+                  </span>
+                  <Icon name="chevron" />
+                </button>
+                <div className="mobile-more-wiki-submenu" aria-label="WOS Wiki submenu">
+                  {sidebarWikiItems.map((item) => (
+                    <a
+                      className={`mobile-more-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
+                      href={item.href}
+                      key={item.menu}
+                      role="menuitem"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setSidebarWikiOpen(true);
+                        navigateToMenu(item.menu);
+                      }}
+                    >
+                      <Icon name={item.icon} />
+                      <span>{item.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div className={`mobile-more-wiki ${sidebarDeveloperOpen ? "open" : ""}`}>
+                <button
+                  className="mobile-more-item mobile-more-wiki-trigger"
+                  type="button"
+                  role="menuitem"
+                  aria-expanded={sidebarDeveloperOpen}
+                  onClick={() => setSidebarDeveloperOpen((value) => !value)}
+                >
+                  <Icon name="database" />
+                  <span>
+                    <strong>Developer</strong>
+                    <small>API and docs</small>
+                  </span>
+                  <Icon name="chevron" />
+                </button>
+                <div className="mobile-more-wiki-submenu" aria-label="Developer submenu">
+                  {developerMenuItems.map((item) => (
+                    <a
+                      className="mobile-more-wiki-subitem"
+                      href={item.href}
+                      key={item.href}
+                      role="menuitem"
+                      onClick={() => setMobileMoreOpen(false)}
+                    >
+                      <Icon name={item.icon} />
+                      <span>{item.mobileLabel}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <aside
           className="sidebar"
           aria-label="Sidebar"
@@ -5006,143 +5150,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
           onPointerLeave={hideFooterAfterInteraction}
           onPointerMove={showFooterWithIntent}
         >
-          {mobileMoreOpen && (
-            <button
-              className="mobile-more-backdrop"
-              type="button"
-              aria-label="Close mobile menu"
-              onClick={() => setMobileMoreOpen(false)}
-            />
-          )}
-          {mobileMoreOpen && (
-            <div className="mobile-more-panel" role="menu" aria-label="More navigation">
-              <div className="mobile-more-head">
-                <strong>More</strong>
-                <button type="button" aria-label="Close menu" onClick={() => setMobileMoreOpen(false)}>
-                  <Icon name="x" />
-                </button>
-              </div>
-              <div className="mobile-more-list">
-                {mobileMoreItems.map((item) => (
-                  <a
-                    className={`mobile-more-item ${activeMenu === item.menu ? "active" : ""}`}
-                    href={item.href}
-                    key={item.label}
-                    role="menuitem"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      navigateToMenu(item.menu);
-                    }}
-                  >
-                    <Icon name={item.icon} />
-                    <span>
-                      <strong>{item.label}</strong>
-                      <small>{item.mobileLabel}</small>
-                    </span>
-                    {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
-                  </a>
-                ))}
-                <div className={`mobile-more-wiki ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
-                  <button
-                    className={`mobile-more-item mobile-more-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
-                    type="button"
-                    role="menuitem"
-                    aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
-                    onClick={() => setSidebarCalculatorOpen((value) => !value)}
-                  >
-                    <Icon name="calculator" />
-                    <span>
-                      <strong>Calculators</strong>
-                      <small>Chief gear and charm</small>
-                    </span>
-                    <Icon name="chevron" />
-                  </button>
-                  <div className="mobile-more-wiki-submenu" aria-label="Calculators submenu">
-                    {sidebarCalculatorItems.map((item) => (
-                      <a
-                        className={`mobile-more-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
-                        href={item.href}
-                        key={item.menu}
-                        role="menuitem"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setSidebarCalculatorOpen(true);
-                          navigateToMenu(item.menu);
-                        }}
-                      >
-                        <Icon name={item.icon} />
-                        <span>{item.label}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-                <div className={`mobile-more-wiki ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
-                  <button
-                    className={`mobile-more-item mobile-more-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
-                    type="button"
-                    role="menuitem"
-                    aria-expanded={sidebarWikiOpen || wikiMenuActive}
-                    onClick={() => setSidebarWikiOpen((value) => !value)}
-                  >
-                    <Icon name="book" />
-                    <span>
-                      <strong>WOS Wiki</strong>
-                      <small>Heroes and buildings</small>
-                    </span>
-                    <Icon name="chevron" />
-                  </button>
-                  <div className="mobile-more-wiki-submenu" aria-label="WOS Wiki submenu">
-                    {sidebarWikiItems.map((item) => (
-                      <a
-                        className={`mobile-more-wiki-subitem ${activeMenu === item.menu ? "active" : ""}`}
-                        href={item.href}
-                        key={item.menu}
-                        role="menuitem"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setSidebarWikiOpen(true);
-                          navigateToMenu(item.menu);
-                        }}
-                      >
-                        <Icon name={item.icon} />
-                        <span>{item.label}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-                <div className={`mobile-more-wiki ${sidebarDeveloperOpen ? "open" : ""}`}>
-                  <button
-                    className="mobile-more-item mobile-more-wiki-trigger"
-                    type="button"
-                    role="menuitem"
-                    aria-expanded={sidebarDeveloperOpen}
-                    onClick={() => setSidebarDeveloperOpen((value) => !value)}
-                  >
-                    <Icon name="database" />
-                    <span>
-                      <strong>Developer</strong>
-                      <small>API and docs</small>
-                    </span>
-                    <Icon name="chevron" />
-                  </button>
-                  <div className="mobile-more-wiki-submenu" aria-label="Developer submenu">
-                    {developerMenuItems.map((item) => (
-                      <a
-                        className="mobile-more-wiki-subitem"
-                        href={item.href}
-                        key={item.href}
-                        role="menuitem"
-                        onClick={() => setMobileMoreOpen(false)}
-                      >
-                        <Icon name={item.icon} />
-                        <span>{item.mobileLabel}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           <div className="sidebar-content">
             {sidebarItems.map((item) => (
               <a
@@ -5291,7 +5298,8 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               </button>
               <a className="feedback-banner-discord" href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">
                 <img src="/discord-logo.png" alt="" />
-                Join our Discord community
+                <span className="feedback-banner-discord-full">Join our Discord community</span>
+                <span className="feedback-banner-discord-short">Discord</span>
               </a>
             </section>
           )}
@@ -5300,9 +5308,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             <section className="home-page landing-page" id="home" aria-label="Whiteout Survival home">
               <section className="landing-hero">
                 <div className="landing-hero-copy">
-                  <div className="landing-hero-art">
-                    <img src="/whiteout-survival-logo.png" alt="" />
-                  </div>
                   <span className="section-kicker">WhiteoutSurvival.dev Tools & Guides</span>
                   <span className="landing-subtitle">Unofficial Community Resource</span>
                   <h1>Whiteout Survival Tools & Discord Bot</h1>
@@ -5318,6 +5323,9 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       Gift Codes
                     </button>
                   </div>
+                </div>
+                <div className="landing-hero-art">
+                  <img src="/whiteout-survival-logo.png" alt="" />
                 </div>
               </section>
 
@@ -6884,7 +6892,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   </div>
                   <button className="template-create-button" type="button" onClick={openTemplateComposer}>
                     <Icon name="plus" />
-                    New Template
+                    Create Template
                   </button>
                 </div>
               </section>
@@ -7944,12 +7952,12 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             <form className="upload-form template-composer-form" onSubmit={handleTemplateSave}>
               <div className="form-grid">
                 <label>
-                  Title
-                  <input name="title" maxLength={90} defaultValue={editingTemplate?.title || ""} placeholder="SVS Prep Guide" required />
+                  Title <span className="optional-red">optional</span>
+                  <input name="title" maxLength={90} defaultValue={editingTemplate?.title || ""} placeholder="SVS Prep Guide" />
                 </label>
                 <label>
                   Category
-                  <select name="category" defaultValue={editingTemplate?.category || "unicodes"} required>
+                  <select name="category" defaultValue={editingTemplate?.category || "state-transfer-chat"}>
                     {messageTemplateCategories.filter((category) => category.value !== "all").map((category) => (
                       <option value={category.value} key={category.value}>{category.label}</option>
                     ))}
@@ -7967,7 +7975,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   <textarea className="template-description-input" name="description" maxLength={360} defaultValue={editingTemplate?.description || ""} placeholder="Short note for this template." />
                 </label>
                 <label className="hashtag-field">
-                  Tags
+                  Tags <span className="optional-red">optional</span>
                   <input className="template-tags-input" name="tags" defaultValue={editingTemplate?.tags.map((tag) => `#${tag}`).join(" ") || ""} placeholder="#SVS #Prep #Recruit" />
                 </label>
               </div>
