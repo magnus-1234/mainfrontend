@@ -4158,6 +4158,16 @@ export default function Home() {
   ) => {
     const role = member.role === "leader" ? "RALLY" : "JOINER";
     const label = foundryMemberName(member);
+    const trimText = (text: string, maxWidth: number) => {
+      if (context.measureText(text).width <= maxWidth) {
+        return text;
+      }
+      let next = text;
+      while (next.length > 1 && context.measureText(`${next}...`).width > maxWidth) {
+        next = next.slice(0, -1);
+      }
+      return `${next}...`;
+    };
 
     context.fillStyle = "rgba(10, 14, 16, 0.9)";
     context.strokeStyle = color;
@@ -4190,23 +4200,17 @@ export default function Home() {
     context.arc(x + 28, y + 24, 16, 0, Math.PI * 2);
     context.stroke();
 
-    context.fillStyle = color;
-    context.beginPath();
-    context.roundRect(x + 48, y + 8, 54, 15, 6);
-    context.fill();
-    context.fillStyle = "#101314";
-    context.font = "900 9px Arial";
-    context.textAlign = "center";
-    context.fillText(role, x + 75, y + 19);
-
     context.textAlign = "left";
+    context.fillStyle = color;
+    context.font = "900 9px Arial";
+    context.fillText(role, x + 52, y + 15);
     context.fillStyle = "#fff";
-    context.font = "900 16px Arial";
-    context.fillText(label.slice(0, 20), x + 112, y + 22);
+    context.font = "900 14px Arial";
+    context.fillText(trimText(label, width - 62), x + 52, y + 30);
     if (member.profile) {
       context.fillStyle = "#cbd5e1";
-      context.font = "800 10px Arial";
-      context.fillText(`Furnace ${furnaceDisplay(member.profile)}`.slice(0, 22), x + 112, y + 36);
+      context.font = "800 9px Arial";
+      context.fillText(trimText(`Furnace ${furnaceDisplay(member.profile)}`, width - 62), x + 52, y + 42);
     }
   };
 
@@ -4353,7 +4357,7 @@ export default function Home() {
 
         members.forEach((member, memberIndex) => {
           const offset = foundryExportCircleOffset(memberIndex, members.length, teamOffset);
-          const chipWidth = member.role === "leader" ? 206 : 176;
+          const chipWidth = member.role === "leader" ? 172 : 158;
           const rawX = centerX + offset.x;
           const rawY = centerY + offset.y;
           const x = Math.max(24, Math.min(canvas.width - chipWidth - 24, rawX - chipWidth / 2));
