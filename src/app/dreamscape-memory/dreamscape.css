@@ -8,6 +8,13 @@
   color: #f3efe7;
 }
 
+.dreamscape-page.is-embedded {
+  min-height: calc(100vh - 56px);
+  background:
+    linear-gradient(180deg, rgba(9, 15, 18, 0.96), rgba(12, 18, 21, 0.98)),
+    #0b1116;
+}
+
 .dreamscape-menu,
 .dreamscape-game {
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -24,12 +31,6 @@
   gap: 14px;
   height: fit-content;
   padding: 16px;
-}
-
-.dreamscape-home-link {
-  color: #f4a259;
-  font-size: 0.84rem;
-  font-weight: 800;
 }
 
 .dreamscape-kicker {
@@ -156,21 +157,29 @@
 
 .dreamscape-feedback {
   display: grid;
-  width: 34px;
+  min-width: 72px;
   height: 34px;
   place-items: center;
-  border-radius: 999px;
-  color: #fff;
-  font-size: 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  padding: 0 10px;
+  background: rgba(8, 12, 14, 0.92);
+  color: #f5efe4;
+  font-size: 0.78rem;
   font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.34);
 }
 
 .dreamscape-feedback.is-hit {
-  background: #22c55e;
+  color: #79f2aa;
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.16), 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
 .dreamscape-feedback.is-miss {
-  background: #ef4444;
+  color: #ff8a7d;
+  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.16), 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
 .dreamscape-overlay {

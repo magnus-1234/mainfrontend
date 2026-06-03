@@ -3,6 +3,8 @@
 import Image from "next/image";
 import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import DreamscapeMemory from "./dreamscape-memory/DreamscapeMemory";
+import "./dreamscape-memory/dreamscape.css";
 import wikiBuildingsData from "@/data/wiki/buildings.json";
 import wikiHeroesData from "@/data/wiki/heroes.json";
 
@@ -49,7 +51,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
@@ -1059,7 +1061,6 @@ const FOOTER_HIDE_DELAY_MS = 900;
 const DISCORD_COMMUNITY_URL = "https://discord.gg/bP5JQFH2M5";
 
 const menuItems: { label: string; icon: string; status: string; menu?: ActiveMenu }[] = [
-  { label: "Dreamscape", icon: "image", status: "Live" },
   { label: "Browse", icon: "grid", status: "Soon" },
   { label: "Tools", icon: "wrench", status: "Soon" },
   { label: "Database", icon: "database", status: "Soon" },
@@ -1188,6 +1189,7 @@ const sidebarItems: {
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
     { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
+    { label: "Dreamscape Memory", mobileLabel: "Dream", icon: "image", menu: "dreamscape", href: "/#dreamscape-memory", beta: true },
   ];
 
 const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu: "wikiBuildings" | "wikiHeroes"; href: string }[] = [
@@ -1227,6 +1229,8 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#sneak": "sneak",
   "#chief-concierge": "sneak",
   "#daybreak": "daybreak",
+  "#dreamscape": "dreamscape",
+  "#dreamscape-memory": "dreamscape",
   "#showcase": "daybreak",
   "#upload": "daybreak",
   "#discord-bot": "bot",
@@ -1256,6 +1260,8 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   "message-templates": "templates",
   sneak: "sneak",
   daybreak: "daybreak",
+  dreamscape: "dreamscape",
+  "dreamscape-memory": "dreamscape",
   bot: "bot",
   wiki: "wikiHeroes",
   heroes: "wikiHeroes",
@@ -1273,6 +1279,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   templates: "/message-templates",
   sneak: "/#sneak-peek",
   daybreak: "/#daybreak",
+  dreamscape: "/#dreamscape-memory",
   bot: "/#discord-bot",
   wikiHeroes: "/wiki/heroes",
   wikiBuildings: "/wiki/buildings",
@@ -4645,33 +4652,23 @@ export default function Home() {
               </div>
             </div>
             {menuItems.map((item) => (
-              item.label === "Dreamscape" ? (
-                <a className="menu-trigger" href="/dreamscape-memory" key={item.label}>
-                  <span className="menu-status">{item.status}</span>
-                  <span className="menu-main">
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                  </span>
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  className={`menu-trigger ${item.menu && activeMenu === item.menu ? "active" : ""}`}
-                  key={item.label}
-                  onClick={() => {
-                    if (item.menu) {
-                      navigateToMenu(item.menu);
-                    }
-                  }}
-                >
-                  <span className="menu-status">{item.status}</span>
-                  <span className="menu-main">
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                    <Icon name="chevron" />
-                  </span>
-                </button>
-              )
+              <button
+                type="button"
+                className={`menu-trigger ${item.menu && activeMenu === item.menu ? "active" : ""}`}
+                key={item.label}
+                onClick={() => {
+                  if (item.menu) {
+                    navigateToMenu(item.menu);
+                  }
+                }}
+              >
+                <span className="menu-status">{item.status}</span>
+                <span className="menu-main">
+                  <Icon name={item.icon} />
+                  <span>{item.label}</span>
+                  <Icon name="chevron" />
+                </span>
+              </button>
             ))}
           </nav>
 
@@ -4883,12 +4880,6 @@ export default function Home() {
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
-            <a className="sidebar-item mobile-secondary" href="/dreamscape-memory">
-              <Icon name="image" />
-              <span className="nav-label-desktop">Dreamscape Memory</span>
-              <span className="nav-label-mobile">Dream</span>
-              <strong className="sidebar-beta-badge">Live</strong>
-            </a>
             <a className="sidebar-item mobile-secondary sidebar-community-link" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
               <Icon name="message" />
               <span className="nav-label-desktop">Discord Community</span>
@@ -4985,6 +4976,8 @@ export default function Home() {
         <div className="content-column">
           {activeMenu === "home" ? (
             <section className="home-page empty-home" id="home" aria-label="Home" />
+          ) : activeMenu === "dreamscape" ? (
+            <DreamscapeMemory embedded />
           ) : activeMenu === "gift" ? (
             <section className="home-page giftcodes-page" id="gift-codes" aria-label="Whiteout Survival gift codes">
               <section className="giftcodes-hero">
