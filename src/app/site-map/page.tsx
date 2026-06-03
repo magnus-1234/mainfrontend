@@ -13,6 +13,7 @@ const pages = [
   ["VIP Calculator", "/vip-calculator"],
   ["Chief Gear Calculator", "/chief-gear-calculator"],
   ["Chief Charm Calculator", "/chief-charm-calculator"],
+  ["WOS Game Map", "/game-map"],
   ["Foundry Team Planner", "/foundry-team-planner"],
   ["Message Templates", "/message-templates"],
   ["Heroes Wiki", "/wiki/heroes"],

@@ -25,6 +25,7 @@ const siteNavigationItems = [
   ["Chief Gear Calculator", "https://whiteoutsurvival.dev/chief-gear-calculator"],
   ["Chief Charm Calculator", "https://whiteoutsurvival.dev/chief-charm-calculator"],
   ["SvS Appointment Planner", "https://whiteoutsurvival.dev/svs-appointment-planner"],
+  ["WOS Game Map", "https://whiteoutsurvival.dev/game-map"],
   ["Foundry Team Planner", "https://whiteoutsurvival.dev/foundry-team-planner"],
   ["Message Templates", "https://whiteoutsurvival.dev/message-templates"],
   ["Heroes Wiki", "https://whiteoutsurvival.dev/wiki/heroes"],

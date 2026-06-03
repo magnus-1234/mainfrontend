@@ -5,6 +5,8 @@ import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import DreamscapeMemory from "./dreamscape-memory/DreamscapeMemory";
 import "./dreamscape-memory/dreamscape.css";
+import WosGameMap from "./game-map/WosGameMap";
+import "./game-map/wos-game-map.css";
 import SvsAppointmentPlanner from "./svs-appointment-planner/SvsAppointmentPlanner";
 import "./svs-appointment-planner/svs-appointment-planner.css";
 import wikiBuildingsData from "@/data/wiki/buildings.json";
@@ -53,7 +55,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "svsPlanner" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "svsPlanner" | "planner" | "gameMap" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "various" | "leaders" | "nsfw";
 type MessageTemplateAssignableCategory = Exclude<MessageTemplateCategory, "all">;
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
@@ -1281,6 +1283,7 @@ const sidebarItems: {
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
+    { label: "WOS Game Map", mobileLabel: "Map", icon: "mapPin", menu: "gameMap", href: "/game-map", mobilePrimary: true },
     { label: "SvS Appointment Planner", mobileLabel: "SvS", icon: "calendar", menu: "svsPlanner", href: "/svs-appointment-planner", beta: true },
     { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
@@ -1322,6 +1325,9 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#svs-planner": "svsPlanner",
   "#svs": "svsPlanner",
   "#appointments": "svsPlanner",
+  "#game-map": "gameMap",
+  "#wos-game-map": "gameMap",
+  "#map": "gameMap",
   "#foundry-team-planner": "planner",
   "#foundry-planner": "planner",
   "#city-layout-planner": "planner",
@@ -1365,6 +1371,8 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   "svs-planner": "svsPlanner",
   svs: "svsPlanner",
   appointments: "svsPlanner",
+  "game-map": "gameMap",
+  map: "gameMap",
   planner: "planner",
   templates: "templates",
   "message-templates": "templates",
@@ -1387,6 +1395,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   chiefCharm: "/chief-charm-calculator",
   chiefGear: "/chief-gear-calculator",
   svsPlanner: "/svs-appointment-planner",
+  gameMap: "/game-map",
   planner: "/foundry-team-planner",
   templates: "/message-templates",
   sneak: "/sneak-peek",
@@ -1442,6 +1451,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/svs-appointment-planner") || location.pathname.startsWith("/svs-planner")) {
     return "svsPlanner";
+  }
+
+  if (location.pathname.startsWith("/game-map")) {
+    return "gameMap";
   }
 
   if (location.pathname.startsWith("/message-templates")) {
@@ -5373,6 +5386,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   {[
                     ["gift" as const, "gift", "Popular", "Gift Codes", "View and redeem active Whiteout Survival gift codes."],
                     ["svsPlanner" as const, "calendar", "Featured", "SvS Appointment Planner", "Plan Education and Vice President appointments with resources."],
+                    ["gameMap" as const, "mapPin", "Map", "WOS Game Map", "Click any coordinate on the 1199 x 1199 game map."],
                     ["planner" as const, "grid", "Featured", "Foundry Team Planner", "Build rally teams, assign targets, and share plans."],
                     ["bot" as const, "bot", "Automation", "Discord Bot", "Track codes, players, reminders, translation, and alliance changes."],
                     ["templates" as const, "message", "Community", "Message Templates", "Copy-ready alliance chat templates for rallies and events."],
@@ -5405,6 +5419,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   body: "Organize alliance events, designs, and communication",
                   items: [
                     ["svsPlanner" as const, "calendar", "SvS Appointment Planner", "Coordinate 24-hour minister appointment rotations."],
+                    ["gameMap" as const, "mapPin", "WOS Game Map", "Open a clickable 1199 x 1199 coordinate map with 3D rotation."],
                     ["planner" as const, "mapPin", "Foundry Planner", "Coordinate rally leaders, joiners, and building targets."],
                     ["daybreak" as const, "island", "Daybreak Island", "Browse and share Daybreak Island layouts from the community."],
                     ["dreamscape" as const, "gamepad", "Dreamscape Memory", "Play the memory puzzle experience inside the WOS toolkit."],
@@ -5451,6 +5466,8 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             </section>
           ) : activeMenu === "dreamscape" ? (
             <DreamscapeMemory embedded />
+          ) : activeMenu === "gameMap" ? (
+            <WosGameMap embedded />
           ) : activeMenu === "gift" ? (
             <section className="home-page giftcodes-page" id="gift-codes" aria-label="Whiteout Survival gift codes">
               <section className="giftcodes-hero">
