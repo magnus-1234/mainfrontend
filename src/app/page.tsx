@@ -4724,27 +4724,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
           ))}
         </div>
       )}
-
-      {feedbackBannerVisible && (
-        <section className="feedback-banner" aria-label="Website feedback notice">
-          <span className="feedback-banner-icon"><Icon name="shield" /></span>
-          <p>
-            This site is still in development. Please give us feedback on our{" "}
-            <a href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">Discord community</a>.
-          </p>
-          <button className="feedback-banner-close" type="button" onClick={hideFeedbackBanner} aria-label="Hide feedback banner">
-            <Icon name="x" />
-          </button>
-          <button className="feedback-banner-hide" type="button" onClick={hideFeedbackBanner}>
-            Hide for 14 days
-          </button>
-          <a className="feedback-banner-discord" href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">
-            <img src="/discord-logo.png" alt="" />
-            Join our Discord community
-          </a>
-        </section>
-      )}
-
       <header className="ks-header">
         <div className="ks-header-inner">
           <button
@@ -5140,6 +5119,26 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
         </aside>
 
         <div className="content-column">
+          {feedbackBannerVisible && (
+            <section className="feedback-banner" aria-label="Website feedback notice">
+              <span className="feedback-banner-icon"><Icon name="shield" /></span>
+              <p>
+                This site is still in development. Please give us feedback on our{" "}
+                <a href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">Discord community</a>.
+              </p>
+              <button className="feedback-banner-close" type="button" onClick={hideFeedbackBanner} aria-label="Hide feedback banner">
+                <Icon name="x" />
+              </button>
+              <button className="feedback-banner-hide" type="button" onClick={hideFeedbackBanner}>
+                Hide for 14 days
+              </button>
+              <a className="feedback-banner-discord" href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">
+                <img src="/discord-logo.png" alt="" />
+                Join our Discord community
+              </a>
+            </section>
+          )}
+
           {activeMenu === "home" ? (
             <section className="home-page landing-page" id="home" aria-label="Whiteout Survival home">
               <section className="landing-hero">
