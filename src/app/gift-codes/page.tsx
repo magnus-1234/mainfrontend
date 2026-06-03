@@ -8,9 +8,9 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: "/gift-codes" },
-  openGraph: { type: "website", url: "/gift-codes", siteName: "WhiteoutSurvival.dev", title, description },
-  twitter: { card: "summary_large_image", title, description, images: ["/social-preview-v2.png"] },
+  alternates: { canonical: "https://whiteoutsurvival.dev/gift-codes" },
+  openGraph: { type: "website", url: "https://whiteoutsurvival.dev/gift-codes", siteName: "WhiteoutSurvival.dev", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
 };
 
 export default function GiftCodesPage() {

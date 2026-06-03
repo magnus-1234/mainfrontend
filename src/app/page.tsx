@@ -5146,7 +5146,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   </div>
                   <span className="section-kicker">WhiteoutSurvival.dev Tools & Guides</span>
                   <span className="landing-subtitle">Unofficial Community Resource</span>
-                  <h1>Whiteout Survival Companion Tools</h1>
+                  <h1>Whiteout Survival Tools & Discord Bot</h1>
                   <p>
                     Enhance your Whiteout Survival experience with gift codes, planners, calculators,
                     message templates, wiki data, event tools, and alliance automation built for active players.
@@ -5339,7 +5339,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="giftcodes-hero redeem-hero">
                 <div>
                   <span className="section-kicker">WhiteoutSurvival.dev Redeem</span>
-                  <h1>Redeem Gift Code</h1>
+                  <h1>Whiteout Survival Redeem Codes</h1>
                   <p>Enter your player ID and code. Our redeem system completes the secure check automatically.</p>
                 </div>
                 <div className="giftcodes-hero-actions">
@@ -5419,7 +5419,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="state-age-hero">
                 <div className="state-age-hero-copy">
                   <span className="section-kicker">State Timeline Tool</span>
-                  <h1>State Age Tracker</h1>
+                  <h1>Whiteout Survival State Age Tracker</h1>
                   <p>Type a state number to see when it opened, how old it is, what content is already live, and what is coming next.</p>
                   <div className="state-age-hero-chips" aria-label="Tracker capabilities">
                     <span><Icon name="calendar" /> Creation time</span>
@@ -5584,7 +5584,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="chief-gear-hero">
                 <div>
                   <span className="section-kicker">Chief Gear Calculator</span>
-                  <h1>Chief Gear Upgrade Planner</h1>
+                  <h1>Whiteout Survival Chief Gear Calculator</h1>
                   <p>Plan all six WOS Chief Gear pieces from Uncommon to Mythic T4 with material totals, inventory shortfalls, troop buffs, and exchange context.</p>
                   <div className="chief-gear-hero-chips" aria-label="Chief Gear facts">
                     <span><Icon name="flame" /> Furnace Lv.22 unlock</span>
@@ -5820,7 +5820,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="chief-charm-hero">
                 <div className="chief-charm-hero-copy">
                   <span className="section-kicker">Chief Gear Calculator</span>
-                  <h1>Chief Charm Calculator</h1>
+                  <h1>Whiteout Survival Chief Charm Calculator</h1>
                   <p>
                     <span>Plan Charm Design, Charm Guide, and Jewel Secret costs across every WOS charm slot.</span>
                     <span>Configure all 18 slots: 3 charms on each chief gear piece, grouped by troop type.</span>
@@ -6083,7 +6083,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="wiki-hero">
                 <div>
                   <span className="section-kicker">Whiteout Survival Guide</span>
-                  <h1>Wos Wiki Heroes</h1>
+                  <h1>Whiteout Survival Heroes Wiki</h1>
                   <p>Browse hero stats, classes, skills, shards, and progression details in one place.</p>
                 </div>
                 <div className="wiki-switcher" aria-label="Wiki section switcher">
@@ -6169,7 +6169,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="wiki-hero">
                 <div>
                   <span className="section-kicker">Whiteout Survival Guide</span>
-                  <h1>Wos Wiki Buildings</h1>
+                  <h1>Whiteout Survival Buildings Wiki</h1>
                   <p>Browse building categories, upgrade requirements, costs, timers, and power details in one place.</p>
                 </div>
                 <div className="wiki-switcher" aria-label="Wiki section switcher">
@@ -6246,7 +6246,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="foundry-hero">
                 <div>
                   <span className="section-kicker">Planner Setup</span>
-                  <h1>Foundry Team Planner</h1>
+                  <h1>Whiteout Survival Foundry Team Planner</h1>
                   <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan can be exported as a map image and a team table image.</p>
                 </div>
                 <div className="foundry-hero-actions">
@@ -6507,7 +6507,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="templates-hero">
                 <div>
                   <span className="section-kicker">Alliance Chat Tools</span>
-                  <h1>Message Templates</h1>
+                  <h1>Whiteout Survival Message Templates</h1>
                   <p>Create, edit, share, and copy alliance chat templates with tags, likes, and a game chat preview.</p>
                 </div>
               </section>
@@ -6663,7 +6663,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             <section className="home-page sneak-peek-page" id="sneak-peek" aria-label="Chief Concierge Sneak Peek">
               <section className="sneak-peek-hero">
                 <span className="section-kicker">Chief Concierge</span>
-                <h1>Chief Concierge: Sneak Peek</h1>
+                <h1>Whiteout Survival Sneak Peek News</h1>
                 <p>Childhood Memory Festival details, event schedule, Penguin Bounce rewards, skins, packs, and gift code information from the official sneak peek.</p>
               </section>
 
@@ -6830,9 +6830,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
               <div className="bot-commercial">
                 <div className="bot-commercial-copy">
-                  <h1>
-                    The Most <span className="bot-title-highlight">Advanced</span>, Feature-Rich <span className="bot-title-highlight warm">Discord Bot</span> for WOS
-                  </h1>
+                  <h1>Whiteout Survival Discord Bot</h1>
                   <div className="bot-brand-row">
                     <Image className="bot-brand-logo" src="/molly-logo.png" alt="Whiteout Survival bot logo" width={58} height={58} />
                     <span className="bot-brand-name">Whiteout <span>Survival</span></span>
@@ -6951,7 +6949,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="daybreak-hero">
                 <div className="daybreak-hero-copy">
                   <span className="section-kicker">Community Showcase</span>
-                  <h1>Daybreak Island</h1>
+                  <h1>Whiteout Survival Daybreak Island Layouts</h1>
                   <p>Discover community island layouts, showcase your creations, and share your island with players across the Whiteout Survival community.</p>
                   <div className="hero-actions">
                     <button className="primary-cta" type="button" onClick={openUploadModal}>Upload Island</button>

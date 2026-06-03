@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteTitle = "Whiteout Survival Tools & WOS Discord Bot";
+const siteTitle = "Whiteout Survival Tools & Discord Bot | WhiteoutSurvival.dev";
 const siteDescription =
   "Whiteout Survival tools for gift codes, state age, chief gear and charm calculators, Foundry planning, WOS wiki data, and Discord bot automation.";
 const siteNavigationItems = [
@@ -85,13 +85,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "/",
+    url: "https://whiteoutsurvival.dev/",
     siteName: "WhiteoutSurvival.dev",
     title: siteTitle,
     description: siteDescription,
     images: [
       {
-        url: "/social-preview-v2.png",
+        url: "https://whiteoutsurvival.dev/social-preview-v2.png",
         width: 1200,
         height: 630,
         alt: "Whiteout Survival tools, guides, calculators, planners, and Discord bot preview",
@@ -102,7 +102,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteTitle,
     description: siteDescription,
-    images: ["/social-preview-v2.png"],
+    images: ["https://whiteoutsurvival.dev/social-preview-v2.png"],
   },
 };
 

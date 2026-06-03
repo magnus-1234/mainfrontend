@@ -3,14 +3,14 @@ import Home from "../../page";
 
 const title = "Whiteout Survival Heroes Wiki";
 const description =
-  "Whiteout Survival heroes wiki with WOS hero rarity, season, class, skills, images, and searchable reference data for planning lineups.";
+  "Whiteout Survival heroes wiki with WOS hero rarity, season, class, skills, images, and searchable reference data for planning stronger lineups.";
 
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: "/wiki/heroes" },
-  openGraph: { type: "website", url: "/wiki/heroes", siteName: "WhiteoutSurvival.dev", title, description },
-  twitter: { card: "summary_large_image", title, description, images: ["/social-preview-v2.png"] },
+  alternates: { canonical: "https://whiteoutsurvival.dev/wiki/heroes" },
+  openGraph: { type: "website", url: "https://whiteoutsurvival.dev/wiki/heroes", siteName: "WhiteoutSurvival.dev", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
 };
 
 export default function WikiHeroesPage() {

@@ -156,7 +156,7 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
       <section className="dreamscape-menu" aria-label="Dreamscape Memory menu">
         <div>
           <span className="dreamscape-kicker">Memory Trial</span>
-          <h1>Dreamscape: Ballroom</h1>
+          <h1>Whiteout Survival Dreamscape Memory Tool</h1>
         </div>
         <label>
           Map

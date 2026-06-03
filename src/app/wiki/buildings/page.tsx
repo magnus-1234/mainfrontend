@@ -8,9 +8,9 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: "/wiki/buildings" },
-  openGraph: { type: "website", url: "/wiki/buildings", siteName: "WhiteoutSurvival.dev", title, description },
-  twitter: { card: "summary_large_image", title, description, images: ["/social-preview-v2.png"] },
+  alternates: { canonical: "https://whiteoutsurvival.dev/wiki/buildings" },
+  openGraph: { type: "website", url: "https://whiteoutsurvival.dev/wiki/buildings", siteName: "WhiteoutSurvival.dev", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["https://whiteoutsurvival.dev/social-preview-v2.png"] },
 };
 
 export default function WikiBuildingsPage() {

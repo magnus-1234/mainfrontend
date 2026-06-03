@@ -8,9 +8,9 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: "/discord-bot" },
-  openGraph: { type: "website", url: "/discord-bot", siteName: "WhiteoutSurvival.dev", title, description },
-  twitter: { card: "summary_large_image", title, description, images: ["/bot-preview-dashboard-reference.png"] },
+  alternates: { canonical: "https://whiteoutsurvival.dev/discord-bot" },
+  openGraph: { type: "website", url: "https://whiteoutsurvival.dev/discord-bot", siteName: "WhiteoutSurvival.dev", title, description, images: ["https://whiteoutsurvival.dev/bot-preview-dashboard-reference.png"] },
+  twitter: { card: "summary_large_image", title, description, images: ["https://whiteoutsurvival.dev/bot-preview-dashboard-reference.png"] },
 };
 
 export default function DiscordBotPage() {

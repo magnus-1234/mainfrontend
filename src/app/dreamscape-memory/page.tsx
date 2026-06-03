@@ -2,25 +2,25 @@ import type { Metadata } from "next";
 import DreamscapeMemory from "./DreamscapeMemory";
 import "./dreamscape.css";
 
-const title = "Dreamscape Memory Whiteout Survival Event Tool";
+const title = "Whiteout Survival Dreamscape Tool";
 const description =
-  "Whiteout Survival Dreamscape Memory event tool for tracking tiles, turns, matches, and progress so you can plan cleaner event runs.";
+  "Whiteout Survival Dreamscape Memory event tool for tracking tiles, turns, matches, and progress so you can plan cleaner event runs and rewards.";
 
 export const metadata: Metadata = {
   title,
   description,
   alternates: {
-    canonical: "/dreamscape-memory",
+    canonical: "https://whiteoutsurvival.dev/dreamscape-memory",
   },
   openGraph: {
     type: "website",
-    url: "/dreamscape-memory",
+    url: "https://whiteoutsurvival.dev/dreamscape-memory",
     siteName: "WhiteoutSurvival.dev",
     title,
     description,
     images: [
       {
-        url: "/images/dreamscape/ballroom.webp",
+        url: "https://whiteoutsurvival.dev/images/dreamscape/ballroom.webp",
         width: 1200,
         height: 630,
         alt: "Whiteout Survival Dreamscape Memory event helper",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/images/dreamscape/ballroom.webp"],
+    images: ["https://whiteoutsurvival.dev/images/dreamscape/ballroom.webp"],
   },
 };
 
