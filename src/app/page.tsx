@@ -6686,70 +6686,72 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     </div>
                   </div>
                   <div className="foundry-map-frame">
-                    <img src={foundryMapImage} alt="Whiteout Survival Foundry battlefield map" />
-                    <img className="foundry-map-logo" src={foundryLogoImage} alt="Whiteout Survival" />
-                    {foundryShowBuildingLabels && foundryBuildings.map((building) => (
-                      <span
-                        className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"}`}
-                        key={building.id}
-                        style={{ left: `${building.x}%`, top: `${building.y}%` }}
-                      >
-                        {building.name}
-                      </span>
-                    ))}
-                    {foundryShowTeamRoster && allFoundryTeams.map((team, teamIndex) => {
-                      const building = foundryBuildings.find((item) => item.id === team.buildingId);
-                      if (!building) {
-                        return null;
-                      }
-                      const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
-                      const teamColor = foundryTeamColors[teamIndex % foundryTeamColors.length];
-                      const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
-                      const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
-                      const teamOffset = Math.max(0, buildingTeamIndex);
-                      const labelOffset = 12.3 + teamOffset * 1.6;
-                      return (
-                        <div key={team.id}>
-                          <span
-                            className="foundry-map-team-label"
-                            style={{
-                              left: `${Math.max(8, Math.min(92, building.x))}%`,
-                              top: `${Math.max(7, Math.min(93, building.y - labelOffset))}%`,
-                              ["--foundry-team-color" as string]: teamColor,
-                            }}
-                          >
-                            {team.name} - {building.name}
-                          </span>
-                          {members.map((member, memberIndex) => {
-                            const offset = foundryMapCircleOffset(memberIndex, members.length, teamOffset);
-                            const left = Math.max(6, Math.min(94, building.x + offset.x));
-                            const top = Math.max(8, Math.min(92, building.y + offset.y));
-                            const memberColor = member.role === "leader" ? foundryLeaderColor : teamColor;
-                            const roleLabel = member.role === "leader" ? "Rally" : "Joiner";
-                            return (
-                              <span
-                                className={`foundry-map-member ${member.role}`}
-                                key={member.id}
-                                style={{
-                                  left: `${left}%`,
-                                  top: `${top}%`,
-                                  ["--foundry-team-color" as string]: teamColor,
-                                  ["--foundry-member-color" as string]: memberColor,
-                                }}
-                              >
-                                <span className="foundry-map-member-avatar">
-                                  <b>{foundryMemberName(member).slice(0, 1).toUpperCase()}</b>
-                                  <WosPlayerAvatar src={member.profile?.avatarImage} fallback={null} />
+                    <div className="foundry-map-stage">
+                      <img src={foundryMapImage} alt="Whiteout Survival Foundry battlefield map" />
+                      {foundryShowBuildingLabels && foundryBuildings.map((building) => (
+                        <span
+                          className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"}`}
+                          key={building.id}
+                          style={{ left: `${building.x}%`, top: `${building.y}%` }}
+                        >
+                          {building.name}
+                        </span>
+                      ))}
+                      {foundryShowTeamRoster && allFoundryTeams.map((team, teamIndex) => {
+                        const building = foundryBuildings.find((item) => item.id === team.buildingId);
+                        if (!building) {
+                          return null;
+                        }
+                        const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
+                        const teamColor = foundryTeamColors[teamIndex % foundryTeamColors.length];
+                        const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
+                        const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
+                        const teamOffset = Math.max(0, buildingTeamIndex);
+                        const labelOffset = 12.3 + teamOffset * 1.6;
+                        return (
+                          <div key={team.id}>
+                            <span
+                              className="foundry-map-team-label"
+                              style={{
+                                left: `${Math.max(8, Math.min(92, building.x))}%`,
+                                top: `${Math.max(7, Math.min(93, building.y - labelOffset))}%`,
+                                ["--foundry-team-color" as string]: teamColor,
+                              }}
+                            >
+                              {team.name} - {building.name}
+                            </span>
+                            {members.map((member, memberIndex) => {
+                              const offset = foundryMapCircleOffset(memberIndex, members.length, teamOffset);
+                              const left = Math.max(6, Math.min(94, building.x + offset.x));
+                              const top = Math.max(8, Math.min(92, building.y + offset.y));
+                              const memberColor = member.role === "leader" ? foundryLeaderColor : teamColor;
+                              const roleLabel = member.role === "leader" ? "Rally" : "Joiner";
+                              return (
+                                <span
+                                  className={`foundry-map-member ${member.role}`}
+                                  key={member.id}
+                                  style={{
+                                    left: `${left}%`,
+                                    top: `${top}%`,
+                                    ["--foundry-team-color" as string]: teamColor,
+                                    ["--foundry-member-color" as string]: memberColor,
+                                  }}
+                                >
+                                  <span className="foundry-map-member-avatar">
+                                    <b>{foundryMemberName(member).slice(0, 1).toUpperCase()}</b>
+                                    <WosPlayerAvatar src={member.profile?.avatarImage} fallback={null} />
+                                  </span>
+                                  <span className="foundry-map-member-role">{roleLabel}</span>
+                                  <strong>{foundryMemberName(member)}</strong>
+                                  {member.profile && <small>Furnace {furnaceDisplay(member.profile)}</small>}
                                 </span>
-                                <span className="foundry-map-member-role">{roleLabel}</span>
-                                <strong>{foundryMemberName(member)}</strong>
-                                {member.profile && <small>Furnace {furnaceDisplay(member.profile)}</small>}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <img className="foundry-map-logo" src={foundryLogoImage} alt="Whiteout Survival" />
                   </div>
                 </div>
               </section>}
