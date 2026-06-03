@@ -26,6 +26,7 @@ type Island = {
     furnaceLevelFormatted?: string;
     furnaceIcon?: string;
     avatarImage?: string;
+    avatar_image?: string;
   };
   server?: string;
   alliance?: string;
@@ -415,33 +416,22 @@ const foundryBuildings: FoundryBuilding[] = [
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
 const foundryLeaderColor = "#facc15";
 
-const foundryMapStackOffset = (memberIndex: number, memberCount: number) => {
-  if (memberIndex === 0) {
-    return { x: 0, y: -3.2 };
-  }
-  const joiners = Math.max(1, memberCount - 1);
-  const columns = Math.min(2, joiners);
-  const joinerIndex = memberIndex - 1;
-  const column = joinerIndex % columns;
-  const row = Math.floor(joinerIndex / columns);
+const foundryMapCircleOffset = (memberIndex: number, memberCount: number, teamOffset = 0) => {
+  const radius = 8.2 + teamOffset * 1.2;
+  const angle = ((Math.PI * 2) / Math.max(memberCount, 1)) * memberIndex - Math.PI / 2 + teamOffset * 0.45;
   return {
-    x: (column - (columns - 1) / 2) * 8.8,
-    y: 2.4 + row * 4.4,
+    x: Math.cos(angle) * radius,
+    y: Math.sin(angle) * radius,
   };
 };
 
-const foundryExportStackOffset = (memberIndex: number, memberCount: number) => {
-  if (memberIndex === 0) {
-    return { x: 0, y: -54 };
-  }
-  const joiners = Math.max(1, memberCount - 1);
-  const columns = Math.min(2, joiners);
-  const joinerIndex = memberIndex - 1;
-  const column = joinerIndex % columns;
-  const row = Math.floor(joinerIndex / columns);
+const foundryExportCircleOffset = (memberIndex: number, memberCount: number, teamOffset = 0) => {
+  const radiusX = 172 + teamOffset * 22;
+  const radiusY = 104 + teamOffset * 14;
+  const angle = ((Math.PI * 2) / Math.max(memberCount, 1)) * memberIndex - Math.PI / 2 + teamOffset * 0.45;
   return {
-    x: (column - (columns - 1) / 2) * 206,
-    y: 8 + row * 58,
+    x: Math.cos(angle) * radiusX,
+    y: Math.sin(angle) * radiusY,
   };
 };
 
@@ -698,6 +688,10 @@ const normalizeFoundryPlayerProfile = (
   },
 ): PlayerProfile => ({
   ...player,
+  playerId: player.playerId || String((player as { fid?: string | number; id?: string | number }).fid || (player as { id?: string | number }).id || ""),
+  nickname: player.nickname || (player as { name?: string }).name || "Unknown Player",
+  stateId: player.stateId || String((player as { state_id?: string | number; kid?: string | number }).state_id || (player as { kid?: string | number }).kid || ""),
+  furnaceLevel: player.furnaceLevel ?? (player as { furnace_lv?: number; furnace?: number }).furnace_lv ?? (player as { furnace?: number }).furnace,
   avatarImage:
     player.avatarImage ||
     player.avatarUrl ||
@@ -709,6 +703,30 @@ const normalizeFoundryPlayerProfile = (
     player.picture ||
     player.image,
 });
+
+const foundryPlayerPayload = (data: unknown): PlayerProfile | undefined => {
+  const payload = data as {
+    player?: PlayerProfile;
+    data?: PlayerProfile | { player?: PlayerProfile };
+    profile?: PlayerProfile;
+  } | null;
+  if (!payload) {
+    return undefined;
+  }
+  if (payload.player) {
+    return payload.player;
+  }
+  if (payload.profile) {
+    return payload.profile;
+  }
+  if (payload.data && typeof payload.data === "object" && "player" in payload.data && payload.data.player) {
+    return payload.data.player;
+  }
+  if (payload.data && typeof payload.data === "object") {
+    return payload.data as PlayerProfile;
+  }
+  return undefined;
+};
 
 const utcInputDate = (date = new Date()) => date.toISOString().slice(0, 10);
 const utcInputDateTime = (date = new Date()) => date.toISOString().slice(0, 16);
@@ -2573,7 +2591,8 @@ export default function Home() {
         throw new Error(data?.error || "Player details could not be fetched.");
       }
 
-      setPlayerLookup(data.player);
+      const player = foundryPlayerPayload(data);
+      setPlayerLookup(player ? normalizeFoundryPlayerProfile(player) : data.player);
       setPlayerLookupStatus("Player details loaded.");
     } catch (error) {
       setPlayerLookup(null);
@@ -3871,10 +3890,11 @@ export default function Home() {
     }
     const response = await fetch(`${apiBase}/api/daybreak/players/${cleanedPlayerId}`);
     const data = await response.json().catch(() => null);
-    if (!response.ok || !data?.player) {
+    const player = foundryPlayerPayload(data);
+    if (!response.ok || !player) {
       return undefined;
     }
-    return normalizeFoundryPlayerProfile(data.player);
+    return normalizeFoundryPlayerProfile(player);
   }, []);
 
   const hydrateFoundryTeamProfiles = useCallback(async (teams: FoundryTeam[]) => {
@@ -4259,25 +4279,46 @@ export default function Home() {
         }
         const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
         const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
-        const stackY = (buildingTeamIndex - (teamsAtBuilding.length - 1) / 2) * 180;
+        const teamOffset = Math.max(0, buildingTeamIndex);
+        const labelY = Math.max(130, centerY - 162 - teamOffset * 22);
 
-        context.fillStyle = "rgba(8, 10, 11, 0.9)";
+        context.save();
+        context.shadowColor = "rgba(0, 0, 0, 0.36)";
+        context.shadowBlur = 18;
+        context.shadowOffsetY = 8;
+        context.fillStyle = "rgba(6, 10, 12, 0.92)";
         context.strokeStyle = teamColor;
         context.lineWidth = 2;
         context.beginPath();
-        context.roundRect(centerX - 124, centerY - 108 + stackY, 248, 36, 12);
+        context.roundRect(centerX - 154, labelY - 22, 308, 44, 14);
         context.fill();
         context.stroke();
+        context.restore();
+        context.fillStyle = "rgba(255, 255, 255, 0.1)";
+        context.beginPath();
+        context.roundRect(centerX - 148, labelY - 16, 296, 12, 8);
+        context.fill();
         context.textAlign = "center";
         context.fillStyle = teamColor;
-        context.font = "900 15px Arial";
-        context.fillText(`${team.name} - ${building.name}`.slice(0, 36), centerX, centerY - 85 + stackY);
+        context.font = "900 14px Arial";
+        context.fillText(team.name.slice(0, 22), centerX, labelY - 1);
+        context.fillStyle = "#fff";
+        context.font = "900 16px Arial";
+        context.fillText(building.name.slice(0, 28), centerX, labelY + 16);
+
+        context.strokeStyle = teamColor;
+        context.lineWidth = 2;
+        context.setLineDash([8, 10]);
+        context.beginPath();
+        context.ellipse(centerX, centerY, 172 + teamOffset * 22, 104 + teamOffset * 14, 0, 0, Math.PI * 2);
+        context.stroke();
+        context.setLineDash([]);
 
         members.forEach((member, memberIndex) => {
-          const offset = foundryExportStackOffset(memberIndex, members.length);
+          const offset = foundryExportCircleOffset(memberIndex, members.length, teamOffset);
           const chipWidth = member.role === "leader" ? 206 : 176;
           const rawX = centerX + offset.x;
-          const rawY = centerY + offset.y + stackY;
+          const rawY = centerY + offset.y;
           const x = Math.max(24, Math.min(canvas.width - chipWidth - 24, rawX - chipWidth / 2));
           const y = Math.max(126, Math.min(canvas.height - 64, rawY - 24));
           drawFoundryMemberChip(context, member, x, y, chipWidth, member.role === "leader" ? foundryLeaderColor : teamColor, avatarImages.get(member.id));
@@ -6017,23 +6058,24 @@ export default function Home() {
                       const teamColor = foundryTeamColors[teamIndex % foundryTeamColors.length];
                       const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
                       const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
-                      const stackY = (buildingTeamIndex - (teamsAtBuilding.length - 1) / 2) * 9.2;
+                      const teamOffset = Math.max(0, buildingTeamIndex);
+                      const labelOffset = 12.3 + teamOffset * 1.6;
                       return (
                         <div key={team.id}>
                           <span
                             className="foundry-map-team-label"
                             style={{
                               left: `${Math.max(8, Math.min(92, building.x))}%`,
-                              top: `${Math.max(7, Math.min(93, building.y - 7.4 + stackY))}%`,
+                              top: `${Math.max(7, Math.min(93, building.y - labelOffset))}%`,
                               ["--foundry-team-color" as string]: teamColor,
                             }}
                           >
                             {team.name} - {building.name}
                           </span>
                           {members.map((member, memberIndex) => {
-                            const offset = foundryMapStackOffset(memberIndex, members.length);
+                            const offset = foundryMapCircleOffset(memberIndex, members.length, teamOffset);
                             const left = Math.max(6, Math.min(94, building.x + offset.x));
-                            const top = Math.max(8, Math.min(92, building.y + offset.y + stackY));
+                            const top = Math.max(8, Math.min(92, building.y + offset.y));
                             const memberColor = member.role === "leader" ? foundryLeaderColor : teamColor;
                             const roleLabel = member.role === "leader" ? "Rally" : "Joiner";
                             return (
