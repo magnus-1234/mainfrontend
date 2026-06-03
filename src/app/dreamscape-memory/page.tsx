@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { MouseEvent } from "react";
 import "./dreamscape.css";
@@ -107,7 +108,8 @@ export default function DreamscapeMemoryPage() {
 
   useEffect(() => {
     if (status === "playing" && foundIds.size === stageItems.length) {
-      setStatus("won");
+      const timer = window.setTimeout(() => setStatus("won"), 0);
+      return () => window.clearTimeout(timer);
     }
   }, [foundIds.size, status]);
 
@@ -150,7 +152,7 @@ export default function DreamscapeMemoryPage() {
   return (
     <main className="dreamscape-page">
       <section className="dreamscape-menu" aria-label="Dreamscape Memory menu">
-        <a className="dreamscape-home-link" href="/">WhiteoutSurvival.dev</a>
+        <Link className="dreamscape-home-link" href="/">WhiteoutSurvival.dev</Link>
         <div>
           <span className="dreamscape-kicker">Dreamscape Memory</span>
           <h1>Ballroom Stage 1</h1>
