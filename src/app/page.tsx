@@ -3906,6 +3906,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     .sort((a, b) => b.index - a.index)[0];
   const chiefGearAttackGain = chiefGearRows.reduce((sum, row) => sum + ((row.toLevel?.attackDefense || 0) - (row.fromLevel?.attackDefense || 0)), 0);
   const chiefGearCapacityGain = chiefGearRows.reduce((sum, row) => sum + ((row.toLevel?.squadCapacity || 0) - (row.fromLevel?.squadCapacity || 0)), 0);
+  const chiefGearPowerGain = Math.round((chiefGearAttackGain * 1000) + (chiefGearCapacityGain * 10));
   const chiefGearPowerTrend = chiefGearAttackGain > 0 ? "positive" : chiefGearAttackGain < 0 ? "negative" : "neutral";
   const chiefGearShortfall = {
     designPlans: Math.max(0, chiefGearTotalCost.designPlans - ownedChiefGearPlans),
@@ -5607,10 +5608,11 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="chief-gear-summary" aria-label="Chief Gear result summary">
                 <article className={`primary power-increase-card ${chiefGearPowerTrend}`}>
                   <span>Power Increase</span>
-                  <strong>{chiefGearAttackGain > 0 ? "+" : ""}{formatPercent(chiefGearAttackGain)}</strong>
+                  <strong>{chiefGearPowerGain > 0 ? "+" : ""}{formatNumber(chiefGearPowerGain)}</strong>
                   <small>
                     <b>{chiefGearPowerTrend === "negative" ? "Decrease" : chiefGearPowerTrend === "positive" ? "Increase" : "No change"}</b>
-                    {chiefGearCapacityGain > 0 ? "+" : ""}{formatNumber(chiefGearCapacityGain)} squad capacity
+                    <em>{chiefGearAttackGain > 0 ? "+" : ""}{formatPercent(chiefGearAttackGain)}</em>
+                    {chiefGearCapacityGain > 0 ? "+" : ""}{formatNumber(chiefGearCapacityGain)} capacity
                   </small>
                 </article>
                 <article>

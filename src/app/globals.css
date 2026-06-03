@@ -13815,16 +13815,41 @@ body {
   text-transform: uppercase;
 }
 
+.chief-gear-summary article.power-increase-card small em {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border: 1px solid rgba(134, 239, 172, 0.34);
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: rgba(15, 23, 42, 0.42);
+  color: #86efac;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+}
+
 .chief-gear-summary article.power-increase-card.negative small b {
   border-color: rgba(252, 165, 165, 0.45);
   background: rgba(127, 29, 29, 0.36);
   color: #fecaca;
 }
 
+.chief-gear-summary article.power-increase-card.negative small em {
+  border-color: rgba(252, 165, 165, 0.34);
+  color: #fca5a5;
+}
+
 .chief-gear-summary article.power-increase-card.neutral small b {
   border-color: rgba(203, 213, 225, 0.36);
   background: rgba(51, 65, 85, 0.42);
   color: #e2e8f0;
+}
+
+.chief-gear-summary article.power-increase-card.neutral small em {
+  border-color: rgba(203, 213, 225, 0.28);
+  color: #cbd5e1;
 }
 
 .chief-gear-workbench,
