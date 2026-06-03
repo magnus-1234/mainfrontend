@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiAttribution } from "../attribution";
 
 type GiftCode = {
   code: string;
@@ -195,6 +196,7 @@ export async function GET() {
 
   return NextResponse.json(
     {
+      attribution: apiAttribution,
       codes,
       lastUpdated: new Date().toISOString(),
       refreshAfterSeconds: 30,

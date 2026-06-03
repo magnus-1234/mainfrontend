@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiAttribution } from "../../attribution";
 
 const backendCandidates = [
   process.env.BACKEND_URL,
@@ -18,14 +19,19 @@ export async function POST(request: Request) {
         body,
       });
       const payload = await response.json().catch(() => null);
-      return NextResponse.json(payload, { status: response.status });
+      return NextResponse.json(
+        payload && typeof payload === "object"
+          ? { ...payload, attribution: apiAttribution }
+          : { attribution: apiAttribution, data: payload },
+        { status: response.status },
+      );
     } catch {
       continue;
     }
   }
 
   return NextResponse.json(
-    { status: "error", message: "Player lookup service is temporarily unavailable." },
+    { attribution: apiAttribution, status: "error", message: "Player lookup service is temporarily unavailable." },
     { status: 503 },
   );
 }

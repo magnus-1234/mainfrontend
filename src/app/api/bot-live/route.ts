@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiAttribution } from "../attribution";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export async function GET() {
     const summary = feed.summary || {};
 
     return NextResponse.json({
+      attribution: apiAttribution,
       generatedAt: feed.generated_at || new Date().toISOString(),
       servers: numberFrom(summary.servers, status.servers_count, status.guilds_count),
       discordMembers: numberFrom(summary.members, status.total_members, status.members_count),
@@ -58,7 +60,7 @@ export async function GET() {
     });
   } catch {
     return NextResponse.json(
-      { error: "Bot live metrics are temporarily unavailable." },
+      { attribution: apiAttribution, error: "Bot live metrics are temporarily unavailable." },
       { status: 502 },
     );
   }

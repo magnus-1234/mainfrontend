@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiAttribution } from "../attribution";
 
 type StateTimelineEvent = {
   title: string;
@@ -260,6 +261,7 @@ export async function GET(request: Request) {
 
     if (!state) {
       return NextResponse.json({
+        attribution: apiAttribution,
         sourceUpdatedAt: cleanText(sourceUpdatedAt),
         recentlyOpenedStates: await getRecentlyOpenedStates(nonce, 3000),
       });
@@ -268,10 +270,11 @@ export async function GET(request: Request) {
     const timeline = await fetchTimelineHtml(nonce, Number(state));
 
     if (!timeline.html) {
-      return NextResponse.json({ error: timeline.error }, { status: 404 });
+      return NextResponse.json({ attribution: apiAttribution, error: timeline.error }, { status: 404 });
     }
 
     return NextResponse.json({
+      attribution: apiAttribution,
       state,
       activeFor: timeline.activeFor,
       startedAt: timeline.startedAt,
@@ -280,6 +283,9 @@ export async function GET(request: Request) {
       events: parseStateTimeline(timeline.html),
     });
   } catch {
-    return NextResponse.json({ error: "Unable to load state age data right now." }, { status: 502 });
+    return NextResponse.json(
+      { attribution: apiAttribution, error: "Unable to load state age data right now." },
+      { status: 502 },
+    );
   }
 }

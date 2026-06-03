@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiAttribution } from "../../api/attribution";
 
 const openApiDocument = {
   openapi: "3.1.0",
@@ -6,7 +7,7 @@ const openApiDocument = {
     title: "WhiteoutSurvival.dev API",
     version: "1.0.0",
     description:
-      "Public API endpoints for Whiteout Survival state age data, gift codes, player lookup, and live bot metrics.",
+      `${apiAttribution.credit} Public API endpoints for Whiteout Survival state age data, gift codes, player lookup, and live bot metrics.`,
     contact: {
       name: "WhiteoutSurvival.dev",
       url: "https://whiteoutsurvival.dev",
@@ -28,6 +29,10 @@ const openApiDocument = {
     { name: "Player", description: "Whiteout Survival player lookup by ID." },
     { name: "System", description: "Live site and bot status data." },
   ],
+  externalDocs: {
+    description: "WhiteoutSurvival.dev",
+    url: apiAttribution.website,
+  },
   paths: {
     "/api/state-age": {
       get: {
@@ -54,6 +59,7 @@ const openApiDocument = {
                   recentlyOpened: {
                     summary: "Recently opened states",
                     value: {
+                      attribution: apiAttribution,
                       sourceUpdatedAt: "June 2026",
                       recentlyOpenedStates: [
                         {
@@ -69,6 +75,7 @@ const openApiDocument = {
                   stateTimeline: {
                     summary: "Specific state timeline",
                     value: {
+                      attribution: apiAttribution,
                       state: "2001",
                       activeFor: "21 days",
                       startedAt: "13/05/2026 - 04:00:00 UTC",
@@ -105,6 +112,7 @@ const openApiDocument = {
             content: {
               "application/json": {
                 example: {
+                  attribution: apiAttribution,
                   codes: [
                     {
                       code: "WOS2026",
@@ -152,6 +160,7 @@ const openApiDocument = {
             content: {
               "application/json": {
                 example: {
+                  attribution: apiAttribution,
                   status: "success",
                   data: {
                     id: "244886619",
@@ -180,6 +189,7 @@ const openApiDocument = {
             content: {
               "application/json": {
                 example: {
+                  attribution: apiAttribution,
                   generatedAt: "2026-06-03T10:30:00.000Z",
                   servers: 12,
                   discordMembers: 25000,

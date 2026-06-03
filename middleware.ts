@@ -35,6 +35,14 @@ const guardedApiPrefixes = [
   "/api/auth",
 ];
 
+const publicApiPaths = new Set([
+  "/api/state-age",
+  "/api/gift-codes",
+  "/api/gift-codes/player-info",
+  "/api/bot-live",
+  "/api-docs/openapi.json",
+]);
+
 const blockedResponseHeaders = {
   "Cache-Control": "no-store",
   "X-Content-Type-Options": "nosniff",
@@ -45,16 +53,21 @@ const isLikelyAutomated = (request: NextRequest) => {
   const accept = request.headers.get("accept") || "";
   const secFetchMode = request.headers.get("sec-fetch-mode");
   const path = request.nextUrl.pathname;
-
-  if (blockedUserAgentPatterns.some((pattern) => pattern.test(userAgent))) {
-    return true;
-  }
+  const normalizedPath = path.length > 1 ? path.replace(/\/$/, "") : path;
 
   if (blockedPathPatterns.some((pattern) => pattern.test(path))) {
     return true;
   }
 
-  if (guardedApiPrefixes.some((prefix) => path.startsWith(prefix))) {
+  if (publicApiPaths.has(normalizedPath)) {
+    return false;
+  }
+
+  if (blockedUserAgentPatterns.some((pattern) => pattern.test(userAgent))) {
+    return true;
+  }
+
+  if (guardedApiPrefixes.some((prefix) => normalizedPath.startsWith(prefix))) {
     const acceptsJson = accept.includes("application/json") || accept.includes("*/*");
     const browserNavigation = secFetchMode === "navigate";
     return !acceptsJson && !browserNavigation;
