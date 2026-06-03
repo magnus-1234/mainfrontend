@@ -120,6 +120,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/svs-planner",
+        destination: "/svs-appointment-planner",
+        permanent: true,
+      },
+      {
         source: "/daybreak",
         destination: "/daybreak-island",
         permanent: true,
@@ -152,6 +157,10 @@ const nextConfig: NextConfig = {
       {
         source: "/foundry-team-planner",
         destination: "/?menu=planner",
+      },
+      {
+        source: "/svs-appointment-planner",
+        destination: "/?menu=svs-appointment-planner",
       },
       {
         source: "/chief-charm-calculator",

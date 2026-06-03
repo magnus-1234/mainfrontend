@@ -5,6 +5,8 @@ import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import DreamscapeMemory from "./dreamscape-memory/DreamscapeMemory";
 import "./dreamscape-memory/dreamscape.css";
+import SvsAppointmentPlanner from "./svs-appointment-planner/SvsAppointmentPlanner";
+import "./svs-appointment-planner/svs-appointment-planner.css";
 import wikiBuildingsData from "@/data/wiki/buildings.json";
 import wikiHeroesData from "@/data/wiki/heroes.json";
 
@@ -51,7 +53,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "svsPlanner" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
 type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "various" | "leaders" | "nsfw";
 type MessageTemplateAssignableCategory = Exclude<MessageTemplateCategory, "all">;
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
@@ -1351,6 +1353,7 @@ const sidebarItems: {
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
+    { label: "SvS Appointment Planner", mobileLabel: "SvS", icon: "calendar", menu: "svsPlanner", href: "/svs-appointment-planner", beta: true },
     { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/sneak-peek" },
@@ -1387,6 +1390,10 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#chief-gear-calculator": "chiefGear",
   "#chief-gear": "chiefGear",
   "#gear-calculator": "chiefGear",
+  "#svs-appointment-planner": "svsPlanner",
+  "#svs-planner": "svsPlanner",
+  "#svs": "svsPlanner",
+  "#appointments": "svsPlanner",
   "#foundry-team-planner": "planner",
   "#foundry-planner": "planner",
   "#city-layout-planner": "planner",
@@ -1426,6 +1433,10 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   "chief-gear-calculator": "chiefGear",
   "chief-gear": "chiefGear",
   gear: "chiefGear",
+  "svs-appointment-planner": "svsPlanner",
+  "svs-planner": "svsPlanner",
+  svs: "svsPlanner",
+  appointments: "svsPlanner",
   planner: "planner",
   templates: "templates",
   "message-templates": "templates",
@@ -1447,6 +1458,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   vip: "/vip-calculator",
   chiefCharm: "/chief-charm-calculator",
   chiefGear: "/chief-gear-calculator",
+  svsPlanner: "/svs-appointment-planner",
   planner: "/foundry-team-planner",
   templates: "/message-templates",
   sneak: "/sneak-peek",
@@ -1498,6 +1510,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/chief-gear-calculator") || location.pathname.startsWith("/chief-gear")) {
     return "chiefGear";
+  }
+
+  if (location.pathname.startsWith("/svs-appointment-planner") || location.pathname.startsWith("/svs-planner")) {
+    return "svsPlanner";
   }
 
   if (location.pathname.startsWith("/message-templates")) {
@@ -5487,6 +5503,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <div className="landing-card-grid featured">
                   {[
                     ["gift" as const, "gift", "Popular", "Gift Codes", "View and redeem active Whiteout Survival gift codes."],
+                    ["svsPlanner" as const, "calendar", "Featured", "SvS Appointment Planner", "Plan president and minister handoffs with confirmations."],
                     ["planner" as const, "grid", "Featured", "Foundry Team Planner", "Build rally teams, assign targets, and share plans."],
                     ["bot" as const, "bot", "Automation", "Discord Bot", "Track codes, players, reminders, translation, and alliance changes."],
                     ["templates" as const, "message", "Community", "Message Templates", "Copy-ready alliance chat templates for rallies and events."],
@@ -5518,6 +5535,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   title: "Planning Tools",
                   body: "Organize alliance events, designs, and communication",
                   items: [
+                    ["svsPlanner" as const, "calendar", "SvS Appointment Planner", "Coordinate 24-hour minister appointment rotations."],
                     ["planner" as const, "mapPin", "Foundry Planner", "Coordinate rally leaders, joiners, and building targets."],
                     ["daybreak" as const, "island", "Daybreak Island", "Browse and share Daybreak Island layouts from the community."],
                     ["dreamscape" as const, "gamepad", "Dreamscape Memory", "Play the memory puzzle experience inside the WOS toolkit."],
@@ -6744,6 +6762,8 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 </section>
               )}
             </section>
+          ) : activeMenu === "svsPlanner" ? (
+            <SvsAppointmentPlanner />
           ) : activeMenu === "planner" ? (
             <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
               <section className="foundry-hero">
@@ -7637,6 +7657,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <a href="/chief-gear-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefGear"); }}>Chief Gear Calculator</a>
                 <a href="/chief-charm-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefCharm"); }}>Chief Charm Calculator</a>
                 <a href="/state-age" onClick={(event) => { event.preventDefault(); navigateToMenu("stateAge"); }}>State Age Tracker</a>
+                <a href="/svs-appointment-planner" onClick={(event) => { event.preventDefault(); navigateToMenu("svsPlanner"); }}>SvS Appointment Planner</a>
               </div>
               <div>
                 <h2>Resources</h2>
