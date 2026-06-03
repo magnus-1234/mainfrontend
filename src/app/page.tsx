@@ -4898,24 +4898,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 ))}
               </div>
             </div>
-            <div className="menu-trigger-wrap">
-              <button type="button" className="menu-trigger wiki-trigger" aria-haspopup="true">
-                <span className="menu-status">Dev</span>
-                <span className="menu-main">
-                  <Icon name="database" />
-                  <span>Developer</span>
-                  <Icon name="chevron" />
-                </span>
-              </button>
-              <div className="wiki-dropdown" role="menu" aria-label="Developer menu">
-                {developerMenuItems.map((item) => (
-                  <a href={item.href} key={item.label} role="menuitem">
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
             {menuItems.map((item) => (
               <button
                 type="button"

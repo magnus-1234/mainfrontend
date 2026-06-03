@@ -17104,15 +17104,8 @@ body {
   --copy-accent-soft: rgba(142, 215, 226, 0.12);
 }
 
-.menu-trigger,
 .actions .icon-button:not(.plain-action),
-.language-button,
 .state-transfer-button,
-.sign-in,
-.sidebar-item,
-.sidebar-tool-button,
-.mobile-more-item,
-.mobile-more-head button,
 .templates-filter-bar button,
 .template-create-button,
 .template-card-actions button,
@@ -17143,24 +17136,9 @@ body {
   box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent);
 }
 
-.menu-trigger,
-.sidebar-item,
-.mobile-more-item,
-.language-button,
-.sign-in {
-  color: color-mix(in srgb, var(--foreground) 88%, var(--muted-foreground));
-}
-
 .dark :is(
-  .menu-trigger,
   .actions .icon-button:not(.plain-action),
-  .language-button,
   .state-transfer-button,
-  .sign-in,
-  .sidebar-item,
-  .sidebar-tool-button,
-  .mobile-more-item,
-  .mobile-more-head button,
   .templates-filter-bar button,
   .template-create-button,
   .template-card-actions button,
@@ -17189,20 +17167,9 @@ body {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.menu-trigger:hover,
-.menu-trigger:focus,
-.menu-trigger.active,
 .actions .icon-button:not(.plain-action):hover,
-.language-button:hover,
-.language-switcher:has(.language-menu) .language-button,
 .state-transfer-button:hover,
 .state-transfer-button[aria-expanded="true"],
-.sign-in:hover,
-.sidebar-item:hover,
-.sidebar-item.active,
-.sidebar-tool-button:hover,
-.mobile-more-item:hover,
-.mobile-more-item.active,
 .templates-filter-bar button:hover,
 .templates-filter-bar button.active,
 .template-create-button:hover,
