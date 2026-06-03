@@ -1,9 +1,91 @@
 import type { NextConfig } from "next";
 
 const backendUrl = process.env.BACKEND_URL || "http://140.245.201.209:3001";
+const isProduction = process.env.NODE_ENV === "production";
+
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://api.qrserver.com https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev",
+  "font-src 'self' data:",
+  [
+    "connect-src 'self'",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "http://[::1]:3001",
+    "http://140.245.201.209:3001",
+    "https://bot.whiteoutsurvival.dev",
+    "https://wostools.net",
+    "https://api.qrserver.com",
+    "https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev",
+    "ws://localhost:*",
+    "ws://127.0.0.1:*",
+  ].join(" "),
+  "frame-ancestors 'none'",
+  "frame-src 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "manifest-src 'self'",
+  "worker-src 'self' blob:",
+].join("; ");
+
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: contentSecurityPolicy,
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()",
+  },
+  {
+    key: "Cross-Origin-Opener-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "Cross-Origin-Resource-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "X-DNS-Prefetch-Control",
+    value: "off",
+  },
+  {
+    key: "X-Permitted-Cross-Domain-Policies",
+    value: "none",
+  },
+  {
+    key: "X-Robots-Tag",
+    value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+  },
+];
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   devIndicators: false,
+  productionBrowserSourceMaps: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
