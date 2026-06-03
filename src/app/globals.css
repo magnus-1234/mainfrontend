@@ -1157,6 +1157,7 @@ body {
 
 .sidebar-content {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   padding: 12px;
 }
@@ -1167,7 +1168,9 @@ body {
 
 .sidebar-item {
   display: flex;
+  max-width: 100%;
   min-height: 36px;
+  min-width: 0;
   align-items: center;
   gap: 10px;
   border-radius: 8px;
@@ -1185,8 +1188,13 @@ body {
 }
 
 .sidebar-item span {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.sidebar-item .nav-label-desktop {
+  flex: 1 1 auto;
 }
 
 .nav-label-mobile {
@@ -1200,6 +1208,7 @@ body {
 }
 
 .sidebar-beta-badge {
+  flex: 0 0 auto;
   margin-left: auto;
   border: 1px solid rgba(244, 129, 32, 0.42);
   border-radius: 999px;
