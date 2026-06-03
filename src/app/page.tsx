@@ -597,14 +597,6 @@ const chiefGearLevels: ChiefGearLevel[] = [
 
 const chiefGearLevelMap = new Map(chiefGearLevels.map((level) => [level.id, level]));
 const chiefGearTierOrder = ["Uncommon", "Rare", "Epic", "Legendary", "Mythic"] as const;
-const chiefGearVisualTargets = [
-  { id: "green_1", label: "Uncommon", color: "green" },
-  { id: "blue_3", label: "Rare 3-Star", color: "blue" },
-  { id: "purple_t1_3", label: "Epic T1 3-Star", color: "purple" },
-  { id: "gold_t2_3", label: "Legendary T2 3-Star", color: "gold" },
-  { id: "red_t3_3", label: "Mythic T3 3-Star", color: "red" },
-  { id: "red_t4_3", label: "Mythic T4 3-Star", color: "t4-legendary" },
-] as const;
 const chiefCharmVisualTargets = [0, 1, 4, 8, 11, 12, 16] as const;
 
 const chiefGearColorForLevel = (level?: ChiefGearLevel) => {
@@ -1064,6 +1056,7 @@ const templatePreviewLines = (text: string, maxWidth = 28) => {
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
+const DISCORD_COMMUNITY_URL = "https://discord.gg/bP5JQFH2M5";
 
 const menuItems: { label: string; icon: string; status: string; menu?: ActiveMenu }[] = [
   { label: "Dreamscape", icon: "image", status: "Live" },
@@ -4598,6 +4591,11 @@ export default function Home() {
                     </a>
                   )
                 ))}
+                <a className="menu-community-link" href={DISCORD_COMMUNITY_URL} role="menuitem" target="_blank" rel="noreferrer">
+                  <Icon name="message" />
+                  <span>Discord Community</span>
+                  <small>Join</small>
+                </a>
               </div>
             </div>
             <div className="menu-trigger-wrap">
@@ -4625,6 +4623,11 @@ export default function Home() {
                     <span>{item.label}</span>
                   </a>
                 ))}
+                <a className="menu-community-link" href={DISCORD_COMMUNITY_URL} role="menuitem" target="_blank" rel="noreferrer">
+                  <Icon name="message" />
+                  <span>Discord Community</span>
+                  <small>Join</small>
+                </a>
               </div>
             </div>
             {menuItems.map((item) => (
@@ -4838,6 +4841,14 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+                <a className="mobile-more-item mobile-community-link" href={DISCORD_COMMUNITY_URL} role="menuitem" target="_blank" rel="noreferrer">
+                  <Icon name="message" />
+                  <span>
+                    <strong>Discord Community</strong>
+                    <small>Join the WOS community</small>
+                  </span>
+                  <Icon name="external" />
+                </a>
               </div>
             </div>
           )}
@@ -4863,6 +4874,11 @@ export default function Home() {
               <span className="nav-label-desktop">Dreamscape Memory</span>
               <span className="nav-label-mobile">Dream</span>
               <strong className="sidebar-beta-badge">Live</strong>
+            </a>
+            <a className="sidebar-item mobile-secondary sidebar-community-link" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
+              <Icon name="message" />
+              <span className="nav-label-desktop">Discord Community</span>
+              <span className="nav-label-mobile">Join</span>
             </a>
             <div className={`sidebar-wiki-group mobile-primary ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
               <button
@@ -5303,8 +5319,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="chief-gear-visual" aria-hidden="true">
-                  {chiefGearRows.map((row, index) => (
-                    <span className={`gear-node troop-${row.gear.troop.toLowerCase()}`} key={row.gear.id} style={{ ["--gear-angle" as string]: `${index * 60}deg` }}>
+                  {chiefGearRows.map((row) => (
+                    <span className={`gear-node gear-pos-${row.gear.id} troop-${row.gear.troop.toLowerCase()}`} key={row.gear.id}>
                       <img src={chiefGearImageFor(row.gear, row.toLevel)} alt="" />
                       <b>{row.gear.name}</b>
                       <small>{row.toLevel?.tier || "Gear"}</small>
@@ -5377,19 +5393,6 @@ export default function Home() {
                               <img src={chiefGearImageFor(row.gear, row.toLevel)} alt={`${row.gear.name} target gear`} />
                               <b>{row.toLevel?.label || "Unset"}</b>
                             </span>
-                          </div>
-                          <div className="chief-gear-tier-palette" aria-label={`${row.gear.name} visual target levels`}>
-                            {chiefGearVisualTargets.map((target) => (
-                              <button
-                                className={row.selection.to === target.id ? "active" : ""}
-                                key={`${row.gear.id}-${target.id}`}
-                                onClick={() => updateChiefGearPiece(row.gear.id, "to", target.id)}
-                                type="button"
-                              >
-                                <img src={`/woscalc/gear/${row.gear.asset}-${target.color}.png`} alt="" />
-                                <span>{target.label}</span>
-                              </button>
-                            ))}
                           </div>
                         </div>
                         <div className="chief-gear-selects">
