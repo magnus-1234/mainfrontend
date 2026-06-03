@@ -600,7 +600,6 @@ const chiefGearLevels: ChiefGearLevel[] = [
 
 const chiefGearLevelMap = new Map(chiefGearLevels.map((level) => [level.id, level]));
 const chiefGearTierOrder = ["Uncommon", "Rare", "Epic", "Legendary", "Mythic"] as const;
-const chiefCharmVisualTargets = [0, 1, 4, 8, 11, 12, 16] as const;
 
 const chiefGearColorForLevel = (level?: ChiefGearLevel) => {
   if (!level) {
@@ -3723,17 +3722,6 @@ export default function Home() {
   const applyCharmPreset = useCallback((from: number, to: number) => {
     setCharmGearState(createChiefCharmGearState(from, to));
   }, []);
-  const applyCharmGearTarget = useCallback((gearId: string, targetLevel: number) => {
-    setCharmGearState((current) => {
-      const gearSlots = current[gearId] || Array.from({ length: chiefCharmSlotsPerGear }, () => ({ from: 0, to: 0 }));
-      const nextSlots = gearSlots.map((slot) => ({
-        from: Math.min(slot.from, targetLevel),
-        to: targetLevel,
-      }));
-
-      return { ...current, [gearId]: nextSlots };
-    });
-  }, []);
   const charmSlotRows = chiefCharmGearPieces.flatMap((gear) => {
     const slots = charmGearState[gear.id] || [];
     return Array.from({ length: chiefCharmSlotsPerGear }, (_, slotIndex) => {
@@ -3744,6 +3732,10 @@ export default function Home() {
       return { gear, slotIndex, from, to, cost };
     });
   });
+  const charmHeroGroups = chiefCharmGearPieces.map((gear) => ({
+    gear,
+    slots: charmSlotRows.filter((slot) => slot.gear.id === gear.id),
+  }));
   const charmAllSlotCost = charmSlotRows.reduce((total, slot) => addCharmCost(total, slot.cost), emptyChiefCharmCost);
   const charmPlannedSlots = charmSlotRows.filter((slot) => slot.to > slot.from).length;
   const charmMaxedSlots = charmSlotRows.filter((slot) => slot.to === 16).length;
@@ -5630,11 +5622,19 @@ export default function Home() {
                 </div>
                 <div className="chief-charm-art" aria-hidden="true">
                   <div className="charm-gear-ring">
-                    {charmSlotRows.map((slot, index) => (
-                      <span key={`${slot.gear.id}-${slot.slotIndex}`} style={{ ["--slot-angle" as string]: `${index * 20}deg` }}>
-                        <img src={chiefCharmImageFor(slot.gear.charmImageTroop, slot.to)} alt="" />
-                        <b>{slot.to ? `Lv.${slot.to}` : "New"}</b>
-                      </span>
+                    {charmHeroGroups.map((group, groupIndex) => (
+                      <div
+                        className="charm-gear-group"
+                        key={group.gear.id}
+                        style={{ ["--group-angle" as string]: `${groupIndex * 60 - 90}deg` }}
+                      >
+                        {group.slots.map((slot) => (
+                          <span key={`${slot.gear.id}-${slot.slotIndex}`}>
+                            <img src={chiefCharmImageFor(slot.gear.charmImageTroop, slot.to)} alt="" />
+                            <b>{slot.to ? `Lv.${slot.to}` : "New"}</b>
+                          </span>
+                        ))}
+                      </div>
                     ))}
                   </div>
                   <div className="charm-core">
@@ -5699,19 +5699,6 @@ export default function Home() {
                                 <small>Slot {slot.slotIndex + 1}</small>
                                 <b>Lv.{slot.to}</b>
                               </span>
-                            ))}
-                          </div>
-                          <div className="charm-level-palette">
-                            {chiefCharmVisualTargets.map((level) => (
-                              <button
-                                className={Math.round(targetAverage) === level ? "active" : ""}
-                                key={`${gear.id}-visual-${level}`}
-                                onClick={() => applyCharmGearTarget(gear.id, level)}
-                                type="button"
-                              >
-                                <img src={chiefCharmImageFor(gear.charmImageTroop, level)} alt="" />
-                                <span>{level === 0 ? "None" : `Lv.${level}`}</span>
-                              </button>
                             ))}
                           </div>
                         </div>
