@@ -911,8 +911,6 @@ const templateCategoryLabelFor = (categoryValue: MessageTemplateAssignableCatego
 const templateCategoryLabelsFor = (template: MessageTemplate) =>
   templateCategoriesFor(template).map(templateCategoryLabelFor).join(", ");
 
-const messageTemplatesStorageKey = "whiteoutsurvival-message-templates-local-v1";
-
 const normalizeTemplateCopyText = (text: string) => text.replace(/\r\n?/g, "\n");
 
 const templateCopyTextFor = (template: MessageTemplate) => normalizeTemplateCopyText(template.rawText ?? template.text ?? "");
@@ -949,37 +947,9 @@ const normalizeLocalMessageTemplate = (template: MessageTemplate): MessageTempla
     ...template,
     category: categories[0],
     categories,
-    canManage: true,
     text: normalizeTemplateCopyText(template.text || ""),
     rawText: normalizeTemplateCopyText(template.rawText ?? template.text ?? ""),
   };
-};
-
-const readStoredMessageTemplates = (): MessageTemplate[] => {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const stored = JSON.parse(localStorage.getItem(messageTemplatesStorageKey) || "[]") as MessageTemplate[];
-    return Array.isArray(stored) ? stored.map(normalizeLocalMessageTemplate) : [];
-  } catch {
-    localStorage.removeItem(messageTemplatesStorageKey);
-    return [];
-  }
-};
-
-const writeStoredMessageTemplates = (templates: MessageTemplate[]) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-  localStorage.setItem(messageTemplatesStorageKey, JSON.stringify(templates.map(normalizeLocalMessageTemplate)));
-};
-
-const mergeMessageTemplates = (remoteTemplates: MessageTemplate[], localTemplates: MessageTemplate[]) => {
-  const byId = new Map<string, MessageTemplate>();
-  [...remoteTemplates, ...localTemplates].forEach((template) => byId.set(template.id, template));
-  return Array.from(byId.values());
 };
 
 const wosIconUnicodeTemplates: MessageTemplate[] = [
@@ -1172,50 +1142,8 @@ Keep farming clean.`,
   ...wosIconUnicodeTemplates,
 ];
 
-const wosPreviewIconMap: Record<string, string> = {
-  "\uE013": "🛠️",
-  "\uE014": "⚔️",
-  "\uE015": "🔬",
-  "\uE016": "🧪",
-  "\uE017": "📖",
-  "\uE019": "🧩",
-};
-
-const templatePreviewChar = (char: string) => wosPreviewIconMap[char] || char;
-
-const templatePreviewWidth = (char: string) => {
-  if (/[\uFE00-\uFE0F]/u.test(char)) {
-    return 0;
-  }
-  if (/\s/u.test(char)) {
-    return 1;
-  }
-  if (/[\u{1F000}-\u{1FAFF}]/u.test(char)) {
-    return 2;
-  }
-  return 1;
-};
-
-const templatePreviewLines = (text: string, maxWidth = 28) => {
-  const lines: string[] = [];
-  text.split("\n").forEach((sourceLine) => {
-    let current = "";
-    let width = 0;
-    Array.from(sourceLine).forEach((sourceChar) => {
-      const char = templatePreviewChar(sourceChar);
-      const charWidth = Math.max(1, templatePreviewWidth(char));
-      if (width > 0 && width + charWidth > maxWidth) {
-        lines.push(current.trimEnd() || " ");
-        current = "";
-        width = 0;
-      }
-      current += char;
-      width += charWidth;
-    });
-    lines.push(current || " ");
-  });
-  return lines;
-};
+const templateRawPreviewLines = (template: MessageTemplate) =>
+  (template.previewText ? normalizeTemplateCopyText(template.previewText) : templateCopyTextFor(template)).split("\n");
 
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
@@ -2335,7 +2263,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const [foundrySavedAt, setFoundrySavedAt] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
-  const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>(() => readStoredMessageTemplates());
+  const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
   const [templateView] = useState<TemplateView>("gallery");
   const [templateSort] = useState<"popular" | "recent">("popular");
   const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
@@ -2715,7 +2643,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       return;
     }
 
-    fetch(endpoint, { credentials: "include" })
+    fetch(endpoint, { credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { islands: Island[]; favoriteIds?: string[] }) => {
         setIslands(data.islands);
@@ -2778,14 +2706,14 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     fetch(endpoint, { credentials: "include" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { templates: MessageTemplate[]; favoriteIds?: string[] }) => {
-        setCommunityTemplates(mergeMessageTemplates(data.templates || [], readStoredMessageTemplates()));
+        setCommunityTemplates((data.templates || []).map(normalizeLocalMessageTemplate));
         if (data.favoriteIds) {
           setLikedTemplates((current) => ({ ...current, ...Object.fromEntries((data.favoriteIds || []).map((id) => [id, true])) }));
         }
         setTemplateStatus("");
       })
       .catch(() => {
-        setCommunityTemplates(readStoredMessageTemplates());
+        setCommunityTemplates([]);
         if (templateView !== "gallery") {
           setTemplateStatus("Sign in or try again to load your templates.");
         }
@@ -2797,7 +2725,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       return;
     }
 
-    fetch(`${apiBase}/api/message-templates/me/favorites?limit=100`, { credentials: "include" })
+    fetch(`${apiBase}/api/message-templates/me/favorites?limit=100`, { credentials: "include", headers: { "x-user-id": authUser.id } })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { favoriteIds?: string[] }) => {
         const favoriteIds = data.favoriteIds || [];
@@ -2838,7 +2766,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
         : daybreakView === "favorites"
           ? `${apiBase}/api/daybreak/me/favorites`
           : `${apiBase}/api/daybreak/islands?sort=${sort}${selectedTag ? `&tag=${encodeURIComponent(selectedTag)}` : ""}`;
-    const response = await fetch(endpoint, { credentials: "include" });
+    const response = await fetch(endpoint, { credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined });
     if (!response.ok) {
       throw new Error("Unable to refresh islands");
     }
@@ -3261,7 +3189,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       throw new Error("Unable to refresh templates");
     }
     const data = (await response.json()) as { templates: MessageTemplate[]; favoriteIds?: string[] };
-    setCommunityTemplates(mergeMessageTemplates(data.templates || [], readStoredMessageTemplates()));
+    setCommunityTemplates((data.templates || []).map(normalizeLocalMessageTemplate));
     if (data.favoriteIds) {
       setLikedTemplates((current) => ({ ...current, ...Object.fromEntries(data.favoriteIds!.map((id) => [id, true])) }));
     }
@@ -3342,47 +3270,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     setTemplateImagePreviewUrl(value);
   };
 
-  const saveTemplateLocally = (
-    body: FormData,
-    categories: MessageTemplateAssignableCategory[],
-    existingTemplate: MessageTemplate | null,
-  ) => {
-    const now = new Date().toISOString();
-    const localTemplate: MessageTemplate = normalizeLocalMessageTemplate({
-      id: existingTemplate?.id || `local-template-${Date.now()}`,
-      title: String(body.get("title") || "").trim() || "Untitled template",
-      category: categories[0] || "state-transfer-chat",
-      categories: categories.length ? categories : ["state-transfer-chat"],
-      description: String(body.get("description") || "").trim(),
-      text: normalizeTemplateCopyText(String(body.get("text") ?? "")),
-      rawText: normalizeTemplateCopyText(String(body.get("text") ?? "")),
-      imageUrl: String(body.get("imageUrl") || "").trim() || existingTemplate?.imageUrl || "",
-      tags: String(body.get("tags") || "")
-        .split(/[\s,#]+/)
-        .map((tag) => tag.trim())
-        .filter(Boolean)
-        .slice(0, 12),
-      creatorName: authUser?.displayName || "You",
-      creatorUserId: authUser?.id,
-      canManage: true,
-      likes: existingTemplate?.likes || 0,
-      shares: existingTemplate?.shares || 0,
-      createdAt: existingTemplate?.createdAt || now,
-      updatedAt: now,
-    });
-
-    const stored = readStoredMessageTemplates();
-    const nextStored = stored.some((template) => template.id === localTemplate.id)
-      ? stored.map((template) => (template.id === localTemplate.id ? localTemplate : template))
-      : [localTemplate, ...stored];
-    writeStoredMessageTemplates(nextStored);
-    setCommunityTemplates((current) => {
-      const withoutLocal = current.filter((template) => template.id !== localTemplate.id);
-      return mergeMessageTemplates(withoutLocal, nextStored);
-    });
-    return localTemplate;
-  };
-
   const handleTemplateSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!authUser) {
@@ -3409,15 +3296,11 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       body.set("category", primaryCategory);
       body.set("text", exactText);
       body.set("tags", tags);
+      body.set("creatorName", authUser.displayName);
+      body.set("creatorUserId", authUser.id);
       const imageFile = body.get("image");
       if (!(imageFile instanceof File) || imageFile.size === 0) {
         body.delete("image");
-      }
-      if (editingTemplate?.id.startsWith("local-template-")) {
-        saveTemplateLocally(body, categories, editingTemplate);
-        setTemplateStatus("Template updated locally.");
-        closeTemplateComposer();
-        return;
       }
       const endpoint = editingTemplate ? `${apiBase}/api/message-templates/${editingTemplate.id}` : `${apiBase}/api/message-templates`;
       const response = await fetch(endpoint, {
@@ -3426,21 +3309,15 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
         body,
       }).catch(() => null);
       if (!response) {
-        saveTemplateLocally(body, categories, editingTemplate);
-        setTemplateStatus(editingTemplate ? "Template updated locally." : "Template saved locally.");
-        closeTemplateComposer();
-        return;
+        throw new Error("Template API unavailable. Please try again after the backend deploy finishes.");
       }
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        saveTemplateLocally(body, categories, editingTemplate);
-        setTemplateStatus(editingTemplate ? "Template updated locally." : "Template saved locally.");
-        closeTemplateComposer();
-        return;
+        throw new Error(data?.detail || data?.error || "Template save failed");
       }
 
       if (data?.template) {
-        const exactTemplate = saveTemplateLocally(body, categories, data.template);
+        const exactTemplate = normalizeLocalMessageTemplate({ ...data.template, text: exactText, rawText: exactText });
         setCommunityTemplates((current) => {
           const exists = current.some((template) => template.id === exactTemplate.id);
           return exists ? current.map((template) => (template.id === exactTemplate.id ? exactTemplate : template)) : [exactTemplate, ...current];
@@ -3487,7 +3364,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       const response = await fetch(`${apiBase}/api/message-templates/${template.id}/like`, {
         method: nextLiked ? "POST" : "DELETE",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(authUser ? { "x-user-id": authUser.id } : {}) },
       });
       const data = (await response.json().catch(() => null)) as { template?: MessageTemplate; error?: string } | null;
       if (!response.ok) {
@@ -3541,9 +3418,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
 
     setDeletingTemplateId(template.id);
     setTemplateStatus("");
-    const deleteTemplateLocally = () => {
-      const nextStored = readStoredMessageTemplates().filter((item) => item.id !== template.id);
-      writeStoredMessageTemplates(nextStored);
+    const removeTemplateFromUi = () => {
       setCommunityTemplates((current) => current.filter((item) => item.id !== template.id));
       setTemplateViewer((current) => (current?.id === template.id ? null : current));
       setTemplateImageViewer((current) => (current?.id === template.id ? null : current));
@@ -3551,25 +3426,19 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       setTemplateStatus("Template deleted.");
     };
     try {
-      if (template.id.startsWith("local-template-")) {
-        deleteTemplateLocally();
-        return;
-      }
       const response = await fetch(`${apiBase}/api/message-templates/${template.id}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { "x-user-id": authUser.id },
       }).catch(() => null);
       if (!response) {
-        deleteTemplateLocally();
-        return;
+        throw new Error("Template API unavailable. Please try again after the backend deploy finishes.");
       }
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        deleteTemplateLocally();
-        setTemplateStatus(data?.error ? `Template removed locally. Remote delete failed: ${data.error}` : "Template removed locally.");
-        return;
+        throw new Error(data?.detail || data?.error || "Unable to delete template");
       }
-      deleteTemplateLocally();
+      removeTemplateFromUi();
     } catch (error) {
       setTemplateStatus(error instanceof Error ? error.message : "Unable to delete template");
     } finally {
@@ -3593,7 +3462,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     }
 
     if (!template.builtin) {
-      const response = await fetch(`${apiBase}/api/message-templates/${template.id}/share`, { method: "POST", credentials: "include" });
+      const response = await fetch(`${apiBase}/api/message-templates/${template.id}/share`, { method: "POST", credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined });
       const data = (await response.json().catch(() => null)) as { template?: MessageTemplate } | null;
       if (data?.template) {
         setCommunityTemplates((current) => current.map((item) => (item.id === template.id ? data.template! : item)));
@@ -7138,7 +7007,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                           <span>WOS Chat Preview</span>
                           <small>{Array.from(template.text).length} chars</small>
                         </div>
-                        <pre>{(template.previewText ? template.previewText.split("\n") : templatePreviewLines(template.text)).map((line, index) => (
+                        <pre>{templateRawPreviewLines(template).map((line, index) => (
                           <span key={`${template.id}-${index}`}>{line}</span>
                         ))}</pre>
                       </button>
@@ -8217,7 +8086,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   <span>WOS Chat Preview</span>
                   <small>{Array.from(templateViewer.text).length} chars</small>
                 </div>
-                <pre>{(templateViewer.previewText ? templateViewer.previewText.split("\n") : templatePreviewLines(templateViewer.text)).map((line, index) => (
+                <pre>{templateRawPreviewLines(templateViewer).map((line, index) => (
                   <span key={`${templateViewer.id}-detail-${index}`}>{line}</span>
                 ))}</pre>
               </div>
