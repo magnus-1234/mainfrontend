@@ -11,6 +11,8 @@ type Coordinate = {
   y: number;
 };
 
+type MapMode = "2d" | "3d";
+
 type DragState = {
   pointerId: number;
   x: number;
@@ -33,24 +35,8 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
   context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-  const terrain = context.createLinearGradient(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  terrain.addColorStop(0, "#d9f0f5");
-  terrain.addColorStop(0.28, "#edf7f3");
-  terrain.addColorStop(0.54, "#b9d2cf");
-  terrain.addColorStop(0.78, "#9cb7ac");
-  terrain.addColorStop(1, "#eef8fb");
-  context.fillStyle = terrain;
+  context.fillStyle = "#ffffff";
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-  context.fillStyle = "rgba(255,255,255,0.28)";
-  for (let i = 0; i < 42; i += 1) {
-    const x = (i * 167) % CANVAS_SIZE;
-    const y = (i * 263) % CANVAS_SIZE;
-    const radius = 28 + ((i * 17) % 80);
-    context.beginPath();
-    context.ellipse(x, y, radius * 1.8, radius, (i % 5) * 0.4, 0, Math.PI * 2);
-    context.fill();
-  }
 
   const majorEvery = 100;
   const minorEvery = 25;
@@ -59,7 +45,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   for (let value = 1; value <= MAP_SIZE; value += minorEvery) {
     const position = value - 1;
     const isMajor = value === 1 || value % majorEvery === 0 || value === MAP_SIZE;
-    context.strokeStyle = isMajor ? "rgba(10, 48, 58, 0.46)" : "rgba(10, 48, 58, 0.14)";
+    context.strokeStyle = isMajor ? "rgba(17, 24, 39, 0.72)" : "rgba(31, 41, 55, 0.24)";
     context.beginPath();
     context.moveTo(position, 0);
     context.lineTo(position, CANVAS_SIZE);
@@ -68,7 +54,11 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.stroke();
   }
 
-  context.fillStyle = "rgba(8, 34, 42, 0.82)";
+  context.strokeStyle = "rgba(17, 24, 39, 0.88)";
+  context.lineWidth = 3;
+  context.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
+
+  context.fillStyle = "rgba(17, 24, 39, 0.88)";
   context.font = "700 18px Arial";
   context.textAlign = "center";
   context.textBaseline = "middle";
@@ -81,6 +71,9 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   const markCoordinate = (coord: Coordinate, color: string, radius: number) => {
     const x = coord.x - 1;
     const y = coord.y - 1;
+    const cellSize = 17;
+    context.fillStyle = "rgba(244, 129, 32, 0.2)";
+    context.fillRect(clamp(x - cellSize / 2, 0, CANVAS_SIZE - cellSize), clamp(y - cellSize / 2, 0, CANVAS_SIZE - cellSize), cellSize, cellSize);
     context.strokeStyle = color;
     context.fillStyle = color;
     context.lineWidth = 3;
@@ -111,10 +104,11 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const dragRef = useRef<DragState | null>(null);
   const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
   const [hover, setHover] = useState<Coordinate | null>(null);
-  const [pitch, setPitch] = useState(58);
-  const [yaw, setYaw] = useState(-28);
+  const [mode, setMode] = useState<MapMode>("2d");
+  const [pitch, setPitch] = useState(0);
+  const [yaw, setYaw] = useState(0);
   const [roll, setRoll] = useState(0);
-  const [zoom, setZoom] = useState(0.82);
+  const [zoom, setZoom] = useState(0.9);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -131,11 +125,40 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     return { x, y };
   }, []);
 
-  const resetView = () => {
+  const selectCoordinate = (coordinate: Coordinate) => {
+    setSelected({
+      x: Math.round(clamp(coordinate.x, 1, MAP_SIZE)),
+      y: Math.round(clamp(coordinate.y, 1, MAP_SIZE)),
+    });
+  };
+
+  const moveSelection = (xDelta: number, yDelta: number) => {
+    setSelected((value) => ({
+      x: Math.round(clamp(value.x + xDelta, 1, MAP_SIZE)),
+      y: Math.round(clamp(value.y + yDelta, 1, MAP_SIZE)),
+    }));
+  };
+
+  const setMapMode = (nextMode: MapMode) => {
+    setMode(nextMode);
+    if (nextMode === "2d") {
+      setPitch(0);
+      setYaw(0);
+      setRoll(0);
+      setZoom(0.9);
+      return;
+    }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
     setZoom(0.82);
+  };
+
+  const resetView = () => {
+    setPitch(mode === "2d" ? 0 : 58);
+    setYaw(mode === "2d" ? 0 : -28);
+    setRoll(0);
+    setZoom(mode === "2d" ? 0.9 : 0.82);
   };
 
   return (
@@ -154,7 +177,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       <div className="wos-map-workspace">
         <div className="wos-map-stage" ref={mapShellRef}>
           <div
-            className="wos-map-rotator"
+            className={`wos-map-rotator ${mode === "2d" ? "mode-2d" : "mode-3d"}`}
             style={{
               transform: `scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
@@ -165,6 +188,8 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               width={CANVAS_SIZE}
               height={CANVAS_SIZE}
               aria-label="Clickable 1199 by 1199 Whiteout Survival coordinate map"
+              role="application"
+              tabIndex={0}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch };
@@ -175,6 +200,9 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 if (!drag || drag.pointerId !== event.pointerId) {
                   return;
                 }
+                if (mode === "2d") {
+                  return;
+                }
                 setYaw(Math.round(clamp(drag.yaw + (event.clientX - drag.x) * 0.35, -180, 180)));
                 setPitch(Math.round(clamp(drag.pitch - (event.clientY - drag.y) * 0.28, 0, 82)));
               }}
@@ -183,7 +211,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   const moved = Math.abs(event.clientX - dragRef.current.x) + Math.abs(event.clientY - dragRef.current.y);
                   dragRef.current = null;
                   if (moved < 8) {
-                    setSelected(coordinateFromPointer(event));
+                    selectCoordinate(coordinateFromPointer(event));
                   }
                 }
               }}
@@ -192,24 +220,78 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 event.preventDefault();
                 setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.04 : 0.04), 0.38, 1.45));
               }}
+              onKeyDown={(event) => {
+                const step = event.shiftKey ? 10 : 1;
+                if (event.key === "ArrowLeft") {
+                  event.preventDefault();
+                  moveSelection(-step, 0);
+                } else if (event.key === "ArrowRight") {
+                  event.preventDefault();
+                  moveSelection(step, 0);
+                } else if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  moveSelection(0, -step);
+                } else if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  moveSelection(0, step);
+                } else if (event.key === "+" || event.key === "=") {
+                  event.preventDefault();
+                  setZoom((value) => clamp(value + 0.04, 0.38, 1.45));
+                } else if (event.key === "-" || event.key === "_") {
+                  event.preventDefault();
+                  setZoom((value) => clamp(value - 0.04, 0.38, 1.45));
+                } else if (mode === "3d" && event.key.toLowerCase() === "a") {
+                  event.preventDefault();
+                  setYaw((value) => clamp(value - 5, -180, 180));
+                } else if (mode === "3d" && event.key.toLowerCase() === "d") {
+                  event.preventDefault();
+                  setYaw((value) => clamp(value + 5, -180, 180));
+                } else if (mode === "3d" && event.key.toLowerCase() === "w") {
+                  event.preventDefault();
+                  setPitch((value) => clamp(value + 5, 0, 82));
+                } else if (mode === "3d" && event.key.toLowerCase() === "s") {
+                  event.preventDefault();
+                  setPitch((value) => clamp(value - 5, 0, 82));
+                }
+              }}
             />
           </div>
         </div>
 
         <aside className="wos-map-controls" aria-label="Map controls">
+          <div className="wos-map-mode-control" role="group" aria-label="Map mode">
+            <button className={mode === "2d" ? "active" : ""} type="button" onClick={() => setMapMode("2d")}>2D</button>
+            <button className={mode === "3d" ? "active" : ""} type="button" onClick={() => setMapMode("3d")}>3D</button>
+          </div>
+          <div className="wos-coordinate-fields">
+            <label>
+              <span>X</span>
+              <input type="number" min="1" max={MAP_SIZE} value={selected.x} onChange={(event) => selectCoordinate({ ...selected, x: Number(event.target.value) })} />
+            </label>
+            <label>
+              <span>Y</span>
+              <input type="number" min="1" max={MAP_SIZE} value={selected.y} onChange={(event) => selectCoordinate({ ...selected, y: Number(event.target.value) })} />
+            </label>
+          </div>
+          <div className="wos-map-nudge" aria-label="Move selected coordinate">
+            <button type="button" aria-label="Move up" onClick={() => moveSelection(0, -1)}>↑</button>
+            <button type="button" aria-label="Move left" onClick={() => moveSelection(-1, 0)}>←</button>
+            <button type="button" aria-label="Move right" onClick={() => moveSelection(1, 0)}>→</button>
+            <button type="button" aria-label="Move down" onClick={() => moveSelection(0, 1)}>↓</button>
+          </div>
           <label>
             <span>Pitch</span>
-            <input type="range" min="0" max="82" value={pitch} onChange={(event) => setPitch(Number(event.target.value))} />
+            <input type="range" min="0" max="82" value={pitch} disabled={mode === "2d"} onChange={(event) => setPitch(Number(event.target.value))} />
             <output>{pitch} deg</output>
           </label>
           <label>
             <span>Yaw</span>
-            <input type="range" min="-180" max="180" value={yaw} onChange={(event) => setYaw(Number(event.target.value))} />
+            <input type="range" min="-180" max="180" value={yaw} disabled={mode === "2d"} onChange={(event) => setYaw(Number(event.target.value))} />
             <output>{yaw} deg</output>
           </label>
           <label>
             <span>Roll</span>
-            <input type="range" min="-45" max="45" value={roll} onChange={(event) => setRoll(Number(event.target.value))} />
+            <input type="range" min="-45" max="45" value={roll} disabled={mode === "2d"} onChange={(event) => setRoll(Number(event.target.value))} />
             <output>{roll} deg</output>
           </label>
           <label>

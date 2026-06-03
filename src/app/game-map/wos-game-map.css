@@ -41,7 +41,7 @@
 
 .wos-map-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) 288px;
   gap: 14px;
   min-height: 0;
 }
@@ -54,8 +54,8 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background:
-    radial-gradient(circle at center, rgba(244, 129, 32, 0.08), transparent 38%),
-    linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, #d9f0f5), color-mix(in srgb, var(--background) 88%, #0f2f38));
+    radial-gradient(circle at center, rgba(244, 129, 32, 0.06), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, #e5e7eb), color-mix(in srgb, var(--background) 86%, #111827));
   perspective: 1200px;
 }
 
@@ -66,18 +66,27 @@
   transition: transform 80ms linear;
 }
 
+.wos-map-rotator.mode-2d {
+  width: min(80vmin, 860px);
+}
+
 .wos-map-canvas {
   display: block;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(8, 34, 42, 0.28);
+  border: 1px solid rgba(17, 24, 39, 0.55);
   border-radius: 6px;
-  background: #d9f0f5;
+  background: #ffffff;
   box-shadow:
-    0 34px 80px rgba(0, 0, 0, 0.22),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.48);
+    0 34px 80px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(17, 24, 39, 0.1);
   cursor: crosshair;
   touch-action: none;
+}
+
+.wos-map-canvas:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 4px;
 }
 
 .wos-map-controls {
@@ -93,6 +102,56 @@
 .wos-map-controls label {
   display: grid;
   gap: 7px;
+}
+
+.wos-map-mode-control,
+.wos-coordinate-fields,
+.wos-map-nudge {
+  display: grid;
+  gap: 8px;
+}
+
+.wos-map-mode-control {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wos-coordinate-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wos-coordinate-fields input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--control-border, var(--border));
+  border-radius: 8px;
+  padding: 0 10px;
+  background: var(--background);
+  color: var(--foreground);
+  font-weight: 900;
+}
+
+.wos-map-nudge {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+}
+
+.wos-map-nudge button:nth-child(1) {
+  grid-area: up;
+}
+
+.wos-map-nudge button:nth-child(2) {
+  grid-area: left;
+}
+
+.wos-map-nudge button:nth-child(3) {
+  grid-area: right;
+}
+
+.wos-map-nudge button:nth-child(4) {
+  grid-area: down;
 }
 
 .wos-map-controls span,
@@ -123,8 +182,14 @@
   font-weight: 900;
 }
 
-.wos-map-controls button:hover {
+.wos-map-controls button:hover,
+.wos-map-controls button.active {
   border-color: var(--primary);
+  background: linear-gradient(180deg, var(--control-surface-strong, var(--accent)), var(--control-surface, var(--background)));
+}
+
+.wos-map-controls input:disabled {
+  opacity: 0.45;
 }
 
 @media (max-width: 980px) {
@@ -134,6 +199,12 @@
 
   .wos-map-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wos-map-mode-control,
+  .wos-coordinate-fields,
+  .wos-map-nudge {
+    grid-column: 1 / -1;
   }
 }
 
@@ -149,14 +220,28 @@
   }
 
   .wos-map-stage {
-    min-height: 430px;
+    min-height: 390px;
   }
 
   .wos-map-rotator {
-    width: min(112vw, 620px);
+    width: min(104vw, 620px);
+  }
+
+  .wos-map-rotator.mode-2d {
+    width: min(92vw, 560px);
   }
 
   .wos-map-controls {
     grid-template-columns: 1fr;
+  }
+
+  .wos-map-mode-control,
+  .wos-coordinate-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wos-map-controls button,
+  .wos-coordinate-fields input {
+    min-height: 46px;
   }
 }
