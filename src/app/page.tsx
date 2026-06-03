@@ -52,7 +52,8 @@ type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
 type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
-type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit";
+type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "nsfw";
+type MessageTemplateAssignableCategory = Exclude<MessageTemplateCategory, "all">;
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
 type FoundryMemberRole = "leader" | "joiner";
@@ -299,7 +300,8 @@ type GiftCodePayload = {
 type MessageTemplate = {
   id: string;
   title: string;
-  category: Exclude<MessageTemplateCategory, "all">;
+  category: MessageTemplateAssignableCategory;
+  categories?: MessageTemplateAssignableCategory[];
   description: string;
   text: string;
   previewText?: string;
@@ -880,7 +882,29 @@ const messageTemplateCategories: { label: string; value: MessageTemplateCategory
   { label: "Emojis", value: "emojis" },
   { label: "Funny", value: "funny" },
   { label: "Alliance Recruit", value: "alliance-recruit" },
+  { label: "NSFW", value: "nsfw" },
 ];
+
+const assignableMessageTemplateCategories = messageTemplateCategories.filter(
+  (category): category is { label: string; value: MessageTemplateAssignableCategory } => category.value !== "all",
+);
+
+const messageTemplateCategoryValues = new Set<MessageTemplateAssignableCategory>(
+  assignableMessageTemplateCategories.map((category) => category.value),
+);
+
+const templateCategoriesFor = (template: MessageTemplate): MessageTemplateAssignableCategory[] => {
+  const selected = [...(template.categories || []), template.category].filter(
+    (category): category is MessageTemplateAssignableCategory => messageTemplateCategoryValues.has(category as MessageTemplateAssignableCategory),
+  );
+  return Array.from(new Set(selected.length ? selected : ["state-transfer-chat"]));
+};
+
+const templateCategoryLabelFor = (categoryValue: MessageTemplateAssignableCategory) =>
+  assignableMessageTemplateCategories.find((category) => category.value === categoryValue)?.label || categoryValue;
+
+const templateCategoryLabelsFor = (template: MessageTemplate) =>
+  templateCategoriesFor(template).map(templateCategoryLabelFor).join(", ");
 
 const wosIconUnicodeTemplates: MessageTemplate[] = [
   ["item_icon_101", "One Gem", "\uE001", "💎"],
@@ -3241,10 +3265,16 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       const form = event.currentTarget;
       const body = new FormData(form);
       const title = String(body.get("title") || "").trim();
-      const category = String(body.get("category") || "").trim();
+      const categories = body
+        .getAll("categories")
+        .map((value) => String(value).trim())
+        .filter((value): value is MessageTemplateAssignableCategory => messageTemplateCategoryValues.has(value as MessageTemplateAssignableCategory));
+      const primaryCategory = categories[0] || "state-transfer-chat";
       const tags = String(body.get("tags") || "").trim();
       body.set("title", title || "Untitled template");
-      body.set("category", category || "state-transfer-chat");
+      body.delete("categories");
+      categories.forEach((category) => body.append("categories", category));
+      body.set("category", primaryCategory);
       body.set("tags", tags);
       const imageFile = body.get("image");
       if (!(imageFile instanceof File) || imageFile.size === 0) {
@@ -4046,7 +4076,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     [communityTemplates, templateView],
   );
   const filteredMessageTemplates = useMemo(() => allMessageTemplates.filter((template) => {
-    if (activeTemplateCategory !== "all" && template.category !== activeTemplateCategory) {
+    if (activeTemplateCategory !== "all" && !templateCategoriesFor(template).includes(activeTemplateCategory)) {
       return false;
     }
     if (selectedTemplateTag && !template.tags.some((tag) => tag.toLowerCase() === selectedTemplateTag.toLowerCase())) {
@@ -6915,7 +6945,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     <article className={`template-card ${template.imageUrl ? "template-card-has-image" : ""}`} id={`message-template-${template.id}`} key={template.id}>
                       <header className="template-card-title">
                         <button className="template-title-open" type="button" onClick={() => setTemplateViewer(template)} aria-label={`Open ${template.title}`}>
-                          <span>{messageTemplateCategories.find((category) => category.value === template.category)?.label}</span>
+                          <span>{templateCategoryLabelsFor(template)}</span>
                           <h3>{template.title}</h3>
                         </button>
                         <div className="template-card-actions">
@@ -7940,12 +7970,23 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   <input name="title" maxLength={90} defaultValue={editingTemplate?.title || ""} placeholder="SVS Prep Guide" />
                 </label>
                 <label>
-                  Category
-                  <select name="category" defaultValue={editingTemplate?.category || "state-transfer-chat"}>
-                    {messageTemplateCategories.filter((category) => category.value !== "all").map((category) => (
-                      <option value={category.value} key={category.value}>{category.label}</option>
-                    ))}
-                  </select>
+                  Categories
+                  <div className="template-category-checks">
+                    {assignableMessageTemplateCategories.map((category) => {
+                      const selectedCategories = editingTemplate ? templateCategoriesFor(editingTemplate) : ["state-transfer-chat"];
+                      return (
+                        <label key={category.value}>
+                          <input
+                            type="checkbox"
+                            name="categories"
+                            value={category.value}
+                            defaultChecked={selectedCategories.includes(category.value)}
+                          />
+                          <span>{category.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </label>
               </div>
               <label className="template-main-text-field">
@@ -8027,7 +8068,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               </div>
             </div>
             <aside className="template-detail-panel">
-              <span className="section-kicker">{messageTemplateCategories.find((category) => category.value === templateViewer.category)?.label || "Template"}</span>
+              <span className="section-kicker">{templateCategoryLabelsFor(templateViewer) || "Template"}</span>
               <h2>{templateViewer.title}</h2>
               {templateViewer.description && <p>{templateViewer.description}</p>}
               <div className="template-detail-meta">
