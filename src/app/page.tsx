@@ -5607,6 +5607,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   <span>3</span>
                   <strong>Auto Redeem</strong>
                   <p>Submit once and our redeem system completes the secure check automatically.</p>
+                  <button className="giftcodes-guide-bot" type="button" onClick={() => navigateToMenu("bot")}>
+                    Auto redeem Bot
+                    <Icon name="external" />
+                  </button>
                 </article>
               </section>
             </section>
@@ -5628,7 +5632,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <section className="redeem-shell">
                 <form className="redeem-card redeem-card-wide" onSubmit={(event) => void submitRedeem(event)}>
                   <div className="redeem-card-head">
-                    <span>Auto redeem</span>
+                    <span>Redeem</span>
                     <strong>Player and Active Codes</strong>
                   </div>
                   <label>
@@ -5668,7 +5672,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     <span>Secure verification is handled automatically by our auto-redeem system.</span>
                   </div>
                   <button type="submit" disabled={redeemLoading || !redeemPlayerId || ((redeemCode || "ALL") === "ALL" && !giftCodes.length)}>
-                    {redeemLoading ? "Redeeming automatically" : (redeemCode || "ALL") === "ALL" ? "Auto Redeem All Active Codes" : "Auto Redeem Code"}
+                    {redeemLoading ? "Redeeming" : "Redeem"}
                   </button>
                 </form>
               </section>

@@ -15576,6 +15576,28 @@ body {
   line-height: 1.45;
 }
 
+.giftcodes-guide-bot {
+  grid-column: 2;
+  display: inline-flex;
+  min-height: 34px;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--gold-line);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: var(--primary);
+  color: #1d1208;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.giftcodes-guide-bot svg {
+  width: 14px;
+  height: 14px;
+}
+
 .redeem-shell {
   display: grid;
   grid-template-columns: minmax(0, 760px);
