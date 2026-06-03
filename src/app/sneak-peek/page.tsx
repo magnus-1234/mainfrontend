@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Sneak Peek";
 const description =
-  "Follow Whiteout Survival sneak peek updates, upcoming features, and event previews collected into a readable WOS tracker.";
+  "Whiteout Survival sneak peek tracker for upcoming WOS features, event previews, update clues, and community-ready summaries.";
 
 export const metadata: Metadata = {
   title,

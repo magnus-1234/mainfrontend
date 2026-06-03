@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Tools & WOS Discord Bot";
 const description =
-  "The ultimate toolkit for Whiteout Survival. Access powerful tools, detailed guides, and an advanced Discord bot. Plan smarter, grow faster, and stay ahead of the competition.";
+  "Whiteout Survival tools and WOS Discord bot resources for gift codes, calculators, state tracking, planners, wiki data, and alliance automation.";
 
 export const metadata: Metadata = {
   title,

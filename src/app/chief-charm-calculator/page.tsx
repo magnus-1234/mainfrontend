@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Chief Charm Calculator";
 const description =
-  "Plan Whiteout Survival chief charm upgrades with material totals, slot costs, power gains, and troop stat tracking.";
+  "Whiteout Survival chief charm calculator for material totals, charm slot costs, power gains, and troop stat upgrades for Infantry, Lancer, and Marksman.";
 
 export const metadata: Metadata = {
   title,

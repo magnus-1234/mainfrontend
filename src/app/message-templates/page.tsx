@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Message Templates";
 const description =
-  "Copy and share Whiteout Survival alliance recruitment messages, unicode layouts, chat templates, and community text formats.";
+  "Whiteout Survival message templates for alliance recruitment, unicode layouts, chat formats, and ready-to-copy WOS community announcements.";
 
 export const metadata: Metadata = {
   title,

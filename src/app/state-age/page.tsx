@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival State Age Tracker";
 const description =
-  "Check Whiteout Survival state age, transfer timing, unlock windows, and recently opened WOS states from one practical tracker.";
+  "Whiteout Survival state age tracker for WOS servers. Check state creation time, transfer timing, unlock windows, and recently opened states.";
 
 export const metadata: Metadata = {
   title,

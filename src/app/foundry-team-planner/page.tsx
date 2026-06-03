@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Foundry Team Planner";
 const description =
-  "Build and share Whiteout Survival Foundry Battle teams with rally leaders, joiners, building targets, and export-ready assignments.";
+  "Whiteout Survival Foundry Team Planner for battle assignments. Build rally teams, choose building targets, add joiners, and share export-ready plans.";
 
 export const metadata: Metadata = {
   title,

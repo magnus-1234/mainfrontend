@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Gift Codes";
 const description =
-  "Find active Whiteout Survival gift codes, copy rewards quickly, and open a focused WOS redeem flow for daily player rewards.";
+  "Whiteout Survival gift codes updated for WOS players. Find active codes, copy rewards fast, and open the redeem tool for daily in-game gifts.";
 
 export const metadata: Metadata = {
   title,

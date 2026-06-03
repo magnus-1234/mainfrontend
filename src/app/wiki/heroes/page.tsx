@@ -3,7 +3,7 @@ import Home from "../../page";
 
 const title = "Whiteout Survival Heroes Wiki";
 const description =
-  "Browse Whiteout Survival heroes with WOS rarity, season, class, skill, image, and reference data in a fast searchable wiki view.";
+  "Whiteout Survival heroes wiki with WOS hero rarity, season, class, skills, images, and searchable reference data for planning lineups.";
 
 export const metadata: Metadata = {
   title,

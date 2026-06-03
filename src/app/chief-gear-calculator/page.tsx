@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Chief Gear Calculator";
 const description =
-  "Calculate Whiteout Survival chief gear upgrade costs, material shortfalls, stat gains, and gear paths for every WOS slot.";
+  "Whiteout Survival chief gear calculator for upgrade costs, material shortfalls, stat gains, and WOS gear planning across every chief slot.";
 
 export const metadata: Metadata = {
   title,

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 const siteTitle = "Whiteout Survival Tools & WOS Discord Bot";
 const siteDescription =
-  "Use Whiteout Survival tools for gift codes, state age tracking, chief gear and charm calculators, Foundry planning, WOS wiki data, and Discord bot automation.";
+  "Whiteout Survival tools for gift codes, state age, chief gear and charm calculators, Foundry planning, WOS wiki data, and Discord bot automation.";
 const siteNavigationItems = [
   ["Home", "https://whiteoutsurvival.dev/"],
   ["Gift Codes", "https://whiteoutsurvival.dev/gift-codes"],

@@ -4,7 +4,7 @@ import "./dreamscape.css";
 
 const title = "Dreamscape Memory Whiteout Survival Event Tool";
 const description =
-  "Play and plan Whiteout Survival Dreamscape Memory matches with a focused helper for tracking tiles, turns, and event progress.";
+  "Whiteout Survival Dreamscape Memory event tool for tracking tiles, turns, matches, and progress so you can plan cleaner event runs.";
 
 export const metadata: Metadata = {
   title,

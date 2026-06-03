@@ -3,7 +3,7 @@ import Home from "../../page";
 
 const title = "Whiteout Survival Buildings Wiki";
 const description =
-  "Explore Whiteout Survival building data, Fire Crystal upgrades, city structures, requirements, and WOS reference tables.";
+  "Whiteout Survival buildings wiki for city structures, Fire Crystal upgrades, requirements, costs, timers, and WOS building reference tables.";
 
 export const metadata: Metadata = {
   title,

@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Daybreak Island Layouts";
 const description =
-  "Browse and share Whiteout Survival Daybreak Island layouts with tags, screenshots, likes, and practical city design ideas.";
+  "Whiteout Survival Daybreak Island layouts with screenshots, tags, likes, and WOS city design ideas for decorating and planning your island.";
 
 export const metadata: Metadata = {
   title,

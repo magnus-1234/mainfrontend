@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival Discord Bot";
 const description =
-  "Add a Whiteout Survival Discord bot for gift code alerts, auto redeem support, player tracking, translation, reminders, and alliance tools.";
+  "Whiteout Survival Discord bot for WOS alliances. Get gift code alerts, auto redeem support, player tracking, translations, reminders, and server tools.";
 
 export const metadata: Metadata = {
   title,
