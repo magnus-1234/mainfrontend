@@ -5089,153 +5089,141 @@ export default function Home() {
             <section className="home-page landing-page" id="home" aria-label="Whiteout Survival home">
               <section className="landing-hero">
                 <div className="landing-hero-copy">
-                  <span className="section-kicker">WhiteoutSurvival.dev Command Center</span>
-                  <h1>Plan smarter, claim faster, and keep your alliance ahead.</h1>
+                  <div className="landing-hero-art">
+                    <img src="/whiteout-survival-logo.png" alt="" />
+                  </div>
+                  <span className="section-kicker">WhiteoutSurvival.dev Tools & Guides</span>
+                  <span className="landing-subtitle">Unofficial Community Resource</span>
+                  <h1>Whiteout Survival Companion Tools</h1>
                   <p>
-                    A polished toolkit for Whiteout Survival players: live gift codes, auto redeem,
-                    state age tracking, gear calculators, Foundry planning, message templates, wiki data,
-                    and a Discord bot built for active alliances.
+                    Enhance your Whiteout Survival experience with gift codes, planners, calculators,
+                    message templates, wiki data, event tools, and alliance automation built for active players.
                   </p>
                   <div className="landing-actions">
                     <button className="primary-cta" type="button" onClick={() => navigateToMenu("gift")}>
-                      <Icon name="gift" />
-                      Active Gift Codes
+                      Explore Tools
                     </button>
-                    <button className="secondary-cta" type="button" onClick={() => navigateToMenu("planner")}>
-                      <Icon name="mapPin" />
-                      Foundry Planner
-                    </button>
-                    <button className="secondary-cta" type="button" onClick={() => navigateToMenu("bot")}>
-                      <Icon name="bot" />
-                      Discord Bot
+                    <button className="secondary-cta" type="button" onClick={() => navigateToMenu("redeem")}>
+                      Gift Codes
                     </button>
                   </div>
-                  <div className="landing-trust-strip" aria-label="Platform highlights">
+                </div>
+
+                <aside className="landing-updates" aria-label="Recently updated">
+                  <div className="landing-updates-head">
+                    <div>
+                      <span className="section-kicker">Recently updated</span>
+                      <h2>Latest improvements</h2>
+                    </div>
+                    <button type="button" onClick={() => navigateToMenu("sneak")}>View all</button>
+                  </div>
+                  <div className="landing-update-list">
                     {[
-                      ["Live codes", `${giftCodes.length || fallbackBotMetrics.giftCodes} active`],
-                      ["Bot reach", `${botMetrics.servers} servers`],
-                      ["Tools", "12 modules"],
-                    ].map(([label, value]) => (
+                      ["v 2.4", "Home page rebuilt as a cleaner companion portal."],
+                      ["v 2.3", "Chief gear and charm calculators refined for upgrade planning."],
+                      ["v 2.2", "Foundry planner sharing and message templates expanded."],
+                    ].map(([version, text]) => (
+                      <article key={version}>
+                        <span>{version}</span>
+                        <p>{text}</p>
+                      </article>
+                    ))}
+                  </div>
+                  <div className="landing-stat-row" aria-label="Site stats">
+                    {[
+                      [`${giftCodes.length || fallbackBotMetrics.giftCodes}`, "Active codes"],
+                      [botMetrics.servers, "Bot servers"],
+                      ["12", "Tools"],
+                    ].map(([value, label]) => (
                       <span key={label}>
                         <strong>{value}</strong>
                         <small>{label}</small>
                       </span>
                     ))}
                   </div>
-                </div>
-
-                <div className="landing-showcase" aria-label="Whiteout Survival toolkit preview">
-                  <div className="landing-showcase-top">
-                    <span><Icon name="shield" /> Live operations</span>
-                    <strong>WOS Control Deck</strong>
-                  </div>
-                  <div className="landing-showcase-screen">
-                    <img src="/dashboard-dashboard-hero.png" alt="Whiteout Survival dashboard preview" />
-                    <div className="landing-floating-card card-gift">
-                      <Icon name="gift" />
-                      <span>
-                        <strong>Gift code found</strong>
-                        <small>Ready to redeem</small>
-                      </span>
-                    </div>
-                    <div className="landing-floating-card card-furnace">
-                      <Icon name="flame" />
-                      <span>
-                        <strong>FC tracked</strong>
-                        <small>Alliance update</small>
-                      </span>
-                    </div>
-                  </div>
-                  <div className="landing-preview-row">
-                    {botPreviewScreens.slice(0, 4).map((screen) => (
-                      <button key={screen.label} type="button" onClick={() => navigateToMenu("bot")}>
-                        <img src={screen.image} alt="" />
-                        <span>{screen.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                </aside>
               </section>
 
-              <section className="landing-tool-grid" aria-label="Whiteout Survival tools">
-                {[
-                  {
-                    menu: "redeem" as const,
-                    icon: "shield",
-                    title: "Auto Redeem",
-                    body: "Redeem one code or every active code against your player ID from a focused secure flow.",
-                    meta: "Fast claim flow",
-                  },
-                  {
-                    menu: "stateAge" as const,
-                    icon: "calendar",
-                    title: "State Age",
-                    body: "Check state age, unlock timing, and recently opened states without digging through scattered posts.",
-                    meta: "Timeline tracker",
-                  },
-                  {
-                    menu: "chiefGear" as const,
-                    icon: "calculator",
-                    title: "Chief Gear",
-                    body: "Calculate material totals, shortfalls, stat gains, and upgrade paths for every gear slot.",
-                    meta: "Material planner",
-                  },
-                  {
-                    menu: "chiefCharm" as const,
-                    icon: "star",
-                    title: "Chief Charms",
-                    body: "Plan all 18 charm slots with troop totals, material pressure, and late-level recommendations.",
-                    meta: "Upgrade math",
-                  },
-                  {
-                    menu: "templates" as const,
-                    icon: "message",
-                    title: "Message Templates",
-                    body: "Copy, save, and share alliance recruitment posts, unicode layouts, and ready-made chat formats.",
-                    meta: "Community library",
-                  },
-                  {
-                    menu: "wikiHeroes" as const,
-                    icon: "book",
-                    title: "WOS Wiki",
-                    body: "Browse hero and building data from the site navigation with clean filters and readable detail pages.",
-                    meta: "Reference hub",
-                  },
-                ].map((tool) => (
-                  <button className="landing-tool-card" key={tool.title} type="button" onClick={() => navigateToMenu(tool.menu)}>
-                    <span className="landing-tool-icon"><Icon name={tool.icon} /></span>
-                    <span className="landing-tool-copy">
-                      <small>{tool.meta}</small>
-                      <strong>{tool.title}</strong>
-                      <span>{tool.body}</span>
-                    </span>
-                  </button>
-                ))}
-              </section>
-
-              <section className="landing-feature-band" aria-label="Featured workflows">
-                <div className="landing-band-copy">
-                  <span className="section-kicker">Featured workflow</span>
-                  <h2>From daily claims to battle prep, everything opens from one clean home base.</h2>
-                  <p>
-                    Start with fresh gift codes, plan your Foundry teams, check calculator costs,
-                    then move into bot automation when your Discord server is ready.
-                  </p>
+              <section className="landing-section" aria-label="Featured tools">
+                <div className="landing-section-head">
+                  <h2>Featured Tools</h2>
+                  <p>Essential tools to enhance your Whiteout Survival experience</p>
                 </div>
-                <div className="landing-workflow">
+                <div className="landing-card-grid featured">
                   {[
-                    ["01", "Claim rewards", "Open gift codes and redeem active codes."],
-                    ["02", "Plan upgrades", "Estimate chief gear and charm materials."],
-                    ["03", "Coordinate teams", "Build and share Foundry assignments."],
-                    ["04", "Automate Discord", "Track players, codes, alerts, and reminders."],
-                  ].map(([number, title, body]) => (
-                    <button key={number} type="button" onClick={() => navigateToMenu(number === "01" ? "gift" : number === "02" ? "chiefGear" : number === "03" ? "planner" : "bot")}>
-                      <span>{number}</span>
-                      <strong>{title}</strong>
-                      <small>{body}</small>
+                    ["gift" as const, "gift", "Popular", "Gift Codes", "View and redeem active Whiteout Survival gift codes."],
+                    ["planner" as const, "grid", "Featured", "Foundry Team Planner", "Build rally teams, assign targets, and share plans."],
+                    ["bot" as const, "bot", "Automation", "Discord Bot", "Track codes, players, reminders, translation, and alliance changes."],
+                    ["templates" as const, "message", "Community", "Message Templates", "Copy-ready alliance chat templates for rallies and events."],
+                  ].map(([menu, icon, meta, title, body]) => (
+                    <button className="landing-tool-card" key={title} type="button" onClick={() => navigateToMenu(menu as ActiveMenu)}>
+                      <span className="landing-tool-icon"><Icon name={icon} /></span>
+                      <span className="landing-tool-copy">
+                        <small>{meta}</small>
+                        <strong>{title}</strong>
+                        <span>{body}</span>
+                      </span>
                     </button>
                   ))}
                 </div>
+              </section>
+
+              {[
+                {
+                  title: "Game Calculators",
+                  body: "Optimize your gameplay with focused calculation tools",
+                  items: [
+                    ["chiefGear" as const, "calculator", "Chief Gear", "Calculate gear upgrade requirements, stats, and material shortfalls."],
+                    ["chiefCharm" as const, "star", "Chief Charms", "Plan charm upgrades across all 18 slots with troop totals."],
+                    ["stateAge" as const, "calendar", "State Age Tracker", "Check unlock timing and state progression milestones."],
+                  ],
+                },
+                {
+                  title: "Planning Tools",
+                  body: "Organize alliance events, designs, and communication",
+                  items: [
+                    ["planner" as const, "mapPin", "Foundry Planner", "Coordinate rally leaders, joiners, and building targets."],
+                    ["daybreak" as const, "island", "Daybreak Island", "Browse and share Daybreak Island layouts from the community."],
+                    ["dreamscape" as const, "gamepad", "Dreamscape Memory", "Play the memory puzzle experience inside the WOS toolkit."],
+                  ],
+                },
+                {
+                  title: "Game Database",
+                  body: "Browse reference data and community resources",
+                  items: [
+                    ["wikiHeroes" as const, "book", "Heroes", "Read hero details from the local WOS wiki database."],
+                    ["wikiBuildings" as const, "database", "Buildings", "Browse building pages and scraped upgrade information."],
+                    ["sneak" as const, "image", "Sneak Peek", "Preview upcoming captures and community discoveries."],
+                  ],
+                },
+              ].map((section) => (
+                <section className="landing-section compact" key={section.title} aria-label={section.title}>
+                  <div className="landing-section-head">
+                    <h2>{section.title}</h2>
+                    <p>{section.body}</p>
+                  </div>
+                  <div className="landing-card-grid">
+                    {section.items.map(([menu, icon, title, body]) => (
+                      <button className="landing-tool-card compact" key={title} type="button" onClick={() => navigateToMenu(menu as ActiveMenu)}>
+                        <span className="landing-tool-icon"><Icon name={icon} /></span>
+                        <span className="landing-tool-copy">
+                          <strong>{title}</strong>
+                          <span>{body}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              <section className="landing-build-more" aria-label="More tools">
+                <img src="/state-transfer.png" alt="" />
+                <div>
+                  <span className="section-kicker">We&apos;re building more tools for you</span>
+                  <h2>New Whiteout Survival tools keep landing here.</h2>
+                  <p>Follow updates, send feedback, and use the Discord bot when your alliance needs automation beyond the website.</p>
+                </div>
+                <button className="primary-cta" type="button" onClick={() => navigateToMenu("bot")}>Open Discord Bot</button>
               </section>
             </section>
           ) : activeMenu === "dreamscape" ? (
@@ -7145,7 +7133,10 @@ export default function Home() {
             </nav>
             <div className="bottom-community-meta">
               <span>(c) 2026 WhiteoutSurvival.dev - All rights reserved.</span>
-              <span>Made with care for the WOS community by Magnus</span>
+              <span className="bottom-community-credit">
+                <span>Built for WOS community - By</span>
+                <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
+              </span>
             </div>
           </section>
 
