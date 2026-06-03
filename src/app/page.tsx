@@ -5372,7 +5372,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <div className="landing-card-grid featured">
                   {[
                     ["gift" as const, "gift", "Popular", "Gift Codes", "View and redeem active Whiteout Survival gift codes."],
-                    ["svsPlanner" as const, "calendar", "Featured", "SvS Appointment Planner", "Plan president and minister handoffs with confirmations."],
+                    ["svsPlanner" as const, "calendar", "Featured", "SvS Appointment Planner", "Plan Education and Vice President appointments with resources."],
                     ["planner" as const, "grid", "Featured", "Foundry Team Planner", "Build rally teams, assign targets, and share plans."],
                     ["bot" as const, "bot", "Automation", "Discord Bot", "Track codes, players, reminders, translation, and alliance changes."],
                     ["templates" as const, "message", "Community", "Message Templates", "Copy-ready alliance chat templates for rallies and events."],

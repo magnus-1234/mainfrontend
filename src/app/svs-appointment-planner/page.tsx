@@ -3,7 +3,7 @@ import Home from "../page";
 
 const title = "Whiteout Survival SvS Appointment Planner";
 const description =
-  "Plan Whiteout Survival SvS president and minister appointments with 30-minute rotations, player names, levels, resource notes, confirmations, local times, and CSV export.";
+  "Plan Whiteout Survival SvS Minister of Education and Vice President appointments with player ID lookup, descriptions, resource details, confirmations, local times, and CSV export.";
 
 export const metadata: Metadata = {
   title,

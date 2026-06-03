@@ -1,20 +1,35 @@
 .svs-planner-page {
   display: grid;
-  gap: 18px;
-  color: var(--foreground);
+  gap: 16px;
+  padding-bottom: 32px;
+  --svs-bg: #070b12;
+  --svs-panel: #0d1420;
+  --svs-panel-2: #111b2a;
+  --svs-line: rgba(148, 163, 184, 0.22);
+  --svs-line-strong: rgba(125, 211, 252, 0.36);
+  --svs-text: #e5edf7;
+  --svs-muted: #94a3b8;
+  --svs-soft: #172235;
+  --svs-primary: #7dd3fc;
+  --svs-primary-2: #a7f3d0;
+  --svs-danger: #f87171;
+  color: var(--svs-text);
+}
+
+.svs-planner-page .section-kicker {
+  color: var(--svs-primary);
 }
 
 .svs-tool-hero,
+.svs-role-card,
 .svs-schedule-panel,
-.svs-settings-grid > article,
 .svs-analytics,
-.svs-howto > article {
-  border: 1px solid var(--border);
+.svs-howto > article,
+.svs-resource-modal {
+  border: 1px solid var(--svs-line);
   border-radius: 8px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 68%, transparent), transparent 46%),
-    var(--card);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06);
+  background: var(--svs-panel);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
 }
 
 .svs-tool-hero {
@@ -23,40 +38,43 @@
   gap: 20px;
   align-items: end;
   padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(125, 211, 252, 0.1), transparent 42%),
+    var(--svs-bg);
 }
 
 .svs-tool-hero h1 {
   margin: 8px 0 10px;
-  font-size: clamp(34px, 5vw, 58px);
+  font-size: clamp(34px, 5vw, 56px);
   line-height: 1;
   letter-spacing: 0;
 }
 
 .svs-tool-hero p {
-  max-width: 760px;
+  max-width: 820px;
   margin: 0;
-  color: var(--muted-foreground);
+  color: var(--svs-muted);
   font-size: 16px;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .svs-hero-metrics,
 .svs-role-grid,
 .svs-tabs,
 .svs-panel-actions,
-.svs-analytics-summary,
-.svs-preset-list {
+.svs-analytics-summary {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.svs-hero-metrics article {
-  min-width: 112px;
-  border: 1px solid var(--gold-line);
+.svs-hero-metrics article,
+.svs-analytics-summary article {
+  min-width: 120px;
+  border: 1px solid var(--svs-line);
   border-radius: 8px;
   padding: 12px;
-  background: color-mix(in srgb, var(--gold-soft) 52%, var(--card));
+  background: var(--svs-panel-2);
 }
 
 .svs-hero-metrics strong,
@@ -70,95 +88,99 @@
 .svs-analytics-summary small {
   display: block;
   margin-top: 6px;
-  color: var(--muted-foreground);
+  color: var(--svs-muted);
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .svs-tabs {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--svs-line);
 }
 
 .svs-tabs button,
 .svs-panel-actions button,
-.svs-preset-list button {
+.svs-player-id-cell button,
+.svs-resource-cell button,
+.svs-resource-modal button {
   min-height: 38px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--svs-line);
   border-radius: 8px;
   padding: 0 14px;
-  background: var(--card);
-  color: var(--foreground);
+  background: var(--svs-panel-2);
+  color: var(--svs-text);
   cursor: pointer;
   font-weight: 800;
 }
 
-.svs-tabs button.active,
 .svs-tabs button:hover,
+.svs-tabs button.active,
 .svs-panel-actions button:hover,
-.svs-preset-list button:hover {
-  border-color: var(--gold-line);
-  background: color-mix(in srgb, var(--gold-soft) 70%, var(--card));
-  color: var(--gold);
+.svs-player-id-cell button:hover,
+.svs-resource-cell button:hover,
+.svs-resource-modal button:hover {
+  border-color: var(--svs-line-strong);
+  background: #14243a;
+  color: var(--svs-primary);
 }
 
 .svs-notice {
-  border: 1px solid var(--gold-line);
+  border: 1px solid var(--svs-line-strong);
   border-radius: 8px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--gold-soft) 68%, var(--card));
-  color: var(--foreground);
+  background: #10243a;
+  color: var(--svs-text);
   font-weight: 800;
 }
 
 .svs-role-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .svs-role-card {
-  --svs-role-color: var(--gold);
   display: grid;
-  gap: 6px;
+  gap: 8px;
   justify-items: start;
-  min-height: 132px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  background: var(--card);
-  color: var(--foreground);
+  min-height: 154px;
+  padding: 16px;
+  color: var(--svs-text);
   cursor: pointer;
   text-align: left;
-  transition: border-color 150ms ease, transform 150ms ease, background-color 150ms ease;
 }
 
 .svs-role-card:hover,
 .svs-role-card.active {
-  border-color: var(--svs-role-color);
+  border-color: var(--svs-line-strong);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--svs-role-color) 16%, transparent), transparent 72%),
-    var(--card);
-  transform: translateY(-1px);
+    linear-gradient(135deg, rgba(125, 211, 252, 0.1), transparent 64%),
+    var(--svs-panel-2);
 }
 
 .svs-role-card span {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   place-items: center;
+  border: 1px solid var(--svs-line-strong);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--svs-role-color) 18%, transparent);
-  color: var(--svs-role-color);
-  font-size: 18px;
+  color: var(--svs-primary);
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .svs-role-card strong {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .svs-role-card small {
-  color: var(--muted-foreground);
-  font-weight: 800;
+  color: var(--svs-muted);
+  line-height: 1.45;
+}
+
+.svs-role-card b {
+  color: var(--svs-primary-2);
+  font-size: 13px;
 }
 
 .svs-schedule-panel {
@@ -166,65 +188,70 @@
 }
 
 .svs-schedule-panel > header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
   align-items: end;
   padding: 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--svs-line);
 }
 
-.svs-schedule-panel h2,
-.svs-settings-grid h2 {
+.svs-schedule-panel h2 {
   margin: 4px 0 6px;
   font-size: 24px;
-  letter-spacing: 0;
 }
 
 .svs-schedule-panel p {
   margin: 0;
-  color: var(--muted-foreground);
+  color: var(--svs-muted);
 }
 
 .svs-panel-actions {
-  align-items: end;
   justify-content: flex-end;
+  align-items: end;
 }
 
-.svs-panel-actions label,
-.svs-settings-grid label {
+.svs-panel-actions label {
   display: grid;
   gap: 6px;
-  color: var(--muted-foreground);
-  font-size: 12px;
+  color: var(--svs-muted);
+  font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .svs-panel-actions input,
-.svs-settings-grid input,
-.svs-settings-grid select,
-.svs-row input {
+.svs-panel-actions select,
+.svs-player-id-cell input,
+.svs-row textarea,
+.svs-resource-editor input {
   min-height: 38px;
-  border: 1px solid var(--input);
+  border: 1px solid var(--svs-line);
   border-radius: 8px;
   padding: 0 10px;
-  background: var(--background);
-  color: var(--foreground);
+  background: #070b12;
+  color: var(--svs-text);
   outline: none;
 }
 
+.svs-row textarea {
+  min-height: 64px;
+  padding: 9px 10px;
+  resize: vertical;
+}
+
 .svs-panel-actions input:focus,
-.svs-settings-grid input:focus,
-.svs-settings-grid select:focus,
-.svs-row input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-soft);
+.svs-panel-actions select:focus,
+.svs-player-id-cell input:focus,
+.svs-row textarea:focus,
+.svs-resource-editor input:focus {
+  border-color: var(--svs-primary);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
 }
 
 .svs-panel-actions .danger {
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #ef4444;
+  border-color: rgba(248, 113, 113, 0.42);
+  color: var(--svs-danger);
 }
 
 .svs-table-wrap {
@@ -232,42 +259,87 @@
 }
 
 .svs-table {
-  min-width: 1120px;
+  min-width: 1180px;
 }
 
 .svs-row {
   display: grid;
-  grid-template-columns: 150px 110px minmax(150px, 1fr) 120px minmax(180px, 1.2fr) minmax(170px, 1fr) 112px;
-  gap: 10px;
+  grid-template-columns: 150px 200px 260px minmax(220px, 1fr) 230px 112px;
+  gap: 12px;
   align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line-soft);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--svs-line);
 }
 
 .svs-row.filled {
-  background: color-mix(in srgb, var(--gold-soft) 30%, transparent);
+  background: rgba(125, 211, 252, 0.05);
 }
 
 .svs-head {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--muted);
-  color: var(--muted-foreground);
+  background: #111b2a;
+  color: var(--svs-muted);
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
 }
 
-.svs-row strong {
-  color: var(--foreground);
+.svs-time-cell,
+.svs-player-cell,
+.svs-resource-cell {
+  display: grid;
+  gap: 5px;
+}
+
+.svs-time-cell strong,
+.svs-player-cell strong {
+  color: var(--svs-text);
   font-size: 13px;
 }
 
-.svs-row > span {
-  color: var(--muted-foreground);
-  font-size: 13px;
-  font-weight: 700;
+.svs-time-cell span,
+.svs-player-cell small,
+.svs-player-cell em,
+.svs-resource-cell small {
+  color: var(--svs-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.svs-player-id-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.svs-player-cell {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.svs-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--svs-line);
+  border-radius: 8px;
+  background: var(--svs-soft);
+  color: var(--svs-primary);
+  font-weight: 900;
+}
+
+.svs-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.svs-resource-cell button {
+  width: max-content;
 }
 
 .svs-confirm {
@@ -275,50 +347,15 @@
   align-items: center;
   gap: 8px;
   min-height: 38px;
-  color: var(--foreground);
+  color: var(--svs-text);
   font-size: 13px;
   font-weight: 800;
 }
 
-.svs-confirm input,
-.svs-role-toggles input {
+.svs-confirm input {
   width: 16px;
   height: 16px;
-  accent-color: var(--gold);
-}
-
-.svs-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.svs-settings-grid > article {
-  display: grid;
-  align-content: start;
-  gap: 14px;
-  padding: 18px;
-}
-
-.svs-role-toggles {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.svs-role-toggles label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: var(--background);
-  color: var(--foreground);
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: none;
+  accent-color: var(--svs-primary);
 }
 
 .svs-analytics {
@@ -328,12 +365,7 @@
 }
 
 .svs-analytics-summary article {
-  min-width: 160px;
   flex: 1;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  background: var(--background);
 }
 
 .svs-analytics-bars {
@@ -342,7 +374,6 @@
 }
 
 .svs-analytics-bars article {
-  --svs-role-color: var(--gold);
   display: grid;
   gap: 8px;
 }
@@ -358,19 +389,18 @@
   height: 10px;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--muted);
+  background: #060911;
 }
 
 .svs-analytics-bars div span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--svs-role-color);
+  background: var(--svs-primary);
 }
 
 .svs-analytics-bars small {
-  color: var(--muted-foreground);
-  font-weight: 700;
+  color: var(--svs-muted);
 }
 
 .svs-howto {
@@ -388,9 +418,9 @@
   width: 34px;
   height: 34px;
   place-items: center;
+  border: 1px solid var(--svs-line-strong);
   border-radius: 8px;
-  background: var(--gold);
-  color: #111;
+  color: var(--svs-primary);
   font-weight: 900;
 }
 
@@ -402,20 +432,71 @@
 
 .svs-howto p {
   margin: 8px 0 0;
-  color: var(--muted-foreground);
+  color: var(--svs-muted);
   line-height: 1.55;
+}
+
+.svs-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(3, 7, 18, 0.78);
+}
+
+.svs-resource-modal {
+  width: min(560px, 100%);
+  padding: 18px;
+}
+
+.svs-resource-modal header,
+.svs-resource-modal footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.svs-resource-modal h2 {
+  margin: 4px 0 0;
+  font-size: 24px;
+}
+
+.svs-resource-editor {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.svs-resource-editor label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 12px;
+  align-items: center;
+}
+
+.svs-resource-editor label span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--svs-text);
+  font-weight: 800;
+}
+
+.svs-resource-editor img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
 @media (max-width: 980px) {
   .svs-tool-hero,
-  .svs-settings-grid,
+  .svs-schedule-panel > header,
+  .svs-role-grid,
   .svs-howto {
     grid-template-columns: 1fr;
-  }
-
-  .svs-schedule-panel > header {
-    align-items: stretch;
-    flex-direction: column;
   }
 
   .svs-panel-actions {
@@ -425,7 +506,7 @@
 
 @media (max-width: 640px) {
   .svs-tool-hero,
-  .svs-settings-grid > article,
+  .svs-resource-modal,
   .svs-analytics,
   .svs-howto > article {
     padding: 14px;
@@ -435,12 +516,17 @@
     font-size: 36px;
   }
 
-  .svs-panel-actions button,
-  .svs-panel-actions label {
-    flex: 1 1 140px;
+  .svs-panel-actions label,
+  .svs-panel-actions button {
+    flex: 1 1 135px;
   }
 
-  .svs-role-toggles {
+  .svs-resource-editor label {
     grid-template-columns: 1fr;
+  }
+
+  .svs-resource-modal footer {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

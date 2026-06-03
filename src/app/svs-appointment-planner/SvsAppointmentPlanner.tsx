@@ -1,53 +1,97 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useState } from "react";
 
-type PlannerTab = "schedule" | "settings" | "analytics" | "howto";
+type PlannerTab = "schedule" | "analytics" | "howto";
 
 type AppointmentRole = {
-  id: string;
+  id: "education" | "vicePresident";
   name: string;
-  icon: string;
+  shortName: string;
   focus: string;
-  color: string;
 };
+
+type PlayerProfile = {
+  playerId: string;
+  nickname: string;
+  furnaceLevel?: number;
+  furnaceLevelFormatted?: string;
+  avatarImage?: string;
+  alliance?: string;
+};
+
+type ResourceKey = "constructionSpeedup" | "trainingSpeedup" | "researchSpeedup" | "fireCrystal" | "fireCrystalShards";
+
+type AppointmentResources = Record<ResourceKey, string>;
 
 type AppointmentSlot = {
-  player: string;
-  level: string;
+  playerId: string;
+  playerName: string;
+  furnace: string;
+  alliance: string;
+  avatarImage: string;
   description: string;
-  resources: string;
+  resources: AppointmentResources;
   confirmed: boolean;
+  loading?: boolean;
+  status?: string;
 };
 
-type PlannerState = Record<string, Record<string, AppointmentSlot>>;
+type PlannerState = Record<AppointmentRole["id"], Record<string, AppointmentSlot>>;
 
 type SavedPlanner = {
-  enabledRoleIds?: string[];
   plannerName?: string;
   plannerState?: PlannerState;
-  selectedRoleId?: string;
+  selectedRoleId?: AppointmentRole["id"];
   slotMinutes?: number;
   startTime?: string;
-  stateNumber?: string;
 };
 
-const storageKey = "wos-svs-appointment-planner-v1";
+const storageKey = "wos-svs-appointment-planner-v2";
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 const appointmentRoles: AppointmentRole[] = [
-  { id: "president", name: "President", icon: "P", focus: "SvS command handoff", color: "#f48120" },
-  { id: "war", name: "Minister of War", icon: "W", focus: "Rally launch and battle buffs", color: "#ef4444" },
-  { id: "defense", name: "Minister of Defense", icon: "D", focus: "Garrison and city defense", color: "#38bdf8" },
-  { id: "strategy", name: "Minister of Strategy", icon: "S", focus: "March timing and troop swaps", color: "#a855f7" },
-  { id: "interior", name: "Minister of Interior", icon: "I", focus: "Resource and support windows", color: "#22c55e" },
-  { id: "construction", name: "Minister of Construction", icon: "C", focus: "Pre-SvS upgrade bursts", color: "#eab308" },
+  {
+    id: "education",
+    name: "Minister of Education",
+    shortName: "Education",
+    focus: "Research and learning appointment windows for SvS preparation.",
+  },
+  {
+    id: "vicePresident",
+    name: "Vice President",
+    shortName: "Vice President",
+    focus: "High-priority appointment coverage and backup leadership windows.",
+  },
 ];
 
-const rolePresets = [
-  { label: "Battle Core", roles: ["president", "war", "defense", "strategy"] },
-  { label: "Full SvS", roles: appointmentRoles.map((role) => role.id) },
-  { label: "Growth Prep", roles: ["interior", "construction", "strategy"] },
+const resourceItems: { key: ResourceKey; label: string; icon: string }[] = [
+  { key: "constructionSpeedup", label: "Construction Speedup", icon: "/svs-resources/construction-speedup.webp" },
+  { key: "trainingSpeedup", label: "Training Speedup", icon: "/svs-resources/training-speedup.webp" },
+  { key: "researchSpeedup", label: "Research Speedup", icon: "/svs-resources/research-speedup.webp" },
+  { key: "fireCrystal", label: "Fire Crystal", icon: "/svs-resources/fire-crystal.png" },
+  { key: "fireCrystalShards", label: "Fire Crystal Shards", icon: "/svs-resources/fire-crystal-shard.png" },
 ];
+
+const emptyResources = (): AppointmentResources => ({
+  constructionSpeedup: "",
+  trainingSpeedup: "",
+  researchSpeedup: "",
+  fireCrystal: "",
+  fireCrystalShards: "",
+});
+
+const createEmptySlot = (): AppointmentSlot => ({
+  playerId: "",
+  playerName: "",
+  furnace: "",
+  alliance: "",
+  avatarImage: "",
+  description: "",
+  resources: emptyResources(),
+  confirmed: false,
+});
 
 const savedPlanner = (): SavedPlanner | null => {
   if (typeof window === "undefined") return null;
@@ -58,14 +102,6 @@ const savedPlanner = (): SavedPlanner | null => {
     return null;
   }
 };
-
-const createEmptySlot = (): AppointmentSlot => ({
-  player: "",
-  level: "",
-  description: "",
-  resources: "",
-  confirmed: false,
-});
 
 const normalizeTime = (value: string) => value || "00:00";
 
@@ -93,21 +129,91 @@ const slotKeyFor = (startMinutes: number, slotMinutes: number, index: number) =>
 
 const slotTimeFor = (key: string) => key.replace("-", " - ");
 
-const filled = (slot: AppointmentSlot) =>
-  Boolean(slot.player.trim() || slot.level.trim() || slot.description.trim() || slot.resources.trim());
+const normalizeAvatarUrl = (value?: string) => {
+  if (!value) return "";
+  if (value.startsWith("http")) return value;
+  if (value.startsWith("//")) return `https:${value}`;
+  if (value.startsWith("/")) return value;
+  return `https://gof-formal-avatar-cdn.centurygame.com/${value.replace(/^\/+/, "")}`;
+};
 
-const appointmentCsv = (role: AppointmentRole, rows: { key: string; utc: string; local: string; slot: AppointmentSlot }[]) => {
+const playerFromPayload = (data: unknown): PlayerProfile | undefined => {
+  const record = data as {
+    data?: unknown;
+    player?: unknown;
+    result?: unknown;
+    profile?: unknown;
+  };
+  const payload = (record?.player || record?.data || record?.result || record?.profile || data) as {
+    avatar?: string;
+    avatarImage?: string;
+    avatarUrl?: string;
+    avatar_image?: string;
+    avatar_url?: string;
+    furnace?: number;
+    furnaceLevel?: number;
+    furnaceLevelFormatted?: string;
+    furnace_lv?: number;
+    id?: number | string;
+    name?: string;
+    nickname?: string;
+    playerId?: string;
+    alliance?: string;
+  };
+  const playerId = String(payload?.playerId || payload?.id || "");
+  if (!playerId) return undefined;
+  const furnaceLevel = payload.furnaceLevel ?? payload.furnace_lv ?? payload.furnace;
+  return {
+    playerId,
+    nickname: payload.nickname || payload.name || "Unknown Player",
+    furnaceLevel,
+    furnaceLevelFormatted: payload.furnaceLevelFormatted,
+    avatarImage: normalizeAvatarUrl(payload.avatarImage || payload.avatarUrl || payload.avatar_url || payload.avatar || payload.avatar_image),
+    alliance: payload.alliance || "",
+  };
+};
+
+const furnaceDisplay = (player: PlayerProfile) =>
+  player.furnaceLevelFormatted || (player.furnaceLevel ? String(player.furnaceLevel) : "");
+
+const hasResources = (resources: AppointmentResources) =>
+  resourceItems.some((item) => resources[item.key].trim());
+
+const filled = (slot: AppointmentSlot) =>
+  Boolean(slot.playerId.trim() || slot.playerName.trim() || slot.description.trim() || hasResources(slot.resources));
+
+const resourceSummary = (resources: AppointmentResources) => {
+  const selected = resourceItems
+    .filter((item) => resources[item.key].trim())
+    .map((item) => `${item.label}: ${resources[item.key].trim()}`);
+  return selected.length ? selected.join(", ") : "No resources";
+};
+
+const csvFor = (role: AppointmentRole, rows: { utc: string; local: string; slot: AppointmentSlot }[]) => {
   const escape = (value: string | boolean) => `"${String(value).replace(/"/g, '""')}"`;
   return [
-    ["Role", "Time UTC", "Local Time", "Player Name", "Level", "Description", "Resources", "Confirmed"].map(escape).join(","),
+    [
+      "Role",
+      "Time UTC",
+      "Local Time",
+      "Player ID",
+      "Player Name",
+      "Furnace",
+      "Alliance",
+      "Description",
+      ...resourceItems.map((item) => item.label),
+      "Confirmed",
+    ].map(escape).join(","),
     ...rows.map((row) => [
       role.name,
       row.utc,
       row.local,
-      row.slot.player,
-      row.slot.level,
+      row.slot.playerId,
+      row.slot.playerName,
+      row.slot.furnace,
+      row.slot.alliance,
       row.slot.description,
-      row.slot.resources,
+      ...resourceItems.map((item) => row.slot.resources[item.key]),
       row.slot.confirmed ? "Yes" : "No",
     ].map(escape).join(",")),
   ].join("\n");
@@ -115,16 +221,12 @@ const appointmentCsv = (role: AppointmentRole, rows: { key: string; utc: string;
 
 export default function SvsAppointmentPlanner() {
   const [activeTab, setActiveTab] = useState<PlannerTab>("schedule");
-  const [selectedRoleId, setSelectedRoleId] = useState(() => savedPlanner()?.selectedRoleId || appointmentRoles[1].id);
-  const [enabledRoleIds, setEnabledRoleIds] = useState(() => {
-    const saved = savedPlanner()?.enabledRoleIds;
-    return saved?.length ? saved : appointmentRoles.map((role) => role.id);
-  });
+  const [selectedRoleId, setSelectedRoleId] = useState<AppointmentRole["id"]>(() => savedPlanner()?.selectedRoleId || "education");
   const [startTime, setStartTime] = useState(() => savedPlanner()?.startTime || "00:00");
   const [slotMinutes, setSlotMinutes] = useState(() => savedPlanner()?.slotMinutes === 60 ? 60 : 30);
-  const [plannerName, setPlannerName] = useState(() => savedPlanner()?.plannerName || "SvS Castle Battle");
-  const [stateNumber, setStateNumber] = useState(() => savedPlanner()?.stateNumber || "");
-  const [plannerState, setPlannerState] = useState<PlannerState>(() => savedPlanner()?.plannerState || {});
+  const [plannerName, setPlannerName] = useState(() => savedPlanner()?.plannerName || "SvS Appointment Plan");
+  const [plannerState, setPlannerState] = useState<PlannerState>(() => savedPlanner()?.plannerState || { education: {}, vicePresident: {} });
+  const [editingResource, setEditingResource] = useState<{ roleId: AppointmentRole["id"]; slotKey: string } | null>(null);
   const [notice, setNotice] = useState("");
 
   const selectedRole = appointmentRoles.find((role) => role.id === selectedRoleId) || appointmentRoles[0];
@@ -143,12 +245,12 @@ export default function SvsAppointmentPlanner() {
   }), [plannerState, selectedRole.id, slotMinutes, slotsPerDay, startMinutes]);
 
   const roleStats = useMemo(() => appointmentRoles.map((role) => {
-    const roleSlots = Array.from({ length: slotsPerDay }, (_, index) => {
+    const slots = Array.from({ length: slotsPerDay }, (_, index) => {
       const key = slotKeyFor(startMinutes, slotMinutes, index);
       return plannerState[role.id]?.[key] || createEmptySlot();
     });
-    const filledCount = roleSlots.filter(filled).length;
-    const confirmedCount = roleSlots.filter((slot) => slot.confirmed).length;
+    const filledCount = slots.filter(filled).length;
+    const confirmedCount = slots.filter((slot) => slot.confirmed).length;
     return { role, filledCount, confirmedCount, total: slotsPerDay };
   }), [plannerState, slotMinutes, slotsPerDay, startMinutes]);
 
@@ -157,17 +259,17 @@ export default function SvsAppointmentPlanner() {
   const totalSlots = roleStats.length * slotsPerDay;
   const coverage = totalSlots ? Math.round((totalFilled / totalSlots) * 100) : 0;
 
+  const editingSlot = editingResource ? plannerState[editingResource.roleId]?.[editingResource.slotKey] || createEmptySlot() : undefined;
+
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify({
-      enabledRoleIds,
       plannerName,
       plannerState,
       selectedRoleId,
       slotMinutes,
       startTime,
-      stateNumber,
     }));
-  }, [enabledRoleIds, plannerName, plannerState, selectedRoleId, slotMinutes, startTime, stateNumber]);
+  }, [plannerName, plannerState, selectedRoleId, slotMinutes, startTime]);
 
   useEffect(() => {
     if (!notice) return;
@@ -175,37 +277,58 @@ export default function SvsAppointmentPlanner() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const updateSlot = (key: string, updates: Partial<AppointmentSlot>) => {
+  const updateSlot = (roleId: AppointmentRole["id"], key: string, updates: Partial<AppointmentSlot>) => {
     setPlannerState((current) => ({
       ...current,
-      [selectedRole.id]: {
-        ...current[selectedRole.id],
+      [roleId]: {
+        ...current[roleId],
         [key]: {
-          ...(current[selectedRole.id]?.[key] || createEmptySlot()),
+          ...(current[roleId]?.[key] || createEmptySlot()),
           ...updates,
         },
       },
     }));
   };
 
-  const clearCurrentRole = () => {
-    setPlannerState((current) => {
-      const next = { ...current };
-      delete next[selectedRole.id];
-      return next;
-    });
-    setNotice(`${selectedRole.name} schedule cleared.`);
-  };
+  const fetchPlayer = async (key: string, playerId: string) => {
+    const cleanedPlayerId = playerId.replace(/\D/g, "");
+    updateSlot(selectedRole.id, key, { playerId: cleanedPlayerId, loading: false, status: "" });
+    if (!cleanedPlayerId) return;
+    if (!/^\d{8,9}$/.test(cleanedPlayerId)) {
+      updateSlot(selectedRole.id, key, { status: "Enter an 8 or 9 digit ID." });
+      return;
+    }
 
-  const applyPreset = (roleIds: string[]) => {
-    setEnabledRoleIds(roleIds);
-    if (!roleIds.includes(selectedRoleId)) {
-      setSelectedRoleId(roleIds[0] || appointmentRoles[0].id);
+    updateSlot(selectedRole.id, key, { loading: true, status: "Fetching..." });
+    try {
+      const response = await fetch(`${apiBase}/api/daybreak/players/${cleanedPlayerId}`);
+      const data = await response.json().catch(() => null);
+      const player = playerFromPayload(data);
+      if (!response.ok || !player) {
+        updateSlot(selectedRole.id, key, { loading: false, status: "Not found" });
+        return;
+      }
+      updateSlot(selectedRole.id, key, {
+        playerId: cleanedPlayerId,
+        playerName: player.nickname,
+        furnace: furnaceDisplay(player),
+        alliance: player.alliance || "",
+        avatarImage: player.avatarImage || "",
+        loading: false,
+        status: "Loaded",
+      });
+    } catch {
+      updateSlot(selectedRole.id, key, { loading: false, status: "Lookup failed" });
     }
   };
 
+  const clearCurrentRole = () => {
+    setPlannerState((current) => ({ ...current, [selectedRole.id]: {} }));
+    setNotice(`${selectedRole.name} schedule cleared.`);
+  };
+
   const downloadCsv = () => {
-    const blob = new Blob([appointmentCsv(selectedRole, rows)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([csvFor(selectedRole, rows)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -217,13 +340,19 @@ export default function SvsAppointmentPlanner() {
 
   const copySummary = async () => {
     const filledRows = rows.filter((row) => filled(row.slot));
-    const title = `${plannerName}${stateNumber ? ` - State ${stateNumber}` : ""}`;
     const message = [
-      `${title}`,
+      plannerName,
       `${selectedRole.name} rotation (${startTime} UTC start)`,
-      ...filledRows.map((row) => `${row.utc}: ${row.slot.player || "Open"}${row.slot.level ? `, FC ${row.slot.level}` : ""}${row.slot.confirmed ? " [confirmed]" : ""}`),
+      ...filledRows.map((row) => [
+        `${row.utc}:`,
+        row.slot.playerName || row.slot.playerId || "Open",
+        row.slot.furnace ? `FC ${row.slot.furnace}` : "",
+        row.slot.description ? `- ${row.slot.description}` : "",
+        hasResources(row.slot.resources) ? `Resources: ${resourceSummary(row.slot.resources)}` : "",
+        row.slot.confirmed ? "[confirmed]" : "",
+      ].filter(Boolean).join(" ")),
     ].join("\n");
-    await navigator.clipboard.writeText(message || title);
+    await navigator.clipboard.writeText(message);
     setNotice("Alliance summary copied.");
   };
 
@@ -231,30 +360,20 @@ export default function SvsAppointmentPlanner() {
     <section className="home-page svs-planner-page" id="svs-appointment-planner" aria-label="Whiteout Survival SvS appointment planner">
       <section className="svs-tool-hero">
         <div>
-          <span className="section-kicker">Whiteout Survival Tools & Guides</span>
-          <h1>SvS Appointment Planner</h1>
-          <p>Plan president and minister handoffs for your alliance. Schedule 30-minute or 60-minute slots across 24 hours with player names, furnace levels, resource notes, and confirmations.</p>
+          <span className="section-kicker">Whiteout Survival SvS</span>
+          <h1>Appointment Planner</h1>
+          <p>Schedule only Minister of Education and Vice President appointments. Enter a player ID to fetch player details, write the appointment description, and add resource needs from the edit resource button.</p>
         </div>
         <div className="svs-hero-metrics" aria-label="Planner summary">
-          <article>
-            <strong>{totalFilled}/{totalSlots}</strong>
-            <small>filled</small>
-          </article>
-          <article>
-            <strong>{totalConfirmed}</strong>
-            <small>confirmed</small>
-          </article>
-          <article>
-            <strong>{coverage}%</strong>
-            <small>coverage</small>
-          </article>
+          <article><strong>{totalFilled}/{totalSlots}</strong><small>filled</small></article>
+          <article><strong>{totalConfirmed}</strong><small>confirmed</small></article>
+          <article><strong>{coverage}%</strong><small>coverage</small></article>
         </div>
       </section>
 
       <nav className="svs-tabs" aria-label="Appointment planner sections">
         {[
           ["schedule", "Schedule"],
-          ["settings", "Settings"],
           ["analytics", "Analytics"],
           ["howto", "How to Use"],
         ].map(([tab, label]) => (
@@ -269,18 +388,13 @@ export default function SvsAppointmentPlanner() {
       {activeTab === "schedule" && (
         <>
           <section className="svs-role-grid" aria-label="Appointment roles">
-            {roleStats.filter((row) => enabledRoleIds.includes(row.role.id)).map(({ role, filledCount, confirmedCount, total }) => (
-              <button
-                className={`svs-role-card ${selectedRole.id === role.id ? "active" : ""}`}
-                style={{ ["--svs-role-color" as string]: role.color }}
-                type="button"
-                key={role.id}
-                onClick={() => setSelectedRoleId(role.id)}
-              >
-                <span>{role.icon}</span>
+            {roleStats.map(({ role, filledCount, confirmedCount, total }) => (
+              <button className={`svs-role-card ${selectedRole.id === role.id ? "active" : ""}`} type="button" key={role.id} onClick={() => setSelectedRoleId(role.id)}>
+                <span>{role.shortName.slice(0, 2).toUpperCase()}</span>
                 <strong>{role.name}</strong>
-                <small>{filledCount}/{total} filled</small>
-                <small>{confirmedCount} Confirmed</small>
+                <small>{role.focus}</small>
+                <b>{filledCount}/{total} filled</b>
+                <b>{confirmedCount} confirmed</b>
               </button>
             ))}
           </section>
@@ -294,8 +408,19 @@ export default function SvsAppointmentPlanner() {
               </div>
               <div className="svs-panel-actions">
                 <label>
-                  <span>Start Time</span>
+                  <span>Plan Name</span>
+                  <input value={plannerName} onChange={(event) => setPlannerName(event.currentTarget.value)} />
+                </label>
+                <label>
+                  <span>Start UTC</span>
                   <input type="time" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} />
+                </label>
+                <label>
+                  <span>Slot</span>
+                  <select value={slotMinutes} onChange={(event) => setSlotMinutes(Number(event.currentTarget.value))}>
+                    <option value={30}>30m</option>
+                    <option value={60}>60m</option>
+                  </select>
                 </label>
                 <button type="button" onClick={() => void copySummary()}>Copy</button>
                 <button type="button" onClick={downloadCsv}>CSV</button>
@@ -307,23 +432,54 @@ export default function SvsAppointmentPlanner() {
               <div className="svs-table">
                 <div className="svs-row svs-head">
                   <span>Time</span>
-                  <span>Local Time</span>
-                  <span>Player Name</span>
-                  <span>Level</span>
+                  <span>Player ID</span>
+                  <span>Fetched Player</span>
                   <span>Description</span>
                   <span>Resources</span>
                   <span>Confirmed</span>
                 </div>
                 {rows.map((row) => (
                   <div className={`svs-row ${filled(row.slot) ? "filled" : ""}`} key={row.key}>
-                    <strong>{row.utc}</strong>
-                    <span>{row.local}</span>
-                    <input value={row.slot.player} placeholder="Player name" onChange={(event) => updateSlot(row.key, { player: event.currentTarget.value })} />
-                    <input value={row.slot.level} placeholder="FC / Furnace" onChange={(event) => updateSlot(row.key, { level: event.currentTarget.value })} />
-                    <input value={row.slot.description} placeholder="Buff purpose" onChange={(event) => updateSlot(row.key, { description: event.currentTarget.value })} />
-                    <input value={row.slot.resources} placeholder="RSS / troops / notes" onChange={(event) => updateSlot(row.key, { resources: event.currentTarget.value })} />
+                    <div className="svs-time-cell">
+                      <strong>{row.utc}</strong>
+                      <span>{row.local}</span>
+                    </div>
+                    <div className="svs-player-id-cell">
+                      <input
+                        value={row.slot.playerId}
+                        inputMode="numeric"
+                        placeholder="Player ID"
+                        onBlur={() => void fetchPlayer(row.key, row.slot.playerId)}
+                        onChange={(event) => updateSlot(selectedRole.id, row.key, {
+                          playerId: event.currentTarget.value.replace(/\D/g, ""),
+                          playerName: "",
+                          furnace: "",
+                          alliance: "",
+                          avatarImage: "",
+                          status: "",
+                        })}
+                      />
+                      <button type="button" onClick={() => void fetchPlayer(row.key, row.slot.playerId)} disabled={row.slot.loading}>
+                        {row.slot.loading ? "..." : "Fetch"}
+                      </button>
+                    </div>
+                    <div className="svs-player-cell">
+                      <span className="svs-avatar">{row.slot.avatarImage ? <img src={row.slot.avatarImage} alt="" /> : row.slot.playerName.slice(0, 1) || "?"}</span>
+                      <div>
+                        <strong>{row.slot.playerName || "No player loaded"}</strong>
+                        <small>{row.slot.furnace ? `FC ${row.slot.furnace}` : "Awaiting fetch"}{row.slot.alliance ? ` | ${row.slot.alliance}` : ""}</small>
+                        {row.slot.status && <em>{row.slot.status}</em>}
+                      </div>
+                    </div>
+                    <textarea value={row.slot.description} placeholder="Appointment description" onChange={(event) => updateSlot(selectedRole.id, row.key, { description: event.currentTarget.value })} />
+                    <div className="svs-resource-cell">
+                      <button type="button" onClick={() => setEditingResource({ roleId: selectedRole.id, slotKey: row.key })}>
+                        Edit Resource
+                      </button>
+                      <small>{resourceSummary(row.slot.resources)}</small>
+                    </div>
                     <label className="svs-confirm">
-                      <input type="checkbox" checked={row.slot.confirmed} onChange={(event) => updateSlot(row.key, { confirmed: event.currentTarget.checked })} />
+                      <input type="checkbox" checked={row.slot.confirmed} onChange={(event) => updateSlot(selectedRole.id, row.key, { confirmed: event.currentTarget.checked })} />
                       <span>{row.slot.confirmed ? "Yes" : "No"}</span>
                     </label>
                   </div>
@@ -334,57 +490,6 @@ export default function SvsAppointmentPlanner() {
         </>
       )}
 
-      {activeTab === "settings" && (
-        <section className="svs-settings-grid" aria-label="Appointment planner settings">
-          <article>
-            <h2>Schedule Settings</h2>
-            <label>
-              Planner Name
-              <input value={plannerName} onChange={(event) => setPlannerName(event.currentTarget.value)} />
-            </label>
-            <label>
-              State Number
-              <input value={stateNumber} inputMode="numeric" placeholder="Example: 314" onChange={(event) => setStateNumber(event.currentTarget.value.replace(/\D/g, ""))} />
-            </label>
-            <label>
-              Start Time UTC
-              <input type="time" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} />
-            </label>
-            <label>
-              Slot Length
-              <select value={slotMinutes} onChange={(event) => setSlotMinutes(Number(event.currentTarget.value))}>
-                <option value={30}>30 minutes</option>
-                <option value={60}>60 minutes</option>
-              </select>
-            </label>
-          </article>
-          <article>
-            <h2>Role Presets</h2>
-            <div className="svs-preset-list">
-              {rolePresets.map((preset) => (
-                <button type="button" key={preset.label} onClick={() => applyPreset(preset.roles)}>{preset.label}</button>
-              ))}
-            </div>
-            <div className="svs-role-toggles">
-              {appointmentRoles.map((role) => (
-                <label key={role.id}>
-                  <input
-                    type="checkbox"
-                    checked={enabledRoleIds.includes(role.id)}
-                    onChange={(event) => {
-                      setEnabledRoleIds((current) => event.currentTarget.checked
-                        ? [...new Set([...current, role.id])]
-                        : current.filter((id) => id !== role.id));
-                    }}
-                  />
-                  <span>{role.name}</span>
-                </label>
-              ))}
-            </div>
-          </article>
-        </section>
-      )}
-
       {activeTab === "analytics" && (
         <section className="svs-analytics" aria-label="Appointment planner analytics">
           <div className="svs-analytics-summary">
@@ -393,12 +498,9 @@ export default function SvsAppointmentPlanner() {
             <article><strong>{totalSlots - totalFilled}</strong><small>Open slots</small></article>
           </div>
           <div className="svs-analytics-bars">
-            {roleStats.filter((row) => enabledRoleIds.includes(row.role.id)).map(({ role, filledCount, confirmedCount, total }) => (
-              <article key={role.id} style={{ ["--svs-role-color" as string]: role.color }}>
-                <header>
-                  <strong>{role.name}</strong>
-                  <span>{filledCount}/{total}</span>
-                </header>
+            {roleStats.map(({ role, filledCount, confirmedCount, total }) => (
+              <article key={role.id}>
+                <header><strong>{role.name}</strong><span>{filledCount}/{total}</span></header>
                 <div><span style={{ width: `${total ? (filledCount / total) * 100 : 0}%` }} /></div>
                 <small>{confirmedCount} confirmed, {total - filledCount} open</small>
               </article>
@@ -410,18 +512,51 @@ export default function SvsAppointmentPlanner() {
       {activeTab === "howto" && (
         <section className="svs-howto" aria-label="How to use the SvS appointment planner">
           {[
-            ["Pick roles", "Use Full SvS or Battle Core presets, then select the appointment role you are scheduling."],
-            ["Set UTC start", "Choose the first rotation time. The table fills the next 24 hours and shows each user's local time."],
-            ["Fill slots", "Add player names, furnace or FC level, purpose, resource notes, and mark confirmed handoffs."],
-            ["Share plan", "Copy the alliance summary for chat or export the selected role to CSV for Discord and sheets."],
+            ["Choose a role", "Only Minister of Education and Vice President are available."],
+            ["Enter Player ID", "The planner fetches player name, furnace, avatar, and alliance data. State is intentionally not displayed."],
+            ["Write details", "Use the description field for appointment purpose, timing notes, or alliance instructions."],
+            ["Edit resources", "Open Edit Resource to add Construction Speedup, Training Speedup, Research Speedup, Fire Crystal, and Fire Crystal Shard counts."],
           ].map(([title, body], index) => (
-            <article key={title}>
-              <span>{index + 1}</span>
-              <strong>{title}</strong>
-              <p>{body}</p>
-            </article>
+            <article key={title}><span>{index + 1}</span><strong>{title}</strong><p>{body}</p></article>
           ))}
         </section>
+      )}
+
+      {editingResource && editingSlot && (
+        <div className="svs-modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit appointment resources" onClick={() => setEditingResource(null)}>
+          <section className="svs-resource-modal" onClick={(event) => event.stopPropagation()}>
+            <header>
+              <div>
+                <span className="section-kicker">Resources</span>
+                <h2>Edit Resource Details</h2>
+              </div>
+              <button type="button" onClick={() => setEditingResource(null)} aria-label="Close resource editor">x</button>
+            </header>
+            <div className="svs-resource-editor">
+              {resourceItems.map((item) => (
+                <label key={item.key}>
+                  <span><img src={item.icon} alt="" />{item.label}</span>
+                  <input
+                    value={editingSlot.resources[item.key]}
+                    placeholder="Amount"
+                    onChange={(event) => updateSlot(editingResource.roleId, editingResource.slotKey, {
+                      resources: {
+                        ...editingSlot.resources,
+                        [item.key]: event.currentTarget.value,
+                      },
+                    })}
+                  />
+                </label>
+              ))}
+            </div>
+            <footer>
+              <button type="button" onClick={() => {
+                updateSlot(editingResource.roleId, editingResource.slotKey, { resources: emptyResources() });
+              }}>Clear Resources</button>
+              <button type="button" onClick={() => setEditingResource(null)}>Done</button>
+            </footer>
+          </section>
+        </div>
       )}
     </section>
   );
