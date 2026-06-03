@@ -15958,7 +15958,7 @@ body {
     left: 0;
     z-index: 92;
     display: grid;
-    width: min(420px, calc(100vw - 56px));
+    width: 50vw;
     align-content: start;
     overflow: hidden;
     border: 0;
@@ -16848,7 +16848,7 @@ body {
     right: auto;
     bottom: 0;
     left: 0;
-    width: min(420px, calc(100vw - 56px));
+    width: 50vw;
     border-radius: 0;
     padding: 6px;
     border-right: 1px solid var(--border);
