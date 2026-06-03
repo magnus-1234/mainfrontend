@@ -16,6 +16,34 @@ const geistMono = Geist_Mono({
 const siteTitle = "Whiteout Survival Tools & WOS Discord Bot";
 const siteDescription =
   "Use Whiteout Survival tools for gift codes, state age tracking, chief gear and charm calculators, Foundry planning, WOS wiki data, and Discord bot automation.";
+const siteNavigationItems = [
+  ["Home", "https://whiteoutsurvival.dev/"],
+  ["Gift Codes", "https://whiteoutsurvival.dev/gift-codes"],
+  ["Gift Code Redeem", "https://whiteoutsurvival.dev/redeem"],
+  ["State Age Tracker", "https://whiteoutsurvival.dev/state-age"],
+  ["Chief Gear Calculator", "https://whiteoutsurvival.dev/chief-gear-calculator"],
+  ["Chief Charm Calculator", "https://whiteoutsurvival.dev/chief-charm-calculator"],
+  ["Foundry Team Planner", "https://whiteoutsurvival.dev/foundry-team-planner"],
+  ["Message Templates", "https://whiteoutsurvival.dev/message-templates"],
+  ["Heroes Wiki", "https://whiteoutsurvival.dev/wiki/heroes"],
+  ["Buildings Wiki", "https://whiteoutsurvival.dev/wiki/buildings"],
+  ["Daybreak Island Layouts", "https://whiteoutsurvival.dev/daybreak-island"],
+  ["Dreamscape Memory", "https://whiteoutsurvival.dev/dreamscape-memory"],
+  ["Sneak Peek", "https://whiteoutsurvival.dev/sneak-peek"],
+  ["Discord Bot", "https://whiteoutsurvival.dev/discord-bot"],
+] as const;
+
+const siteNavigationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "WhiteoutSurvival.dev menu pages",
+  itemListElement: siteNavigationItems.map(([name, url], index) => ({
+    "@type": "SiteNavigationElement",
+    position: index + 1,
+    name,
+    url,
+  })),
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://whiteoutsurvival.dev"),
@@ -94,6 +122,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavigationJsonLd) }}
+        />
         <SecurityDeterrents />
         {children}
       </body>

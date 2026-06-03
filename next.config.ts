@@ -82,6 +82,55 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/giftcodes",
+        destination: "/gift-codes",
+        permanent: true,
+      },
+      {
+        source: "/stateage",
+        destination: "/state-age",
+        permanent: true,
+      },
+      {
+        source: "/chief-gear",
+        destination: "/chief-gear-calculator",
+        permanent: true,
+      },
+      {
+        source: "/chief-charms",
+        destination: "/chief-charm-calculator",
+        permanent: true,
+      },
+      {
+        source: "/discordbot",
+        destination: "/discord-bot",
+        permanent: true,
+      },
+      {
+        source: "/foundry",
+        destination: "/foundry-team-planner",
+        permanent: true,
+      },
+      {
+        source: "/foundry-planner",
+        destination: "/foundry-team-planner",
+        permanent: true,
+      },
+      {
+        source: "/daybreak",
+        destination: "/daybreak-island",
+        permanent: true,
+      },
+      {
+        source: "/dreamscape",
+        destination: "/dreamscape-memory",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
@@ -109,16 +158,8 @@ const nextConfig: NextConfig = {
         destination: "/?menu=chief-charm-calculator",
       },
       {
-        source: "/chief-charms",
-        destination: "/?menu=chief-charms",
-      },
-      {
         source: "/chief-gear-calculator",
         destination: "/?menu=chief-gear-calculator",
-      },
-      {
-        source: "/chief-gear",
-        destination: "/?menu=chief-gear",
       },
       {
         source: "/message-templates",
