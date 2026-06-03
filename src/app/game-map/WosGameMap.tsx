@@ -5,13 +5,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const MAP_SIZE = 1199;
 const CANVAS_SIZE = 1199;
+const GRID_STEP = 25;
 
 type Coordinate = {
   x: number;
   y: number;
 };
 
-type MapMode = "2d" | "3d";
+type MapMode = "2d" | "isometric" | "3d";
 
 type DragState = {
   pointerId: number;
@@ -22,6 +23,11 @@ type DragState = {
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const gridCellFor = (coord: Coordinate) => ({
+  x: Math.floor((coord.x - 1) / GRID_STEP) * GRID_STEP,
+  y: Math.floor((coord.y - 1) / GRID_STEP) * GRID_STEP,
+});
 
 const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null) => {
   const context = canvas.getContext("2d");
@@ -39,7 +45,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
   const majorEvery = 100;
-  const minorEvery = 25;
+  const minorEvery = GRID_STEP;
   context.lineWidth = 1;
 
   for (let value = 1; value <= MAP_SIZE; value += minorEvery) {
@@ -68,12 +74,17 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.fillText(String(value), 24, position);
   }
 
-  const markCoordinate = (coord: Coordinate, color: string, radius: number) => {
+  const markCoordinate = (coord: Coordinate, color: string, radius: number, selectedCell = false) => {
     const x = coord.x - 1;
     const y = coord.y - 1;
-    const cellSize = 17;
-    context.fillStyle = "rgba(244, 129, 32, 0.2)";
-    context.fillRect(clamp(x - cellSize / 2, 0, CANVAS_SIZE - cellSize), clamp(y - cellSize / 2, 0, CANVAS_SIZE - cellSize), cellSize, cellSize);
+    const cell = gridCellFor(coord);
+    const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
+    const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
+    context.fillStyle = selectedCell ? "rgba(96, 165, 250, 0.26)" : "rgba(96, 165, 250, 0.12)";
+    context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
+    context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.58)";
+    context.lineWidth = selectedCell ? 4 : 2;
+    context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
     context.strokeStyle = color;
     context.fillStyle = color;
     context.lineWidth = 3;
@@ -87,15 +98,31 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.arc(x, y, radius, 0, Math.PI * 2);
     context.stroke();
     context.font = "800 20px Arial";
-    context.textAlign = "left";
-    context.textBaseline = "bottom";
-    context.fillText(`X:${coord.x} Y:${coord.y}`, clamp(x + 16, 12, 1050), clamp(y - 14, 34, 1184));
+    const label = `${coord.x},${coord.y}`;
+    const labelX = clamp(cell.x + cellWidth + 8, 8, 1096);
+    const labelY = clamp(cell.y - 32, 8, 1162);
+    const labelWidth = Math.max(92, context.measureText(label).width + 24);
+    context.save();
+    context.translate(labelX, labelY);
+    context.rotate(-Math.PI / 4);
+    context.fillStyle = selectedCell ? "#0f172a" : "rgba(15, 23, 42, 0.78)";
+    context.strokeStyle = "#60a5fa";
+    context.lineWidth = 4;
+    context.beginPath();
+    context.roundRect(0, 0, labelWidth, 34, 4);
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#ffffff";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(label, labelWidth / 2, 17);
+    context.restore();
   };
 
   if (hover) {
-    markCoordinate(hover, "rgba(21, 94, 117, 0.58)", 15);
+    markCoordinate(hover, "rgba(37, 99, 235, 0.5)", 13);
   }
-  markCoordinate(selected, "#f48120", 22);
+  markCoordinate(selected, "#2563eb", 21, true);
 };
 
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
@@ -148,6 +175,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setZoom(0.9);
       return;
     }
+    if (nextMode === "isometric") {
+      setPitch(58);
+      setYaw(0);
+      setRoll(45);
+      setZoom(0.64);
+      return;
+    }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
@@ -155,10 +189,24 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   };
 
   const resetView = () => {
-    setPitch(mode === "2d" ? 0 : 58);
-    setYaw(mode === "2d" ? 0 : -28);
+    if (mode === "2d") {
+      setPitch(0);
+      setYaw(0);
+      setRoll(0);
+      setZoom(0.9);
+      return;
+    }
+    if (mode === "isometric") {
+      setPitch(58);
+      setYaw(0);
+      setRoll(45);
+      setZoom(0.64);
+      return;
+    }
+    setPitch(58);
+    setYaw(-28);
     setRoll(0);
-    setZoom(mode === "2d" ? 0.9 : 0.82);
+    setZoom(0.82);
   };
 
   return (
@@ -177,7 +225,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       <div className="wos-map-workspace">
         <div className="wos-map-stage" ref={mapShellRef}>
           <div
-            className={`wos-map-rotator ${mode === "2d" ? "mode-2d" : "mode-3d"}`}
+            className={`wos-map-rotator mode-${mode}`}
             style={{
               transform: `scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
@@ -200,7 +248,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 if (!drag || drag.pointerId !== event.pointerId) {
                   return;
                 }
-                if (mode === "2d") {
+                if (mode !== "3d") {
                   return;
                 }
                 setYaw(Math.round(clamp(drag.yaw + (event.clientX - drag.x) * 0.35, -180, 180)));
@@ -240,6 +288,9 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 } else if (event.key === "-" || event.key === "_") {
                   event.preventDefault();
                   setZoom((value) => clamp(value - 0.04, 0.38, 1.45));
+                } else if (event.key.toLowerCase() === "f") {
+                  event.preventDefault();
+                  resetView();
                 } else if (mode === "3d" && event.key.toLowerCase() === "a") {
                   event.preventDefault();
                   setYaw((value) => clamp(value - 5, -180, 180));
@@ -261,7 +312,17 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
         <aside className="wos-map-controls" aria-label="Map controls">
           <div className="wos-map-mode-control" role="group" aria-label="Map mode">
             <button className={mode === "2d" ? "active" : ""} type="button" onClick={() => setMapMode("2d")}>2D</button>
+            <button className={mode === "isometric" ? "active" : ""} type="button" onClick={() => setMapMode("isometric")}>ISO</button>
             <button className={mode === "3d" ? "active" : ""} type="button" onClick={() => setMapMode("3d")}>3D</button>
+          </div>
+          <div className="wos-zoom-board" aria-label="Zoom controls">
+            <button type="button" aria-label="Zoom out" onClick={() => setZoom((value) => clamp(value - 0.08, 0.3, 2.4))}>−</button>
+            <div>
+              <span>Zoom</span>
+              <strong>{Math.round(zoom * 100)}%</strong>
+            </div>
+            <button type="button" aria-label="Zoom in" onClick={() => setZoom((value) => clamp(value + 0.08, 0.3, 2.4))}>+</button>
+            <button type="button" onClick={resetView}>Fit</button>
           </div>
           <div className="wos-coordinate-fields">
             <label>
@@ -281,22 +342,22 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </div>
           <label>
             <span>Pitch</span>
-            <input type="range" min="0" max="82" value={pitch} disabled={mode === "2d"} onChange={(event) => setPitch(Number(event.target.value))} />
+            <input type="range" min="0" max="82" value={pitch} disabled={mode !== "3d"} onChange={(event) => setPitch(Number(event.target.value))} />
             <output>{pitch} deg</output>
           </label>
           <label>
             <span>Yaw</span>
-            <input type="range" min="-180" max="180" value={yaw} disabled={mode === "2d"} onChange={(event) => setYaw(Number(event.target.value))} />
+            <input type="range" min="-180" max="180" value={yaw} disabled={mode !== "3d"} onChange={(event) => setYaw(Number(event.target.value))} />
             <output>{yaw} deg</output>
           </label>
           <label>
             <span>Roll</span>
-            <input type="range" min="-45" max="45" value={roll} disabled={mode === "2d"} onChange={(event) => setRoll(Number(event.target.value))} />
+            <input type="range" min="-45" max="45" value={roll} disabled={mode !== "3d"} onChange={(event) => setRoll(Number(event.target.value))} />
             <output>{roll} deg</output>
           </label>
           <label>
             <span>Zoom</span>
-            <input type="range" min="38" max="145" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
+            <input type="range" min="30" max="240" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
             <output>{Math.round(zoom * 100)}%</output>
           </label>
           <button type="button" onClick={resetView}>Reset View</button>

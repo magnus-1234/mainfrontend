@@ -70,6 +70,10 @@
   width: min(80vmin, 860px);
 }
 
+.wos-map-rotator.mode-isometric {
+  width: min(76vmin, 840px);
+}
+
 .wos-map-canvas {
   display: block;
   width: 100%;
@@ -105,6 +109,7 @@
 }
 
 .wos-map-mode-control,
+.wos-zoom-board,
 .wos-coordinate-fields,
 .wos-map-nudge {
   display: grid;
@@ -112,7 +117,35 @@
 }
 
 .wos-map-mode-control {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wos-zoom-board {
+  grid-template-columns: 46px minmax(0, 1fr) 46px 58px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  background: color-mix(in srgb, var(--muted) 62%, transparent);
+}
+
+.wos-zoom-board > div {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: 2px;
+}
+
+.wos-zoom-board > div span {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.wos-zoom-board > div strong {
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .wos-coordinate-fields {
@@ -202,6 +235,7 @@
   }
 
   .wos-map-mode-control,
+  .wos-zoom-board,
   .wos-coordinate-fields,
   .wos-map-nudge {
     grid-column: 1 / -1;
@@ -231,13 +265,24 @@
     width: min(92vw, 560px);
   }
 
+  .wos-map-rotator.mode-isometric {
+    width: min(92vw, 560px);
+  }
+
   .wos-map-controls {
     grid-template-columns: 1fr;
   }
 
-  .wos-map-mode-control,
   .wos-coordinate-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wos-map-mode-control {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wos-zoom-board {
+    grid-template-columns: 48px minmax(0, 1fr) 48px 62px;
   }
 
   .wos-map-controls button,
