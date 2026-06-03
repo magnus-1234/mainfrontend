@@ -789,9 +789,11 @@ const formatFoundrySavedAt = (value: string) => {
   return new Intl.DateTimeFormat(undefined, {
     day: "2-digit",
     hour: "2-digit",
+    hour12: false,
     minute: "2-digit",
     month: "short",
-  }).format(parsed);
+    timeZone: "UTC",
+  }).format(parsed) + " UTC";
 };
 
 const encodeFoundryShareState = (state: FoundryShareState) =>
@@ -3600,7 +3602,7 @@ export default function Home() {
 
   const memberSince = (value?: string) =>
     value
-      ? new Intl.DateTimeFormat(undefined, { month: "numeric", day: "numeric", year: "numeric" }).format(new Date(value))
+      ? new Intl.DateTimeFormat(undefined, { month: "numeric", day: "numeric", timeZone: "UTC", year: "numeric" }).format(new Date(value))
       : "Today";
 
   const shareUrlFor = (island: Island) => `${window.location.origin}/daybreak/island/${encodeURIComponent(island.id)}`;
