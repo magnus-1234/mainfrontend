@@ -7121,7 +7121,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
               <div>
                 <strong>WhiteoutSurvival.dev</strong>
                 <p>Your companion for Whiteout Survival. Free calculators, planners, tools, guides, and Discord bot resources.</p>
-                <small>This is a fan-made website for Whiteout Survival, not the official game website.</small>
+                <small>This is a fan-made website for Whiteout Survival, not affiliated with, endorsed by, or sponsored by Century Games.</small>
               </div>
               <a className="bottom-community-action" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
                 <Image src="/discord-logo.png" alt="" width={20} height={20} />
