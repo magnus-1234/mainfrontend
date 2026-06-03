@@ -1722,6 +1722,17 @@ function AccountAvatar({ src }: { src?: string }) {
   return <img src={src} alt="" referrerPolicy="no-referrer" onError={() => setFailedSrc(src)} />;
 }
 
+function WosPlayerAvatar({ src, fallback = <Icon name="user" /> }: { src?: string; fallback?: ReactNode }) {
+  const avatarSrc = proxiedWosAvatarUrl(src);
+  const [failedSrc, setFailedSrc] = useState("");
+
+  if (!avatarSrc || failedSrc === avatarSrc) {
+    return fallback;
+  }
+
+  return <img src={avatarSrc} alt="" referrerPolicy="no-referrer" onError={() => setFailedSrc(avatarSrc)} />;
+}
+
 type ShareBrand = "whatsapp" | "discord" | "x" | "facebook" | "linkedin" | "telegram" | "email";
 
 function BrandLogo({ brand }: { brand: ShareBrand }) {
@@ -5163,7 +5174,7 @@ export default function Home() {
                   </div>
                   {redeemPlayer && (
                     <div className="redeem-player">
-                      {redeemPlayer.avatarImage && <img src={redeemPlayer.avatarImage} alt="" />}
+                      <WosPlayerAvatar src={redeemPlayer.avatarImage} />
                       <span>
                         <strong>{redeemPlayer.nickname}</strong>
                         <small>State {redeemPlayer.stateId || "N/A"} · Furnace {furnaceDisplay(redeemPlayer)}</small>
@@ -6203,7 +6214,7 @@ export default function Home() {
                               >
                                 <span className="foundry-map-member-avatar">
                                   <b>{foundryMemberName(member).slice(0, 1).toUpperCase()}</b>
-                                  {member.profile?.avatarImage && <img src={proxiedWosAvatarUrl(member.profile.avatarImage)} alt="" />}
+                                  <WosPlayerAvatar src={member.profile?.avatarImage} fallback={null} />
                                 </span>
                                 <span className="foundry-map-member-role">{roleLabel}</span>
                                 <strong>{foundryMemberName(member)}</strong>
@@ -6269,7 +6280,7 @@ export default function Home() {
                           />
                           <span className="foundry-roster-player">
                             <span className="foundry-roster-avatar">
-                              {member.profile?.avatarImage ? <img src={proxiedWosAvatarUrl(member.profile.avatarImage)} alt="" /> : <Icon name="user" />}
+                              <WosPlayerAvatar src={member.profile?.avatarImage} />
                             </span>
                             <strong>{member.profile?.nickname || "-"}</strong>
                           </span>
@@ -6826,11 +6837,7 @@ export default function Home() {
                     <div className="island-card-body">
                       <div className="player-strip card-player-strip">
                         <div className="player-avatar">
-                          {island.player.avatarImage ? (
-                            <img src={island.player.avatarImage} alt="" />
-                          ) : (
-                            <Icon name="user" />
-                          )}
+                          <WosPlayerAvatar src={island.player.avatarImage} />
                         </div>
                         <div>
                           <strong>{island.player.nickname}</strong>
@@ -7074,7 +7081,7 @@ export default function Home() {
                   </div>
                   {(playerLookup || playerLookupStatus || authStatus) && (
                     <div className={`player-lookup-card ${playerLookup ? "loaded" : ""}`}>
-                      {playerLookup?.avatarImage && <img src={playerLookup.avatarImage} alt="" />}
+                      <WosPlayerAvatar src={playerLookup?.avatarImage} />
                       <div>
                         <strong>{playerLookup?.nickname || playerLookupStatus || authStatus}</strong>
                         {playerLookup && (
@@ -7094,7 +7101,7 @@ export default function Home() {
                       {authUser.playerAccounts.map((player) => (
                         <article className="linked-account-card" key={player.playerId}>
                           <div className="player-avatar">
-                            {player.avatarImage ? <img src={player.avatarImage} alt="" /> : <Icon name="user" />}
+                            <WosPlayerAvatar src={player.avatarImage} />
                           </div>
                           <div>
                             <strong>{player.nickname}</strong>
@@ -7147,7 +7154,7 @@ export default function Home() {
                           }}
                         />
                         <span className="player-avatar">
-                          {player.avatarImage ? <img src={player.avatarImage} alt="" /> : <Icon name="user" />}
+                          <WosPlayerAvatar src={player.avatarImage} />
                         </span>
                         <span>
                           <strong>{player.nickname}</strong>
@@ -7211,7 +7218,7 @@ export default function Home() {
               </div>
               {(playerLookup || playerLookupStatus) && (
                 <div className={`player-lookup-card ${playerLookup ? "loaded" : ""}`}>
-                  {playerLookup?.avatarImage && <img src={playerLookup.avatarImage} alt="" />}
+                  <WosPlayerAvatar src={playerLookup?.avatarImage} />
                   <div>
                     <strong>{playerLookup?.nickname || playerLookupStatus}</strong>
                     {playerLookup && (
@@ -7569,7 +7576,7 @@ export default function Home() {
               </div>
               <div className="player-strip detail-player">
                 <div className="player-avatar">
-                  {viewerImage.player.avatarImage ? <img src={viewerImage.player.avatarImage} alt="" /> : <Icon name="user" />}
+                  <WosPlayerAvatar src={viewerImage.player.avatarImage} />
                 </div>
                 <div>
                   <strong>{viewerImage.player.nickname}</strong>
