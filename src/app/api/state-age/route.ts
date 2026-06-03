@@ -52,17 +52,6 @@ const cleanText = (value: string) =>
 
 const firstMatch = (value: string, pattern: RegExp) => value.match(pattern)?.[1]?.trim() || "";
 
-const absoluteImageUrl = (value: string) => {
-  const image = decodeHtml(value);
-  if (!image) {
-    return "";
-  }
-  if (image.startsWith("http://") || image.startsWith("https://")) {
-    return image;
-  }
-  return new URL(image, sourceUrl).toString();
-};
-
 const parseEventItems = (chunk: string) => {
   const seen = new Set<string>();
   const items: StateTimelineEvent["items"] = [];
@@ -70,23 +59,22 @@ const parseEventItems = (chunk: string) => {
 
   blocks.forEach((match, index) => {
     const block = match[1];
-    const image = absoluteImageUrl(firstMatch(block, /<img[^>]+src=['"]([^'"]+)['"]/i));
     const caption = cleanText(firstMatch(block, /<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i));
     const alt = cleanText(firstMatch(block, /<img[^>]+alt=['"]([^'"]*)['"]/i));
     const afterBreak = cleanText(firstMatch(block, /<br\s*\/?>\s*([^<]+)/i));
     const title = cleanText(firstMatch(chunk, /<h4>([\s\S]*?)<\/h4>/i));
     const name = caption || afterBreak || alt || (index ? `${title} ${index + 1}` : title);
 
-    if (!image && !name) {
+    if (!name) {
       return;
     }
 
-    const key = `${name}-${image}`;
+    const key = name;
     if (seen.has(key)) {
       return;
     }
     seen.add(key);
-    items.push({ name, image: image || undefined });
+    items.push({ name });
   });
 
   return items.slice(0, 12);
@@ -272,7 +260,6 @@ export async function GET(request: Request) {
 
     if (!state) {
       return NextResponse.json({
-        sourceUrl,
         sourceUpdatedAt: cleanText(sourceUpdatedAt),
         recentlyOpenedStates: await getRecentlyOpenedStates(nonce, 3000),
       });
@@ -288,7 +275,6 @@ export async function GET(request: Request) {
       state,
       activeFor: timeline.activeFor,
       startedAt: timeline.startedAt,
-      sourceUrl,
       sourceUpdatedAt: cleanText(sourceUpdatedAt),
       recentlyOpenedStates: await getRecentlyOpenedStates(nonce, Number(state)),
       events: parseStateTimeline(timeline.html),

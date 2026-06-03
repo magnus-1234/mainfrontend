@@ -6,7 +6,7 @@ const openApiDocument = {
     title: "WhiteoutSurvival.dev API",
     version: "1.0.0",
     description:
-      "Public API endpoints for Whiteout Survival state age data, gift codes, player lookup, gift-code redeem helpers, and live bot metrics.",
+      "Public API endpoints for Whiteout Survival state age data, gift codes, player lookup, and live bot metrics.",
     contact: {
       name: "WhiteoutSurvival.dev",
       url: "https://whiteoutsurvival.dev",
@@ -24,7 +24,7 @@ const openApiDocument = {
   ],
   tags: [
     { name: "State Age", description: "State creation and timeline data." },
-    { name: "Gift Codes", description: "Active codes and redeem helpers." },
+    { name: "Gift Codes", description: "Active gift code data." },
     { name: "Player", description: "Whiteout Survival player lookup by ID." },
     { name: "System", description: "Live site and bot status data." },
   ],
@@ -54,7 +54,6 @@ const openApiDocument = {
                   recentlyOpened: {
                     summary: "Recently opened states",
                     value: {
-                      sourceUrl: "https://whiteoutsurvival.pl/state-timeline/",
                       sourceUpdatedAt: "June 2026",
                       recentlyOpenedStates: [
                         {
@@ -73,7 +72,6 @@ const openApiDocument = {
                       state: "2001",
                       activeFor: "21 days",
                       startedAt: "13/05/2026 - 04:00:00 UTC",
-                      sourceUrl: "https://whiteoutsurvival.pl/state-timeline/",
                       events: [
                         {
                           title: "State Transfer",
@@ -100,7 +98,7 @@ const openApiDocument = {
         tags: ["Gift Codes"],
         summary: "Get latest active gift codes",
         description:
-          "Returns active Whiteout Survival gift codes merged from internal and public sources. Responses are cached briefly.",
+          "Returns active Whiteout Survival gift codes with rewards, expiry, and refresh metadata. Responses are cached briefly.",
         responses: {
           "200": {
             description: "Active gift codes found.",
@@ -132,7 +130,7 @@ const openApiDocument = {
         tags: ["Player"],
         summary: "Look up player information by ID",
         description:
-          "Proxies the bot backend player lookup and returns nickname, furnace level, formatted furnace level, and avatar image.",
+          "Returns nickname, furnace level, formatted furnace level, and avatar image for a Whiteout Survival player ID.",
         requestBody: {
           required: true,
           content: {
@@ -169,53 +167,6 @@ const openApiDocument = {
           "400": { description: "Missing or invalid player ID." },
           "404": { description: "Player not found." },
           "503": { description: "Player lookup backend is unavailable." },
-        },
-      },
-    },
-    "/api/gift-codes/redeem": {
-      post: {
-        tags: ["Gift Codes"],
-        summary: "Redeem gift codes for a player",
-        description:
-          "Forwards manual redeem requests to the bot backend. Some responses can require captcha completion.",
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              example: {
-                id: "244886619",
-                codes: ["WOS2026"],
-              },
-            },
-          },
-        },
-        responses: {
-          "200": { description: "Redeem request processed by the backend." },
-          "400": { description: "Missing player ID or codes." },
-          "503": { description: "Redeem backend is unavailable." },
-        },
-      },
-    },
-    "/api/gift-codes/captcha": {
-      post: {
-        tags: ["Gift Codes"],
-        summary: "Submit captcha for a redeem flow",
-        description: "Forwards captcha verification data to the bot backend.",
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              example: {
-                id: "244886619",
-                code: "WOS2026",
-                captcha: "ABCD",
-              },
-            },
-          },
-        },
-        responses: {
-          "200": { description: "Captcha request processed by the backend." },
-          "503": { description: "Captcha backend is unavailable." },
         },
       },
     },

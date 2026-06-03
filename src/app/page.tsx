@@ -375,7 +375,6 @@ type StateAgeResult = {
   state: string;
   activeFor: string;
   startedAt: string;
-  sourceUrl: string;
   sourceUpdatedAt: string;
   recentlyOpenedStates?: RecentlyOpenedState[];
   events: StateTimelineEvent[];
