@@ -7823,69 +7823,136 @@ body {
 
 .bottom-community-section {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 22px;
+  grid-template-columns: minmax(250px, 1.1fr) minmax(360px, 1.6fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 48px);
   margin: 28px 0 84px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: clamp(22px, 4vw, 34px);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, #5865f2 16%, transparent), transparent 58%),
-    color-mix(in srgb, var(--card) 92%, var(--background));
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.18), inset 0 1px 0 color-mix(in srgb, var(--gold-line) 28%, transparent);
+  border-top: 1px solid var(--border);
+  padding: clamp(28px, 4vw, 44px) clamp(18px, 3vw, 34px) clamp(22px, 3vw, 30px);
+  background: color-mix(in srgb, #050b0b 96%, var(--card));
+  color: #b2aaa0;
 }
 
-.bottom-community-copy {
+.bottom-community-brand {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 13px;
   min-width: 0;
 }
 
-.bottom-community-copy h2 {
-  margin: 6px 0 8px;
-  color: var(--foreground);
-  font-size: clamp(24px, 3.2vw, 38px);
-  line-height: 1.05;
+.bottom-community-mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid rgba(226, 191, 114, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
 }
 
-.bottom-community-copy p {
-  max-width: 680px;
+.bottom-community-mark img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.bottom-community-brand strong {
+  display: block;
+  color: #f6e5bd;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.bottom-community-brand p,
+.bottom-community-brand small {
   margin: 0;
-  color: var(--muted-foreground);
+  color: #b2aaa0;
+  line-height: 1.55;
+}
+
+.bottom-community-brand p {
+  margin-top: 8px;
+  max-width: 390px;
+  font-size: 14px;
+}
+
+.bottom-community-brand small {
+  display: block;
+  margin-top: 10px;
+  max-width: 390px;
+  color: #817a71;
+  font-size: 12px;
+}
+
+.bottom-community-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: clamp(18px, 3vw, 34px);
+  min-width: 0;
+}
+
+.bottom-community-links div {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 0;
+}
+
+.bottom-community-links h2 {
+  margin: 0 0 4px;
+  color: #f6e5bd;
   font-size: 15px;
-  line-height: 1.6;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.bottom-community-links a {
+  color: #b2aaa0;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.bottom-community-links a:hover {
+  color: #f6e5bd;
 }
 
 .bottom-community-action {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 48px;
-  border: 1px solid color-mix(in srgb, #5865f2 58%, var(--gold-line));
-  border-radius: 8px;
-  padding: 0 18px;
-  background: #5865f2;
-  color: white;
-  font-size: 14px;
+  justify-content: flex-start;
+  gap: 8px;
+  grid-column: 2;
+  width: fit-content;
+  margin-top: 14px;
+  color: #f6e5bd;
+  font-size: 13px;
   font-weight: 900;
-  white-space: nowrap;
-  box-shadow: 0 14px 34px color-mix(in srgb, #5865f2 28%, transparent);
 }
 
 .bottom-community-action:hover {
-  background: #4f5bd5;
   color: white;
 }
 
 .bottom-community-action img {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
 }
 
-.bottom-community-action svg {
-  width: 16px;
-  height: 16px;
+.bottom-community-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 18px;
+  color: #817a71;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .site-footer {
@@ -8764,18 +8831,18 @@ body {
 
   .bottom-community-section {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 24px;
     margin: 22px 12px calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 34px);
     padding: 20px;
   }
 
-  .bottom-community-copy h2 {
-    font-size: 24px;
+  .bottom-community-links {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .bottom-community-action {
-    width: 100%;
-    white-space: normal;
+    grid-column: 2;
   }
 
   .brand span:last-child {

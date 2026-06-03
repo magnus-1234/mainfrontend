@@ -6896,17 +6896,48 @@ export default function Home() {
             </section>
           )}
 
-          <section className="bottom-community-section" aria-label="Discord community">
-            <div className="bottom-community-copy">
-              <span className="section-kicker">Community</span>
-              <h2>Join the Whiteout Survival Discord community</h2>
-              <p>Talk strategy, share tools, get help with bot features, and follow new Whiteout Survival updates with other players.</p>
+          <section className="bottom-community-section" aria-label="Whiteout Survival resource links">
+            <div className="bottom-community-brand">
+              <span className="bottom-community-mark">
+                <Image src="/wos-logo.png" alt="" width={44} height={44} />
+              </span>
+              <div>
+                <strong>WhiteoutSurvival.dev</strong>
+                <p>Your companion for Whiteout Survival. Free calculators, planners, tools, guides, and Discord bot resources.</p>
+                <small>This is a fan-made website for Whiteout Survival, not the official game website.</small>
+              </div>
+              <a className="bottom-community-action" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
+                <Image src="/discord-logo.png" alt="" width={20} height={20} />
+                <span>Discord Community</span>
+              </a>
             </div>
-            <a className="bottom-community-action" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
-              <Image src="/discord-logo.png" alt="" width={22} height={22} />
-              <span>Join Discord Community</span>
-              <Icon name="external" />
-            </a>
+            <nav className="bottom-community-links" aria-label="End of page links">
+              <div>
+                <h2>Popular Tools</h2>
+                <a href="/gift-codes" onClick={(event) => { event.preventDefault(); navigateToMenu("gift"); }}>Gift Codes</a>
+                <a href="/chief-gear-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefGear"); }}>Chief Gear Calculator</a>
+                <a href="/chief-charm-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefCharm"); }}>Chief Charm Calculator</a>
+                <a href="/state-age" onClick={(event) => { event.preventDefault(); navigateToMenu("stateAge"); }}>State Age Tracker</a>
+              </div>
+              <div>
+                <h2>Resources</h2>
+                <a href="/wiki/heroes" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiHeroes"); }}>Heroes Wiki</a>
+                <a href="/wiki/buildings" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiBuildings"); }}>Buildings Wiki</a>
+                <a href="/message-templates" onClick={(event) => { event.preventDefault(); navigateToMenu("templates"); }}>Message Templates</a>
+                <a href="#sneak-peek" onClick={(event) => { event.preventDefault(); navigateToMenu("sneak"); }}>Sneak Peek</a>
+              </div>
+              <div>
+                <h2>Community</h2>
+                <a href="#discord-bot" onClick={(event) => { event.preventDefault(); navigateToMenu("bot"); }}>Discord Bot</a>
+                <a href="#foundry-team-planner" onClick={(event) => { event.preventDefault(); navigateToMenu("planner"); }}>Foundry Planner</a>
+                <a href="#daybreak" onClick={(event) => { event.preventDefault(); navigateToMenu("daybreak"); }}>Daybreak Island</a>
+                <a href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">Discord Server</a>
+              </div>
+            </nav>
+            <div className="bottom-community-meta">
+              <span>(c) 2026 WhiteoutSurvival.dev - All rights reserved.</span>
+              <span>Made with care for the WOS community by Magnus</span>
+            </div>
           </section>
 
           <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
