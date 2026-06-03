@@ -226,6 +226,36 @@ const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || localApiHost();
 const botFrontendUrl =
   process.env.NEXT_PUBLIC_BOT_FRONTEND_URL || "https://bot.whiteoutsurvival.dev/";
 
+const normalizeWosAvatarUrl = (value?: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "";
+  }
+  if (/^(data:|blob:|https?:\/\/)/i.test(raw)) {
+    return raw;
+  }
+  if (raw.startsWith("//")) {
+    return `https:${raw}`;
+  }
+  const cleaned = raw.replace(/^\/+/, "");
+  if (/^(avatar|avatar-dev|profile|head|icon)\//i.test(cleaned) || /\.(png|jpe?g|webp)$/i.test(cleaned)) {
+    return `https://gof-formal-avatar.akamaized.net/${cleaned}`;
+  }
+  try {
+    return new URL(raw, apiBase || "https://whiteoutsurvival.dev").toString();
+  } catch {
+    return raw;
+  }
+};
+
+const proxiedWosAvatarUrl = (value?: string) => {
+  const normalized = normalizeWosAvatarUrl(value);
+  if (!normalized || /^(data:|blob:)/i.test(normalized)) {
+    return normalized;
+  }
+  return `/api/avatar-proxy?url=${encodeURIComponent(normalized)}`;
+};
+
 type BotMetrics = {
   servers: string;
   members: string;
@@ -692,7 +722,7 @@ const normalizeFoundryPlayerProfile = (
   nickname: player.nickname || (player as { name?: string }).name || "Unknown Player",
   stateId: player.stateId || String((player as { state_id?: string | number; kid?: string | number }).state_id || (player as { kid?: string | number }).kid || ""),
   furnaceLevel: player.furnaceLevel ?? (player as { furnace_lv?: number; furnace?: number }).furnace_lv ?? (player as { furnace?: number }).furnace,
-  avatarImage:
+  avatarImage: normalizeWosAvatarUrl(
     player.avatarImage ||
     player.avatarUrl ||
     player.avatar_url ||
@@ -702,6 +732,7 @@ const normalizeFoundryPlayerProfile = (
     player.profileImage ||
     player.picture ||
     player.image,
+  ),
 });
 
 const foundryPlayerPayload = (data: unknown): PlayerProfile | undefined => {
@@ -2932,7 +2963,7 @@ export default function Home() {
   };
 
   const templateLikeCount = (template: MessageTemplate) =>
-    (template.likes || 0) + (templateLikeDeltas[template.id] || 0);
+    Math.max(0, (template.likes || 0) + (templateLikeDeltas[template.id] || 0));
 
   const markTemplateLikeBurst = (templateId: string) => {
     setTemplateLikeBursts((current) => ({ ...current, [templateId]: Date.now() }));
@@ -3050,14 +3081,23 @@ export default function Home() {
       requireTemplateSignIn("Sign in to like message templates.");
       return;
     }
-    if (likedTemplates[template.id]) {
-      return;
-    }
 
-    setLikedTemplates((current) => ({ ...current, [template.id]: true }));
-    setTemplateLikeDeltas((current) => ({ ...current, [template.id]: (current[template.id] || 0) + 1 }));
+    const wasLiked = Boolean(likedTemplates[template.id]);
+    const delta = wasLiked ? -1 : 1;
+    const nextLiked = !wasLiked;
+
+    setLikedTemplates((current) => {
+      const next = { ...current };
+      if (nextLiked) {
+        next[template.id] = true;
+      } else {
+        delete next[template.id];
+      }
+      return next;
+    });
+    setTemplateLikeDeltas((current) => ({ ...current, [template.id]: (current[template.id] || 0) + delta }));
     markTemplateLikeBurst(template.id);
-    setTemplateStatus(template.builtin ? "Template liked." : "");
+    setTemplateStatus(template.builtin ? (nextLiked ? "Template liked." : "Template unliked.") : "");
 
     if (template.builtin) {
       return;
@@ -3065,13 +3105,13 @@ export default function Home() {
 
     try {
       const response = await fetch(`${apiBase}/api/message-templates/${template.id}/like`, {
-        method: "POST",
+        method: nextLiked ? "POST" : "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
       const data = (await response.json().catch(() => null)) as { template?: MessageTemplate; error?: string } | null;
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to like template");
+        throw new Error(data?.error || (nextLiked ? "Unable to like template" : "Unable to unlike template"));
       }
       if (data?.template) {
         syncTemplateCopies(data.template);
@@ -3081,24 +3121,28 @@ export default function Home() {
           return next;
         });
       }
-      setTemplateStatus("Template liked.");
+      setTemplateStatus(nextLiked ? "Template liked." : "Template unliked.");
     } catch (error) {
       setLikedTemplates((current) => {
         const next = { ...current };
-        delete next[template.id];
+        if (wasLiked) {
+          next[template.id] = true;
+        } else {
+          delete next[template.id];
+        }
         return next;
       });
       setTemplateLikeDeltas((current) => {
         const next = { ...current };
-        const value = (next[template.id] || 0) - 1;
-        if (value > 0) {
+        const value = (next[template.id] || 0) - delta;
+        if (value !== 0) {
           next[template.id] = value;
         } else {
           delete next[template.id];
         }
         return next;
       });
-      setTemplateStatus(error instanceof Error ? error.message : "Unable to like template");
+      setTemplateStatus(error instanceof Error ? error.message : (nextLiked ? "Unable to like template" : "Unable to unlike template"));
     }
   };
 
@@ -4246,7 +4290,7 @@ export default function Home() {
       const avatarEntries = await Promise.all(
         allFoundryTeams.flatMap((team) => [team.rallyLeader, ...team.joiners]).map(async (member) => [
           member.id,
-          await loadFoundryAvatarForExport(member.profile?.avatarImage),
+          await loadFoundryAvatarForExport(proxiedWosAvatarUrl(member.profile?.avatarImage)),
         ] as const),
       );
       const avatarImages = new Map<string, HTMLImageElement | null>(avatarEntries);
@@ -6091,7 +6135,7 @@ export default function Home() {
                               >
                                 <span className="foundry-map-member-avatar">
                                   <b>{foundryMemberName(member).slice(0, 1).toUpperCase()}</b>
-                                  {member.profile?.avatarImage && <img src={member.profile.avatarImage} alt="" />}
+                                  {member.profile?.avatarImage && <img src={proxiedWosAvatarUrl(member.profile.avatarImage)} alt="" />}
                                 </span>
                                 <span className="foundry-map-member-role">{roleLabel}</span>
                                 <strong>{foundryMemberName(member)}</strong>
@@ -6157,7 +6201,7 @@ export default function Home() {
                           />
                           <span className="foundry-roster-player">
                             <span className="foundry-roster-avatar">
-                              {member.profile?.avatarImage ? <img src={member.profile.avatarImage} alt="" /> : <Icon name="user" />}
+                              {member.profile?.avatarImage ? <img src={proxiedWosAvatarUrl(member.profile.avatarImage)} alt="" /> : <Icon name="user" />}
                             </span>
                             <strong>{member.profile?.nickname || "-"}</strong>
                           </span>
@@ -6309,7 +6353,8 @@ export default function Home() {
                           className={`${likedTemplates[template.id] ? "liked" : ""} ${templateLikeBursts[template.id] ? "like-burst" : ""}`}
                           type="button"
                           onClick={() => void likeTemplate(template)}
-                          disabled={Boolean(likedTemplates[template.id])}
+                          aria-label={`${likedTemplates[template.id] ? "Unlike" : "Like"} ${template.title}`}
+                          title={likedTemplates[template.id] ? "Click again to unlike" : "Like template"}
                         >
                           <Icon name="heart" />
                           {templateLikeCount(template)}
@@ -7332,9 +7377,9 @@ export default function Home() {
                   className={`${likedTemplates[templateViewer.id] ? "liked" : ""} ${templateLikeBursts[templateViewer.id] ? "like-burst" : ""}`}
                   type="button"
                   onClick={() => void likeTemplate(templateViewer)}
-                  disabled={Boolean(likedTemplates[templateViewer.id])}
+                  aria-label={`${likedTemplates[templateViewer.id] ? "Unlike" : "Like"} ${templateViewer.title}`}
                 >
-                  <Icon name="heart" />{likedTemplates[templateViewer.id] ? "Liked" : "Like"}
+                  <Icon name="heart" />{likedTemplates[templateViewer.id] ? "Unlike" : "Like"}
                 </button>
                 <button type="button" onClick={() => setShareTemplateTarget(templateViewer)}><Icon name="share" />Share</button>
                 <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateViewer), "Copy template link")}><Icon name="external" />Copy Link</button>
