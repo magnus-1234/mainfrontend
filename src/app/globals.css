@@ -12840,8 +12840,13 @@ body {
 
 .charm-gear-ring {
   position: relative;
-  width: min(82vw, 320px);
-  aspect-ratio: 1;
+  display: grid;
+  width: min(82vw, 390px);
+  min-height: 300px;
+  grid-template-columns: repeat(2, max-content);
+  align-content: center;
+  justify-content: center;
+  gap: 22px 32px;
   border: 1px solid rgba(244, 129, 32, 0.24);
   border-radius: 50%;
   background:
@@ -12851,13 +12856,9 @@ body {
 }
 
 .charm-gear-group {
-  position: absolute;
-  top: 50%;
-  left: 50%;
   display: grid;
   grid-auto-flow: column;
   gap: 4px;
-  transform: rotate(var(--group-angle)) translate(94px) rotate(calc(var(--group-angle) * -1));
 }
 
 .charm-gear-ring span {
@@ -13820,12 +13821,13 @@ body {
   }
 
   .charm-gear-ring {
-    width: 260px;
+    width: 286px;
+    min-height: 236px;
+    gap: 14px 18px;
   }
 
   .charm-gear-group {
     gap: 3px;
-    transform: rotate(var(--group-angle)) translate(82px) rotate(calc(var(--group-angle) * -1));
   }
 
   .charm-gear-ring span {

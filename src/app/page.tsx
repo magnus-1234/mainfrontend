@@ -3879,10 +3879,13 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       return { gear, slotIndex, from, to, cost };
     });
   });
-  const charmHeroGroups = chiefCharmGearPieces.map((gear) => ({
-    gear,
-    slots: charmSlotRows.filter((slot) => slot.gear.id === gear.id),
-  }));
+  const charmHeroTroopOrder: ChiefCharmGearPiece["troop"][] = ["Marksman", "Infantry", "Lancer"];
+  const charmHeroGroups = chiefCharmGearPieces
+    .map((gear) => ({
+      gear,
+      slots: charmSlotRows.filter((slot) => slot.gear.id === gear.id),
+    }))
+    .sort((left, right) => charmHeroTroopOrder.indexOf(left.gear.troop) - charmHeroTroopOrder.indexOf(right.gear.troop));
   const charmAllSlotCost = charmSlotRows.reduce((total, slot) => addCharmCost(total, slot.cost), emptyChiefCharmCost);
   const charmPlannedSlots = charmSlotRows.filter((slot) => slot.to > slot.from).length;
   const charmGearCosts = chiefCharmGearPieces.map((gear) => {
@@ -6094,11 +6097,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 </div>
                 <div className="chief-charm-art" aria-hidden="true">
                   <div className="charm-gear-ring">
-                    {charmHeroGroups.map((group, groupIndex) => (
+                    {charmHeroGroups.map((group) => (
                       <div
-                        className="charm-gear-group"
+                        className={`charm-gear-group troop-${group.gear.troop.toLowerCase()}`}
                         key={group.gear.id}
-                        style={{ ["--group-angle" as string]: `${groupIndex * 60 - 90}deg` }}
                       >
                         {group.slots.map((slot) => (
                           <span key={`${slot.gear.id}-${slot.slotIndex}`}>
