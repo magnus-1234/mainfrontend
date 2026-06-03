@@ -7,7 +7,7 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://api.qrserver.com https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev",
+  "img-src 'self' data: blob: https://api.qrserver.com https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev https://*.googleusercontent.com https://cdn.discordapp.com https://media.discordapp.net",
   "font-src 'self' data:",
   [
     "connect-src 'self'",

@@ -1684,6 +1684,16 @@ function Icon({ name }: { name: string }) {
   );
 }
 
+function AccountAvatar({ src }: { src?: string }) {
+  const [failedSrc, setFailedSrc] = useState("");
+
+  if (!src || failedSrc === src) {
+    return <Icon name="user" />;
+  }
+
+  return <img src={src} alt="" referrerPolicy="no-referrer" onError={() => setFailedSrc(src)} />;
+}
+
 type ShareBrand = "whatsapp" | "discord" | "x" | "facebook" | "linkedin" | "telegram" | "email";
 
 function BrandLogo({ brand }: { brand: ShareBrand }) {
@@ -4694,14 +4704,14 @@ export default function Home() {
                 aria-expanded={authUser ? accountMenuOpen : undefined}
                 aria-haspopup={authUser ? "menu" : undefined}
               >
-                {authUser?.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                <AccountAvatar src={authUser?.avatarUrl} />
                 <span>{authLoading ? "Account" : authUser ? authUser.displayName : "Sign In"}</span>
               </button>
               {accountMenuOpen && authUser && (
                 <div className="account-dropdown" role="menu" aria-label="Account menu">
                   <div className="account-dropdown-head">
                     <span className="account-dropdown-avatar">
-                      {authUser.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                      <AccountAvatar src={authUser.avatarUrl} />
                     </span>
                     <span>
                       <strong>{authUser.displayName}</strong>
@@ -6983,7 +6993,7 @@ export default function Home() {
               <aside className="profile-card">
                 <div className="profile-banner" />
                 <div className="profile-avatar">
-                  {authUser.avatarUrl ? <img src={authUser.avatarUrl} alt="" /> : <Icon name="user" />}
+                  <AccountAvatar src={authUser.avatarUrl} />
                 </div>
                 <h3>{authUser.displayName}</h3>
                 {authUser.email && <p>{authUser.email}</p>}
