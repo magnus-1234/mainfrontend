@@ -488,7 +488,6 @@ const chiefCharmLevels: ChiefCharmLevel[] = [
   { level: 16, design: 550, guide: 650, secret: 100, stat: 100, power: 1940000 },
 ];
 
-const chiefCharmSlots = 18;
 const chiefCharmSlotsPerGear = 3;
 const chiefCharmGearPieces: ChiefCharmGearPiece[] = [
   { id: "helmet", name: "Helmet", troop: "Infantry", stat: "Infantry Health / Lethality", charmImageTroop: "Infantry" },
@@ -3831,7 +3830,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   }));
   const charmAllSlotCost = charmSlotRows.reduce((total, slot) => addCharmCost(total, slot.cost), emptyChiefCharmCost);
   const charmPlannedSlots = charmSlotRows.filter((slot) => slot.to > slot.from).length;
-  const charmMaxedSlots = charmSlotRows.filter((slot) => slot.to === 16).length;
   const charmGearCosts = chiefCharmGearPieces.map((gear) => {
     const slots = charmSlotRows.filter((slot) => slot.gear.id === gear.id);
     const total = slots.reduce((sum, slot) => addCharmCost(sum, slot.cost), emptyChiefCharmCost);
@@ -3902,13 +3900,13 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   });
   const chiefGearTotalCost = chiefGearRows.reduce((sum, row) => addChiefGearCost(sum, row.calculation.total), emptyChiefGearCost);
   const chiefGearPlannedPieces = chiefGearRows.filter((row) => row.calculation.steps.length > 0).length;
-  const chiefGearMaxedPieces = chiefGearRows.filter((row) => row.selection.to === "red_t4_3").length;
   const chiefGearHighestTarget = chiefGearRows
     .map((row) => row.toLevel)
     .filter((level): level is ChiefGearLevel => Boolean(level))
     .sort((a, b) => b.index - a.index)[0];
-  const chiefGearAttackGain = chiefGearRows.reduce((sum, row) => sum + Math.max(0, (row.toLevel?.attackDefense || 0) - (row.fromLevel?.attackDefense || 0)), 0);
-  const chiefGearCapacityGain = chiefGearRows.reduce((sum, row) => sum + Math.max(0, (row.toLevel?.squadCapacity || 0) - (row.fromLevel?.squadCapacity || 0)), 0);
+  const chiefGearAttackGain = chiefGearRows.reduce((sum, row) => sum + ((row.toLevel?.attackDefense || 0) - (row.fromLevel?.attackDefense || 0)), 0);
+  const chiefGearCapacityGain = chiefGearRows.reduce((sum, row) => sum + ((row.toLevel?.squadCapacity || 0) - (row.fromLevel?.squadCapacity || 0)), 0);
+  const chiefGearPowerTrend = chiefGearAttackGain > 0 ? "positive" : chiefGearAttackGain < 0 ? "negative" : "neutral";
   const chiefGearShortfall = {
     designPlans: Math.max(0, chiefGearTotalCost.designPlans - ownedChiefGearPlans),
     hardenedAlloy: Math.max(0, chiefGearTotalCost.hardenedAlloy - ownedChiefGearAlloy),
@@ -5603,19 +5601,17 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       <small>{row.toLevel?.tier || "Gear"}</small>
                     </span>
                   ))}
-                  <div className="gear-core">
-                    <Icon name="shield" />
-                    <strong>{chiefGearMaxedPieces}/6</strong>
-                    <small>Mythic T4 max</small>
-                  </div>
                 </div>
               </section>
 
               <section className="chief-gear-summary" aria-label="Chief Gear result summary">
-                <article className="primary">
-                  <span>Total Material Load</span>
-                  <strong>{formatNumber(chiefGearTotalCost.hardenedAlloy + chiefGearTotalCost.polishingSolution + chiefGearTotalCost.designPlans + chiefGearTotalCost.lunarAmber)}</strong>
-                  <small>{chiefGearPlannedPieces} piece{chiefGearPlannedPieces === 1 ? "" : "s"} with pending upgrades</small>
+                <article className={`primary power-increase-card ${chiefGearPowerTrend}`}>
+                  <span>Power Increase</span>
+                  <strong>{chiefGearAttackGain > 0 ? "+" : ""}{formatPercent(chiefGearAttackGain)}</strong>
+                  <small>
+                    <b>{chiefGearPowerTrend === "negative" ? "Decrease" : chiefGearPowerTrend === "positive" ? "Increase" : "No change"}</b>
+                    {chiefGearCapacityGain > 0 ? "+" : ""}{formatNumber(chiefGearCapacityGain)} squad capacity
+                  </small>
                 </article>
                 <article>
                   <span>Highest Target</span>
@@ -5852,11 +5848,6 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                         ))}
                       </div>
                     ))}
-                  </div>
-                  <div className="charm-core">
-                    <Icon name="star" />
-                    <strong>{charmMaxedSlots}/{chiefCharmSlots}</strong>
-                    <small>Lv.16 slots</small>
                   </div>
                 </div>
               </section>

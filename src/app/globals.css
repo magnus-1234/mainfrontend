@@ -12760,34 +12760,6 @@ body {
   text-shadow: 0 1px 0 rgba(255, 241, 192, 0.32);
 }
 
-.charm-core {
-  position: absolute;
-  display: grid;
-  width: 150px;
-  height: 150px;
-  place-items: center;
-  border: 1px solid var(--gold-line);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 28%, #fff7ad, #f48120 40%, #402109 82%);
-  color: #211406;
-  text-align: center;
-  box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.22), 0 16px 34px rgba(0, 0, 0, 0.3);
-}
-
-.charm-core svg {
-  width: 28px;
-  height: 28px;
-}
-
-.charm-core strong {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.charm-core small {
-  font-weight: 950;
-}
-
 .chief-charm-summary,
 .chief-charm-results {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -13546,11 +13518,6 @@ body {
     font-size: 0.46rem;
   }
 
-  .charm-core {
-    width: 118px;
-    height: 118px;
-  }
-
   .charm-shortfall-row {
     grid-template-columns: 1fr;
   }
@@ -13740,34 +13707,6 @@ body {
   border-color: rgba(250, 204, 21, 0.72);
 }
 
-.gear-core {
-  grid-column: 2;
-  grid-row: 2;
-  display: grid;
-  width: 152px;
-  height: 152px;
-  place-items: center;
-  border: 1px solid rgba(250, 204, 21, 0.58);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff4bd, #f48120 58%, #8a3b0b);
-  color: #201205;
-  box-shadow: 0 0 0 22px rgba(244, 129, 32, 0.12), 0 22px 44px rgba(0, 0, 0, 0.28);
-}
-
-.gear-core svg {
-  width: 30px;
-  height: 30px;
-}
-
-.gear-core strong {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.gear-core small {
-  font-weight: 950;
-}
-
 .chief-gear-summary,
 .chief-gear-results {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -13797,6 +13736,42 @@ body {
 .chief-gear-result.amber {
   border-color: rgba(244, 129, 32, 0.76);
   background: linear-gradient(135deg, rgba(244, 129, 32, 0.2), rgba(10, 16, 22, 0.92)), var(--card);
+}
+
+.chief-gear-summary article.power-increase-card {
+  border-color: rgba(34, 197, 94, 0.72);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(134, 239, 172, 0.24), transparent 36%),
+    linear-gradient(135deg, rgba(21, 128, 61, 0.24), rgba(10, 16, 22, 0.94)),
+    var(--card);
+}
+
+.chief-gear-summary article.power-increase-card::before {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.95), rgba(187, 247, 208, 0.7));
+}
+
+.chief-gear-summary article.power-increase-card.negative {
+  border-color: rgba(248, 113, 113, 0.76);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(248, 113, 113, 0.24), transparent 36%),
+    linear-gradient(135deg, rgba(127, 29, 29, 0.28), rgba(10, 16, 22, 0.94)),
+    var(--card);
+}
+
+.chief-gear-summary article.power-increase-card.negative::before {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.95), rgba(252, 165, 165, 0.7));
+}
+
+.chief-gear-summary article.power-increase-card.neutral {
+  border-color: rgba(148, 163, 184, 0.62);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(148, 163, 184, 0.18), transparent 36%),
+    linear-gradient(135deg, rgba(51, 65, 85, 0.24), rgba(10, 16, 22, 0.94)),
+    var(--card);
+}
+
+.chief-gear-summary article.power-increase-card.neutral::before {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.95), rgba(203, 213, 225, 0.62));
 }
 
 .chief-gear-summary article.ready {
@@ -13838,6 +13813,54 @@ body {
   color: var(--muted-foreground);
   font-weight: 900;
   line-height: 1.35;
+}
+
+.chief-gear-summary article.power-increase-card strong {
+  color: #86efac;
+  text-shadow: 0 0 24px rgba(34, 197, 94, 0.34);
+}
+
+.chief-gear-summary article.power-increase-card.negative strong {
+  color: #fca5a5;
+  text-shadow: 0 0 24px rgba(239, 68, 68, 0.34);
+}
+
+.chief-gear-summary article.power-increase-card.neutral strong {
+  color: #cbd5e1;
+  text-shadow: none;
+}
+
+.chief-gear-summary article.power-increase-card small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.chief-gear-summary article.power-increase-card small b {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border: 1px solid rgba(134, 239, 172, 0.45);
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: rgba(22, 101, 52, 0.34);
+  color: #bbf7d0;
+  font-size: 0.68rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.chief-gear-summary article.power-increase-card.negative small b {
+  border-color: rgba(252, 165, 165, 0.45);
+  background: rgba(127, 29, 29, 0.36);
+  color: #fecaca;
+}
+
+.chief-gear-summary article.power-increase-card.neutral small b {
+  border-color: rgba(203, 213, 225, 0.36);
+  background: rgba(51, 65, 85, 0.42);
+  color: #e2e8f0;
 }
 
 .chief-gear-workbench,
@@ -14171,10 +14194,6 @@ body {
     display: none;
   }
 
-  .gear-core {
-    width: 118px;
-    height: 118px;
-  }
 }
 
 .wiki-page {
