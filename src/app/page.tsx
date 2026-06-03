@@ -1207,13 +1207,13 @@ const sidebarItems: {
 }[] = [
     { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
-    { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/#discord-bot", mobilePrimary: true },
+    { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
-    { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/#foundry-team-planner", beta: true },
+    { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
-    { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/#sneak-peek" },
-    { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/#daybreak" },
-    { label: "Dreamscape Memory", mobileLabel: "Dream", icon: "image", menu: "dreamscape", href: "/#dreamscape-memory", beta: true },
+    { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/sneak-peek" },
+    { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/daybreak-island" },
+    { label: "Dreamscape Memory", mobileLabel: "Dream", icon: "image", menu: "dreamscape", href: "/dreamscape-memory", beta: true },
   ];
 
 const sidebarWikiItems: { label: string; mobileLabel: string; icon: string; menu: "wikiBuildings" | "wikiHeroes"; href: string }[] = [
@@ -1299,12 +1299,12 @@ const menuUrls: Record<ActiveMenu, string> = {
   stateAge: "/state-age",
   chiefCharm: "/chief-charm-calculator",
   chiefGear: "/chief-gear-calculator",
-  planner: "/#foundry-team-planner",
+  planner: "/foundry-team-planner",
   templates: "/message-templates",
-  sneak: "/#sneak-peek",
-  daybreak: "/#daybreak",
-  dreamscape: "/#dreamscape-memory",
-  bot: "/#discord-bot",
+  sneak: "/sneak-peek",
+  daybreak: "/daybreak-island",
+  dreamscape: "/dreamscape-memory",
+  bot: "/discord-bot",
   wikiHeroes: "/wiki/heroes",
   wikiBuildings: "/wiki/buildings",
 };
@@ -1350,6 +1350,26 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (location.pathname.startsWith("/message-templates")) {
     return "templates";
+  }
+
+  if (location.pathname.startsWith("/foundry-team-planner")) {
+    return "planner";
+  }
+
+  if (location.pathname.startsWith("/sneak-peek")) {
+    return "sneak";
+  }
+
+  if (location.pathname.startsWith("/daybreak-island")) {
+    return "daybreak";
+  }
+
+  if (location.pathname.startsWith("/dreamscape-memory")) {
+    return "dreamscape";
+  }
+
+  if (location.pathname.startsWith("/discord-bot")) {
+    return "bot";
   }
 
   if (location.pathname.startsWith("/wiki/buildings")) {
@@ -2045,7 +2065,7 @@ function LanguageSwitcher() {
   );
 }
 
-export default function Home() {
+export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMenu } = {}) {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [feedbackBannerVisible, setFeedbackBannerVisible] = useState(() => {
@@ -2096,7 +2116,7 @@ export default function Home() {
   const [playerLookupStatus, setPlayerLookupStatus] = useState("");
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
   const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
-  const [activeMenu, setActiveMenu] = useState<ActiveMenu>("home");
+  const [activeMenu, setActiveMenu] = useState<ActiveMenu>(initialMenu);
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
   const [sidebarWikiOpen, setSidebarWikiOpen] = useState(false);
   const [sidebarCalculatorOpen, setSidebarCalculatorOpen] = useState(false);
@@ -3323,7 +3343,7 @@ export default function Home() {
 
   const sneakPeekTitle = "Chief Concierge: Sneak Peek";
   const sneakPeekShareText = "Whiteout Survival Childhood Memory Festival sneak peek";
-  const sneakPeekShareUrl = () => `${window.location.origin}/#sneak-peek`;
+  const sneakPeekShareUrl = () => `${window.location.origin}/sneak-peek`;
 
   const shareSneakPeek = async (mode: "copy" | "native" = "copy") => {
     const shareUrl = sneakPeekShareUrl();
@@ -7120,13 +7140,13 @@ export default function Home() {
                 <a href="/wiki/heroes" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiHeroes"); }}>Heroes Wiki</a>
                 <a href="/wiki/buildings" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiBuildings"); }}>Buildings Wiki</a>
                 <a href="/message-templates" onClick={(event) => { event.preventDefault(); navigateToMenu("templates"); }}>Message Templates</a>
-                <a href="#sneak-peek" onClick={(event) => { event.preventDefault(); navigateToMenu("sneak"); }}>Sneak Peek</a>
+                <a href="/sneak-peek" onClick={(event) => { event.preventDefault(); navigateToMenu("sneak"); }}>Sneak Peek</a>
               </div>
               <div>
                 <h2>Community</h2>
-                <a href="#discord-bot" onClick={(event) => { event.preventDefault(); navigateToMenu("bot"); }}>Discord Bot</a>
-                <a href="#foundry-team-planner" onClick={(event) => { event.preventDefault(); navigateToMenu("planner"); }}>Foundry Planner</a>
-                <a href="#daybreak" onClick={(event) => { event.preventDefault(); navigateToMenu("daybreak"); }}>Daybreak Island</a>
+                <a href="/discord-bot" onClick={(event) => { event.preventDefault(); navigateToMenu("bot"); }}>Discord Bot</a>
+                <a href="/foundry-team-planner" onClick={(event) => { event.preventDefault(); navigateToMenu("planner"); }}>Foundry Planner</a>
+                <a href="/daybreak-island" onClick={(event) => { event.preventDefault(); navigateToMenu("daybreak"); }}>Daybreak Island</a>
                 <a href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">Discord Server</a>
               </div>
             </nav>

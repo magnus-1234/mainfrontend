@@ -13,4 +13,6 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title, description, images: ["/foundry-team-planner-map.webp"] },
 };
 
-export default Home;
+export default function FoundryTeamPlannerPage() {
+  return <Home initialMenu="planner" />;
+}

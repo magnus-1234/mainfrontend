@@ -13,4 +13,6 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title, description, images: ["/social-preview-v2.png"] },
 };
 
-export default Home;
+export default function WikiBuildingsPage() {
+  return <Home initialMenu="wikiBuildings" />;
+}

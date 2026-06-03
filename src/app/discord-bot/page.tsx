@@ -13,4 +13,6 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title, description, images: ["/bot-preview-dashboard-reference.png"] },
 };
 
-export default Home;
+export default function DiscordBotPage() {
+  return <Home initialMenu="bot" />;
+}
