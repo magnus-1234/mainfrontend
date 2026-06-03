@@ -79,6 +79,13 @@ const envValue = (...names: string[]) => {
 
 const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
 const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "wosbot";
+const backendCandidates = [
+  envValue("BACKEND_URL"),
+  envValue("NEXT_PUBLIC_API_BASE_URL"),
+  "http://140.245.201.209:3001",
+]
+  .map((value) => value.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
 
 declare global {
   var messageTemplatesMongoClient: MongoClient | undefined;
@@ -96,6 +103,49 @@ const collection = async (): Promise<Collection<MessageTemplateDoc>> => {
   }
   await globalThis.messageTemplatesMongoClient.connect();
   return globalThis.messageTemplatesMongoClient.db(mongoDbName).collection<MessageTemplateDoc>("message_templates");
+};
+
+const proxyToBackend = async (request: NextRequest, path = "") => {
+  const sourceUrl = new URL(request.url);
+  const backendBase = Array.from(new Set(backendCandidates)).find((candidate) => {
+    try {
+      return new URL(candidate).origin !== sourceUrl.origin;
+    } catch {
+      return false;
+    }
+  });
+
+  if (!backendBase) {
+    throw new Error("Message template storage is not configured");
+  }
+
+  const headers = new Headers();
+  const contentType = request.headers.get("content-type");
+  const userId = request.headers.get("x-user-id");
+  if (contentType) {
+    headers.set("content-type", contentType);
+  }
+  if (userId) {
+    headers.set("x-user-id", userId);
+  }
+  headers.set("accept", "application/json");
+
+  const target = `${backendBase}/api/message-templates${path}${sourceUrl.search}`;
+  const body = request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer();
+  const response = await fetch(target, {
+    method: request.method,
+    headers,
+    body,
+    cache: "no-store",
+  });
+  const responseBody = await response.arrayBuffer();
+  return new NextResponse(responseBody, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: {
+      "content-type": response.headers.get("content-type") || "application/json",
+    },
+  });
 };
 
 const userIdFrom = (request: NextRequest, form?: FormData | null) =>
@@ -170,6 +220,9 @@ const storageError = (error: unknown) =>
 
 export const listTemplates = async (request: NextRequest) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request);
+    }
     const col = await collection();
     const url = new URL(request.url);
     const category = url.searchParams.get("category");
@@ -193,6 +246,9 @@ export const listTemplates = async (request: NextRequest) => {
 
 export const createTemplate = async (request: NextRequest) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request);
+    }
     const col = await collection();
     const { payload, userId } = await payloadFrom(request);
     const now = payload.updatedAt;
@@ -213,6 +269,9 @@ export const createTemplate = async (request: NextRequest) => {
 
 export const listUploads = async (request: NextRequest) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request, "/me/uploads");
+    }
     const col = await collection();
     const userId = userIdFrom(request);
     const limit = Math.max(1, Math.min(Number(new URL(request.url).searchParams.get("limit") || 80), 100));
@@ -228,6 +287,9 @@ export const emptyFavorites = () => NextResponse.json({ templates: [], favoriteI
 
 export const updateTemplate = async (request: NextRequest, templateId: string) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request, `/${encodeURIComponent(templateId)}`);
+    }
     const col = await collection();
     const existing = await col.findOne({ id: templateId });
     if (!existing) {
@@ -247,6 +309,9 @@ export const updateTemplate = async (request: NextRequest, templateId: string) =
 
 export const deleteTemplate = async (request: NextRequest, templateId: string) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request, `/${encodeURIComponent(templateId)}`);
+    }
     const col = await collection();
     const existing = await col.findOne({ id: templateId });
     if (!existing) {
@@ -265,6 +330,9 @@ export const deleteTemplate = async (request: NextRequest, templateId: string) =
 
 export const likeTemplate = async (request: NextRequest, templateId: string, delta: 1 | -1) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request, `/${encodeURIComponent(templateId)}/like`);
+    }
     const col = await collection();
     await col.updateOne({ id: templateId, ...(delta < 0 ? { likes: { $gt: 0 } } : {}) }, { $inc: { likes: delta } });
     const template = await col.findOne({ id: templateId });
@@ -279,6 +347,9 @@ export const likeTemplate = async (request: NextRequest, templateId: string, del
 
 export const shareTemplate = async (request: NextRequest, templateId: string) => {
   try {
+    if (!mongoUri) {
+      return proxyToBackend(request, `/${encodeURIComponent(templateId)}/share`);
+    }
     const col = await collection();
     await col.updateOne({ id: templateId }, { $inc: { shares: 1 } });
     const template = await col.findOne({ id: templateId });
