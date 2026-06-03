@@ -6832,7 +6832,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <div className="bot-commercial-copy">
                   <h1>Whiteout Survival Discord Bot</h1>
                   <div className="bot-brand-row">
-                    <Image className="bot-brand-logo" src="/molly-logo.png" alt="Whiteout Survival bot logo" width={58} height={58} />
+                    <img className="bot-brand-logo" src="/bot-logo.gif" alt="Whiteout Survival bot logo" width={58} height={58} />
                     <span className="bot-brand-name">Whiteout <span>Survival</span></span>
                   </div>
                   <p>
@@ -6866,7 +6866,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   <div className="bot-dashboard-preview" aria-label="Live bot operations preview">
                     <div className="bot-preview-sidebar">
                       <div className="bot-preview-title">
-                        <Image src="/molly-logo.png" alt="" width={34} height={34} />
+                        <img src="/bot-logo.gif" alt="" width={34} height={34} />
                         <span>Whiteout Survival</span>
                       </div>
                       {["Overview", "Alliance Monitor", "Gift Codes", "Records", "Reminders"].map((item, index) => (
