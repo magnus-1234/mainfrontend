@@ -52,7 +52,7 @@ type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
 type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "chiefCharm" | "chiefGear" | "planner" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings";
-type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "nsfw";
+type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "various" | "leaders" | "nsfw";
 type MessageTemplateAssignableCategory = Exclude<MessageTemplateCategory, "all">;
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
 type WosBuildingFilter = "Military" | "Inner City" | "Other" | "Fire Crystal";
@@ -882,6 +882,8 @@ const messageTemplateCategories: { label: string; value: MessageTemplateCategory
   { label: "Emojis", value: "emojis" },
   { label: "Funny", value: "funny" },
   { label: "Alliance Recruit", value: "alliance-recruit" },
+  { label: "Various", value: "various" },
+  { label: "Leaders", value: "leaders" },
   { label: "NSFW", value: "nsfw" },
 ];
 
@@ -905,6 +907,45 @@ const templateCategoryLabelFor = (categoryValue: MessageTemplateAssignableCatego
 
 const templateCategoryLabelsFor = (template: MessageTemplate) =>
   templateCategoriesFor(template).map(templateCategoryLabelFor).join(", ");
+
+const messageTemplatesStorageKey = "whiteoutsurvival-message-templates-local-v1";
+
+const normalizeLocalMessageTemplate = (template: MessageTemplate): MessageTemplate => {
+  const categories = templateCategoriesFor(template);
+  return {
+    ...template,
+    category: categories[0],
+    categories,
+    canManage: true,
+  };
+};
+
+const readStoredMessageTemplates = (): MessageTemplate[] => {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(messageTemplatesStorageKey) || "[]") as MessageTemplate[];
+    return Array.isArray(stored) ? stored.map(normalizeLocalMessageTemplate) : [];
+  } catch {
+    localStorage.removeItem(messageTemplatesStorageKey);
+    return [];
+  }
+};
+
+const writeStoredMessageTemplates = (templates: MessageTemplate[]) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  localStorage.setItem(messageTemplatesStorageKey, JSON.stringify(templates.map(normalizeLocalMessageTemplate)));
+};
+
+const mergeMessageTemplates = (remoteTemplates: MessageTemplate[], localTemplates: MessageTemplate[]) => {
+  const byId = new Map<string, MessageTemplate>();
+  [...localTemplates, ...remoteTemplates].forEach((template) => byId.set(template.id, template));
+  return Array.from(byId.values());
+};
 
 const wosIconUnicodeTemplates: MessageTemplate[] = [
   ["item_icon_101", "One Gem", "\uE001", "💎"],
@@ -2245,7 +2286,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const [foundrySavedAt, setFoundrySavedAt] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
-  const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
+  const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>(() => readStoredMessageTemplates());
   const [templateView] = useState<TemplateView>("gallery");
   const [templateSort] = useState<"popular" | "recent">("popular");
   const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
@@ -2688,13 +2729,14 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     fetch(endpoint, { credentials: "include" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { templates: MessageTemplate[]; favoriteIds?: string[] }) => {
-        setCommunityTemplates(data.templates || []);
+        setCommunityTemplates(mergeMessageTemplates(data.templates || [], readStoredMessageTemplates()));
         if (data.favoriteIds) {
           setLikedTemplates((current) => ({ ...current, ...Object.fromEntries((data.favoriteIds || []).map((id) => [id, true])) }));
         }
         setTemplateStatus("");
       })
       .catch(() => {
+        setCommunityTemplates(readStoredMessageTemplates());
         if (templateView !== "gallery") {
           setTemplateStatus("Sign in or try again to load your templates.");
         }
@@ -3170,7 +3212,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       throw new Error("Unable to refresh templates");
     }
     const data = (await response.json()) as { templates: MessageTemplate[]; favoriteIds?: string[] };
-    setCommunityTemplates(data.templates || []);
+    setCommunityTemplates(mergeMessageTemplates(data.templates || [], readStoredMessageTemplates()));
     if (data.favoriteIds) {
       setLikedTemplates((current) => ({ ...current, ...Object.fromEntries(data.favoriteIds!.map((id) => [id, true])) }));
     }
@@ -3251,6 +3293,46 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     setTemplateImagePreviewUrl(value);
   };
 
+  const saveTemplateLocally = (
+    body: FormData,
+    categories: MessageTemplateAssignableCategory[],
+    existingTemplate: MessageTemplate | null,
+  ) => {
+    const now = new Date().toISOString();
+    const localTemplate: MessageTemplate = normalizeLocalMessageTemplate({
+      id: existingTemplate?.id?.startsWith("local-template-") ? existingTemplate.id : `local-template-${Date.now()}`,
+      title: String(body.get("title") || "").trim() || "Untitled template",
+      category: categories[0] || "state-transfer-chat",
+      categories: categories.length ? categories : ["state-transfer-chat"],
+      description: String(body.get("description") || "").trim(),
+      text: String(body.get("text") || "").trim(),
+      imageUrl: String(body.get("imageUrl") || "").trim() || existingTemplate?.imageUrl || "",
+      tags: String(body.get("tags") || "")
+        .split(/[\s,#]+/)
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+        .slice(0, 12),
+      creatorName: authUser?.displayName || "You",
+      creatorUserId: authUser?.id,
+      canManage: true,
+      likes: existingTemplate?.likes || 0,
+      shares: existingTemplate?.shares || 0,
+      createdAt: existingTemplate?.createdAt || now,
+      updatedAt: now,
+    });
+
+    const stored = readStoredMessageTemplates();
+    const nextStored = stored.some((template) => template.id === localTemplate.id)
+      ? stored.map((template) => (template.id === localTemplate.id ? localTemplate : template))
+      : [localTemplate, ...stored];
+    writeStoredMessageTemplates(nextStored);
+    setCommunityTemplates((current) => {
+      const withoutLocal = current.filter((template) => template.id !== localTemplate.id);
+      return mergeMessageTemplates(withoutLocal, nextStored);
+    });
+    return localTemplate;
+  };
+
   const handleTemplateSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!authUser) {
@@ -3273,22 +3355,36 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       const tags = String(body.get("tags") || "").trim();
       body.set("title", title || "Untitled template");
       body.delete("categories");
-      categories.forEach((category) => body.append("categories", category));
       body.set("category", primaryCategory);
       body.set("tags", tags);
       const imageFile = body.get("image");
       if (!(imageFile instanceof File) || imageFile.size === 0) {
         body.delete("image");
       }
+      if (editingTemplate?.id.startsWith("local-template-")) {
+        saveTemplateLocally(body, categories, editingTemplate);
+        setTemplateStatus("Template updated locally.");
+        closeTemplateComposer();
+        return;
+      }
       const endpoint = editingTemplate ? `${apiBase}/api/message-templates/${editingTemplate.id}` : `${apiBase}/api/message-templates`;
       const response = await fetch(endpoint, {
         method: editingTemplate ? "PATCH" : "POST",
         credentials: "include",
         body,
-      });
+      }).catch(() => null);
+      if (!response) {
+        saveTemplateLocally(body, categories, editingTemplate);
+        setTemplateStatus(editingTemplate ? "Template updated locally." : "Template saved locally.");
+        closeTemplateComposer();
+        return;
+      }
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.detail || data?.error || "Template save failed");
+        saveTemplateLocally(body, categories, editingTemplate);
+        setTemplateStatus(editingTemplate ? "Template updated locally." : "Template saved locally.");
+        closeTemplateComposer();
+        return;
       }
 
       if (data?.template) {
