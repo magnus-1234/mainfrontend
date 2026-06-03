@@ -4686,11 +4686,6 @@ export default function Home() {
                     </a>
                   )
                 ))}
-                <a className="menu-community-link" href={DISCORD_COMMUNITY_URL} role="menuitem" target="_blank" rel="noreferrer">
-                  <Icon name="message" />
-                  <span>Discord Community</span>
-                  <small>Join</small>
-                </a>
               </div>
             </div>
             <div className="menu-trigger-wrap">
@@ -4718,11 +4713,6 @@ export default function Home() {
                     <span>{item.label}</span>
                   </a>
                 ))}
-                <a className="menu-community-link" href={DISCORD_COMMUNITY_URL} role="menuitem" target="_blank" rel="noreferrer">
-                  <Icon name="message" />
-                  <span>Discord Community</span>
-                  <small>Join</small>
-                </a>
               </div>
             </div>
             {menuItems.map((item) => (
@@ -4926,14 +4916,6 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-                <a className="mobile-more-item mobile-community-link" href={DISCORD_COMMUNITY_URL} role="menuitem" target="_blank" rel="noreferrer">
-                  <Icon name="message" />
-                  <span>
-                    <strong>Discord Community</strong>
-                    <small>Join the WOS community</small>
-                  </span>
-                  <Icon name="external" />
-                </a>
               </div>
             </div>
           )}
@@ -4954,11 +4936,6 @@ export default function Home() {
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
-            <a className="sidebar-item mobile-secondary sidebar-community-link" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
-              <Icon name="message" />
-              <span className="nav-label-desktop">Discord Community</span>
-              <span className="nav-label-mobile">Join</span>
-            </a>
             <div className={`sidebar-wiki-group mobile-primary ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
               <button
                 className={`sidebar-item sidebar-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
@@ -6926,39 +6903,20 @@ export default function Home() {
             </section>
           )}
 
-          <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`} aria-label="Site footer">
-            <div className="footer-brand-block">
-              <span className="footer-brand-mark">
-                <Image src="/wos-logo.png" alt="" width={34} height={34} />
-              </span>
-              <div>
-                <strong>WhiteoutSurvival.dev</strong>
-                <p>Your companion for Whiteout Survival tools, guides, calculators, and Discord bot features.</p>
-                <small>This is a fan-made website for Whiteout Survival, not the official game website.</small>
-              </div>
+          <section className="bottom-community-section" aria-label="Discord community">
+            <div className="bottom-community-copy">
+              <span className="section-kicker">Community</span>
+              <h2>Join the Whiteout Survival Discord community</h2>
+              <p>Talk strategy, share tools, get help with bot features, and follow new Whiteout Survival updates with other players.</p>
             </div>
-            <nav className="footer-link-groups" aria-label="Footer links">
-              <div>
-                <strong>Popular Tools</strong>
-                <a href="/gift-codes" onClick={(event) => { event.preventDefault(); navigateToMenu("gift"); }}>Gift Codes</a>
-                <a href="/chief-gear-calculator" onClick={(event) => { event.preventDefault(); navigateToMenu("chiefGear"); }}>Chief Gear</a>
-                <a href="/state-age" onClick={(event) => { event.preventDefault(); navigateToMenu("stateAge"); }}>State Age Tracker</a>
-              </div>
-              <div>
-                <strong>Resources</strong>
-                <a href="/wiki/heroes" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiHeroes"); }}>Heroes Wiki</a>
-                <a href="/wiki/buildings" onClick={(event) => { event.preventDefault(); navigateToMenu("wikiBuildings"); }}>Buildings Wiki</a>
-                <a href="/message-templates" onClick={(event) => { event.preventDefault(); navigateToMenu("templates"); }}>Message Templates</a>
-              </div>
-              <div>
-                <strong>Community</strong>
-                <a className="footer-discord-link" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
-                  <Image src="/discord-logo.png" alt="" width={18} height={18} />
-                  Discord Community
-                </a>
-                <a href="#discord-bot" onClick={(event) => { event.preventDefault(); navigateToMenu("bot"); }}>Discord Bot</a>
-              </div>
-            </nav>
+            <a className="bottom-community-action" href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">
+              <Image src="/discord-logo.png" alt="" width={22} height={22} />
+              <span>Join Discord Community</span>
+              <Icon name="external" />
+            </a>
+          </section>
+
+          <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
             <p className="footer-credit">
               <span>Built for WOS community - By</span>
               <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
