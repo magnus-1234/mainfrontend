@@ -1080,6 +1080,7 @@ const templatePreviewLines = (text: string, maxWidth = 28) => {
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
+const SITE_TOAST_DISMISS_MS = 4000;
 const DISCORD_COMMUNITY_URL = "https://discord.gg/bP5JQFH2M5";
 
 const menuItems: { label: string; icon: string; status: string; menu?: ActiveMenu }[] = [
@@ -2219,6 +2220,61 @@ export default function Home() {
     { id: "auth", message: authStatus, onDismiss: () => setAuthStatus(""), tone: authStatus.match(/linked|success/i) ? "success" : "error" },
     { id: "player-lookup", message: playerLookupStatus, onDismiss: () => setPlayerLookupStatus(""), tone: playerLookupStatus.match(/loaded/i) ? "success" : "error" },
   ].filter((toast) => toast.message);
+
+  useEffect(() => {
+    const hasDismissibleToast =
+      (foundryExportStatus && foundryStatusTone !== "loading") ||
+      status ||
+      templateStatus ||
+      giftCodeStatus ||
+      stateAgeStatus ||
+      stateAgeRecentStatus ||
+      authStatus ||
+      playerLookupStatus;
+
+    if (!hasDismissibleToast) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (foundryExportStatus && foundryStatusTone !== "loading") {
+        setFoundryExportStatus("");
+      }
+      if (status) {
+        setStatus("");
+      }
+      if (templateStatus) {
+        setTemplateStatus("");
+      }
+      if (giftCodeStatus) {
+        setGiftCodeStatus("");
+      }
+      if (stateAgeStatus) {
+        setStateAgeStatus("");
+      }
+      if (stateAgeRecentStatus) {
+        setStateAgeRecentStatus("");
+      }
+      if (authStatus) {
+        setAuthStatus("");
+      }
+      if (playerLookupStatus) {
+        setPlayerLookupStatus("");
+      }
+    }, SITE_TOAST_DISMISS_MS);
+
+    return () => clearTimeout(timer);
+  }, [
+    authStatus,
+    foundryExportStatus,
+    foundryStatusTone,
+    giftCodeStatus,
+    playerLookupStatus,
+    stateAgeRecentStatus,
+    stateAgeStatus,
+    status,
+    templateStatus,
+  ]);
 
   const clearFooterIntentTimer = useCallback(() => {
     if (footerIntentTimerRef.current) {
