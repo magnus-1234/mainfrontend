@@ -4729,7 +4729,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
         <section className="feedback-banner" aria-label="Website feedback notice">
           <span className="feedback-banner-icon"><Icon name="shield" /></span>
           <p>
-            This site is still in progress. Please give us feedback on our{" "}
+            This site is still in development. Please give us feedback on our{" "}
             <a href="https://discord.gg/bP5JQFH2M5" target="_blank" rel="noreferrer">Discord community</a>.
           </p>
           <button className="feedback-banner-close" type="button" onClick={hideFeedbackBanner} aria-label="Hide feedback banner">
