@@ -654,9 +654,29 @@ const createFoundryLooterTeam = (): FoundryTeam => ({
   joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `looter-${joinerIndex + 1}`)),
 });
 
-const normalizeFoundryPlayerProfile = (player: PlayerProfile & { avatar?: string; avatarUrl?: string; avatar_image?: string }): PlayerProfile => ({
+const normalizeFoundryPlayerProfile = (
+  player: PlayerProfile & {
+    avatar?: string;
+    avatar_url?: string;
+    avatarUrl?: string;
+    avatar_image?: string;
+    avatar_image_url?: string;
+    image?: string;
+    picture?: string;
+    profileImage?: string;
+  },
+): PlayerProfile => ({
   ...player,
-  avatarImage: player.avatarImage || player.avatarUrl || player.avatar || player.avatar_image,
+  avatarImage:
+    player.avatarImage ||
+    player.avatarUrl ||
+    player.avatar_url ||
+    player.avatar ||
+    player.avatar_image ||
+    player.avatar_image_url ||
+    player.profileImage ||
+    player.picture ||
+    player.image,
 });
 
 const utcInputDate = (date = new Date()) => date.toISOString().slice(0, 10);
@@ -966,6 +986,7 @@ const FOOTER_INTENT_DELAY_MS = 450;
 const FOOTER_HIDE_DELAY_MS = 900;
 
 const menuItems: { label: string; icon: string; status: string; menu?: ActiveMenu }[] = [
+  { label: "Dreamscape", icon: "image", status: "Live" },
   { label: "Browse", icon: "grid", status: "Soon" },
   { label: "Tools", icon: "wrench", status: "Soon" },
   { label: "Database", icon: "database", status: "Soon" },
@@ -3812,6 +3833,43 @@ export default function Home() {
     setFoundryExportStatus("Foundry plan share opened.");
   };
 
+  const fetchFoundryPlayerProfile = useCallback(async (playerId: string) => {
+    const cleanedPlayerId = playerId.replace(/\D/g, "");
+    if (!/^\d{8,9}$/.test(cleanedPlayerId)) {
+      return undefined;
+    }
+    const response = await fetch(`${apiBase}/api/daybreak/players/${cleanedPlayerId}`);
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.player) {
+      return undefined;
+    }
+    return normalizeFoundryPlayerProfile(data.player);
+  }, []);
+
+  const hydrateFoundryTeamProfiles = useCallback(async (teams: FoundryTeam[]) => {
+    const playerIds = Array.from(new Set(
+      teams.flatMap((team) => [team.rallyLeader, ...team.joiners])
+        .filter((member) => member.playerId && !member.profile)
+        .map((member) => member.playerId),
+    ));
+    if (!playerIds.length) {
+      return teams;
+    }
+    const profiles = new Map(await Promise.all(playerIds.map(async (playerId) => [
+      playerId,
+      await fetchFoundryPlayerProfile(playerId),
+    ] as const)));
+    const hydrateMember = (member: FoundryMember): FoundryMember => {
+      const profile = member.profile || profiles.get(member.playerId);
+      return profile ? { ...member, profile, status: "Loaded" } : member;
+    };
+    return teams.map((team) => ({
+      ...team,
+      joiners: team.joiners.map(hydrateMember),
+      rallyLeader: hydrateMember(team.rallyLeader),
+    }));
+  }, [fetchFoundryPlayerProfile]);
+
   useEffect(() => {
     if (foundryShareLoadedRef.current || typeof window === "undefined") {
       return;
@@ -3824,22 +3882,31 @@ export default function Home() {
     try {
       const parsed = decodeFoundryShareState(encoded);
       window.setTimeout(() => {
-        const teams = (parsed.teams || []).map(foundryTeamFromShare);
-        if (teams.length) {
-          setFoundryTeams(teams);
-          setFoundryTeamCount(teams.length);
-        }
-        setFoundryLegion(parsed.legion === "2" ? "2" : "1");
-        setFoundryUtcTime(parsed.utcTime || "");
-        setFoundryIncludeLooter(Boolean(parsed.includeLooter));
-        if (parsed.looterTeam) {
-          setFoundryLooterTeam({
-            ...foundryTeamFromShare(parsed.looterTeam, 99),
-            id: "looter-team",
-            name: parsed.looterTeam.name || "Looter Team",
-          });
-        }
-        setFoundryExportStatus("Editable shared Foundry plan loaded.");
+        void (async () => {
+          const teams = (parsed.teams || []).map(foundryTeamFromShare);
+          const looterTeam = parsed.looterTeam
+            ? {
+                ...foundryTeamFromShare(parsed.looterTeam, 99),
+                id: "looter-team",
+                name: parsed.looterTeam.name || "Looter Team",
+              }
+            : undefined;
+          const [hydratedTeams, hydratedLooterTeams] = await Promise.all([
+            hydrateFoundryTeamProfiles(teams),
+            looterTeam ? hydrateFoundryTeamProfiles([looterTeam]) : Promise.resolve([]),
+          ]);
+          if (hydratedTeams.length) {
+            setFoundryTeams(hydratedTeams);
+            setFoundryTeamCount(hydratedTeams.length);
+          }
+          setFoundryLegion(parsed.legion === "2" ? "2" : "1");
+          setFoundryUtcTime(parsed.utcTime || "");
+          setFoundryIncludeLooter(Boolean(parsed.includeLooter));
+          if (hydratedLooterTeams[0]) {
+            setFoundryLooterTeam(hydratedLooterTeams[0]);
+          }
+          setFoundryExportStatus("Editable shared Foundry plan loaded.");
+        })();
       }, 0);
     } catch {
       window.setTimeout(() => {
@@ -3848,7 +3915,7 @@ export default function Home() {
     } finally {
       foundryShareLoadedRef.current = true;
     }
-  }, []);
+  }, [hydrateFoundryTeamProfiles]);
 
   useEffect(() => {
     if (activeMenu !== "templates") {
@@ -3964,14 +4031,13 @@ export default function Home() {
 
     updateFoundryMember(teamId, member.id, { loading: true, status: "Fetching player..." });
     try {
-      const response = await fetch(`${apiBase}/api/daybreak/players/${cleanedPlayerId}`);
-      const data = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(data?.error || "Unable to fetch player.");
+      const profile = await fetchFoundryPlayerProfile(cleanedPlayerId);
+      if (!profile) {
+        throw new Error("Unable to fetch player.");
       }
       updateFoundryMember(teamId, member.id, {
         playerId: cleanedPlayerId,
-        profile: normalizeFoundryPlayerProfile(data.player),
+        profile,
         status: "Loaded",
         loading: false,
       });
@@ -4004,7 +4070,6 @@ export default function Home() {
   ) => {
     const role = member.role === "leader" ? "LEADER" : "JOINER";
     const label = foundryMemberName(member);
-    const furnace = member.profile ? `F${furnaceDisplay(member.profile)}` : "F-";
 
     context.fillStyle = "rgba(10, 14, 16, 0.9)";
     context.strokeStyle = color;
@@ -4014,7 +4079,7 @@ export default function Home() {
     context.fill();
     context.stroke();
 
-    context.fillStyle = color;
+    context.fillStyle = avatar ? "#111719" : color;
     context.beginPath();
     context.arc(x + 28, y + 24, 16, 0, Math.PI * 2);
     context.fill();
@@ -4031,6 +4096,11 @@ export default function Home() {
       context.textAlign = "center";
       context.fillText(label.slice(0, 1).toUpperCase(), x + 28, y + 29);
     }
+    context.strokeStyle = color;
+    context.lineWidth = 2;
+    context.beginPath();
+    context.arc(x + 28, y + 24, 16, 0, Math.PI * 2);
+    context.stroke();
 
     context.fillStyle = color;
     context.beginPath();
@@ -4043,11 +4113,27 @@ export default function Home() {
 
     context.textAlign = "left";
     context.fillStyle = "#fff";
-    context.font = "900 15px Arial";
-    context.fillText(label.slice(0, 18), x + 112, y + 20);
-    context.fillStyle = "#cbd5e1";
-    context.font = "800 11px Arial";
-    context.fillText(`${member.playerId || "ID"} | ${furnace}`.slice(0, 24), x + 112, y + 36);
+    context.font = "900 16px Arial";
+    context.fillText(label.slice(0, 20), x + 112, y + 22);
+    if (member.profile) {
+      context.fillStyle = "#cbd5e1";
+      context.font = "800 10px Arial";
+      context.fillText(`Furnace ${furnaceDisplay(member.profile)}`.slice(0, 22), x + 112, y + 36);
+    }
+  };
+
+  const drawFoundryLogo = (
+    context: CanvasRenderingContext2D,
+    logo: HTMLImageElement,
+    right: number,
+    top: number,
+    maxWidth: number,
+    maxHeight: number,
+  ) => {
+    const ratio = logo.naturalWidth && logo.naturalHeight ? logo.naturalWidth / logo.naturalHeight : 4.6;
+    const width = Math.min(maxWidth, maxHeight * ratio);
+    const height = width / ratio;
+    context.drawImage(logo, right - width, top, width, height);
   };
 
   const loadFoundryMapForExport = () => new Promise<HTMLImageElement>((resolve, reject) => {
@@ -4103,7 +4189,7 @@ export default function Home() {
       context.font = "800 20px Arial";
       context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}`, 38, 78);
       if (logo) {
-        context.drawImage(logo, canvas.width - 354, 18, 314, 72);
+        drawFoundryLogo(context, logo, canvas.width - 40, 18, 314, 72);
       }
 
       const avatarEntries = await Promise.all(
@@ -4227,7 +4313,7 @@ export default function Home() {
     context.font = "800 21px Arial";
     context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}`, 36, 84);
     if (logo) {
-      context.drawImage(logo, canvas.width - 326, 20, 286, 66);
+      drawFoundryLogo(context, logo, canvas.width - 40, 20, 286, 66);
     }
 
     const yOffset = 150;
@@ -4439,23 +4525,33 @@ export default function Home() {
               </div>
             </div>
             {menuItems.map((item) => (
-              <button
-                type="button"
-                className={`menu-trigger ${item.menu && activeMenu === item.menu ? "active" : ""}`}
-                key={item.label}
-                onClick={() => {
-                  if (item.menu) {
-                    navigateToMenu(item.menu);
-                  }
-                }}
-              >
-                <span className="menu-status">{item.status}</span>
-                <span className="menu-main">
-                  <Icon name={item.icon} />
-                  <span>{item.label}</span>
-                  <Icon name="chevron" />
-                </span>
-              </button>
+              item.label === "Dreamscape" ? (
+                <a className="menu-trigger" href="/dreamscape-memory" key={item.label}>
+                  <span className="menu-status">{item.status}</span>
+                  <span className="menu-main">
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                  </span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className={`menu-trigger ${item.menu && activeMenu === item.menu ? "active" : ""}`}
+                  key={item.label}
+                  onClick={() => {
+                    if (item.menu) {
+                      navigateToMenu(item.menu);
+                    }
+                  }}
+                >
+                  <span className="menu-status">{item.status}</span>
+                  <span className="menu-main">
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                    <Icon name="chevron" />
+                  </span>
+                </button>
+              )
             ))}
           </nav>
 
@@ -4659,6 +4755,12 @@ export default function Home() {
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
+            <a className="sidebar-item mobile-secondary" href="/dreamscape-memory">
+              <Icon name="image" />
+              <span className="nav-label-desktop">Dreamscape Memory</span>
+              <span className="nav-label-mobile">Dream</span>
+              <strong className="sidebar-beta-badge">Live</strong>
+            </a>
             <div className={`sidebar-wiki-group mobile-primary ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
               <button
                 className={`sidebar-item sidebar-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
@@ -5924,11 +6026,12 @@ export default function Home() {
                                 }}
                               >
                                 <span className="foundry-map-member-avatar">
-                                  {member.profile?.avatarImage ? <img src={member.profile.avatarImage} alt="" /> : <Icon name="user" />}
+                                  <b>{foundryMemberName(member).slice(0, 1).toUpperCase()}</b>
+                                  {member.profile?.avatarImage && <img src={member.profile.avatarImage} alt="" />}
                                 </span>
                                 <span className="foundry-map-member-role">{roleLabel}</span>
-                                <strong>{member.profile?.nickname || member.playerId}</strong>
-                                <small>{member.playerId || "ID"}{member.profile ? ` | F${furnaceDisplay(member.profile)}` : ""}</small>
+                                <strong>{foundryMemberName(member)}</strong>
+                                {member.profile && <small>Furnace {furnaceDisplay(member.profile)}</small>}
                               </span>
                             );
                           })}

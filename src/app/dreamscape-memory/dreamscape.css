@@ -1,0 +1,235 @@
+.dreamscape-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px;
+  background: #0b1116;
+  color: #f3efe7;
+}
+
+.dreamscape-menu,
+.dreamscape-game {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: #121a20;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.dreamscape-menu {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  height: fit-content;
+  padding: 16px;
+}
+
+.dreamscape-home-link {
+  color: #f4a259;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.dreamscape-kicker {
+  color: #f4a259;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dreamscape-menu h1 {
+  margin: 6px 0 0;
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.dreamscape-menu label {
+  display: grid;
+  gap: 6px;
+  color: #b9c0c4;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.dreamscape-menu select,
+.dreamscape-menu button,
+.dreamscape-bar button,
+.dreamscape-overlay button {
+  min-height: 40px;
+  border: 1px solid rgba(244, 162, 89, 0.38);
+  border-radius: 7px;
+  background: #1b2730;
+  color: #f3efe7;
+  font: inherit;
+  font-weight: 850;
+}
+
+.dreamscape-menu button,
+.dreamscape-bar button,
+.dreamscape-overlay button {
+  cursor: pointer;
+  background: #f48120;
+  color: #120d08;
+}
+
+.dreamscape-bar button:disabled {
+  cursor: default;
+  opacity: 0.52;
+}
+
+.dreamscape-game {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 14px;
+}
+
+.dreamscape-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.dreamscape-bar span {
+  display: grid;
+  min-width: 88px;
+  gap: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #0d151b;
+}
+
+.dreamscape-bar small {
+  color: #9aa7ae;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dreamscape-bar strong {
+  font-size: 1.12rem;
+}
+
+.dreamscape-bar .is-low strong {
+  color: #ff6b4a;
+}
+
+.dreamscape-stage {
+  position: relative;
+  width: min(100%, 798px);
+  aspect-ratio: var(--stage-w) / var(--stage-h);
+  overflow: hidden;
+  border-radius: 8px;
+  background: #05080a;
+  justify-self: center;
+  cursor: crosshair;
+}
+
+.dreamscape-stage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.dreamscape-hint,
+.dreamscape-feedback {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.dreamscape-hint {
+  width: 12%;
+  aspect-ratio: 1;
+  border: 3px solid #ffd166;
+  border-radius: 999px;
+  box-shadow: 0 0 0 10px rgba(255, 209, 102, 0.18), 0 0 32px rgba(255, 209, 102, 0.55);
+  animation: dreamscapePulse 900ms ease-in-out infinite alternate;
+}
+
+.dreamscape-feedback {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+.dreamscape-feedback.is-hit {
+  background: #22c55e;
+}
+
+.dreamscape-feedback.is-miss {
+  background: #ef4444;
+}
+
+.dreamscape-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  padding: 18px;
+  background: rgba(7, 10, 13, 0.68);
+  text-align: center;
+}
+
+.dreamscape-overlay h2,
+.dreamscape-overlay p {
+  margin: 0;
+}
+
+.dreamscape-overlay span {
+  font-weight: 900;
+}
+
+.dreamscape-targets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dreamscape-targets span {
+  border: 1px solid rgba(244, 162, 89, 0.28);
+  border-radius: 7px;
+  padding: 8px 11px;
+  background: #17222a;
+  color: #f8d7b4;
+  font-weight: 850;
+}
+
+.dreamscape-targets .is-found {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+@keyframes dreamscapePulse {
+  from {
+    transform: translate(-50%, -50%) scale(0.88);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@media (max-width: 860px) {
+  .dreamscape-page {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .dreamscape-menu {
+    position: static;
+  }
+}
