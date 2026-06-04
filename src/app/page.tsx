@@ -6443,7 +6443,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
 
               <section className="chief-charm-summary" aria-label="Chief Charm result summary">
                 <article className="primary">
-                  <span>Plan Power Gain</span>
+                  <span>Power Increase</span>
                   <strong>{formatNumber(charmAllSlotCost.power)}</strong>
                   <small>{charmPlannedSlots} slot{charmPlannedSlots === 1 ? "" : "s"} with pending upgrades</small>
                 </article>
