@@ -10,6 +10,7 @@ import "./game-map/wos-game-map.css";
 import SvsAppointmentPlanner from "./svs-appointment-planner/SvsAppointmentPlanner";
 import "./svs-appointment-planner/svs-appointment-planner.css";
 import WarAcademyCalculator from "./war-academy-calculator/WarAcademyCalculator";
+import wosHelperAsciiArtTemplates from "@/data/message-templates/wos-helper-ascii-art.json";
 import wikiBuildingsData from "@/data/wiki/buildings.json";
 import wikiHeroesData from "@/data/wiki/heroes.json";
 import wikiPostersData from "@/data/wiki/posters.json";
@@ -1295,6 +1296,7 @@ Ask R4 if unsure.
 Breaking NAP can cause war.
 Keep farming clean.`,
   },
+  ...(wosHelperAsciiArtTemplates as MessageTemplate[]),
   ...wosIconUnicodeTemplates,
 ];
 
