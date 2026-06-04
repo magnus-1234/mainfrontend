@@ -84,8 +84,12 @@
   box-shadow:
     0 34px 80px rgba(0, 0, 0, 0.24),
     inset 0 0 0 1px rgba(17, 24, 39, 0.1);
-  cursor: crosshair;
+  cursor: grab;
   touch-action: none;
+}
+
+.wos-map-canvas:active {
+  cursor: grabbing;
 }
 
 .wos-map-canvas:focus-visible {

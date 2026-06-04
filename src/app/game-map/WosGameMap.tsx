@@ -20,6 +20,8 @@ type DragState = {
   y: number;
   yaw: number;
   pitch: number;
+  panX: number;
+  panY: number;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -74,55 +76,31 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.fillText(String(value), 24, position);
   }
 
-  const markCoordinate = (coord: Coordinate, color: string, radius: number, selectedCell = false) => {
-    const x = coord.x - 1;
-    const y = coord.y - 1;
+  const markCoordinate = (coord: Coordinate, color: string, selectedCell = false) => {
     const cell = gridCellFor(coord);
     const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
     const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
-    context.fillStyle = selectedCell ? "rgba(96, 165, 250, 0.26)" : "rgba(96, 165, 250, 0.12)";
+    context.fillStyle = selectedCell ? "rgba(96, 165, 250, 0.3)" : "rgba(96, 165, 250, 0.16)";
     context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
     context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.58)";
     context.lineWidth = selectedCell ? 4 : 2;
     context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
-    context.strokeStyle = color;
-    context.fillStyle = color;
-    context.lineWidth = 3;
-    context.beginPath();
-    context.moveTo(x - 20, y);
-    context.lineTo(x + 20, y);
-    context.moveTo(x, y - 20);
-    context.lineTo(x, y + 20);
-    context.stroke();
-    context.beginPath();
-    context.arc(x, y, radius, 0, Math.PI * 2);
-    context.stroke();
-    context.font = "800 20px Arial";
+
     const label = `${coord.x},${coord.y}`;
-    const labelX = clamp(cell.x + cellWidth + 8, 8, 1096);
-    const labelY = clamp(cell.y - 32, 8, 1162);
-    const labelWidth = Math.max(92, context.measureText(label).width + 24);
+    context.font = selectedCell ? "800 8px Arial" : "800 7px Arial";
+    const labelWidth = Math.min(cellWidth - 4, context.measureText(label).width + 4);
     context.save();
-    context.translate(labelX, labelY);
-    context.rotate(-Math.PI / 4);
-    context.fillStyle = selectedCell ? "#0f172a" : "rgba(15, 23, 42, 0.78)";
-    context.strokeStyle = "#60a5fa";
-    context.lineWidth = 4;
-    context.beginPath();
-    context.roundRect(0, 0, labelWidth, 34, 4);
-    context.fill();
-    context.stroke();
-    context.fillStyle = "#ffffff";
+    context.fillStyle = color;
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(label, labelWidth / 2, 17);
+    context.fillText(label, cell.x + cellWidth / 2, cell.y + cellHeight / 2, labelWidth);
     context.restore();
   };
 
   if (hover) {
-    markCoordinate(hover, "rgba(37, 99, 235, 0.5)", 13);
+    markCoordinate(hover, "rgba(15, 23, 42, 0.78)");
   }
-  markCoordinate(selected, "#2563eb", 21, true);
+  markCoordinate(selected, "#0f172a", true);
 };
 
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
@@ -136,6 +114,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [yaw, setYaw] = useState(0);
   const [roll, setRoll] = useState(0);
   const [zoom, setZoom] = useState(0.9);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -173,6 +152,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(0);
       setZoom(0.9);
+      setPan({ x: 0, y: 0 });
       return;
     }
     if (nextMode === "isometric") {
@@ -180,12 +160,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(45);
       setZoom(0.64);
+      setPan({ x: 0, y: 0 });
       return;
     }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
     setZoom(0.82);
+    setPan({ x: 0, y: 0 });
   };
 
   const resetView = () => {
@@ -194,6 +176,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(0);
       setZoom(0.9);
+      setPan({ x: 0, y: 0 });
       return;
     }
     if (mode === "isometric") {
@@ -201,12 +184,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(45);
       setZoom(0.64);
+      setPan({ x: 0, y: 0 });
       return;
     }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
     setZoom(0.82);
+    setPan({ x: 0, y: 0 });
   };
 
   return (
@@ -227,7 +212,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           <div
             className={`wos-map-rotator mode-${mode}`}
             style={{
-              transform: `scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
           >
             <canvas
@@ -240,7 +225,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               tabIndex={0}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
-                dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch };
+                dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch, panX: pan.x, panY: pan.y };
               }}
               onPointerMove={(event) => {
                 setHover(coordinateFromPointer(event));
@@ -249,6 +234,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   return;
                 }
                 if (mode !== "3d") {
+                  setPan({ x: drag.panX + event.clientX - drag.x, y: drag.panY + event.clientY - drag.y });
                   return;
                 }
                 setYaw(Math.round(clamp(drag.yaw + (event.clientX - drag.x) * 0.35, -180, 180)));
@@ -266,7 +252,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               onPointerLeave={() => setHover(null)}
               onWheel={(event) => {
                 event.preventDefault();
-                setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.04 : 0.04), 0.38, 1.45));
+                setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.16 : 0.16), 0.3, 8));
               }}
               onKeyDown={(event) => {
                 const step = event.shiftKey ? 10 : 1;
@@ -284,10 +270,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   moveSelection(0, step);
                 } else if (event.key === "+" || event.key === "=") {
                   event.preventDefault();
-                  setZoom((value) => clamp(value + 0.04, 0.38, 1.45));
+                  setZoom((value) => clamp(value + 0.16, 0.3, 8));
                 } else if (event.key === "-" || event.key === "_") {
                   event.preventDefault();
-                  setZoom((value) => clamp(value - 0.04, 0.38, 1.45));
+                  setZoom((value) => clamp(value - 0.16, 0.3, 8));
                 } else if (event.key.toLowerCase() === "f") {
                   event.preventDefault();
                   resetView();
@@ -316,12 +302,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             <button className={mode === "3d" ? "active" : ""} type="button" onClick={() => setMapMode("3d")}>3D</button>
           </div>
           <div className="wos-zoom-board" aria-label="Zoom controls">
-            <button type="button" aria-label="Zoom out" onClick={() => setZoom((value) => clamp(value - 0.08, 0.3, 2.4))}>−</button>
+            <button type="button" aria-label="Zoom out" onClick={() => setZoom((value) => clamp(value - 0.25, 0.3, 8))}>−</button>
             <div>
               <span>Zoom</span>
               <strong>{Math.round(zoom * 100)}%</strong>
             </div>
-            <button type="button" aria-label="Zoom in" onClick={() => setZoom((value) => clamp(value + 0.08, 0.3, 2.4))}>+</button>
+            <button type="button" aria-label="Zoom in" onClick={() => setZoom((value) => clamp(value + 0.25, 0.3, 8))}>+</button>
             <button type="button" onClick={resetView}>Fit</button>
           </div>
           <div className="wos-coordinate-fields">
@@ -357,7 +343,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </label>
           <label>
             <span>Zoom</span>
-            <input type="range" min="30" max="240" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
+            <input type="range" min="30" max="800" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
             <output>{Math.round(zoom * 100)}%</output>
           </label>
           <button type="button" onClick={resetView}>Reset View</button>
