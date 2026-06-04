@@ -1330,7 +1330,7 @@ const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string
 ];
 
 const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
-  home: { src: "/wos-logo.png", alt: "Whiteout Survival logo" },
+  home: { src: "/site-logo-512.png", alt: "WhiteoutSurvival.dev home logo" },
   gift: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
   redeem: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
   stateAge: { src: "/state-transfer.png", alt: "State transfer" },
