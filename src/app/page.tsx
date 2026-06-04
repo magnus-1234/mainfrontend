@@ -242,6 +242,7 @@ const localApiHost = () => {
 };
 
 const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || localApiHost();
+const templateApiBase = "";
 
 const botFrontendUrl =
   process.env.NEXT_PUBLIC_BOT_FRONTEND_URL || "https://bot.whiteoutsurvival.dev/";
@@ -2739,10 +2740,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     const tagParam = selectedTemplateTag ? `&tag=${encodeURIComponent(selectedTemplateTag)}` : "";
     const endpoint =
       templateView === "uploads"
-        ? `${apiBase}/api/message-templates/me/uploads?limit=80`
+        ? `${templateApiBase}/api/message-templates/me/uploads?limit=80`
         : templateView === "favorites"
-          ? `${apiBase}/api/message-templates/me/favorites?limit=80`
-          : `${apiBase}/api/message-templates?sort=${templateSort}${categoryParam}${tagParam}&limit=80`;
+          ? `${templateApiBase}/api/message-templates/me/favorites?limit=80`
+          : `${templateApiBase}/api/message-templates?sort=${templateSort}${categoryParam}${tagParam}&limit=80`;
 
     fetch(endpoint, { credentials: "include" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
@@ -2766,7 +2767,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       return;
     }
 
-    fetch(`${apiBase}/api/message-templates/me/favorites?limit=100`, { credentials: "include", headers: { "x-user-id": authUser.id } })
+    fetch(`${templateApiBase}/api/message-templates/me/favorites?limit=100`, { credentials: "include", headers: { "x-user-id": authUser.id } })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { favoriteIds?: string[] }) => {
         const favoriteIds = data.favoriteIds || [];
@@ -3221,10 +3222,10 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const refreshTemplates = async () => {
     const endpoint =
       templateView === "uploads"
-        ? `${apiBase}/api/message-templates/me/uploads?limit=80`
+        ? `${templateApiBase}/api/message-templates/me/uploads?limit=80`
         : templateView === "favorites"
-          ? `${apiBase}/api/message-templates/me/favorites?limit=80`
-          : `${apiBase}/api/message-templates?sort=${templateSort}${activeTemplateCategory !== "all" ? `&category=${encodeURIComponent(activeTemplateCategory)}` : ""}${selectedTemplateTag ? `&tag=${encodeURIComponent(selectedTemplateTag)}` : ""}&limit=80`;
+          ? `${templateApiBase}/api/message-templates/me/favorites?limit=80`
+          : `${templateApiBase}/api/message-templates?sort=${templateSort}${activeTemplateCategory !== "all" ? `&category=${encodeURIComponent(activeTemplateCategory)}` : ""}${selectedTemplateTag ? `&tag=${encodeURIComponent(selectedTemplateTag)}` : ""}&limit=80`;
     const response = await fetch(endpoint, { credentials: "include" });
     if (!response.ok) {
       throw new Error("Unable to refresh templates");
@@ -3343,7 +3344,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       if (!(imageFile instanceof File) || imageFile.size === 0) {
         body.delete("image");
       }
-      const endpoint = editingTemplate ? `${apiBase}/api/message-templates/${editingTemplate.id}` : `${apiBase}/api/message-templates`;
+      const endpoint = editingTemplate ? `${templateApiBase}/api/message-templates/${editingTemplate.id}` : `${templateApiBase}/api/message-templates`;
       const response = await fetch(endpoint, {
         method: editingTemplate ? "PATCH" : "POST",
         credentials: "include",
@@ -3402,7 +3403,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     }
 
     try {
-      const response = await fetch(`${apiBase}/api/message-templates/${template.id}/like`, {
+      const response = await fetch(`${templateApiBase}/api/message-templates/${template.id}/like`, {
         method: nextLiked ? "POST" : "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json", ...(authUser ? { "x-user-id": authUser.id } : {}) },
@@ -3467,7 +3468,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       setTemplateStatus("Template deleted.");
     };
     try {
-      const response = await fetch(`${apiBase}/api/message-templates/${template.id}`, {
+      const response = await fetch(`${templateApiBase}/api/message-templates/${template.id}`, {
         method: "DELETE",
         credentials: "include",
         headers: { "x-user-id": authUser.id },
@@ -3503,7 +3504,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     }
 
     if (!template.builtin) {
-      const response = await fetch(`${apiBase}/api/message-templates/${template.id}/share`, { method: "POST", credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined });
+      const response = await fetch(`${templateApiBase}/api/message-templates/${template.id}/share`, { method: "POST", credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined });
       const data = (await response.json().catch(() => null)) as { template?: MessageTemplate } | null;
       if (data?.template) {
         setCommunityTemplates((current) => current.map((item) => (item.id === template.id ? data.template! : item)));

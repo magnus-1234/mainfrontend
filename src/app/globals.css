@@ -6944,7 +6944,14 @@ body {
   font-weight: 800;
   line-height: 1.45;
 }
-
+.template-composer-modal .form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 2px;
+  padding-top: 8px;
+  background: linear-gradient(to top, var(--card) 78%, color-mix(in srgb, var(--card) 0%, transparent));
+}
 .template-compact-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(190px, 0.62fr);
@@ -10705,13 +10712,16 @@ body {
   }
 
   .template-compact-row,
-  .template-image-uploader,
-  .template-category-checks {
+  .template-image-uploader {
     grid-template-columns: 1fr;
   }
 
+  .template-category-checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .template-source-input {
-    min-height: 210px;
+    min-height: 132px;
   }
 
   .daybreak-stats div {
@@ -17784,5 +17794,79 @@ body {
 
   .wiki-detail-facts {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .template-composer-modal {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    max-height: calc(100dvh - 12px);
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .template-composer-modal .upload-modal-head {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+
+  .template-composer-modal .upload-modal-head h2 {
+    max-width: calc(100% - 36px);
+    margin-top: 2px;
+    font-size: 31px;
+    line-height: 0.98;
+  }
+
+  .template-composer-modal .section-kicker {
+    font-size: 10px;
+  }
+
+  .template-composer-form,
+  .template-composer-form .form-grid {
+    gap: 6px;
+  }
+
+  .template-category-checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .template-category-checks label {
+    min-height: 34px;
+    padding: 4px 5px;
+    font-size: 10px;
+  }
+
+  .template-main-text-field {
+    padding: 7px;
+  }
+
+  .template-main-text-field small {
+    display: none;
+  }
+
+  .template-main-text-field .template-source-input,
+  .template-source-input {
+    min-height: 126px;
+    font-size: 13px;
+    line-height: 1.28;
+  }
+
+  .template-composer-form input,
+  .template-composer-form select,
+  .template-composer-form textarea {
+    min-height: 34px;
+    padding: 8px 10px;
+  }
+
+  .template-composer-modal .form-actions {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 6px;
+    padding-top: 6px;
+  }
+
+  .template-composer-modal .form-actions button {
+    min-height: 40px;
   }
 }
