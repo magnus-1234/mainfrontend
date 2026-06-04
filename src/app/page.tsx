@@ -2306,7 +2306,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
   const [communityTemplates, setCommunityTemplates] = useState<MessageTemplate[]>([]);
-  const [templateView] = useState<TemplateView>("gallery");
+  const [templateView, setTemplateView] = useState<TemplateView>("gallery");
   const [templateSort] = useState<"popular" | "recent">("popular");
   const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
   const [likedTemplates, setLikedTemplates] = useState<Record<string, boolean>>({});
@@ -2745,7 +2745,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
           ? `${templateApiBase}/api/message-templates/me/favorites?limit=80`
           : `${templateApiBase}/api/message-templates?sort=${templateSort}${categoryParam}${tagParam}&limit=80`;
 
-    fetch(endpoint, { credentials: "include" })
+    fetch(endpoint, { credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: { templates: MessageTemplate[]; favoriteIds?: string[] }) => {
         setCommunityTemplates((data.templates || []).map(normalizeLocalMessageTemplate));
@@ -3226,7 +3226,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
         : templateView === "favorites"
           ? `${templateApiBase}/api/message-templates/me/favorites?limit=80`
           : `${templateApiBase}/api/message-templates?sort=${templateSort}${activeTemplateCategory !== "all" ? `&category=${encodeURIComponent(activeTemplateCategory)}` : ""}${selectedTemplateTag ? `&tag=${encodeURIComponent(selectedTemplateTag)}` : ""}&limit=80`;
-    const response = await fetch(endpoint, { credentials: "include" });
+    const response = await fetch(endpoint, { credentials: "include", headers: authUser ? { "x-user-id": authUser.id } : undefined });
     if (!response.ok) {
       throw new Error("Unable to refresh templates");
     }
@@ -3240,6 +3240,19 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const requireTemplateSignIn = (message: string) => {
     setAuthStatus(message);
     setLoginOpen(true);
+  };
+
+  const canManageTemplate = (template: MessageTemplate) =>
+    Boolean(template.canManage || (authUser && template.creatorUserId === authUser.id));
+
+  const setSignedInTemplateView = (view: TemplateView) => {
+    if (view !== "gallery" && !authUser) {
+      requireTemplateSignIn("Sign in to use My Uploads and Favorites.");
+      return;
+    }
+
+    setTemplateView(view);
+    setSelectedTemplateTag("");
   };
 
   const templateLikeCount = (template: MessageTemplate) =>
@@ -3450,7 +3463,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
       requireTemplateSignIn("Sign in to delete your message templates.");
       return;
     }
-    if (!template.canManage || template.builtin) {
+    if (!canManageTemplate(template) || template.builtin) {
       setTemplateStatus("You can only delete templates you created.");
       return;
     }
@@ -6966,16 +6979,26 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
 
               <section className="showcase-head templates-head">
                 <div>
-                  <h2>Message Gallery</h2>
+                  <h2>{templateView === "uploads" ? "My Uploads" : templateView === "favorites" ? "Favorites" : "Message Gallery"}</h2>
                 </div>
                 <div className="daybreak-controls">
                   <div className="daybreak-control-bar templates-filter-bar" aria-label="Message template category filter">
+                    {authUser && (
+                      <>
+                        <button className={templateView === "uploads" ? "selected" : ""} type="button" onClick={() => setSignedInTemplateView("uploads")}>My Uploads</button>
+                        <button className={templateView === "favorites" ? "selected" : ""} type="button" onClick={() => setSignedInTemplateView("favorites")}>Favorites</button>
+                        <span aria-hidden="true" className="daybreak-control-divider" />
+                      </>
+                    )}
                     {messageTemplateCategories.map((category) => (
                       <button
-                        className={activeTemplateCategory === category.value ? "selected" : ""}
+                        className={templateView === "gallery" && activeTemplateCategory === category.value ? "selected" : ""}
                         type="button"
                         key={category.value}
-                        onClick={() => setActiveTemplateCategory(category.value)}
+                        onClick={() => {
+                          setSignedInTemplateView("gallery");
+                          setActiveTemplateCategory(category.value);
+                        }}
                       >
                         {category.label}
                       </button>
@@ -7026,7 +7049,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                           <h3>{template.title}</h3>
                         </button>
                         <div className="template-card-actions">
-                          {template.canManage && !template.builtin && (
+                          {canManageTemplate(template) && !template.builtin && (
                             <button
                               type="button"
                               onClick={() => openEditTemplateComposer(template)}
@@ -7079,7 +7102,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                           <Icon name="share" />
                           {template.shares || 0}
                         </button>
-                        {template.canManage && !template.builtin && (
+                        {canManageTemplate(template) && !template.builtin && (
                           <button
                             className="danger"
                             type="button"
@@ -8163,6 +8186,12 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <button type="button" onClick={() => setShareTemplateTarget(templateViewer)}><Icon name="share" />Share</button>
                 <button type="button" onClick={() => void copyTextToClipboard(templateShareUrlFor(templateViewer), "Copy template link")}><Icon name="external" />Copy Link</button>
                 {templateViewer.imageUrl && <button type="button" onClick={() => void downloadTemplateImage(templateViewer)}><Icon name="download" />Download Image</button>}
+                {canManageTemplate(templateViewer) && !templateViewer.builtin && (
+                  <>
+                    <button type="button" onClick={() => { setTemplateViewer(null); openEditTemplateComposer(templateViewer); }}><Icon name="edit" />Edit</button>
+                    <button className="danger" type="button" onClick={() => void deleteTemplate(templateViewer)} disabled={deletingTemplateId === templateViewer.id}><Icon name="trash" />Delete</button>
+                  </>
+                )}
               </div>
             </aside>
           </section>
