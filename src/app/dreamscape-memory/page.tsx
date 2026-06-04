@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import DreamscapeMemory from "./DreamscapeMemory";
 import "./dreamscape.css";
 
-const title = "Whiteout Survival Dreamscape Tool";
+const title = "Whiteout Survival Dreamscape Memory Maps";
 const description =
-  "Whiteout Survival Dreamscape Memory event tool for tracking tiles, turns, matches, and progress so you can plan cleaner event runs and rewards.";
+  "Browse every Whiteout Survival Dreamscape Memory map and stage image, search item checklists, and run a 60-second practice tracker for cleaner event clears.";
 
 export const metadata: Metadata = {
   title,

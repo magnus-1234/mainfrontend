@@ -1,223 +1,277 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { MouseEvent } from "react";
-
-type StageItem = {
-  n: number;
-  name: string;
-  x: number;
-  y: number;
-};
+import { dreamscapeMaps, dreamscapeMemorySource } from "@/data/dreamscape-memory";
 
 type DreamscapeMemoryProps = {
   embedded?: boolean;
 };
 
-const stageItems: StageItem[] = [
-  { n: 1, name: "Birdcage", x: 0.36, y: 0.22 },
-  { n: 2, name: "Gramophone", x: 0.43, y: 0.31 },
-  { n: 3, name: "Vase", x: 0.25, y: 0.31 },
-  { n: 4, name: "Telescope", x: 0.82, y: 0.58 },
-  { n: 5, name: "Picture frame", x: 0.06, y: 0.21 },
-  { n: 6, name: "Lantern", x: 0.34, y: 0.32 },
-  { n: 30, name: "Crown", x: 0.27, y: 0.55 },
-  { n: 33, name: "Umbrella", x: 0.85, y: 0.36 },
-  { n: 43, name: "Headwear", x: 0.66, y: 0.76 },
-];
-
 const totalSeconds = 60;
-const hitRadius = 0.05;
+const checklistKeyPrefix = "whiteoutsurvival-dreamscape-memory-found";
 
-const shuffle = (items: StageItem[]) => {
-  const next = [...items];
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-  }
-  return next;
-};
-
-const scoreFor = (found: number, secondsLeft: number, hintsUsed: number, won: boolean) => ({
+const scoreFor = (found: number, secondsLeft: number, hintsUsed: number, complete: boolean) => ({
   itemPoints: found * 100,
-  timeBonus: won ? secondsLeft * 10 : 0,
+  timeBonus: complete ? secondsLeft * 10 : 0,
   hintPenalty: hintsUsed * 50,
-  total: Math.max(0, found * 100 + (won ? secondsLeft * 10 : 0) - hintsUsed * 50),
+  total: Math.max(0, found * 100 + (complete ? secondsLeft * 10 : 0) - hintsUsed * 50),
 });
 
+const normalize = (value: string) => value.trim().toLowerCase();
+
+const formatCount = (value: number, label: string) => `${value.toLocaleString()} ${label}${value === 1 ? "" : "s"}`;
+
+const readStoredFound = (mapId: string) => {
+  if (typeof window === "undefined") {
+    return new Set<string>();
+  }
+
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(`${checklistKeyPrefix}-${mapId}`) || "[]") as string[];
+    return new Set(Array.isArray(stored) ? stored : []);
+  } catch {
+    return new Set<string>();
+  }
+};
+
 export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryProps) {
-  const [seed, setSeed] = useState(0);
-  const [orderedItems, setOrderedItems] = useState<StageItem[]>(() => shuffle(stageItems));
-  const [activeTargets, setActiveTargets] = useState<StageItem[]>(() => orderedItems.slice(0, 3));
-  const [foundIds, setFoundIds] = useState<Set<number>>(new Set());
-  const [misses, setMisses] = useState(0);
+  const [selectedMapId, setSelectedMapId] = useState(dreamscapeMaps[0]?.id || "");
+  const [selectedStageId, setSelectedStageId] = useState(dreamscapeMaps[0]?.stages[0]?.id || "");
+  const [query, setQuery] = useState("");
+  const [foundItems, setFoundItems] = useState<Set<string>>(() => readStoredFound(dreamscapeMaps[0]?.id || ""));
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
-  const [status, setStatus] = useState<"menu" | "playing" | "won" | "lost">("menu");
-  const [hintsLeft, setHintsLeft] = useState(3);
-  const [hintId, setHintId] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<{ x: number; y: number; hit: boolean; key: number } | null>(null);
+  const [status, setStatus] = useState<"ready" | "playing" | "complete" | "expired">("ready");
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [hintedItem, setHintedItem] = useState<string | null>(null);
 
-  const foundCount = foundIds.size;
-  const hintsUsed = 3 - hintsLeft;
-  const won = status === "won";
-  const score = useMemo(() => scoreFor(foundCount, secondsLeft, hintsUsed, won), [foundCount, secondsLeft, hintsUsed, won]);
+  const selectedMap = dreamscapeMaps.find((map) => map.id === selectedMapId) || dreamscapeMaps[0];
+  const selectedStage = selectedMap.stages.find((stage) => stage.id === selectedStageId) || selectedMap.stages[0];
+  const foundCount = foundItems.size;
+  const complete = selectedMap.items.length > 0 && foundCount === selectedMap.items.length;
+  const displayStatus = status === "playing" && complete ? "complete" : status;
+  const score = useMemo(
+    () => scoreFor(foundCount, secondsLeft, hintsUsed, complete),
+    [complete, foundCount, hintsUsed, secondsLeft],
+  );
 
-  const startRun = () => {
-    const nextOrder = shuffle(stageItems);
-    setSeed((value) => value + 1);
-    setOrderedItems(nextOrder);
-    setActiveTargets(nextOrder.slice(0, 3));
-    setFoundIds(new Set());
-    setMisses(0);
-    setSecondsLeft(totalSeconds);
-    setHintsLeft(3);
-    setHintId(null);
-    setFeedback(null);
-    setStatus("playing");
-  };
+  const filteredItems = useMemo(() => {
+    const needle = normalize(query);
+    if (!needle) {
+      return selectedMap.items;
+    }
+    return selectedMap.items.filter((item) => normalize(item).includes(needle));
+  }, [query, selectedMap.items]);
+
+  const nextTargets = useMemo(
+    () => selectedMap.items.filter((item) => !foundItems.has(item)).slice(0, 6),
+    [foundItems, selectedMap.items],
+  );
 
   useEffect(() => {
-    if (status !== "playing") {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.localStorage.setItem(`${checklistKeyPrefix}-${selectedMap.id}`, JSON.stringify([...foundItems]));
+  }, [foundItems, selectedMap.id]);
+
+  useEffect(() => {
+    if (status !== "playing" || complete) {
       return;
     }
     const timer = window.setInterval(() => {
       setSecondsLeft((value) => {
         if (value <= 1) {
-          setStatus("lost");
+          setStatus("expired");
           return 0;
         }
         return value - 1;
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [status, seed]);
+  }, [complete, status]);
 
-  useEffect(() => {
-    if (!feedback) {
-      return;
-    }
-    const timer = window.setTimeout(() => setFeedback(null), 800);
-    return () => window.clearTimeout(timer);
-  }, [feedback]);
+  const changeMap = (mapId: string) => {
+    const nextMap = dreamscapeMaps.find((map) => map.id === mapId) || dreamscapeMaps[0];
+    setSelectedMapId(nextMap.id);
+    setSelectedStageId(nextMap.stages[0]?.id || "");
+    setFoundItems(readStoredFound(nextMap.id));
+    setSecondsLeft(totalSeconds);
+    setStatus("ready");
+    setHintsUsed(0);
+    setHintedItem(null);
+    setQuery("");
+  };
 
-  useEffect(() => {
-    if (hintId === null) {
-      return;
-    }
-    const timer = window.setTimeout(() => setHintId(null), 2500);
-    return () => window.clearTimeout(timer);
-  }, [hintId]);
+  const startRun = () => {
+    setFoundItems(new Set());
+    setSecondsLeft(totalSeconds);
+    setStatus("playing");
+    setHintsUsed(0);
+    setHintedItem(null);
+    setQuery("");
+  };
 
-  useEffect(() => {
-    if (status === "playing" && foundIds.size === stageItems.length) {
-      const timer = window.setTimeout(() => setStatus("won"), 0);
-      return () => window.clearTimeout(timer);
-    }
-  }, [foundIds.size, status]);
+  const resetChecklist = () => {
+    setFoundItems(new Set());
+    setSecondsLeft(totalSeconds);
+    setStatus("ready");
+    setHintsUsed(0);
+    setHintedItem(null);
+  };
 
-  const handleStageClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (status !== "playing") {
-      return;
-    }
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    const match = activeTargets.find((item) => Math.hypot(x - item.x, y - item.y) <= hitRadius);
-
-    if (match) {
-      const nextFound = new Set(foundIds).add(match.n);
-      const remainingActive = activeTargets.filter((item) => item.n !== match.n);
-      const nextTarget = orderedItems.find((item) => !nextFound.has(item.n) && !remainingActive.some((active) => active.n === item.n));
-      setFoundIds(nextFound);
-      setActiveTargets(nextTarget ? [...remainingActive, nextTarget] : remainingActive);
-      setFeedback({ x, y, hit: true, key: Date.now() });
-      if (hintId === match.n) {
-        setHintId(null);
+  const toggleFound = (item: string) => {
+    setFoundItems((current) => {
+      const next = new Set(current);
+      if (next.has(item)) {
+        next.delete(item);
+      } else {
+        next.add(item);
       }
-      return;
+      return next;
+    });
+    if (hintedItem === item) {
+      setHintedItem(null);
     }
-
-    setMisses((value) => value + 1);
-    setFeedback({ x, y, hit: false, key: Date.now() });
   };
 
   const useHint = () => {
-    if (status !== "playing" || hintsLeft <= 0 || activeTargets.length === 0) {
+    if (status !== "playing" || nextTargets.length === 0) {
       return;
     }
-    const candidates = activeTargets.filter((item) => item.n !== hintId);
-    const nextHint = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : activeTargets[0];
-    setHintId(nextHint.n);
-    setHintsLeft((value) => value - 1);
+    const nextHint = nextTargets[Math.min(hintsUsed, nextTargets.length - 1)];
+    setHintedItem(nextHint);
+    setQuery(nextHint);
+    setHintsUsed((value) => value + 1);
   };
 
   return (
     <section className={`dreamscape-page ${embedded ? "is-embedded" : ""}`} id="dreamscape-memory" aria-label="Dreamscape Memory">
-      <section className="dreamscape-menu" aria-label="Dreamscape Memory menu">
+      <aside className="dreamscape-menu" aria-label="Dreamscape Memory controls">
         <div>
-          <span className="dreamscape-kicker">Memory Trial</span>
-          <h1>Whiteout Survival Dreamscape Memory Tool</h1>
+          <span className="dreamscape-kicker">Dreamscape Memory</span>
+          <h1>All Maps & Stages</h1>
+          <p>
+            {formatCount(dreamscapeMemorySource.mapCount, "map")} | {formatCount(dreamscapeMemorySource.stageCount, "stage")} |{" "}
+            {formatCount(dreamscapeMemorySource.itemCount, "item")}
+          </p>
         </div>
+
         <label>
           Map
-          <select value="Ballroom" disabled>
-            <option>Ballroom</option>
+          <select value={selectedMapId} onChange={(event) => changeMap(event.target.value)}>
+            {dreamscapeMaps.map((map) => (
+              <option value={map.id} key={map.id}>
+                {map.name}{map.coOp ? " (Co-op)" : ""}
+              </option>
+            ))}
           </select>
         </label>
+
         <label>
           Stage
-          <select value="1" disabled>
-            <option>Stage 1</option>
+          <select value={selectedStage?.id || ""} onChange={(event) => setSelectedStageId(event.target.value)}>
+            {selectedMap.stages.map((stage) => (
+              <option value={stage.id} key={stage.id}>
+                {stage.label}
+              </option>
+            ))}
           </select>
         </label>
-        <button type="button" onClick={startRun}>{status === "menu" ? "Start Run" : "Restart Run"}</button>
-      </section>
 
-      <section className="dreamscape-game" style={{ ["--stage-w" as string]: "798", ["--stage-h" as string]: "1308" }}>
+        <label>
+          Find item
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search checklist" />
+        </label>
+
+        <div className="dreamscape-actions">
+          <button type="button" onClick={startRun}>{status === "playing" && !complete ? "Restart" : "Start 60s Run"}</button>
+          <button type="button" className="is-secondary" onClick={resetChecklist}>Reset</button>
+        </div>
+      </aside>
+
+      <main className="dreamscape-game">
         <div className="dreamscape-bar">
-          <span><small>Found</small><strong>{foundCount}/{stageItems.length}</strong></span>
-          <span className={secondsLeft <= 10 && status === "playing" ? "is-low" : ""}><small>Time</small><strong>{secondsLeft}s</strong></span>
-          <span><small>Misses</small><strong>{misses}</strong></span>
-          <button type="button" onClick={useHint} disabled={status !== "playing" || hintsLeft <= 0}>Hint ({hintsLeft})</button>
+          <span><small>Found</small><strong>{foundCount}/{selectedMap.items.length}</strong></span>
+          <span className={secondsLeft <= 10 && status === "playing" && !complete ? "is-low" : ""}><small>Time</small><strong>{secondsLeft}s</strong></span>
+          <span><small>Score</small><strong>{score.total.toLocaleString()}</strong></span>
+          <span><small>Map</small><strong>{selectedMap.coOp ? "Co-op" : "Solo"}</strong></span>
+          <button type="button" onClick={useHint} disabled={status !== "playing" || complete || nextTargets.length === 0}>Hint</button>
         </div>
 
-        <div className="dreamscape-stage" role="button" tabIndex={0} aria-label="Click hidden objects" onClick={handleStageClick}>
-          <img src="/images/dreamscape/ballroom.webp" alt="Dreamscape Memory Ballroom Stage 1" draggable={false} />
-          {hintId !== null && (
-            <span
-              className="dreamscape-hint"
-              style={{
-                left: `${(stageItems.find((item) => item.n === hintId)?.x || 0) * 100}%`,
-                top: `${(stageItems.find((item) => item.n === hintId)?.y || 0) * 100}%`,
-              }}
-            />
-          )}
-          {feedback && (
-            <span className={`dreamscape-feedback ${feedback.hit ? "is-hit" : "is-miss"}`} style={{ left: `${feedback.x * 100}%`, top: `${feedback.y * 100}%` }} key={feedback.key}>
-              <span>{feedback.hit ? "Found" : "Miss"}</span>
-            </span>
-          )}
-          {status !== "playing" && (
-            <div className="dreamscape-overlay">
-              {status === "menu" ? (
-                <span>Start the run from the menu</span>
-              ) : (
-                <>
-                  <h2>{status === "won" ? "Stage cleared" : "Time's up"}</h2>
-                  <p>{score.total} pts | +{score.itemPoints} items | +{score.timeBonus} time | -{score.hintPenalty} hints</p>
-                  <button type="button" onClick={startRun}>Play Again</button>
-                </>
-              )}
+        <section className="dreamscape-stage-panel" aria-label={`${selectedMap.name} ${selectedStage?.label || ""}`}>
+          <div className="dreamscape-stage-image">
+            {selectedStage ? (
+              <img src={selectedStage.image} alt={`${selectedMap.name} ${selectedStage.label} Dreamscape Memory scene`} draggable={false} />
+            ) : (
+              <span>No stage image available</span>
+            )}
+            {displayStatus !== "playing" && (
+              <div className="dreamscape-overlay">
+                {displayStatus === "ready" ? (
+                  <span>Select a map and start a timed run</span>
+                ) : (
+                  <>
+                    <h2>{displayStatus === "complete" ? "Map checklist cleared" : "Timer ended"}</h2>
+                    <p>{score.itemPoints} item pts | {score.timeBonus} time bonus | -{score.hintPenalty} hint penalty</p>
+                    <button type="button" onClick={startRun}>Play Again</button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="dreamscape-stage-strip" aria-label="Stage gallery">
+            {selectedMap.stages.map((stage) => (
+              <button
+                type="button"
+                className={stage.id === selectedStage?.id ? "is-active" : ""}
+                onClick={() => setSelectedStageId(stage.id)}
+                key={stage.id}
+                aria-label={`Open ${stage.label}`}
+              >
+                <img src={stage.image} alt="" draggable={false} />
+                <span>{stage.label.replace("Stage ", "")}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="dreamscape-lists">
+          <div className="dreamscape-targets" aria-live="polite">
+            <h2>Next Targets</h2>
+            <div>
+              {nextTargets.length ? nextTargets.map((item) => (
+                <button
+                  type="button"
+                  className={hintedItem === item ? "is-hinted" : ""}
+                  onClick={() => toggleFound(item)}
+                  key={item}
+                >
+                  {item}
+                </button>
+              )) : <span>All items marked found</span>}
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="dreamscape-targets" aria-live="polite">
-          {activeTargets.length ? activeTargets.map((item) => (
-            <span className={foundIds.has(item.n) ? "is-found" : ""} key={item.n}>{item.name}</span>
-          )) : <span>All items found</span>}
-        </div>
-      </section>
+          <div className="dreamscape-checklist">
+            <h2>Complete Item List</h2>
+            <div className="dreamscape-item-grid">
+              {filteredItems.map((item) => (
+                <button
+                  type="button"
+                  className={`${foundItems.has(item) ? "is-found" : ""} ${hintedItem === item ? "is-hinted" : ""}`}
+                  onClick={() => toggleFound(item)}
+                  key={item}
+                >
+                  <span aria-hidden>{foundItems.has(item) ? "ok" : ""}</span>
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
     </section>
   );
 }
