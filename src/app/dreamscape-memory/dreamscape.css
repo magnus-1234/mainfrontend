@@ -17,6 +17,7 @@
 .dreamscape-menu,
 .dreamscape-game,
 .dreamscape-stage-panel,
+.dreamscape-current,
 .dreamscape-targets,
 .dreamscape-checklist {
   border: 1px solid rgba(255, 255, 255, 0.11);
@@ -69,6 +70,7 @@
 .dreamscape-menu button,
 .dreamscape-bar button,
 .dreamscape-overlay button,
+.dreamscape-current button,
 .dreamscape-targets button,
 .dreamscape-item-grid button {
   min-height: 40px;
@@ -178,6 +180,8 @@
 
 .dreamscape-feedback {
   position: absolute;
+  top: 18px;
+  left: 50%;
   display: grid;
   min-width: 92px;
   min-height: 34px;
@@ -192,6 +196,18 @@
   font-size: 0.78rem;
   font-weight: 900;
   box-shadow: 0 0 0 6px rgba(126, 224, 165, 0.16), 0 14px 32px rgba(0, 0, 0, 0.36);
+}
+
+.dreamscape-feedback.is-miss {
+  border-color: #ff876c;
+  color: #ffd0c7;
+  box-shadow: 0 0 0 6px rgba(255, 135, 108, 0.15), 0 14px 32px rgba(0, 0, 0, 0.36);
+}
+
+.dreamscape-feedback.is-hint {
+  border-color: #e8a23a;
+  color: #ffe2aa;
+  box-shadow: 0 0 0 6px rgba(232, 162, 58, 0.16), 0 14px 32px rgba(0, 0, 0, 0.36);
 }
 
 .dreamscape-overlay {
@@ -216,19 +232,53 @@
 
 .dreamscape-lists {
   display: grid;
-  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(210px, 0.72fr) minmax(240px, 0.78fr) minmax(0, 1.3fr);
   gap: 14px;
 }
 
+.dreamscape-current,
 .dreamscape-targets,
 .dreamscape-checklist {
   padding: 14px;
 }
 
+.dreamscape-current h2,
 .dreamscape-targets h2,
 .dreamscape-checklist h2 {
   margin: 0 0 10px;
   font-size: 1rem;
+}
+
+.dreamscape-current strong {
+  display: block;
+  min-height: 52px;
+  margin-bottom: 12px;
+  color: #ffe2aa;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+.dreamscape-current div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dreamscape-current button {
+  cursor: pointer;
+  background: #2f6b46;
+  color: #f1fff5;
+  text-align: center;
+}
+
+.dreamscape-current button.is-miss {
+  background: #5f2a22;
+  color: #ffe8e2;
+}
+
+.dreamscape-current button:disabled {
+  cursor: default;
+  opacity: 0.5;
 }
 
 .dreamscape-targets div {
