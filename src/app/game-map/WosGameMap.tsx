@@ -12,6 +12,15 @@ type Coordinate = {
   y: number;
 };
 
+type MapFacility = {
+  id: string;
+  label: string;
+  type: "castle" | "turret";
+  x: number;
+  y: number;
+  size: number;
+};
+
 type MapMode = "2d" | "isometric" | "3d";
 type DepthMode = "2d" | "3d";
 
@@ -33,6 +42,154 @@ const gridCellFor = (coord: Coordinate) => ({
 });
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x}:${coordinate.y}`;
+
+const SUNFIRE_FACILITIES: MapFacility[] = [
+  { id: "sunfire-castle", label: "Sunfire Castle", type: "castle", x: 597, y: 597, size: 4 },
+  { id: "north-turret", label: "North Turret", type: "turret", x: 593, y: 593, size: 2 },
+  { id: "east-turret", label: "East Turret", type: "turret", x: 603, y: 593, size: 2 },
+  { id: "south-turret", label: "South Turret", type: "turret", x: 603, y: 603, size: 2 },
+  { id: "west-turret", label: "West Turret", type: "turret", x: 593, y: 603, size: 2 },
+];
+
+const drawRoundedRect = (context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
+};
+
+const drawSunfireCastle = (context: CanvasRenderingContext2D, facility: MapFacility) => {
+  const scale = 5.8;
+  const width = facility.size * scale;
+  const height = facility.size * scale;
+  const x = facility.x + facility.size / 2 - width / 2;
+  const y = facility.y + facility.size / 2 - height / 2;
+  const centerX = x + width / 2;
+
+  context.save();
+  context.shadowColor = "rgba(15, 23, 42, 0.28)";
+  context.shadowBlur = 3;
+  context.shadowOffsetY = 2;
+
+  const base = context.createLinearGradient(x, y, x, y + height);
+  base.addColorStop(0, "#f8d574");
+  base.addColorStop(0.48, "#c9852e");
+  base.addColorStop(1, "#7a3f18");
+  context.fillStyle = base;
+  drawRoundedRect(context, x + width * 0.17, y + height * 0.34, width * 0.66, height * 0.48, 1.5);
+  context.fill();
+  context.strokeStyle = "#5f2e13";
+  context.lineWidth = 1.2;
+  context.stroke();
+
+  const roof = context.createLinearGradient(x, y, x, y + height * 0.42);
+  roof.addColorStop(0, "#fff4a3");
+  roof.addColorStop(1, "#e45725");
+  context.fillStyle = roof;
+  context.beginPath();
+  context.moveTo(centerX, y + height * 0.03);
+  context.lineTo(x + width * 0.89, y + height * 0.4);
+  context.lineTo(x + width * 0.11, y + height * 0.4);
+  context.closePath();
+  context.fill();
+  context.stroke();
+
+  for (const towerX of [x + width * 0.16, x + width * 0.74]) {
+    context.fillStyle = "#a85d24";
+    drawRoundedRect(context, towerX, y + height * 0.28, width * 0.1, height * 0.48, 1.2);
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#ffd76a";
+    context.beginPath();
+    context.moveTo(towerX + width * 0.05, y + height * 0.08);
+    context.lineTo(towerX + width * 0.14, y + height * 0.29);
+    context.lineTo(towerX - width * 0.04, y + height * 0.29);
+    context.closePath();
+    context.fill();
+    context.stroke();
+  }
+
+  context.fillStyle = "#4b2411";
+  drawRoundedRect(context, centerX - width * 0.1, y + height * 0.57, width * 0.2, height * 0.25, 1.8);
+  context.fill();
+
+  context.fillStyle = "#fff6bf";
+  for (const windowX of [x + width * 0.33, x + width * 0.49, x + width * 0.65]) {
+    drawRoundedRect(context, windowX, y + height * 0.46, width * 0.06, height * 0.09, 0.8);
+    context.fill();
+  }
+
+  context.shadowBlur = 0;
+  context.fillStyle = "#111827";
+  context.font = "700 4px Arial";
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  context.fillText(facility.label, centerX, y + height + 2);
+  context.restore();
+};
+
+const drawSunfireTurret = (context: CanvasRenderingContext2D, facility: MapFacility) => {
+  const scale = 6;
+  const size = facility.size * scale;
+  const x = facility.x + facility.size / 2 - size / 2;
+  const y = facility.y + facility.size / 2 - size / 2;
+  const centerX = x + size / 2;
+  const centerY = y + size / 2;
+
+  context.save();
+  context.shadowColor = "rgba(15, 23, 42, 0.22)";
+  context.shadowBlur = 2;
+  context.shadowOffsetY = 1;
+
+  const body = context.createLinearGradient(x, y, x, y + size);
+  body.addColorStop(0, "#8b5a32");
+  body.addColorStop(0.54, "#5f3a22");
+  body.addColorStop(1, "#2f1b12");
+  context.fillStyle = body;
+  drawRoundedRect(context, x + size * 0.22, y + size * 0.22, size * 0.56, size * 0.62, 1.2);
+  context.fill();
+  context.strokeStyle = "#24130c";
+  context.lineWidth = 1;
+  context.stroke();
+
+  context.fillStyle = "#c9822d";
+  context.beginPath();
+  context.moveTo(centerX, y + size * 0.02);
+  context.lineTo(x + size * 0.87, y + size * 0.28);
+  context.lineTo(x + size * 0.13, y + size * 0.28);
+  context.closePath();
+  context.fill();
+  context.stroke();
+
+  context.fillStyle = "#ffdf76";
+  drawRoundedRect(context, centerX - size * 0.08, centerY - size * 0.05, size * 0.16, size * 0.2, 0.8);
+  context.fill();
+
+  context.shadowBlur = 0;
+  context.fillStyle = "#111827";
+  context.font = "700 3.4px Arial";
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  context.fillText(facility.label.replace(" Turret", ""), centerX, y + size + 1.5);
+  context.restore();
+};
+
+const drawFixedFacilities = (context: CanvasRenderingContext2D) => {
+  for (const facility of SUNFIRE_FACILITIES) {
+    if (facility.type === "castle") {
+      drawSunfireCastle(context, facility);
+      continue;
+    }
+    drawSunfireTurret(context, facility);
+  }
+};
 
 const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number) => {
   const context = canvas.getContext("2d");
@@ -87,6 +244,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     markCoordinate(hover);
   }
   markCoordinate(selected, true);
+  drawFixedFacilities(context);
 };
 
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
