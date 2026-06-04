@@ -1082,6 +1082,8 @@ const normalizeTemplateCopyText = (text: string) =>
 
 const templateCopyTextFor = (template: MessageTemplate) => normalizeTemplateCopyText(template.rawText ?? template.text ?? "");
 
+const templateWosClipboardTextFor = (template: MessageTemplate) => templateCopyTextFor(template).replace(/\n/g, "\r");
+
 const copyPlainTextExact = async (text: string) => {
   const cleanText = normalizeTemplateCopyText(text);
   const textArea = document.createElement("textarea");
@@ -1107,6 +1109,15 @@ const copyPlainTextExact = async (text: string) => {
     throw new Error("Clipboard unavailable");
   }
   await navigator.clipboard.writeText(cleanText);
+};
+
+const copyWosPlainTextExact = async (template: MessageTemplate) => {
+  const wosText = templateWosClipboardTextFor(template);
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(wosText);
+    return;
+  }
+  await copyPlainTextExact(wosText);
 };
 
 const exactTemplateTextFromForm = (form: HTMLFormElement) => {
@@ -4113,11 +4124,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   };
 
   const copyMessageTemplate = async (template: MessageTemplate) => {
-    const copyText = templateCopyTextFor(template);
     setCopiedTemplateId(template.id);
     window.setTimeout(() => setCopiedTemplateId((current) => (current === template.id ? "" : current)), 1600);
     try {
-      await copyPlainTextExact(copyText);
+      await copyWosPlainTextExact(template);
     } catch {
       setTemplateStatus("Clipboard unavailable. Use a browser that allows clipboard access for exact WOS art copy.");
     }
