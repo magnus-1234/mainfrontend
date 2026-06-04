@@ -661,6 +661,19 @@ const chiefGearColorForLevel = (level?: ChiefGearLevel) => {
 
 const chiefGearImageFor = (piece: ChiefGearPiece, level?: ChiefGearLevel) => `/woscalc/gear/${piece.asset}-${chiefGearColorForLevel(level)}.png`;
 const chiefCharmImageFor = (troop: ChiefCharmGearPiece["charmImageTroop"], level: number) => `/woscalc/charms/${troop}_${Math.max(1, level)}.png`;
+const chiefGearReferenceRowClass = (level: ChiefGearLevel, selected: boolean) =>
+  [
+    "reference-table-row",
+    `tier-${chiefGearColorForLevel(level)}`,
+    level.id.includes("_t") ? "tier-advanced" : "",
+    selected ? "selected" : "",
+  ].filter(Boolean).join(" ");
+const chiefCharmReferenceRowClass = (level: number, selected: boolean) =>
+  [
+    "reference-table-row",
+    level >= 12 ? "tier-red" : level >= 9 ? "tier-gold" : level >= 6 ? "tier-purple" : level >= 3 ? "tier-blue" : "tier-green",
+    selected ? "selected" : "",
+  ].filter(Boolean).join(" ");
 const chiefGearMaterialIcons = {
   hardenedAlloy: "/woscalc/materials/Hardened-Alloy.png",
   polishingSolution: "/woscalc/materials/Polishing-Solution.png",
@@ -6364,17 +6377,19 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     <thead>
                       <tr>
                         <th>Level</th>
-                        <th>Alloy</th>
-                        <th>Polish</th>
-                        <th>Plans</th>
-                        <th>Amber</th>
-                        <th>Atk/Def</th>
-                        <th>Capacity</th>
+                        <th><span className="reference-head-item"><img src={chiefGearMaterialIcons.hardenedAlloy} alt="" />Alloy</span></th>
+                        <th><span className="reference-head-item"><img src={chiefGearMaterialIcons.polishingSolution} alt="" />Polish</span></th>
+                        <th><span className="reference-head-item"><img src={chiefGearMaterialIcons.designPlans} alt="" />Plans</span></th>
+                        <th><span className="reference-head-item"><img src={chiefGearMaterialIcons.lunarAmber} alt="" />Amber</span></th>
+                        <th><span className="reference-head-item reference-head-stat">%</span>Atk/Def</th>
+                        <th><span className="reference-head-item reference-head-stat">+</span>Capacity</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {chiefGearLevels.map((level) => (
-                        <tr className={chiefGearRows.some((row) => row.calculation.steps.some((step) => step.id === level.id)) ? "selected" : ""} key={level.id}>
+                      {chiefGearLevels.map((level) => {
+                        const selected = chiefGearRows.some((row) => row.calculation.steps.some((step) => step.id === level.id));
+                        return (
+                        <tr className={chiefGearReferenceRowClass(level, selected)} key={level.id}>
                           <td>{level.label}</td>
                           <td>{level.cost.hardenedAlloy ? formatNumber(level.cost.hardenedAlloy) : "-"}</td>
                           <td>{level.cost.polishingSolution ? formatNumber(level.cost.polishingSolution) : "-"}</td>
@@ -6383,7 +6398,8 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                           <td>{formatPercent(level.attackDefense)}</td>
                           <td>{level.squadCapacity ? `+${formatNumber(level.squadCapacity)}` : "-"}</td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -6625,17 +6641,19 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     <thead>
                       <tr>
                         <th>Level</th>
-                        <th>Design</th>
-                        <th>Guide</th>
-                        <th>Secret</th>
-                        <th>Stat Total</th>
-                        <th>Power</th>
-                        <th>Gain</th>
+                        <th><span className="reference-head-item"><img src={chiefCharmMaterialIcons.design} alt="" />Design</span></th>
+                        <th><span className="reference-head-item"><img src={chiefCharmMaterialIcons.guide} alt="" />Guide</span></th>
+                        <th><span className="reference-head-item"><img src={chiefCharmMaterialIcons.secret} alt="" />Secret</span></th>
+                        <th><span className="reference-head-item reference-head-stat">%</span>Stat Total</th>
+                        <th><span className="reference-head-item reference-head-stat">P</span>Power</th>
+                        <th><span className="reference-head-item reference-head-stat">+</span>Gain</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {charmEfficiencyRows.map((level) => (
-                        <tr className={charmSlotRows.some((slot) => level.level > slot.from && level.level <= slot.to) ? "selected" : ""} key={level.level}>
+                      {charmEfficiencyRows.map((level) => {
+                        const selected = charmSlotRows.some((slot) => level.level > slot.from && level.level <= slot.to);
+                        return (
+                        <tr className={chiefCharmReferenceRowClass(level.level, selected)} key={level.level}>
                           <td>Lv.{level.level}</td>
                           <td>{formatNumber(level.design)}</td>
                           <td>{formatNumber(level.guide)}</td>
@@ -6644,7 +6662,8 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                           <td>{formatNumber(level.power)}</td>
                           <td>{formatNumber(level.powerGain)}</td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
