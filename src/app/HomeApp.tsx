@@ -1082,7 +1082,11 @@ const normalizeTemplateCopyText = (text: string) =>
 
 const templateCopyTextFor = (template: MessageTemplate) => normalizeTemplateCopyText(template.rawText ?? template.text ?? "");
 
-const templateWosClipboardTextFor = (template: MessageTemplate) => templateCopyTextFor(template).replace(/\n/g, "\r");
+const templateWosClipboardTextFor = (template: MessageTemplate) =>
+  templateCopyTextFor(template)
+    .split("\n")
+    .filter((line) => line.trim().length > 0)
+    .join("\n");
 
 const copyPlainTextExact = async (text: string) => {
   const cleanText = normalizeTemplateCopyText(text);
