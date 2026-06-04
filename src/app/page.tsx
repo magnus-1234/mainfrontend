@@ -159,6 +159,11 @@ type SiteLanguage = {
   shortCode: string;
 };
 
+type NavVisual = {
+  src: string;
+  alt: string;
+};
+
 type VipLevel = {
   level: number;
   cumulativeXp: number;
@@ -1309,6 +1314,33 @@ const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string
   { label: "Chief Charm", mobileLabel: "Charm", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
 ];
 
+const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
+  home: { src: "/wos-logo.png", alt: "Whiteout Survival logo" },
+  gift: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
+  redeem: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
+  stateAge: { src: "/state-transfer.png", alt: "State transfer" },
+  vip: { src: "/svs-resources/fire-crystal.png", alt: "Fire crystal" },
+  chiefGear: { src: "/woscalc/gear/helmet-gold.png", alt: "Chief gear" },
+  chiefCharm: { src: "/woscalc/charms/Infantry_16.png", alt: "Chief charm" },
+  svsPlanner: { src: "/wiki/heroes/natalia/32b1c504e8ae.png", alt: "SvS appointment resource" },
+  planner: { src: "/foundry-team-planner-map.webp", alt: "Foundry map" },
+  gameMap: { src: "/vendor/krozac-wos-interactive-map/furnace.png", alt: "Game map furnace" },
+  templates: { src: "/wiki/heroes/estrella/18d9d05440cc.png", alt: "Message templates" },
+  sneak: { src: "/sneak-peek/sneak-01.png", alt: "Sneak peek" },
+  daybreak: { src: "/daybreak-island-tree-of-life.webp", alt: "Daybreak Island tree" },
+  dreamscape: { src: "/wiki/heroes/estrella/2cfef55ef649.png", alt: "Dreamscape Memory" },
+  bot: { src: "/bot-logo.gif", alt: "Discord bot" },
+  wikiHeroes: { src: "/wiki/heroes/molly/554d3a1795ca.png", alt: "WOS hero" },
+  wikiBuildings: { src: "/wiki/buildings/furnace/1d5f9abc1441.png", alt: "WOS furnace" },
+};
+
+const navGroupVisuals: Record<"calculators" | "wiki" | "developer" | "more", NavVisual> = {
+  calculators: { src: "/woscalc/gear/helmet-gold.png", alt: "Calculators" },
+  wiki: { src: "/wiki/heroes/molly/554d3a1795ca.png", alt: "WOS Wiki" },
+  developer: { src: "/wos-logo.png", alt: "Developer tools" },
+  more: { src: "/whiteout-survival-logo.png", alt: "More tools" },
+};
+
 const landingToolVisuals: Partial<Record<ActiveMenu, { src: string; alt: string; tone: "gold" | "ice" | "ember" | "blue" | "green" | "violet" }>> = {
   gift: { src: "/home-icons/gift-code.svg", alt: "Whiteout Survival gift code reward", tone: "gold" },
   svsPlanner: { src: "/wiki/heroes/natalia/32b1c504e8ae.png", alt: "Whiteout Survival appointment resource", tone: "ember" },
@@ -1874,6 +1906,18 @@ function LandingToolIcon({ menu, icon }: { menu: ActiveMenu; icon: string }) {
   return (
     <span className={`landing-tool-icon ${visual ? `has-image tone-${visual.tone}` : ""}`}>
       {visual ? <img src={visual.src} alt={visual.alt} loading="lazy" /> : <Icon name={icon} />}
+    </span>
+  );
+}
+
+function NavIcon({ icon, visual }: { icon: string; visual?: NavVisual }) {
+  if (!visual) {
+    return <Icon name={icon} />;
+  }
+
+  return (
+    <span className="nav-icon-image" aria-hidden="true">
+      <img src={visual.src} alt="" loading="lazy" />
     </span>
   );
 }
@@ -5186,7 +5230,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     navigateToMenu(item.menu);
                   }}
                 >
-                  <Icon name={item.icon} />
+                  <NavIcon icon={item.icon} visual={navVisuals[item.menu]} />
                   <span>
                     <strong>{item.label}</strong>
                     <small>{item.mobileLabel}</small>
@@ -5202,7 +5246,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
                   onClick={() => setSidebarCalculatorOpen((value) => !value)}
                 >
-                  <Icon name="calculator" />
+                  <NavIcon icon="calculator" visual={navGroupVisuals.calculators} />
                   <span>
                     <strong>Calculators</strong>
                     <small>Chief gear and charm</small>
@@ -5222,7 +5266,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                         navigateToMenu(item.menu);
                       }}
                     >
-                      <Icon name={item.icon} />
+                      <NavIcon icon={item.icon} visual={navVisuals[item.menu]} />
                       <span>{item.label}</span>
                     </a>
                   ))}
@@ -5236,7 +5280,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   aria-expanded={sidebarWikiOpen || wikiMenuActive}
                   onClick={() => setSidebarWikiOpen((value) => !value)}
                 >
-                  <Icon name="book" />
+                  <NavIcon icon="book" visual={navGroupVisuals.wiki} />
                   <span>
                     <strong>WOS Wiki</strong>
                     <small>Heroes and buildings</small>
@@ -5256,7 +5300,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                         navigateToMenu(item.menu);
                       }}
                     >
-                      <Icon name={item.icon} />
+                      <NavIcon icon={item.icon} visual={navVisuals[item.menu]} />
                       <span>{item.label}</span>
                     </a>
                   ))}
@@ -5270,7 +5314,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   aria-expanded={sidebarDeveloperOpen}
                   onClick={() => setSidebarDeveloperOpen((value) => !value)}
                 >
-                  <Icon name="database" />
+                  <NavIcon icon="database" visual={navGroupVisuals.developer} />
                   <span>
                     <strong>Developer</strong>
                     <small>API and docs</small>
@@ -5286,7 +5330,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       role="menuitem"
                       onClick={() => setMobileMoreOpen(false)}
                     >
-                      <Icon name={item.icon} />
+                      <NavIcon icon={item.icon} visual={navGroupVisuals.developer} />
                       <span>{item.mobileLabel}</span>
                     </a>
                   ))}
@@ -5316,7 +5360,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   navigateToMenu(item.menu);
                 }}
               >
-                <Icon name={item.icon} />
+                <NavIcon icon={item.icon} visual={navVisuals[item.menu]} />
                 <span className="nav-label-desktop">{item.label}</span>
                 <span className="nav-label-mobile">{item.mobileLabel}</span>
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
@@ -5330,7 +5374,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 aria-controls="sidebar-calculators-submenu"
                 onClick={() => setSidebarCalculatorOpen((value) => !value)}
               >
-                <Icon name="calculator" />
+                <NavIcon icon="calculator" visual={navGroupVisuals.calculators} />
                 <span className="nav-label-desktop">Calculators</span>
                 <span className="nav-label-mobile">Calc</span>
                 <Icon name="chevron" />
@@ -5347,7 +5391,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       navigateToMenu(item.menu);
                     }}
                   >
-                    <Icon name={item.icon} />
+                    <NavIcon icon={item.icon} visual={navVisuals[item.menu]} />
                     <span className="nav-label-desktop">{item.label}</span>
                     <span className="nav-label-mobile">{item.mobileLabel}</span>
                   </a>
@@ -5362,7 +5406,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 aria-controls="sidebar-wos-wiki-submenu"
                 onClick={() => setSidebarWikiOpen((value) => !value)}
               >
-                <Icon name="book" />
+                <NavIcon icon="book" visual={navGroupVisuals.wiki} />
                 <span className="nav-label-desktop">WOS Wiki</span>
                 <span className="nav-label-mobile">Wiki</span>
                 <Icon name="chevron" />
@@ -5379,7 +5423,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       navigateToMenu(item.menu);
                     }}
                   >
-                    <Icon name={item.icon} />
+                    <NavIcon icon={item.icon} visual={navVisuals[item.menu]} />
                     <span className="nav-label-desktop">{item.label}</span>
                     <span className="nav-label-mobile">{item.mobileLabel}</span>
                   </a>
@@ -5394,7 +5438,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 aria-controls="sidebar-developer-submenu"
                 onClick={() => setSidebarDeveloperOpen((value) => !value)}
               >
-                <Icon name="database" />
+                <NavIcon icon="database" visual={navGroupVisuals.developer} />
                 <span className="nav-label-desktop">Developer</span>
                 <span className="nav-label-mobile">Dev</span>
                 <Icon name="chevron" />
@@ -5406,7 +5450,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     href={item.href}
                     key={item.href}
                   >
-                    <Icon name={item.icon} />
+                    <NavIcon icon={item.icon} visual={navGroupVisuals.developer} />
                     <span className="nav-label-desktop">{item.label}</span>
                     <span className="nav-label-mobile">{item.mobileLabel}</span>
                   </a>
@@ -5421,7 +5465,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 aria-expanded={mobileMoreOpen}
                 onClick={() => setMobileMoreOpen((value) => !value)}
               >
-                <Icon name="menu" />
+                <NavIcon icon="menu" visual={navGroupVisuals.more} />
                 <span className="nav-label-mobile">More</span>
               </button>
             )}
