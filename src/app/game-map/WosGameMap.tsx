@@ -31,17 +31,20 @@ const gridCellFor = (coord: Coordinate) => ({
   y: Math.floor((coord.y - 1) / GRID_STEP) * GRID_STEP,
 });
 
-const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null) => {
+const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number) => {
   const context = canvas.getContext("2d");
   if (!context) {
     return;
   }
 
   const ratio = window.devicePixelRatio || 1;
-  canvas.width = CANVAS_SIZE * ratio;
-  canvas.height = CANVAS_SIZE * ratio;
-  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const renderBoost = zoom > 1 ? Math.min(4, Math.ceil(zoom)) : 1;
+  const renderScale = ratio * renderBoost;
+  canvas.width = CANVAS_SIZE * renderScale;
+  canvas.height = CANVAS_SIZE * renderScale;
+  context.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  context.imageSmoothingEnabled = false;
 
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
@@ -76,7 +79,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.fillText(String(value), 24, position);
   }
 
-  const markCoordinate = (coord: Coordinate, color: string, selectedCell = false) => {
+  const markCoordinate = (coord: Coordinate, selectedCell = false) => {
     const cell = gridCellFor(coord);
     const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
     const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
@@ -85,22 +88,12 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.58)";
     context.lineWidth = selectedCell ? 4 : 2;
     context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
-
-    const label = `${coord.x},${coord.y}`;
-    context.font = selectedCell ? "800 8px Arial" : "800 7px Arial";
-    const labelWidth = Math.min(cellWidth - 4, context.measureText(label).width + 4);
-    context.save();
-    context.fillStyle = color;
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(label, cell.x + cellWidth / 2, cell.y + cellHeight / 2, labelWidth);
-    context.restore();
   };
 
   if (hover) {
-    markCoordinate(hover, "rgba(15, 23, 42, 0.78)");
+    markCoordinate(hover);
   }
-  markCoordinate(selected, "#0f172a", true);
+  markCoordinate(selected, true);
 };
 
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
@@ -121,8 +114,22 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     if (!canvas) {
       return;
     }
-    drawMap(canvas, selected, hover);
-  }, [hover, selected]);
+    drawMap(canvas, selected, hover, zoom);
+  }, [hover, selected, zoom]);
+
+  const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
+    const cell = gridCellFor(coordinate);
+    const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
+    const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
+    const inverseScale = clamp(1 / Math.max(zoom, 1), 0.16, 1);
+    return {
+      left: `${((cell.x + cellWidth / 2) / CANVAS_SIZE) * 100}%`,
+      top: `${((cell.y + cellHeight / 2) / CANVAS_SIZE) * 100}%`,
+      transform: `translate(-50%, -50%) scale(${inverseScale})`,
+      transformOrigin: "center",
+      ["--label-opacity" as string]: selectedLabel ? "1" : "0.86",
+    };
+  };
 
   const coordinateFromPointer = useCallback((event: PointerEvent<HTMLCanvasElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -292,6 +299,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 }
               }}
             />
+            <span className="wos-cell-label selected" style={coordinateLabelStyle(selected, true)}>
+              {selected.x},{selected.y}
+            </span>
+            {hover && (gridCellFor(hover).x !== gridCellFor(selected).x || gridCellFor(hover).y !== gridCellFor(selected).y) && (
+              <span className="wos-cell-label hover" style={coordinateLabelStyle(hover)}>
+                {hover.x},{hover.y}
+              </span>
+            )}
           </div>
         </div>
 
