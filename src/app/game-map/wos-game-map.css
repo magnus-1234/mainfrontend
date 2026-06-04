@@ -47,6 +47,7 @@
 }
 
 .wos-map-stage {
+  position: relative;
   display: grid;
   min-height: 640px;
   overflow: hidden;
@@ -54,7 +55,9 @@
   place-items: center;
   border: 1px solid rgba(17, 24, 39, 0.14);
   border-radius: 8px;
-  background: #eef1f4;
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.72), transparent 28%),
+    linear-gradient(135deg, #d8e8ec 0%, #e9f1ed 42%, #c5d8d3 100%);
   perspective: 1200px;
 }
 
@@ -81,7 +84,7 @@
   height: 100%;
   border: 1px solid rgba(17, 24, 39, 0.5);
   border-radius: 0;
-  background: #ffffff;
+  background: #d8edf0;
   box-shadow:
     0 24px 70px rgba(15, 23, 42, 0.18),
     inset 0 0 0 1px rgba(17, 24, 39, 0.08);
@@ -145,6 +148,60 @@
   border-radius: 8px;
   padding: 14px;
   background: var(--card);
+}
+
+.wos-map-legend {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  display: flex;
+  max-width: min(640px, calc(100% - 28px));
+  flex-wrap: wrap;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.wos-map-legend span,
+.wos-map-asset-readout {
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 8px;
+  background: rgba(9, 24, 31, 0.72);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.wos-map-legend span {
+  min-height: 30px;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.wos-map-asset-readout {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+}
+
+.wos-map-asset-readout strong {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
+.wos-map-asset-readout span {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .wos-map-controls label {
@@ -281,7 +338,8 @@
   .wos-map-mode-control,
   .wos-zoom-board,
   .wos-coordinate-fields,
-  .wos-map-nudge {
+  .wos-map-nudge,
+  .wos-map-asset-readout {
     grid-column: 1 / -1;
   }
 }
@@ -299,6 +357,18 @@
 
   .wos-map-stage {
     min-height: 390px;
+  }
+
+  .wos-map-legend {
+    right: 8px;
+    bottom: 8px;
+    gap: 5px;
+  }
+
+  .wos-map-legend span {
+    min-height: 26px;
+    padding: 7px 8px;
+    font-size: 10px;
   }
 
   .wos-map-rotator {

@@ -6,19 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const MAP_SIZE = 1199;
 const CANVAS_SIZE = 1199;
 const GRID_STEP = 25;
+const ASSET_ROOT = "/game-map/assets";
 
 type Coordinate = {
   x: number;
   y: number;
-};
-
-type MapFacility = {
-  id: string;
-  label: string;
-  type: "castle" | "turret";
-  x: number;
-  y: number;
-  size: number;
 };
 
 type MapMode = "2d" | "isometric" | "3d";
@@ -34,6 +26,91 @@ type DragState = {
   panY: number;
 };
 
+type LoadedAssets = Record<string, HTMLImageElement>;
+
+type MapObject = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  size: number;
+  kind: "capital" | "tower" | "fort" | "city" | "resource";
+  asset: string;
+  tint?: string;
+};
+
+type Territory = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+};
+
+const assetFiles = {
+  terrainMask: "terrain_mask.png",
+  terrainMask2: "terrain_mask_2.png",
+  waterMask: "water_mask.png",
+  waterMask2: "water_mask2.png",
+  iceMask: "ice_mask.png",
+  worldMask: "mask.png",
+  worldMaskAlt: "mask_1.png",
+  resourceMask: "resource_mask.png",
+  border: "border.png",
+  borderDot: "border_dot.png",
+  gridGreen: "GridGreen.png",
+  gridRed: "GridRed.png",
+  path: "WorldPath.png",
+  cloud1: "fxui_m_tex_world_cloud01_lxy.png",
+  cloud2: "fxui_m_tex_world_cloud02_lxy.png",
+  maskEdge: "fxui_m_tex_world_maskedge03_lxy.png",
+  sunfire: "3d_world_building_polar_knight_diffuse_01.png",
+  turret: "3d_world_building_cloud_tower_diffuse_lighting.png",
+  atlantis: "3d_world_building_atlantis_diffuse.png",
+  dragon: "3d_world_building_dragon_diffuse.png",
+  blueHeart: "3d_world_building_blue_heart_diffuse.png",
+  snowman: "3d_world_building_giant_snowman_diffuse.png",
+  flame: "3d_world_building_knight_of_flame_diffuse.png",
+  wood: "item_icon_100001.png",
+  meat: "item_icon_100002.png",
+  coal: "item_icon_100003.png",
+  iron: "item_icon_100004.png",
+  crystal: "item_icon_100011.png",
+  scaffold1: "slg_scaffold_01.png",
+  scaffold2: "slg_scaffold_04.png",
+  allianceBg: "allianceterritory_bg_001.png",
+  allianceFlag: "allianceterritory_icon_001.png",
+  allianceTower: "allianceterritory_icon_004.png",
+  allianceTrap: "allianceterritory_icon_008.png",
+} as const;
+
+const WORLD_OBJECTS: MapObject[] = [
+  { id: "sunfire", label: "Sunfire Castle", x: 597, y: 597, size: 72, kind: "capital", asset: "sunfire" },
+  { id: "north-tower", label: "North Turret", x: 597, y: 512, size: 44, kind: "tower", asset: "turret" },
+  { id: "east-tower", label: "East Turret", x: 682, y: 597, size: 44, kind: "tower", asset: "turret" },
+  { id: "south-tower", label: "South Turret", x: 597, y: 682, size: 44, kind: "tower", asset: "turret" },
+  { id: "west-tower", label: "West Turret", x: 512, y: 597, size: 44, kind: "tower", asset: "turret" },
+  { id: "frost-fort", label: "Frost Fort", x: 298, y: 312, size: 58, kind: "fort", asset: "snowman" },
+  { id: "flame-fort", label: "Flame Fort", x: 914, y: 336, size: 60, kind: "fort", asset: "flame" },
+  { id: "eastern-city", label: "State City", x: 862, y: 776, size: 58, kind: "city", asset: "dragon" },
+  { id: "western-city", label: "Alliance City", x: 268, y: 820, size: 58, kind: "city", asset: "blueHeart" },
+  { id: "north-ruin", label: "Ruins", x: 612, y: 188, size: 54, kind: "fort", asset: "atlantis" },
+  { id: "wood-node", label: "Wood", x: 212, y: 472, size: 34, kind: "resource", asset: "wood" },
+  { id: "meat-node", label: "Meat", x: 775, y: 224, size: 34, kind: "resource", asset: "meat" },
+  { id: "coal-node", label: "Coal", x: 410, y: 938, size: 34, kind: "resource", asset: "coal" },
+  { id: "iron-node", label: "Iron", x: 976, y: 866, size: 34, kind: "resource", asset: "iron" },
+  { id: "crystal-node", label: "Crystal", x: 628, y: 936, size: 34, kind: "resource", asset: "crystal" },
+];
+
+const TERRITORIES: Territory[] = [
+  { id: "northwest", label: "ICE", x: 134, y: 166, width: 318, height: 258, color: "rgba(54, 161, 217, 0.22)" },
+  { id: "northeast", label: "SUN", x: 736, y: 178, width: 290, height: 266, color: "rgba(238, 167, 69, 0.2)" },
+  { id: "southwest", label: "ASH", x: 176, y: 744, width: 324, height: 252, color: "rgba(89, 127, 93, 0.2)" },
+  { id: "southeast", label: "FROST", x: 752, y: 720, width: 318, height: 276, color: "rgba(123, 98, 206, 0.18)" },
+];
+
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const gridCellFor = (coord: Coordinate) => ({
@@ -43,13 +120,21 @@ const gridCellFor = (coord: Coordinate) => ({
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x}:${coordinate.y}`;
 
-const SUNFIRE_FACILITIES: MapFacility[] = [
-  { id: "sunfire-castle", label: "Sunfire Castle", type: "castle", x: 597, y: 597, size: 4 },
-  { id: "north-turret", label: "North Turret", type: "turret", x: 593, y: 593, size: 2 },
-  { id: "east-turret", label: "East Turret", type: "turret", x: 603, y: 593, size: 2 },
-  { id: "south-turret", label: "South Turret", type: "turret", x: 603, y: 603, size: 2 },
-  { id: "west-turret", label: "West Turret", type: "turret", x: 593, y: 603, size: 2 },
-];
+const loadMapAssets = async () => {
+  const entries = Object.entries(assetFiles);
+  const loaded = await Promise.all(
+    entries.map(
+      ([key, file]) =>
+        new Promise<[string, HTMLImageElement]>((resolve) => {
+          const image = new Image();
+          image.onload = () => resolve([key, image]);
+          image.onerror = () => resolve([key, image]);
+          image.src = `${ASSET_ROOT}/${file}`;
+        }),
+    ),
+  );
+  return Object.fromEntries(loaded) as LoadedAssets;
+};
 
 const drawRoundedRect = (context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
   context.beginPath();
@@ -65,133 +150,238 @@ const drawRoundedRect = (context: CanvasRenderingContext2D, x: number, y: number
   context.closePath();
 };
 
-const drawSunfireCastle = (context: CanvasRenderingContext2D, facility: MapFacility) => {
-  const scale = 5.8;
-  const width = facility.size * scale;
-  const height = facility.size * scale;
-  const x = facility.x + facility.size / 2 - width / 2;
-  const y = facility.y + facility.size / 2 - height / 2;
-  const centerX = x + width / 2;
-
+const drawImagePattern = (
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement | undefined,
+  alpha: number,
+  composite: GlobalCompositeOperation = "source-over",
+) => {
+  if (!image?.complete || !image.naturalWidth) {
+    return;
+  }
   context.save();
-  context.shadowColor = "rgba(15, 23, 42, 0.28)";
-  context.shadowBlur = 3;
-  context.shadowOffsetY = 2;
+  context.globalAlpha = alpha;
+  context.globalCompositeOperation = composite;
+  const pattern = context.createPattern(image, "repeat");
+  if (pattern) {
+    context.fillStyle = pattern;
+    context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  } else {
+    context.drawImage(image, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  }
+  context.restore();
+};
 
-  const base = context.createLinearGradient(x, y, x, y + height);
-  base.addColorStop(0, "#f8d574");
-  base.addColorStop(0.48, "#c9852e");
-  base.addColorStop(1, "#7a3f18");
+const drawWorldTerrain = (context: CanvasRenderingContext2D, assets: LoadedAssets | null) => {
+  const base = context.createLinearGradient(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  base.addColorStop(0, "#d7edf1");
+  base.addColorStop(0.28, "#eff8f7");
+  base.addColorStop(0.58, "#c8dfd4");
+  base.addColorStop(0.78, "#edf3e6");
+  base.addColorStop(1, "#bccdd0");
   context.fillStyle = base;
-  drawRoundedRect(context, x + width * 0.17, y + height * 0.34, width * 0.66, height * 0.48, 1.5);
-  context.fill();
-  context.strokeStyle = "#5f2e13";
-  context.lineWidth = 1.2;
-  context.stroke();
+  context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-  const roof = context.createLinearGradient(x, y, x, y + height * 0.42);
-  roof.addColorStop(0, "#fff4a3");
-  roof.addColorStop(1, "#e45725");
-  context.fillStyle = roof;
-  context.beginPath();
-  context.moveTo(centerX, y + height * 0.03);
-  context.lineTo(x + width * 0.89, y + height * 0.4);
-  context.lineTo(x + width * 0.11, y + height * 0.4);
-  context.closePath();
-  context.fill();
-  context.stroke();
-
-  for (const towerX of [x + width * 0.16, x + width * 0.74]) {
-    context.fillStyle = "#a85d24";
-    drawRoundedRect(context, towerX, y + height * 0.28, width * 0.1, height * 0.48, 1.2);
-    context.fill();
-    context.stroke();
-    context.fillStyle = "#ffd76a";
-    context.beginPath();
-    context.moveTo(towerX + width * 0.05, y + height * 0.08);
-    context.lineTo(towerX + width * 0.14, y + height * 0.29);
-    context.lineTo(towerX - width * 0.04, y + height * 0.29);
-    context.closePath();
-    context.fill();
-    context.stroke();
+  if (!assets) {
+    return;
   }
 
-  context.fillStyle = "#4b2411";
-  drawRoundedRect(context, centerX - width * 0.1, y + height * 0.57, width * 0.2, height * 0.25, 1.8);
-  context.fill();
-
-  context.fillStyle = "#fff6bf";
-  for (const windowX of [x + width * 0.33, x + width * 0.49, x + width * 0.65]) {
-    drawRoundedRect(context, windowX, y + height * 0.46, width * 0.06, height * 0.09, 0.8);
-    context.fill();
-  }
-
-  context.shadowBlur = 0;
-  context.fillStyle = "#111827";
-  context.font = "700 4px Arial";
-  context.textAlign = "center";
-  context.textBaseline = "top";
-  context.fillText(facility.label, centerX, y + height + 2);
-  context.restore();
-};
-
-const drawSunfireTurret = (context: CanvasRenderingContext2D, facility: MapFacility) => {
-  const scale = 6;
-  const size = facility.size * scale;
-  const x = facility.x + facility.size / 2 - size / 2;
-  const y = facility.y + facility.size / 2 - size / 2;
-  const centerX = x + size / 2;
-  const centerY = y + size / 2;
+  drawImagePattern(context, assets.terrainMask, 0.32, "multiply");
+  drawImagePattern(context, assets.terrainMask2, 0.28, "overlay");
+  drawImagePattern(context, assets.iceMask, 0.18, "screen");
 
   context.save();
-  context.shadowColor = "rgba(15, 23, 42, 0.22)";
-  context.shadowBlur = 2;
-  context.shadowOffsetY = 1;
+  context.globalAlpha = 0.34;
+  context.globalCompositeOperation = "multiply";
+  context.drawImage(assets.waterMask2, -70, -54, 560, 560);
+  context.drawImage(assets.waterMask, 740, 70, 460, 420);
+  context.drawImage(assets.waterMask2, 732, 715, 540, 500);
+  context.drawImage(assets.waterMask, 80, 820, 380, 320);
+  context.restore();
 
-  const body = context.createLinearGradient(x, y, x, y + size);
-  body.addColorStop(0, "#8b5a32");
-  body.addColorStop(0.54, "#5f3a22");
-  body.addColorStop(1, "#2f1b12");
-  context.fillStyle = body;
-  drawRoundedRect(context, x + size * 0.22, y + size * 0.22, size * 0.56, size * 0.62, 1.2);
-  context.fill();
-  context.strokeStyle = "#24130c";
-  context.lineWidth = 1;
-  context.stroke();
-
-  context.fillStyle = "#c9822d";
-  context.beginPath();
-  context.moveTo(centerX, y + size * 0.02);
-  context.lineTo(x + size * 0.87, y + size * 0.28);
-  context.lineTo(x + size * 0.13, y + size * 0.28);
-  context.closePath();
-  context.fill();
-  context.stroke();
-
-  context.fillStyle = "#ffdf76";
-  drawRoundedRect(context, centerX - size * 0.08, centerY - size * 0.05, size * 0.16, size * 0.2, 0.8);
-  context.fill();
-
-  context.shadowBlur = 0;
-  context.fillStyle = "#111827";
-  context.font = "700 3.4px Arial";
-  context.textAlign = "center";
-  context.textBaseline = "top";
-  context.fillText(facility.label.replace(" Turret", ""), centerX, y + size + 1.5);
+  context.save();
+  context.globalAlpha = 0.2;
+  context.globalCompositeOperation = "soft-light";
+  context.drawImage(assets.worldMask, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  context.drawImage(assets.worldMaskAlt, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
   context.restore();
 };
 
-const drawFixedFacilities = (context: CanvasRenderingContext2D) => {
-  for (const facility of SUNFIRE_FACILITIES) {
-    if (facility.type === "castle") {
-      drawSunfireCastle(context, facility);
-      continue;
+const drawTerritories = (context: CanvasRenderingContext2D, assets: LoadedAssets | null) => {
+  for (const territory of TERRITORIES) {
+    context.save();
+    context.translate(territory.x + territory.width / 2, territory.y + territory.height / 2);
+    context.rotate(-0.08);
+    context.fillStyle = territory.color;
+    context.strokeStyle = "rgba(255, 255, 255, 0.74)";
+    context.lineWidth = 4;
+    drawRoundedRect(context, -territory.width / 2, -territory.height / 2, territory.width, territory.height, 30);
+    context.fill();
+    context.stroke();
+    context.strokeStyle = "rgba(18, 83, 92, 0.24)";
+    context.lineWidth = 2;
+    context.setLineDash([14, 12]);
+    context.stroke();
+    context.setLineDash([]);
+    context.fillStyle = "rgba(15, 23, 42, 0.44)";
+    context.font = "900 34px Arial";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(territory.label, 0, 0);
+    if (assets?.allianceFlag?.complete) {
+      context.drawImage(assets.allianceFlag, -territory.width / 2 + 20, -territory.height / 2 + 20, 44, 44);
     }
-    drawSunfireTurret(context, facility);
+    context.restore();
   }
 };
 
-const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number) => {
+const drawRoads = (context: CanvasRenderingContext2D, assets: LoadedAssets | null) => {
+  context.save();
+  context.strokeStyle = "rgba(83, 92, 83, 0.28)";
+  context.lineWidth = 16;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.beginPath();
+  context.moveTo(150, 604);
+  context.bezierCurveTo(360, 544, 468, 642, 596, 596);
+  context.bezierCurveTo(748, 548, 838, 640, 1050, 584);
+  context.moveTo(596, 596);
+  context.bezierCurveTo(564, 422, 614, 338, 612, 188);
+  context.moveTo(596, 596);
+  context.bezierCurveTo(520, 742, 454, 826, 410, 938);
+  context.moveTo(596, 596);
+  context.bezierCurveTo(752, 676, 864, 746, 976, 866);
+  context.stroke();
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.36)";
+  context.lineWidth = 5;
+  context.stroke();
+
+  if (assets?.path?.complete) {
+    const pattern = context.createPattern(assets.path, "repeat");
+    if (pattern) {
+      context.globalAlpha = 0.58;
+      context.strokeStyle = pattern;
+      context.lineWidth = 3;
+      context.setLineDash([2, 12]);
+      context.stroke();
+    }
+  }
+  context.restore();
+};
+
+const drawGrid = (context: CanvasRenderingContext2D, assets: LoadedAssets | null) => {
+  context.save();
+  context.lineWidth = 1;
+  for (let value = 1; value <= MAP_SIZE; value += GRID_STEP) {
+    const position = value - 1;
+    const isMajor = value === 1 || value % 100 === 0 || value === MAP_SIZE;
+    context.strokeStyle = isMajor ? "rgba(28, 52, 58, 0.28)" : "rgba(28, 52, 58, 0.075)";
+    context.beginPath();
+    context.moveTo(position, 0);
+    context.lineTo(position, CANVAS_SIZE);
+    context.moveTo(0, position);
+    context.lineTo(CANVAS_SIZE, position);
+    context.stroke();
+  }
+  if (assets?.gridGreen?.complete && assets?.gridRed?.complete) {
+    context.globalAlpha = 0.26;
+    context.drawImage(assets.gridGreen, 568, 568, 64, 64);
+    context.drawImage(assets.gridRed, 492, 492, 44, 44);
+    context.drawImage(assets.gridRed, 664, 492, 44, 44);
+    context.drawImage(assets.gridRed, 664, 664, 44, 44);
+    context.drawImage(assets.gridRed, 492, 664, 44, 44);
+  }
+  context.restore();
+};
+
+const drawSelectedCell = (context: CanvasRenderingContext2D, coord: Coordinate, selectedCell = false) => {
+  const cell = gridCellFor(coord);
+  const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
+  const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
+  context.fillStyle = selectedCell ? "rgba(47, 116, 202, 0.18)" : "rgba(47, 116, 202, 0.09)";
+  context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
+  context.strokeStyle = selectedCell ? "#2f74ca" : "rgba(47, 116, 202, 0.6)";
+  context.lineWidth = selectedCell ? 4 : 2;
+  context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
+};
+
+const drawSpriteObject = (context: CanvasRenderingContext2D, object: MapObject, assets: LoadedAssets | null) => {
+  const image = assets?.[object.asset];
+  const size = object.size;
+  const x = object.x - size / 2;
+  const y = object.y - size / 2;
+
+  context.save();
+  context.shadowColor = "rgba(11, 24, 34, 0.38)";
+  context.shadowBlur = object.kind === "resource" ? 10 : 18;
+  context.shadowOffsetY = object.kind === "resource" ? 8 : 16;
+
+  if (object.kind !== "resource") {
+    context.fillStyle = "rgba(12, 29, 35, 0.26)";
+    context.beginPath();
+    context.ellipse(object.x, object.y + size * 0.36, size * 0.44, size * 0.18, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  if (image?.complete && image.naturalWidth) {
+    if (object.kind === "resource") {
+      context.drawImage(image, x, y, size, size);
+    } else {
+      context.save();
+      context.beginPath();
+      context.ellipse(object.x, object.y, size * 0.46, size * 0.48, 0, 0, Math.PI * 2);
+      context.clip();
+      context.drawImage(image, x, y, size, size);
+      context.restore();
+      context.strokeStyle = "rgba(255, 255, 255, 0.78)";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.ellipse(object.x, object.y, size * 0.46, size * 0.48, 0, 0, Math.PI * 2);
+      context.stroke();
+    }
+  } else {
+    const fallback = context.createRadialGradient(object.x, object.y - size * 0.2, 2, object.x, object.y, size);
+    fallback.addColorStop(0, "#f5f7f2");
+    fallback.addColorStop(1, "#6f8b86");
+    context.fillStyle = fallback;
+    context.beginPath();
+    context.ellipse(object.x, object.y, size * 0.45, size * 0.45, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  context.shadowBlur = 0;
+  context.fillStyle = "rgba(8, 20, 26, 0.82)";
+  context.strokeStyle = "rgba(255, 255, 255, 0.82)";
+  context.lineWidth = 3;
+  context.font = object.kind === "resource" ? "900 16px Arial" : "900 18px Arial";
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  context.strokeText(object.label, object.x, y + size + 6);
+  context.fillText(object.label, object.x, y + size + 6);
+  context.restore();
+};
+
+const drawWorldObjects = (context: CanvasRenderingContext2D, assets: LoadedAssets | null) => {
+  for (const object of WORLD_OBJECTS) {
+    drawSpriteObject(context, object, assets);
+  }
+};
+
+const drawAtmosphere = (context: CanvasRenderingContext2D, assets: LoadedAssets | null) => {
+  if (!assets) {
+    return;
+  }
+  context.save();
+  context.globalAlpha = 0.16;
+  context.drawImage(assets.cloud1, 48, 54, 280, 170);
+  context.drawImage(assets.cloud2, 806, 46, 330, 210);
+  context.drawImage(assets.cloud1, 736, 930, 310, 180);
+  context.drawImage(assets.maskEdge, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  context.restore();
+};
+
+const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number, assets: LoadedAssets | null) => {
   const context = canvas.getContext("2d");
   if (!context) {
     return;
@@ -204,53 +394,31 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   canvas.height = CANVAS_SIZE * renderScale;
   context.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  context.imageSmoothingEnabled = false;
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
 
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-  const majorEvery = 100;
-  const minorEvery = GRID_STEP;
-  context.lineWidth = 1;
-
-  for (let value = 1; value <= MAP_SIZE; value += minorEvery) {
-    const position = value - 1;
-    const isMajor = value === 1 || value % majorEvery === 0 || value === MAP_SIZE;
-    context.strokeStyle = isMajor ? "rgba(17, 24, 39, 0.42)" : "rgba(17, 24, 39, 0.12)";
-    context.beginPath();
-    context.moveTo(position, 0);
-    context.lineTo(position, CANVAS_SIZE);
-    context.moveTo(0, position);
-    context.lineTo(CANVAS_SIZE, position);
-    context.stroke();
-  }
-
-  context.strokeStyle = "rgba(17, 24, 39, 0.72)";
-  context.lineWidth = 3;
-  context.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
-
-  const markCoordinate = (coord: Coordinate, selectedCell = false) => {
-    const cell = gridCellFor(coord);
-    const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
-    const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
-    context.fillStyle = selectedCell ? "rgba(37, 99, 235, 0.14)" : "rgba(37, 99, 235, 0.08)";
-    context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
-    context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.62)";
-    context.lineWidth = selectedCell ? 4 : 2;
-    context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
-  };
+  drawWorldTerrain(context, assets);
+  drawTerritories(context, assets);
+  drawRoads(context, assets);
+  drawGrid(context, assets);
 
   if (hover) {
-    markCoordinate(hover);
+    drawSelectedCell(context, hover);
   }
-  markCoordinate(selected, true);
-  drawFixedFacilities(context);
+  drawSelectedCell(context, selected, true);
+  drawWorldObjects(context, assets);
+  drawAtmosphere(context, assets);
+
+  context.strokeStyle = "rgba(10, 30, 36, 0.72)";
+  context.lineWidth = 3;
+  context.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
 };
 
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mapShellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
+  const [assets, setAssets] = useState<LoadedAssets | null>(null);
   const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
   const [hover, setHover] = useState<Coordinate | null>(null);
   const [mode, setMode] = useState<MapMode>("isometric");
@@ -262,12 +430,24 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
+    let alive = true;
+    loadMapAssets().then((loaded) => {
+      if (alive) {
+        setAssets(loaded);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
-    drawMap(canvas, selected, hover, zoom);
-  }, [hover, selected, zoom]);
+    drawMap(canvas, selected, hover, zoom, assets);
+  }, [assets, hover, selected, zoom]);
 
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
@@ -373,7 +553,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       <div className="wos-map-toolbar">
         <div>
           <span className="section-kicker">WOS Game Map</span>
-          <h1>1199 x 1199 Coordinate Grid</h1>
+          <h1>Textured World Map</h1>
         </div>
         <div className="wos-map-selected" aria-live="polite">
           <strong>X:{selected.x}</strong>
@@ -485,6 +665,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               </span>
             )}
           </div>
+          <div className="wos-map-legend" aria-hidden="true">
+            <span>Extracted terrain</span>
+            <span>World buildings</span>
+            <span>Resource nodes</span>
+            <span>Territory overlay</span>
+          </div>
         </div>
 
         <aside className="wos-map-controls" aria-label="Map controls">
@@ -517,6 +703,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             <button type="button" aria-label="Move left" onClick={() => moveSelection(-1, 0)}>←</button>
             <button type="button" aria-label="Move right" onClick={() => moveSelection(1, 0)}>→</button>
             <button type="button" aria-label="Move down" onClick={() => moveSelection(0, 1)}>↓</button>
+          </div>
+          <div className="wos-map-asset-readout">
+            <strong>{assets ? Object.keys(assetFiles).length : "0"}</strong>
+            <span>Extracted PNG assets loaded</span>
           </div>
           <label>
             <span>Pitch</span>
