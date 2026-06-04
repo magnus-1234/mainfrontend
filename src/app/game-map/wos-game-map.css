@@ -102,11 +102,11 @@
   position: absolute;
   z-index: 2;
   display: inline-flex;
-  width: 24px;
+  width: 25px;
   height: 10px;
   align-items: center;
   justify-content: center;
-  border: 0;
+  border: 1px solid rgba(91, 180, 255, 0.82);
   border-radius: 1px;
   background: #10213a;
   color: #ffffff;
@@ -123,12 +123,13 @@
 }
 
 .wos-cell-label.selected {
-  box-shadow: 0 0 0 1px rgba(91, 180, 255, 0.95);
+  background: #10213a;
+  box-shadow: 0 0 0 1px rgba(7, 18, 32, 0.7);
 }
 
 .wos-cell-label.hover {
-  background: rgba(15, 23, 42, 0.78);
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.8);
+  background: rgba(16, 33, 58, 0.9);
+  box-shadow: 0 0 0 1px rgba(7, 18, 32, 0.58);
 }
 
 .wos-map-controls {

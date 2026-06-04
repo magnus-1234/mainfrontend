@@ -32,6 +32,8 @@ const gridCellFor = (coord: Coordinate) => ({
   y: Math.floor((coord.y - 1) / GRID_STEP) * GRID_STEP,
 });
 
+const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x}:${coordinate.y}`;
+
 const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number) => {
   const context = canvas.getContext("2d");
   if (!context) {
@@ -317,11 +319,11 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               }}
             />
             <span className="wos-cell-label selected" style={coordinateLabelStyle(selected, true)}>
-              {selected.x},{selected.y}
+              {formatCoordinate(selected)}
             </span>
             {hover && (gridCellFor(hover).x !== gridCellFor(selected).x || gridCellFor(hover).y !== gridCellFor(selected).y) && (
               <span className="wos-cell-label hover" style={coordinateLabelStyle(hover)}>
-                {hover.x},{hover.y}
+                {formatCoordinate(hover)}
               </span>
             )}
           </div>
