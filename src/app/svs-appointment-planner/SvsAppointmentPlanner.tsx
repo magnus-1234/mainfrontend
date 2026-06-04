@@ -10,6 +10,7 @@ type AppointmentRole = {
   name: string;
   shortName: string;
   focus: string;
+  image: string;
 };
 
 type PlayerProfile = {
@@ -57,14 +58,19 @@ const appointmentRoles: AppointmentRole[] = [
     name: "Minister of Education",
     shortName: "Education",
     focus: "Research and learning appointment windows for SvS preparation.",
+    image: "/wiki/buildings/dawn-academy/256b457966c8.png",
   },
   {
     id: "vicePresident",
     name: "Vice President",
     shortName: "Vice President",
     focus: "High-priority appointment coverage and backup leadership windows.",
+    image: "/vendor/krozac-wos-interactive-map/sunfire.png",
   },
 ];
+
+const plannerLogo = "/whiteout-survival-logo.png";
+const plannerMark = "/wos-logo.png";
 
 const resourceItems: { key: ResourceKey; label: string; icon: string }[] = [
   { key: "constructionSpeedup", label: "Construction Speedup", icon: "/svs-resources/construction-speedup.webp" },
@@ -194,35 +200,47 @@ const resourceSummary = (resources: AppointmentResources) => {
   return selected.length ? selected.join(", ") : "No resources";
 };
 
-const csvFor = (role: AppointmentRole, rows: { utc: string; local: string; slot: AppointmentSlot }[]) => {
-  const escape = (value: string | boolean) => `"${String(value).replace(/"/g, '""')}"`;
+const csvFor = (plannerName: string, role: AppointmentRole, rows: { key: string; utcStart: string; utcEnd: string; local: string; slot: AppointmentSlot }[]) => {
+  const escape = (value: string | boolean) => `"${String(value).replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
   return [
+    "sep=,",
     [
+      "Plan Name",
       "Role",
-      "Time UTC",
-      "Local Time",
+      "Slot",
+      "Start UTC",
+      "End UTC",
+      "Local Start",
+      "Status",
       "Player ID",
       "Player Name",
-      "Furnace",
+      "Furnace Level",
       "Alliance",
+      "Confirmed",
       "Description",
       ...resourceItems.map((item) => item.label),
-      "Confirmed",
     ].map(escape).join(","),
     ...rows.map((row) => [
+      plannerName,
       role.name,
-      row.utc,
+      row.key,
+      row.utcStart,
+      row.utcEnd,
       row.local,
+      filled(row.slot) ? "Filled" : "Open",
       row.slot.playerId,
       row.slot.playerName,
       row.slot.furnace,
       row.slot.alliance,
+      row.slot.confirmed ? "Yes" : "No",
       row.slot.description,
       ...resourceItems.map((item) => row.slot.resources[item.key]),
-      row.slot.confirmed ? "Yes" : "No",
     ].map(escape).join(",")),
   ].join("\n");
 };
+
+const filePart = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "svs-appointments";
 
 export default function SvsAppointmentPlanner() {
   const [activeTab, setActiveTab] = useState<PlannerTab>("schedule");
@@ -233,6 +251,7 @@ export default function SvsAppointmentPlanner() {
   const [plannerState, setPlannerState] = useState<PlannerState>(() => savedPlanner()?.plannerState || { education: {}, vicePresident: {} });
   const [editingResource, setEditingResource] = useState<{ roleId: AppointmentRole["id"]; slotKey: string } | null>(null);
   const [notice, setNotice] = useState("");
+  const [exportingPng, setExportingPng] = useState(false);
 
   const selectedRole = appointmentRoles.find((role) => role.id === selectedRoleId) || appointmentRoles[0];
   const startMinutes = minutesFromTime(startTime);
@@ -243,6 +262,8 @@ export default function SvsAppointmentPlanner() {
     const utcStart = timeFromMinutes(startMinutes + index * slotMinutes);
     return {
       key,
+      utcStart,
+      utcEnd: timeFromMinutes(startMinutes + (index + 1) * slotMinutes),
       utc: `${slotTimeFor(key)} UTC`,
       local: localTimeFor(utcStart),
       slot: plannerState[selectedRole.id]?.[key] || createEmptySlot(),
@@ -332,14 +353,178 @@ export default function SvsAppointmentPlanner() {
   };
 
   const downloadCsv = () => {
-    const blob = new Blob([csvFor(selectedRole, rows)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([`\uFEFF${csvFor(plannerName, selectedRole, rows)}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `wos-${selectedRole.id}-svs-appointments.csv`;
+    link.download = `${filePart(plannerName)}-${selectedRole.id}-appointments.csv`;
     link.click();
     URL.revokeObjectURL(url);
     setNotice("CSV downloaded.");
+  };
+
+  const downloadPng = async () => {
+    setExportingPng(true);
+    try {
+      const loadImage = (src: string) => new Promise<HTMLImageElement | null>((resolve) => {
+        if (!src) {
+          resolve(null);
+          return;
+        }
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        image.onload = () => resolve(image);
+        image.onerror = () => resolve(null);
+        image.src = src;
+      });
+
+      const filledRows = rows.filter((row) => filled(row.slot));
+      const exportRows = filledRows.length ? filledRows : rows.slice(0, Math.min(8, rows.length));
+      const width = 1200;
+      const rowHeight = 82;
+      const height = 230 + exportRows.length * rowHeight + 56;
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Canvas not available");
+      context.scale(scale, scale);
+
+      const [logo, mark, roleImage, resourceImages, avatarImages] = await Promise.all([
+        loadImage(plannerLogo),
+        loadImage(plannerMark),
+        loadImage(selectedRole.image),
+        Promise.all(resourceItems.map((item) => loadImage(item.icon))),
+        Promise.all(exportRows.map((row) => loadImage(row.slot.avatarImage))),
+      ]);
+
+      const roundedRect = (x: number, y: number, rectWidth: number, rectHeight: number, radius: number, fill: string, stroke?: string) => {
+        context.beginPath();
+        context.moveTo(x + radius, y);
+        context.lineTo(x + rectWidth - radius, y);
+        context.quadraticCurveTo(x + rectWidth, y, x + rectWidth, y + radius);
+        context.lineTo(x + rectWidth, y + rectHeight - radius);
+        context.quadraticCurveTo(x + rectWidth, y + rectHeight, x + rectWidth - radius, y + rectHeight);
+        context.lineTo(x + radius, y + rectHeight);
+        context.quadraticCurveTo(x, y + rectHeight, x, y + rectHeight - radius);
+        context.lineTo(x, y + radius);
+        context.quadraticCurveTo(x, y, x + radius, y);
+        context.closePath();
+        context.fillStyle = fill;
+        context.fill();
+        if (stroke) {
+          context.strokeStyle = stroke;
+          context.lineWidth = 1;
+          context.stroke();
+        }
+      };
+
+      const text = (value: string, x: number, y: number, font: string, color = "#e5edf7", align: CanvasTextAlign = "left") => {
+        context.font = font;
+        context.fillStyle = color;
+        context.textAlign = align;
+        context.textBaseline = "top";
+        context.fillText(value, x, y);
+      };
+
+      const trimText = (value: string, maxWidth: number, font: string) => {
+        context.font = font;
+        if (context.measureText(value).width <= maxWidth) return value;
+        let result = value;
+        while (result.length > 3 && context.measureText(`${result}...`).width > maxWidth) {
+          result = result.slice(0, -1);
+        }
+        return `${result}...`;
+      };
+
+      const background = context.createLinearGradient(0, 0, width, height);
+      background.addColorStop(0, "#07111f");
+      background.addColorStop(0.55, "#0d1420");
+      background.addColorStop(1, "#10243a");
+      context.fillStyle = background;
+      context.fillRect(0, 0, width, height);
+      roundedRect(28, 28, width - 56, height - 56, 24, "#0d1420", "#2f6f8d");
+
+      if (roleImage) {
+        context.globalAlpha = 0.18;
+        context.drawImage(roleImage, width - 330, 20, 240, 240);
+        context.globalAlpha = 1;
+      }
+      if (logo) context.drawImage(logo, 54, 46, 230, 88);
+      if (mark) context.drawImage(mark, width - 126, 52, 66, 66);
+
+      text(plannerName, 54, 142, "900 36px Arial", "#f8fafc");
+      text(`${selectedRole.name} | ${startTime} UTC start | ${slotMinutes} minute slots`, 56, 184, "800 18px Arial", "#7dd3fc");
+
+      roundedRect(766, 142, 106, 52, 10, "#172235", "#263449");
+      roundedRect(886, 142, 106, 52, 10, "#172235", "#263449");
+      roundedRect(1006, 142, 106, 52, 10, "#172235", "#263449");
+      text(`${selectedRoleStats?.filledCount || 0}/${selectedRoleStats?.total || slotsPerDay}`, 819, 150, "900 22px Arial", "#e5edf7", "center");
+      text("filled", 819, 176, "800 12px Arial", "#94a3b8", "center");
+      text(`${selectedRoleStats?.confirmedCount || 0}`, 939, 150, "900 22px Arial", "#e5edf7", "center");
+      text("confirmed", 939, 176, "800 12px Arial", "#94a3b8", "center");
+      text(`${selectedCoverage}%`, 1059, 150, "900 22px Arial", "#e5edf7", "center");
+      text("coverage", 1059, 176, "800 12px Arial", "#94a3b8", "center");
+
+      text("UTC", 58, 224, "900 12px Arial", "#94a3b8");
+      text("PLAYER", 198, 224, "900 12px Arial", "#94a3b8");
+      text("DETAILS", 456, 224, "900 12px Arial", "#94a3b8");
+      text("RESOURCES", 770, 224, "900 12px Arial", "#94a3b8");
+      text("OK", 1084, 224, "900 12px Arial", "#94a3b8");
+
+      exportRows.forEach((row, index) => {
+        const top = 248 + index * rowHeight;
+        roundedRect(48, top, width - 96, 68, 12, filled(row.slot) ? "#0f1a2a" : "#0b1220", "#263449");
+        text(`${row.utcStart}-${row.utcEnd}`, 64, top + 16, "900 19px Arial", "#e5edf7");
+        text(row.local, 64, top + 42, "800 12px Arial", "#94a3b8");
+
+        const avatar = avatarImages[index];
+        roundedRect(196, top + 12, 44, 44, 10, "#172235", "#2f6f8d");
+        if (avatar) {
+          context.save();
+          context.beginPath();
+          context.roundRect(196, top + 12, 44, 44, 10);
+          context.clip();
+          context.drawImage(avatar, 196, top + 12, 44, 44);
+          context.restore();
+        } else {
+          text((row.slot.playerName || "?").slice(0, 1), 218, top + 22, "900 22px Arial", "#7dd3fc", "center");
+        }
+
+        text(trimText(row.slot.playerName || row.slot.playerId || "Open slot", 188, "900 18px Arial"), 252, top + 14, "900 18px Arial");
+        text(trimText([row.slot.furnace ? `FC ${row.slot.furnace}` : "", row.slot.alliance].filter(Boolean).join(" | ") || "Awaiting player", 188, "800 12px Arial"), 252, top + 40, "800 12px Arial", "#94a3b8");
+        text(trimText(row.slot.description || "No appointment description", 280, "800 15px Arial"), 456, top + 16, "800 15px Arial", row.slot.description ? "#e5edf7" : "#94a3b8");
+
+        const activeResources = resourceItems.filter((item) => row.slot.resources[item.key].trim());
+        if (activeResources.length) {
+          activeResources.slice(0, 3).forEach((item, itemIndex) => {
+            const left = 770 + itemIndex * 96;
+            const resourceImage = resourceImages[resourceItems.findIndex((resource) => resource.key === item.key)];
+            if (resourceImage) context.drawImage(resourceImage, left, top + 17, 24, 24);
+            text(trimText(row.slot.resources[item.key], 58, "800 13px Arial"), left + 30, top + 22, "800 13px Arial", "#e5edf7");
+          });
+          if (activeResources.length > 3) text(`+${activeResources.length - 3}`, 1058, top + 22, "900 14px Arial", "#a7f3d0");
+        } else {
+          text("No resources", 770, top + 24, "800 13px Arial", "#94a3b8");
+        }
+
+        roundedRect(1078, top + 18, 32, 32, 8, row.slot.confirmed ? "#14532d" : "#172235", row.slot.confirmed ? "#a7f3d0" : "#263449");
+        text(row.slot.confirmed ? "Y" : "-", 1094, top + 24, "900 16px Arial", row.slot.confirmed ? "#a7f3d0" : "#94a3b8", "center");
+      });
+
+      text("Generated by WhiteoutSurvival.dev", width / 2, height - 40, "800 14px Arial", "#94a3b8", "center");
+
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${filePart(plannerName)}-${selectedRole.id}-appointments.png`;
+      link.click();
+      setNotice("PNG downloaded.");
+    } catch {
+      setNotice("PNG export failed.");
+    } finally {
+      setExportingPng(false);
+    }
   };
 
   const copySummary = async () => {
@@ -364,10 +549,12 @@ export default function SvsAppointmentPlanner() {
     <section className="home-page svs-planner-page" id="svs-appointment-planner" aria-label="Whiteout Survival SvS appointment planner">
       <section className="svs-tool-hero">
         <div>
+          <img className="svs-hero-logo" src={plannerLogo} alt="Whiteout Survival" />
           <span className="section-kicker">Whiteout Survival SvS</span>
           <h1>Appointment Planner</h1>
           <p>Schedule only Minister of Education and Vice President appointments. Enter a player ID to fetch player details, write the appointment description, and add resource needs from the edit resource button.</p>
         </div>
+        <img className="svs-hero-art" src={selectedRole.image} alt="" />
         <div className="svs-hero-metrics" aria-label="Planner summary">
           <article><strong>{selectedRoleStats?.filledCount || 0}/{selectedRoleStats?.total || slotsPerDay}</strong><small>{selectedRole.shortName} filled</small></article>
           <article><strong>{selectedRoleStats?.confirmedCount || 0}</strong><small>confirmed</small></article>
@@ -395,7 +582,7 @@ export default function SvsAppointmentPlanner() {
           <section className="svs-role-grid" aria-label="Appointment roles">
             {roleStats.map(({ role, filledCount, confirmedCount, total }) => (
               <button className={`svs-role-card ${selectedRole.id === role.id ? "active" : ""}`} type="button" key={role.id} onClick={() => setSelectedRoleId(role.id)}>
-                <span>{role.shortName.slice(0, 2).toUpperCase()}</span>
+                <span><img src={role.image} alt="" /></span>
                 <strong>{role.name}</strong>
                 <small>{role.focus}</small>
                 <b>{filledCount}/{total} filled</b>
@@ -429,6 +616,7 @@ export default function SvsAppointmentPlanner() {
                 </label>
                 <button type="button" onClick={() => void copySummary()}>Copy</button>
                 <button type="button" onClick={downloadCsv}>CSV</button>
+                <button type="button" onClick={() => void downloadPng()} disabled={exportingPng}>{exportingPng ? "PNG..." : "PNG"}</button>
                 <button type="button" className="danger" onClick={clearCurrentRole}>Clear</button>
               </div>
             </header>
