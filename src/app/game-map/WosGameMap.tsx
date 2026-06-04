@@ -122,13 +122,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
     const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
-    const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
     const inverseScale = clamp(1 / Math.max(zoom, 1), 0.16, 1);
     return {
-      left: `${((cell.x + cellWidth / 2) / CANVAS_SIZE) * 100}%`,
-      top: `${((cell.y + cellHeight / 2) / CANVAS_SIZE) * 100}%`,
-      transform: `translate(-50%, -50%) scale(${inverseScale})`,
-      transformOrigin: "center",
+      left: `${((cell.x + cellWidth - 2) / CANVAS_SIZE) * 100}%`,
+      top: `${((cell.y + 2) / CANVAS_SIZE) * 100}%`,
+      transform: `translate(0, -100%) rotate(45deg) scale(${inverseScale})`,
+      transformOrigin: "0 100%",
       ["--label-opacity" as string]: selectedLabel ? "1" : "0.86",
     };
   };
