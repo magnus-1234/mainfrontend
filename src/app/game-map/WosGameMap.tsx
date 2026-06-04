@@ -47,7 +47,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
   context.imageSmoothingEnabled = false;
 
-  context.fillStyle = "#ffffff";
+  context.fillStyle = "#4a877a";
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
   const majorEvery = 100;
@@ -57,7 +57,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   for (let value = 1; value <= MAP_SIZE; value += minorEvery) {
     const position = value - 1;
     const isMajor = value === 1 || value % majorEvery === 0 || value === MAP_SIZE;
-    context.strokeStyle = isMajor ? "rgba(17, 24, 39, 0.72)" : "rgba(31, 41, 55, 0.24)";
+    context.strokeStyle = isMajor ? "rgba(87, 173, 181, 0.26)" : "rgba(105, 177, 169, 0.12)";
     context.beginPath();
     context.moveTo(position, 0);
     context.lineTo(position, CANVAS_SIZE);
@@ -66,28 +66,18 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.stroke();
   }
 
-  context.strokeStyle = "rgba(17, 24, 39, 0.88)";
+  context.strokeStyle = "rgba(67, 178, 236, 0.9)";
   context.lineWidth = 3;
   context.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
-
-  context.fillStyle = "rgba(17, 24, 39, 0.88)";
-  context.font = "700 18px Arial";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  for (let value = 100; value <= 1100; value += 100) {
-    const position = value - 1;
-    context.fillText(String(value), position, 22);
-    context.fillText(String(value), 24, position);
-  }
 
   const markCoordinate = (coord: Coordinate, selectedCell = false) => {
     const cell = gridCellFor(coord);
     const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
     const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
-    context.fillStyle = selectedCell ? "rgba(96, 165, 250, 0.3)" : "rgba(96, 165, 250, 0.16)";
+    context.fillStyle = selectedCell ? "rgba(91, 171, 255, 0.16)" : "rgba(91, 171, 255, 0.1)";
     context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
-    context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.58)";
-    context.lineWidth = selectedCell ? 4 : 2;
+    context.strokeStyle = selectedCell ? "#5bb4ff" : "rgba(91, 180, 255, 0.72)";
+    context.lineWidth = selectedCell ? 5 : 2;
     context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
   };
 
@@ -103,12 +93,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const dragRef = useRef<DragState | null>(null);
   const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
   const [hover, setHover] = useState<Coordinate | null>(null);
-  const [mode, setMode] = useState<MapMode>("2d");
+  const [mode, setMode] = useState<MapMode>("isometric");
   const [depthMode, setDepthMode] = useState<DepthMode>("2d");
   const [pitch, setPitch] = useState(0);
   const [yaw, setYaw] = useState(0);
-  const [roll, setRoll] = useState(0);
-  const [zoom, setZoom] = useState(0.9);
+  const [roll, setRoll] = useState(45);
+  const [zoom, setZoom] = useState(0.78);
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -126,7 +116,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     return {
       left: `${((cell.x + cellWidth - 2) / CANVAS_SIZE) * 100}%`,
       top: `${((cell.y + 2) / CANVAS_SIZE) * 100}%`,
-      transform: `translate(0, -100%) rotate(45deg) scale(${inverseScale})`,
+      transform: `translate(0, -100%) rotate(${mode === "isometric" ? 0 : 45}deg) scale(${inverseScale})`,
       transformOrigin: "0 100%",
       ["--label-opacity" as string]: selectedLabel ? "1" : "0.86",
     };

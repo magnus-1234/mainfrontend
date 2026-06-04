@@ -52,9 +52,9 @@
   overflow: hidden;
   overscroll-behavior: contain;
   place-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(67, 178, 236, 0.2);
   border-radius: 8px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, #e5e7eb), color-mix(in srgb, var(--background) 86%, #111827));
+  background: #101923;
   perspective: 1200px;
 }
 
@@ -79,12 +79,12 @@
   display: block;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(17, 24, 39, 0.55);
-  border-radius: 6px;
-  background: #ffffff;
+  border: 1px solid rgba(67, 178, 236, 0.8);
+  border-radius: 0;
+  background: #4a877a;
   box-shadow:
-    0 34px 80px rgba(0, 0, 0, 0.24),
-    inset 0 0 0 1px rgba(17, 24, 39, 0.1);
+    0 24px 70px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(67, 178, 236, 0.22);
   cursor: grab;
   touch-action: none;
 }
@@ -102,16 +102,16 @@
   position: absolute;
   z-index: 2;
   display: inline-flex;
-  width: 23px;
-  height: 9px;
+  width: 24px;
+  height: 10px;
   align-items: center;
   justify-content: center;
   border: 0;
   border-radius: 1px;
-  background: #0f172a;
+  background: #10213a;
   color: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 4.8px;
+  font-size: 4.7px;
   font-weight: 950;
   letter-spacing: 0;
   line-height: 1;
@@ -123,7 +123,7 @@
 }
 
 .wos-cell-label.selected {
-  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.95);
+  box-shadow: 0 0 0 1px rgba(91, 180, 255, 0.95);
 }
 
 .wos-cell-label.hover {
