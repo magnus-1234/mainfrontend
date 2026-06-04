@@ -1068,26 +1068,45 @@ const templateCategoryLabelFor = (categoryValue: MessageTemplateAssignableCatego
 const templateCategoryLabelsFor = (template: MessageTemplate) =>
   templateCategoriesFor(template).map(templateCategoryLabelFor).join(", ");
 
-const normalizeTemplateCopyText = (text: string) => text.replace(/\r\n?/g, "\n");
+const normalizeTemplateCopyText = (text: string) =>
+  text
+    .replace(/\r\n?/g, "\n")
+    .replace(/\u00a0/g, " ")
+    .replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "")
+    .replace(/[\u200b-\u200f\u2028-\u202f\u2060-\u2069\ufeff]/g, "")
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+$/g, ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trimEnd();
 
 const templateCopyTextFor = (template: MessageTemplate) => normalizeTemplateCopyText(template.rawText ?? template.text ?? "");
 
 const copyPlainTextExact = async (text: string) => {
-  if (!navigator.clipboard) {
+  const cleanText = normalizeTemplateCopyText(text);
+  const textArea = document.createElement("textarea");
+  textArea.value = cleanText;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.left = "-9999px";
+  textArea.style.top = "0";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  textArea.setSelectionRange(0, cleanText.length);
+  try {
+    if (document.execCommand("copy")) {
+      return;
+    }
+  } finally {
+    document.body.removeChild(textArea);
+  }
+
+  if (!navigator.clipboard?.writeText) {
     throw new Error("Clipboard unavailable");
   }
-  if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
-    await navigator.clipboard.write([
-      new ClipboardItem({
-        "text/plain": new Blob([text], { type: "text/plain" }),
-      }),
-    ]);
-    return;
-  }
-  if (!navigator.clipboard.writeText) {
-    throw new Error("Clipboard unavailable");
-  }
-  await navigator.clipboard.writeText(text);
+  await navigator.clipboard.writeText(cleanText);
 };
 
 const exactTemplateTextFromForm = (form: HTMLFormElement) => {
@@ -1300,8 +1319,8 @@ Keep farming clean.`,
   ...wosIconUnicodeTemplates,
 ];
 
-const templateRawPreviewLines = (template: MessageTemplate) =>
-  (template.previewText ? normalizeTemplateCopyText(template.previewText) : templateCopyTextFor(template)).split("\n");
+const templatePreviewTextFor = (template: MessageTemplate) =>
+  template.previewText ? normalizeTemplateCopyText(template.previewText) : templateCopyTextFor(template);
 
 const FOOTER_IDLE_DELAY_MS = 5 * 60 * 1000;
 const FOOTER_INTENT_DELAY_MS = 450;
@@ -7712,9 +7731,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                           <span>WOS Chat Preview</span>
                           <small>{Array.from(template.text).length} chars</small>
                         </div>
-                        <pre>{templateRawPreviewLines(template).map((line, index) => (
-                          <span key={`${template.id}-${index}`}>{line}</span>
-                        ))}</pre>
+                        <pre>{templatePreviewTextFor(template)}</pre>
                       </button>
                       <footer className="template-card-footer">
                         <div className="template-tags">
@@ -8792,9 +8809,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <span>WOS Chat Preview</span>
                   <small>{Array.from(templateViewer.text).length} chars</small>
                 </div>
-                <pre>{templateRawPreviewLines(templateViewer).map((line, index) => (
-                  <span key={`${templateViewer.id}-detail-${index}`}>{line}</span>
-                ))}</pre>
+                <pre>{templatePreviewTextFor(templateViewer)}</pre>
               </div>
             </div>
             <aside className="template-detail-panel">
