@@ -57,14 +57,14 @@ const appointmentRoles: AppointmentRole[] = [
     id: "education",
     name: "Minister of Education",
     shortName: "Education",
-    focus: "Research and learning appointment windows for SvS preparation.",
+    focus: "Training appointment: +50% training speed and +200 training capacity.",
     image: "/wiki/buildings/dawn-academy/256b457966c8.png",
   },
   {
     id: "vicePresident",
     name: "Vice President",
     shortName: "Vice President",
-    focus: "High-priority appointment coverage and backup leadership windows.",
+    focus: "Prep appointment: +10% research, construction, and training speed.",
     image: "/vendor/krozac-wos-interactive-map/sunfire.png",
   },
 ];
