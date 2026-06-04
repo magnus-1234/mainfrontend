@@ -10364,8 +10364,9 @@ body {
   }
 
   .bottom-community-meta {
-    align-items: flex-start;
+    align-items: flex-end;
     flex-direction: column;
+    text-align: right;
   }
 
   .bottom-community-legal {
@@ -10373,7 +10374,8 @@ body {
   }
 
   .bottom-community-credit {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    align-self: flex-end;
     white-space: normal;
   }
 
