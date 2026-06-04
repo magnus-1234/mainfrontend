@@ -218,6 +218,11 @@ type TranslateWindow = Window & {
   };
 };
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
 type LinkedPlayerAccount = PlayerProfile & {
   linkedAt: string;
 };
@@ -2331,6 +2336,18 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
   const [selectedTag, setSelectedTag] = useState("");
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installDismissed, setInstallDismissed] = useState(false);
+  const [isStandaloneApp, setIsStandaloneApp] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+    );
+  });
   const openedSharedIslandRef = useRef("");
   const openedSharedTemplateRef = useRef("");
   const foundryShareLoadedRef = useRef(false);
@@ -2398,6 +2415,48 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
     { id: "auth", message: authStatus, onDismiss: () => setAuthStatus(""), tone: authStatus.match(/linked|success/i) ? "success" : "error" },
     { id: "player-lookup", message: playerLookupStatus, onDismiss: () => setPlayerLookupStatus(""), tone: playerLookupStatus.match(/loaded/i) ? "success" : "error" },
   ].filter((toast) => toast.message);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // The website should continue normally if registration is unavailable.
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+      setInstallDismissed(false);
+    };
+    const handleAppInstalled = () => {
+      setInstallPrompt(null);
+      setIsStandaloneApp(true);
+      setInstallDismissed(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!installPrompt) {
+      return;
+    }
+
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    setInstallPrompt(null);
+    setInstallDismissed(choice.outcome === "dismissed");
+  };
 
   useEffect(() => {
     const hasDismissibleToast =
@@ -5041,6 +5100,12 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                 <span className="theme-thumb" />
               </span>
             </button>
+            {installPrompt && !installDismissed && !isStandaloneApp && (
+              <button className="install-app-button" type="button" onClick={() => void handleInstallApp()} aria-label="Install WhiteoutSurvival.dev app">
+                <Icon name="download" />
+                <span>Install</span>
+              </button>
+            )}
             <LanguageSwitcher />
             <div className="account-menu-wrap">
               <button
