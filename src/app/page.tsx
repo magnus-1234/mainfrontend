@@ -1303,6 +1303,24 @@ const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string
   { label: "Chief Charm", mobileLabel: "Charm", icon: "calculator", menu: "chiefCharm", href: "/chief-charm-calculator" },
 ];
 
+const landingToolVisuals: Partial<Record<ActiveMenu, { src: string; alt: string; tone: "gold" | "ice" | "ember" | "blue" | "green" | "violet" }>> = {
+  gift: { src: "/showcase-gift-alert.png", alt: "Whiteout Survival gift code alert", tone: "gold" },
+  svsPlanner: { src: "/wiki/heroes/natalia/32b1c504e8ae.png", alt: "Whiteout Survival appointment resource", tone: "ember" },
+  gameMap: { src: "/vendor/krozac-wos-interactive-map/furnace.png", alt: "Whiteout Survival map furnace marker", tone: "ice" },
+  planner: { src: "/foundry-team-planner-map.webp", alt: "Whiteout Survival foundry team map", tone: "blue" },
+  bot: { src: "/bot-logo.gif", alt: "Whiteout Survival Discord bot", tone: "violet" },
+  templates: { src: "/wiki/heroes/estrella/18d9d05440cc.png", alt: "Whiteout Survival message template icon", tone: "green" },
+  vip: { src: "/wiki/heroes/natalia/2790fe8fc8af.png", alt: "Whiteout Survival VIP resource", tone: "gold" },
+  chiefGear: { src: "/wiki/heroes/smith/defa1c9b6614.png", alt: "Whiteout Survival chief gear stat icon", tone: "ember" },
+  chiefCharm: { src: "/wiki/heroes/molly/78e9ad60f6fd.png", alt: "Whiteout Survival chief charm icon", tone: "violet" },
+  stateAge: { src: "/state-transfer.png", alt: "Whiteout Survival state transfer", tone: "blue" },
+  daybreak: { src: "/daybreak-island-tree-of-life.webp", alt: "Whiteout Survival Daybreak Island tree", tone: "green" },
+  dreamscape: { src: "/wiki/heroes/estrella/2cfef55ef649.png", alt: "Whiteout Survival dreamscape painting", tone: "violet" },
+  wikiHeroes: { src: "/wiki/heroes/molly/554d3a1795ca.png", alt: "Whiteout Survival hero portrait", tone: "ice" },
+  wikiBuildings: { src: "/wiki/buildings/furnace/1d5f9abc1441.png", alt: "Whiteout Survival furnace building", tone: "ember" },
+  sneak: { src: "/sneak-peek/sneak-01.png", alt: "Whiteout Survival sneak peek", tone: "ice" },
+};
+
 const hashMenuAliases: Record<string, ActiveMenu> = {
   "#home": "home",
   "#gift-codes": "gift",
@@ -1841,6 +1859,16 @@ function Icon({ name }: { name: string }) {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       {paths[name] || <path d="m6 9 6 6 6-6" />}
     </svg>
+  );
+}
+
+function LandingToolIcon({ menu, icon }: { menu: ActiveMenu; icon: string }) {
+  const visual = landingToolVisuals[menu];
+
+  return (
+    <span className={`landing-tool-icon ${visual ? `has-image tone-${visual.tone}` : ""}`}>
+      {visual ? <img src={visual.src} alt={visual.alt} loading="lazy" /> : <Icon name={icon} />}
+    </span>
   );
 }
 
@@ -5392,7 +5420,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     ["templates" as const, "message", "Community", "Message Templates", "Copy-ready alliance chat templates for rallies and events."],
                   ].map(([menu, icon, meta, title, body]) => (
                     <button className="landing-tool-card" key={title} type="button" onClick={() => navigateToMenu(menu as ActiveMenu)}>
-                      <span className="landing-tool-icon"><Icon name={icon} /></span>
+                      <LandingToolIcon menu={menu as ActiveMenu} icon={icon} />
                       <span className="landing-tool-copy">
                         <small>{meta}</small>
                         <strong>{title}</strong>
@@ -5443,7 +5471,7 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                   <div className="landing-card-grid">
                     {section.items.map(([menu, icon, title, body]) => (
                       <button className="landing-tool-card compact" key={title} type="button" onClick={() => navigateToMenu(menu as ActiveMenu)}>
-                        <span className="landing-tool-icon"><Icon name={icon} /></span>
+                        <LandingToolIcon menu={menu as ActiveMenu} icon={icon} />
                         <span className="landing-tool-copy">
                           <strong>{title}</strong>
                           <span>{body}</span>
