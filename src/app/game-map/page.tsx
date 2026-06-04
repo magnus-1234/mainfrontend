@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival Game Map";
 const description =
@@ -21,5 +21,5 @@ export const metadata: Metadata = {
 };
 
 export default function GameMapPage() {
-  return <Home initialMenu="gameMap" />;
+  return <HomeApp initialMenu="gameMap" />;
 }

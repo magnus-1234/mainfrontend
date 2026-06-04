@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival Gift Codes";
 const description =
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function GiftCodesPage() {
-  return <Home initialMenu="gift" />;
+  return <HomeApp initialMenu="gift" />;
 }

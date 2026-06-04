@@ -10,6 +10,7 @@ const pages = [
   ["Gift Codes", "/gift-codes"],
   ["Redeem Codes", "/redeem"],
   ["State Age Tracker", "/state-age"],
+  ["War Academy Calculator", "/war-academy-calculator"],
   ["VIP Calculator", "/vip-calculator"],
   ["Chief Gear Calculator", "/chief-gear-calculator"],
   ["Chief Charm Calculator", "/chief-charm-calculator"],

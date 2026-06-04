@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival VIP Calculator";
 const description =
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function VipCalculatorPage() {
-  return <Home initialMenu="vip" />;
+  return <HomeApp initialMenu="vip" />;
 }

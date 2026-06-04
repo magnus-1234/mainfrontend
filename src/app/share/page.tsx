@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival Shared Tools";
 const description =
@@ -34,4 +34,4 @@ export const metadata: Metadata = {
   },
 };
 
-export default Home;
+export default HomeApp;

@@ -106,6 +106,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/war-academy",
+        destination: "/war-academy-calculator",
+        permanent: true,
+      },
+      {
         source: "/discordbot",
         destination: "/discord-bot",
         permanent: true,
@@ -144,6 +149,10 @@ const nextConfig: NextConfig = {
         destination: "/?menu=daybreak&island=:id",
       },
       {
+        source: "/api-docs/openapi.json",
+        destination: "/api/openapi",
+      },
+      {
         source: "/gift-codes",
         destination: "/?menu=gift-codes",
       },
@@ -170,6 +179,10 @@ const nextConfig: NextConfig = {
       {
         source: "/chief-gear-calculator",
         destination: "/?menu=chief-gear-calculator",
+      },
+      {
+        source: "/war-academy-calculator",
+        destination: "/?menu=war-academy-calculator",
       },
       {
         source: "/message-templates",

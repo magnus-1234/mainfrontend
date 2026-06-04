@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival Redeem Codes";
 const description =
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function RedeemPage() {
-  return <Home initialMenu="redeem" />;
+  return <HomeApp initialMenu="redeem" />;
 }

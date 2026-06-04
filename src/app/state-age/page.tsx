@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival State Age Tracker";
 const description =
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function StateAgePage() {
-  return <Home initialMenu="stateAge" />;
+  return <HomeApp initialMenu="stateAge" />;
 }

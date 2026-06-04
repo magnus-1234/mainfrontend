@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Home from "../page";
+import { HomeApp } from "../HomeApp";
 
 const title = "Whiteout Survival Discord Bot";
 const description =
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function DiscordBotPage() {
-  return <Home initialMenu="bot" />;
+  return <HomeApp initialMenu="bot" />;
 }
