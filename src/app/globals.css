@@ -15341,8 +15341,7 @@ body {
 
 .wiki-filter-layout {
   display: grid;
-  grid-template-columns: 148px minmax(0, 1fr);
-  gap: 14px;
+  gap: 12px;
   padding: 14px;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--muted) 72%, transparent), transparent),
@@ -15354,49 +15353,54 @@ body {
   padding: 0;
 }
 
-.wiki-filter-rail {
-  position: sticky;
-  top: 76px;
-  display: grid;
-  align-self: start;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-accent) 70%, transparent), color-mix(in srgb, var(--card) 86%, transparent)),
-    var(--card);
+.wiki-filter-select-wrap {
+  display: flex;
+  width: min(100%, 280px);
+  align-items: center;
+  gap: 10px;
 }
 
-.wiki-filter-rail button {
-  display: flex;
-  min-height: 46px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  padding: 0 14px;
-  background: transparent;
+.wiki-filter-select-wrap label {
   color: var(--muted-foreground);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wiki-filter-select {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.wiki-filter-select select {
+  width: 100%;
+  min-height: 36px;
+  appearance: none;
+  border: 1px solid var(--gold-line);
+  border-radius: 6px;
+  padding: 0 34px 0 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 72%, transparent), color-mix(in srgb, var(--card) 88%, transparent)),
+    var(--card);
+  color: var(--foreground);
   cursor: pointer;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 850;
-  text-align: left;
 }
 
-.wiki-filter-rail button:last-child {
-  border-bottom: 0;
+.wiki-filter-select svg {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  color: var(--primary);
+  pointer-events: none;
+  transform: translateY(-50%) rotate(90deg);
 }
 
-.wiki-filter-rail button:hover,
-.wiki-filter-rail button.active {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--gold-soft) 82%, transparent), color-mix(in srgb, var(--sidebar-accent) 88%, transparent));
-  color: var(--foreground);
-}
-
-.wiki-filter-rail small,
 .wiki-building-tabs small {
   border: 1px solid color-mix(in srgb, var(--gold-line) 58%, transparent);
   border-radius: 999px;
@@ -15639,6 +15643,96 @@ body {
   text-transform: none;
 }
 
+.wiki-hero-compact-info {
+  display: grid;
+  grid-template-columns: minmax(230px, 320px) minmax(0, 1fr);
+  gap: 12px;
+  margin: 12px;
+  align-items: start;
+}
+
+.wiki-hero-stat-table,
+.wiki-hero-skill-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--muted) 54%, transparent), transparent),
+    var(--card);
+}
+
+.wiki-hero-stat-table h3,
+.wiki-hero-skill-list h3 {
+  margin: 0;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+
+.wiki-hero-stat-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wiki-hero-stat-table table + table {
+  border-top: 1px solid var(--border);
+}
+
+.wiki-hero-stat-table th {
+  padding: 8px 13px;
+  background: color-mix(in srgb, var(--sidebar-accent) 74%, var(--card));
+  color: var(--foreground);
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.wiki-hero-stat-table td {
+  padding: 8px 13px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+  color: var(--foreground);
+  font-weight: 850;
+}
+
+.wiki-hero-stat-table td:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-weight: 800;
+}
+
+.wiki-hero-stat-table td:last-child {
+  text-align: right;
+}
+
+.wiki-hero-stat-table svg {
+  width: 16px;
+  height: 16px;
+  color: var(--foreground);
+  flex: 0 0 auto;
+}
+
+.wiki-hero-skill-list > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+
+.wiki-hero-skill-list span {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--background) 42%, transparent);
+  color: var(--foreground);
+  font-weight: 850;
+  line-height: 1.2;
+}
+
 .wiki-scraped-content {
   display: grid;
   gap: 14px;
@@ -15740,18 +15834,12 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .wiki-filter-rail {
-    position: static;
-    display: flex;
-    overflow-x: auto;
-    border-radius: 8px;
+  .wiki-filter-select-wrap {
+    width: min(100%, 320px);
   }
 
-  .wiki-filter-rail button {
-    flex: 0 0 auto;
-    min-width: 86px;
-    border-right: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    border-bottom: 0;
+  .wiki-hero-compact-info {
+    grid-template-columns: 1fr;
   }
 
   .wiki-building-tabs {
@@ -17803,7 +17891,6 @@ body {
 .wiki-switcher button,
 .wiki-card button,
 .wiki-detail-toolbar button,
-.wiki-filter-rail button,
 .wiki-building-tabs button,
 .giftcodes-panel-head button,
 .giftcode-actions button,
@@ -17836,7 +17923,6 @@ body {
   .wiki-switcher button,
   .wiki-card button,
   .wiki-detail-toolbar button,
-  .wiki-filter-rail button,
   .wiki-building-tabs button,
   .giftcodes-panel-head button,
   .giftcode-actions button,
@@ -17870,8 +17956,6 @@ body {
 .wiki-switcher button.active,
 .wiki-card button:hover,
 .wiki-detail-toolbar button:hover,
-.wiki-filter-rail button:hover,
-.wiki-filter-rail button.active,
 .wiki-building-tabs button:hover,
 .wiki-building-tabs button.active,
 .giftcodes-panel-head button:hover,
@@ -18025,7 +18109,6 @@ body {
     padding: 10px;
   }
 
-  .wiki-filter-rail,
   .wiki-building-tabs {
     position: sticky;
     top: 54px;
@@ -18043,7 +18126,6 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 
-  .wiki-filter-rail button,
   .wiki-building-tabs button {
     flex: 0 0 auto;
     min-height: 38px;
@@ -18058,11 +18140,6 @@ body {
     white-space: nowrap;
   }
 
-  .wiki-filter-rail button {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .wiki-filter-rail small,
   .wiki-building-tabs small {
     padding: 1px 6px;
     font-size: 10px;
@@ -18182,6 +18259,15 @@ body {
   .wiki-detail-facts strong {
     font-size: 13px;
     overflow-wrap: anywhere;
+  }
+
+  .wiki-hero-compact-info {
+    grid-template-columns: 1fr;
+    margin: 0;
+  }
+
+  .wiki-hero-skill-list > div {
+    grid-template-columns: 1fr;
   }
 
   .wiki-scraped-content {

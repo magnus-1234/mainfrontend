@@ -1255,6 +1255,21 @@ const buildingFilters: { label: string; value: WosBuildingFilter }[] = [
 const heroFilterFor = (hero: WosWikiHero): WosHeroFilter =>
   hero.rarity === "Rare" || hero.rarity === "Epic" ? hero.rarity : legendaryHeroSeasons[hero.name] || "S1";
 
+const heroStatIconFor = (label: string) => {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("health")) return "heart";
+  if (normalized.includes("def")) return "shield";
+  return "barChart";
+};
+
+const groupedHeroStats = (stats?: WosWikiStat[]) => {
+  const visibleStats = stats?.slice(0, 5) || [];
+  return [
+    { title: "Exploration", stats: visibleStats.slice(0, 3) },
+    { title: "Expedition", stats: visibleStats.slice(3, 5) },
+  ].filter((group) => group.stats.length);
+};
+
 const pageLanguage = "en";
 const languageStorageKey = "whiteoutsurvival-dev-language";
 const translateCookieName = "googtrans";
@@ -6667,13 +6682,39 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                       <p>{activeWikiHero.heroClass} | {activeWikiHero.subClass}</p>
                     </div>
                   </div>
-                  <div className="wiki-detail-facts">
-                    {activeWikiHero.stats?.slice(0, 6).map((stat) => (
-                      <span key={`${stat.label}-${stat.value}`}><strong>{stat.value}</strong>{stat.label}</span>
-                    ))}
-                    {activeWikiHero.skills?.slice(0, 6).map((skill) => (
-                      <span key={skill}><strong>{skill}</strong>Skill</span>
-                    ))}
+                  <div className="wiki-hero-compact-info">
+                    {groupedHeroStats(activeWikiHero.stats).length > 0 && (
+                      <section className="wiki-hero-stat-table" aria-label={`${activeWikiHero.name} hero stats`}>
+                        <h3>Stats</h3>
+                        {groupedHeroStats(activeWikiHero.stats).map((group) => (
+                          <table key={group.title}>
+                            <thead>
+                              <tr>
+                                <th colSpan={2}>{group.title}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {group.stats.map((stat) => (
+                                <tr key={`${group.title}-${stat.label}-${stat.value}`}>
+                                  <td><Icon name={heroStatIconFor(stat.label)} />{stat.label}</td>
+                                  <td>{stat.value}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ))}
+                      </section>
+                    )}
+                    {activeWikiHero.skills?.length ? (
+                      <section className="wiki-hero-skill-list" aria-label={`${activeWikiHero.name} skills`}>
+                        <h3>Skills</h3>
+                        <div>
+                          {activeWikiHero.skills.slice(0, 6).map((skill) => (
+                            <span key={skill}>{skill}</span>
+                          ))}
+                        </div>
+                      </section>
+                    ) : null}
                   </div>
                   <div className="wiki-scraped-content" dangerouslySetInnerHTML={{ __html: activeWikiHero.html }} />
                 </article>
@@ -6686,19 +6727,23 @@ export default function Home({ initialMenu = "home" }: { initialMenu?: ActiveMen
                     </div>
                   </div>
                   <div className="wiki-filter-layout">
-                    <nav className="wiki-filter-rail" aria-label="Hero filters">
-                      {visibleHeroFilters.map((filter) => (
-                        <button
-                          className={activeHeroFilter === filter ? "active" : ""}
-                          type="button"
-                          key={filter}
-                          onClick={() => setActiveHeroFilter(filter)}
+                    <div className="wiki-filter-select-wrap">
+                      <label htmlFor="wiki-hero-filter">Hero group</label>
+                      <div className="wiki-filter-select">
+                        <select
+                          id="wiki-hero-filter"
+                          value={activeHeroFilter}
+                          onChange={(event) => setActiveHeroFilter(event.currentTarget.value as WosHeroFilter)}
                         >
-                          <span>{filter}</span>
-                          <small>{heroFilterCounts[filter]}</small>
-                        </button>
-                      ))}
-                    </nav>
+                          {visibleHeroFilters.map((filter) => (
+                            <option value={filter} key={filter}>
+                              {filter} ({heroFilterCounts[filter]})
+                            </option>
+                          ))}
+                        </select>
+                        <Icon name="chevron" />
+                      </div>
+                    </div>
                     <div className="wiki-grid">
                       {filteredWosHeroes.map((hero) => (
                         <article className="wiki-card hero-card" key={hero.slug}>
