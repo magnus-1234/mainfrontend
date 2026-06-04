@@ -18329,6 +18329,12 @@ body {
     color: color-mix(in srgb, var(--foreground) 70%, var(--muted-foreground));
   }
 
+  .mobile-more-panel .nav-icon-fallback,
+  .mobile-more-item .nav-icon-fallback,
+  .sidebar-wiki-subitem .nav-icon-fallback {
+    display: none !important;
+  }
+
   .mobile-more-wiki {
     display: grid;
     gap: 5px;
