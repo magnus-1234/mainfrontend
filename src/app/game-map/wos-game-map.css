@@ -59,6 +59,7 @@
     radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.72), transparent 28%),
     linear-gradient(135deg, #d8e8ec 0%, #e9f1ed 42%, #c5d8d3 100%);
   perspective: 1200px;
+  transform: translateZ(0);
 }
 
 .wos-map-rotator {
@@ -67,7 +68,9 @@
   aspect-ratio: 1;
   contain: layout paint;
   transform-style: preserve-3d;
-  transition: transform 80ms linear;
+  backface-visibility: hidden;
+  transition: transform 40ms linear;
+  will-change: transform;
 }
 
 .wos-map-rotator::before {
@@ -118,6 +121,8 @@
   cursor: grab;
   opacity: 0.68;
   touch-action: none;
+  user-select: none;
+  will-change: transform;
 }
 
 .wos-map-canvas:active {
@@ -134,6 +139,8 @@
   z-index: 3;
   inset: 0;
   pointer-events: none;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .wos-map-object-marker {

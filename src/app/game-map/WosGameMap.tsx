@@ -6,6 +6,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const MAP_SIZE = 1199;
 const CANVAS_SIZE = 1199;
 const GRID_STEP = 25;
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 24;
+const WHEEL_ZOOM_FACTOR = 1.16;
 const ASSET_ROOT = "/game-map/assets";
 
 type Coordinate = {
@@ -603,15 +606,13 @@ const drawAtmosphere = (context: CanvasRenderingContext2D, assets: LoadedAssets 
   context.restore();
 };
 
-const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number, assets: LoadedAssets | null) => {
+const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, assets: LoadedAssets | null) => {
   const context = canvas.getContext("2d");
   if (!context) {
     return;
   }
 
-  const ratio = window.devicePixelRatio || 1;
-  const renderBoost = zoom > 1 ? Math.min(4, Math.ceil(zoom)) : 1;
-  const renderScale = ratio * renderBoost;
+  const renderScale = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = CANVAS_SIZE * renderScale;
   canvas.height = CANVAS_SIZE * renderScale;
   context.setTransform(renderScale, 0, 0, renderScale, 0, 0);
@@ -623,9 +624,6 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   drawRoads(context, assets);
   drawGrid(context, assets);
 
-  if (hover) {
-    drawSelectedCell(context, hover);
-  }
   drawSelectedCell(context, selected, true);
   drawWorldObjects(context, assets);
   drawAtmosphere(context, assets);
@@ -639,6 +637,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mapShellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
+  const hoverFrameRef = useRef<number | null>(null);
+  const pendingHoverRef = useRef<Coordinate | null>(null);
+  const panFrameRef = useRef<number | null>(null);
+  const pendingPanRef = useRef({ x: 0, y: 0 });
   const [assets, setAssets] = useState<LoadedAssets | null>(null);
   const [assetLoadTick, setAssetLoadTick] = useState(0);
   const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
@@ -674,8 +676,8 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     if (!canvas) {
       return;
     }
-    drawMap(canvas, selected, hover, zoom, assets);
-  }, [assetLoadTick, assets, hover, selected, zoom]);
+    drawMap(canvas, selected, assets);
+  }, [assetLoadTick, assets, selected]);
 
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
@@ -715,6 +717,15 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     return () => stage.removeEventListener("wheel", containWheel);
   }, []);
 
+  useEffect(() => () => {
+    if (hoverFrameRef.current !== null) {
+      window.cancelAnimationFrame(hoverFrameRef.current);
+    }
+    if (panFrameRef.current !== null) {
+      window.cancelAnimationFrame(panFrameRef.current);
+    }
+  }, []);
+
   const coordinateFromPointer = useCallback((event: PointerEvent<HTMLCanvasElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = clamp(Math.round(((event.clientX - rect.left) / rect.width) * MAP_SIZE), 1, MAP_SIZE);
@@ -734,6 +745,36 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       x: Math.round(clamp(value.x + xDelta, 1, MAP_SIZE)),
       y: Math.round(clamp(value.y + yDelta, 1, MAP_SIZE)),
     }));
+  };
+
+  const setSmoothZoom = (updater: (value: number) => number) => {
+    setZoom((value) => clamp(updater(value), MIN_ZOOM, MAX_ZOOM));
+  };
+
+  const zoomByWheel = (deltaY: number) => {
+    setSmoothZoom((value) => value * (deltaY > 0 ? 1 / WHEEL_ZOOM_FACTOR : WHEEL_ZOOM_FACTOR));
+  };
+
+  const scheduleHover = (coordinate: Coordinate) => {
+    pendingHoverRef.current = coordinate;
+    if (hoverFrameRef.current !== null) {
+      return;
+    }
+    hoverFrameRef.current = window.requestAnimationFrame(() => {
+      hoverFrameRef.current = null;
+      setHover(pendingHoverRef.current);
+    });
+  };
+
+  const schedulePan = (nextPan: { x: number; y: number }) => {
+    pendingPanRef.current = nextPan;
+    if (panFrameRef.current !== null) {
+      return;
+    }
+    panFrameRef.current = window.requestAnimationFrame(() => {
+      panFrameRef.current = null;
+      setPan(pendingPanRef.current);
+    });
   };
 
   const setMapMode = (nextMode: MapMode) => {
@@ -807,7 +848,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           onWheel={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.16 : 0.16), 0.3, 8));
+            zoomByWheel(event.deltaY);
           }}
         >
           <div
@@ -830,13 +871,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               }}
               onPointerMove={(event) => {
                 event.preventDefault();
-                setHover(coordinateFromPointer(event));
                 const drag = dragRef.current;
                 if (!drag || drag.pointerId !== event.pointerId) {
+                  scheduleHover(coordinateFromPointer(event));
                   return;
                 }
                 if (mode !== "3d" && !(mode === "isometric" && depthMode === "3d")) {
-                  setPan({ x: drag.panX + event.clientX - drag.x, y: drag.panY + event.clientY - drag.y });
+                  schedulePan({ x: drag.panX + event.clientX - drag.x, y: drag.panY + event.clientY - drag.y });
                   return;
                 }
                 setYaw(Math.round(clamp(drag.yaw + (event.clientX - drag.x) * 0.35, -180, 180)));
@@ -851,11 +892,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   }
                 }
               }}
-              onPointerLeave={() => setHover(null)}
+              onPointerLeave={() => {
+                pendingHoverRef.current = null;
+                setHover(null);
+              }}
               onWheel={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.16 : 0.16), 0.3, 8));
+                zoomByWheel(event.deltaY);
               }}
               onKeyDown={(event) => {
                 const step = event.shiftKey ? 10 : 1;
@@ -873,10 +917,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   moveSelection(0, step);
                 } else if (event.key === "+" || event.key === "=") {
                   event.preventDefault();
-                  setZoom((value) => clamp(value + 0.16, 0.3, 8));
+                  setSmoothZoom((value) => value * 1.2);
                 } else if (event.key === "-" || event.key === "_") {
                   event.preventDefault();
-                  setZoom((value) => clamp(value - 0.16, 0.3, 8));
+                  setSmoothZoom((value) => value / 1.2);
                 } else if (event.key.toLowerCase() === "f") {
                   event.preventDefault();
                   resetView();
@@ -932,12 +976,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             <button className={mode === "3d" ? "active" : ""} type="button" onClick={() => setMapMode("3d")}>3D</button>
           </div>
           <div className="wos-zoom-board" aria-label="Zoom controls">
-            <button type="button" aria-label="Zoom out" onClick={() => setZoom((value) => clamp(value - 0.25, 0.3, 8))}>−</button>
+            <button type="button" aria-label="Zoom out" onClick={() => setSmoothZoom((value) => value / 1.25)}>−</button>
             <div>
               <span>Zoom</span>
               <strong>{Math.round(zoom * 100)}%</strong>
             </div>
-            <button type="button" aria-label="Zoom in" onClick={() => setZoom((value) => clamp(value + 0.25, 0.3, 8))}>+</button>
+            <button type="button" aria-label="Zoom in" onClick={() => setSmoothZoom((value) => value * 1.25)}>+</button>
             <button type="button" onClick={resetView}>Fit</button>
           </div>
           <div className="wos-coordinate-fields">
@@ -977,7 +1021,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </label>
           <label>
             <span>Zoom</span>
-            <input type="range" min="30" max="800" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
+            <input type="range" min="30" max="2400" value={Math.round(zoom * 100)} onChange={(event) => setSmoothZoom(() => Number(event.target.value) / 100)} />
             <output>{Math.round(zoom * 100)}%</output>
           </label>
           <button type="button" onClick={resetView}>Reset View</button>
