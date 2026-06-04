@@ -596,7 +596,6 @@
 @media (max-width: 980px) {
   .svs-tool-hero,
   .svs-schedule-panel > header,
-  .svs-role-grid,
   .svs-settings,
   .svs-howto {
     grid-template-columns: 1fr;
@@ -612,26 +611,206 @@
 }
 
 @media (max-width: 640px) {
+  .svs-planner-page {
+    gap: 10px;
+    padding-bottom: 20px;
+  }
+
   .svs-tool-hero,
   .svs-settings > article,
   .svs-resource-modal,
   .svs-analytics,
   .svs-howto > article {
-    padding: 14px;
+    padding: 12px;
+  }
+
+  .svs-tool-hero {
+    gap: 12px;
   }
 
   .svs-tool-hero h1 {
-    font-size: 36px;
+    margin: 6px 0 8px;
+    font-size: 30px;
   }
 
-  .svs-panel-actions label,
+  .svs-tool-hero p {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .svs-hero-metrics article,
+  .svs-analytics-summary article {
+    min-width: 96px;
+    flex: 1 1 96px;
+    padding: 10px;
+  }
+
+  .svs-hero-metrics strong,
+  .svs-analytics-summary strong {
+    font-size: 20px;
+  }
+
+  .svs-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .svs-tabs button {
+    min-width: max-content;
+  }
+
+  .svs-role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .svs-role-card {
+    min-height: 112px;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .svs-role-card span {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .svs-role-card strong {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .svs-role-card small {
+    display: none;
+  }
+
+  .svs-role-card b {
+    font-size: 12px;
+  }
+
+  .svs-schedule-panel > header {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .svs-schedule-panel h2,
+  .svs-settings h2,
+  .svs-resource-modal h2 {
+    font-size: 20px;
+  }
+
+  .svs-panel-actions {
+    align-items: stretch;
+  }
+
+  .svs-panel-actions label {
+    flex: 1 1 106px;
+  }
+
   .svs-panel-actions button,
   .svs-settings-actions button {
-    flex: 1 1 135px;
+    flex: 1 1 72px;
+    padding: 0 10px;
   }
 
   .svs-settings-form {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .svs-settings,
+  .svs-howto {
+    gap: 10px;
+  }
+
+  .svs-settings > article {
+    gap: 10px;
+  }
+
+  .svs-resource-reference {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .svs-resource-reference span {
+    min-height: 38px;
+    gap: 8px;
+    padding: 7px 8px;
+    font-size: 13px;
+  }
+
+  .svs-resource-reference img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .svs-table-wrap {
+    overflow: visible;
+  }
+
+  .svs-table {
+    display: grid;
+    min-width: 0;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .svs-head {
+    display: none;
+  }
+
+  .svs-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    align-items: stretch;
+    padding: 10px;
+    border: 1px solid var(--svs-line);
+    border-radius: 8px;
+    background: #0b1220;
+  }
+
+  .svs-row.filled {
+    background: #0f1a2a;
+  }
+
+  .svs-time-cell {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  .svs-player-id-cell {
+    grid-template-columns: minmax(0, 1fr) 72px;
+  }
+
+  .svs-player-cell {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .svs-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .svs-row textarea {
+    min-height: 48px;
+    resize: none;
+  }
+
+  .svs-resource-cell {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .svs-resource-cell button {
+    width: auto;
+  }
+
+  .svs-confirm {
+    justify-content: space-between;
+    min-height: 32px;
+    padding-top: 2px;
   }
 
   .svs-resource-editor label {
