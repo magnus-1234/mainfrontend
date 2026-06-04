@@ -6365,20 +6365,23 @@ body {
 }
 
 .templates-head .daybreak-control-bar {
-  flex: 1 1 520px;
-  gap: 4px;
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  gap: 5px;
   min-height: 38px;
-  padding: 4px;
+  padding: 5px;
   border-radius: 8px;
 }
 
 .templates-filter-bar button {
-  flex: 1 1 104px;
-  min-width: 96px;
+  flex: 0 0 auto;
+  min-width: 72px;
   min-height: 30px;
-  padding: 0 11px;
+  padding: 0 13px;
   border-radius: 7px;
   font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .template-create-button {
@@ -10859,8 +10862,8 @@ body {
   }
 
   .templates-filter-bar button {
-    flex: 1 1 110px;
-    min-width: 0;
+    flex: 0 0 auto;
+    min-width: max-content;
   }
 
   .templates-howto {
@@ -14955,12 +14958,18 @@ body {
 .chief-charm-deep-grid,
 .chief-gear-workbench,
 .chief-gear-deep-grid {
-  gap: 10px;
+  gap: 12px;
+}
+
+.chief-charm-workbench,
+.chief-gear-workbench {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
 }
 
 .chief-charm-panel,
 .chief-gear-panel {
-  padding: 12px;
+  padding: 14px;
 }
 
 .chief-charm-panel-head,
@@ -14989,13 +14998,14 @@ body {
 
 .charm-gear-grid,
 .chief-gear-grid {
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 12px;
 }
 
 .charm-gear-card,
 .chief-gear-card {
-  gap: 8px;
-  padding: 9px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .charm-gear-card-head strong,
@@ -15011,7 +15021,7 @@ body {
 
 .charm-visual-select,
 .chief-gear-visual-select {
-  padding: 7px;
+  padding: 9px;
 }
 
 .charm-visual-current span,
@@ -15020,12 +15030,12 @@ body {
 }
 
 .charm-visual-current span {
-  padding: 6px 4px;
+  padding: 7px 5px;
 }
 
 .charm-visual-current img {
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
 }
 
 .chief-gear-compare img {
@@ -15037,12 +15047,12 @@ body {
 .chief-gear-selects,
 .chief-gear-inventory,
 .charm-shortfall-list {
-  gap: 7px;
+  gap: 8px;
 }
 
 .charm-slot-row {
-  grid-template-columns: minmax(54px, 0.6fr) repeat(2, minmax(64px, 1fr));
-  gap: 6px;
+  grid-template-columns: minmax(64px, 0.65fr) repeat(2, minmax(82px, 1fr));
+  gap: 8px;
 }
 
 .charm-slot-row select,
@@ -15055,8 +15065,8 @@ body {
 
 .charm-gear-total span,
 .chief-gear-card-total span {
-  padding: 5px;
-  font-size: 0.66rem;
+  padding: 6px;
+  font-size: 0.7rem;
 }
 
 .charm-shortfall-row {
@@ -15117,13 +15127,6 @@ body {
     linear-gradient(90deg, rgba(244, 129, 32, 0.26), rgba(250, 204, 21, 0.14));
   color: var(--foreground);
   font-weight: 950;
-}
-
-@media (min-width: 1180px) {
-  .charm-gear-grid,
-  .chief-gear-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 980px) {
