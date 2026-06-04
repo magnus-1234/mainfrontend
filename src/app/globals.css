@@ -14839,6 +14839,297 @@ body {
   overflow: hidden;
 }
 
+.chief-charm-page,
+.chief-gear-page {
+  gap: 10px;
+  padding: 12px;
+}
+
+.chief-charm-hero,
+.chief-gear-hero {
+  min-height: 0;
+  padding: 18px;
+}
+
+.chief-charm-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+}
+
+.chief-gear-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
+}
+
+.chief-charm-hero h1,
+.chief-gear-hero h1 {
+  margin: 4px 0 8px;
+  font-size: clamp(2rem, 4.8vw, 4.15rem);
+}
+
+.chief-charm-hero p,
+.chief-gear-hero p {
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.chief-charm-hero-chips,
+.chief-gear-hero-chips {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chief-charm-hero-chips span,
+.chief-gear-hero-chips span {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 0.74rem;
+}
+
+.chief-charm-art {
+  min-height: 210px;
+}
+
+.charm-gear-ring {
+  width: min(58vw, 290px);
+  min-height: 220px;
+  gap: 14px 20px;
+}
+
+.charm-gear-ring span {
+  width: 31px;
+  height: 38px;
+  border-radius: 7px;
+}
+
+.charm-gear-ring span img {
+  width: 24px;
+  height: 24px;
+}
+
+.chief-gear-visual {
+  grid-template-columns: 86px minmax(96px, 1fr) 86px;
+  grid-template-rows: repeat(3, 86px);
+  gap: 8px 12px;
+  min-height: 260px;
+}
+
+.gear-node {
+  width: 82px;
+  height: 92px;
+  border-radius: 10px;
+  padding: 6px;
+  font-size: 0.65rem;
+}
+
+.gear-node img {
+  width: 48px;
+  height: 48px;
+}
+
+.chief-charm-summary,
+.chief-charm-results,
+.chief-gear-summary,
+.chief-gear-results {
+  gap: 8px;
+}
+
+.chief-charm-summary article,
+.charm-result-card,
+.chief-gear-summary article,
+.chief-gear-result {
+  min-height: 104px;
+  gap: 4px;
+  padding: 12px;
+}
+
+.chief-charm-summary strong,
+.charm-result-card strong,
+.chief-gear-summary strong,
+.chief-gear-result strong {
+  font-size: clamp(1.32rem, 2vw, 1.9rem);
+}
+
+.chief-charm-summary small,
+.charm-result-card small,
+.chief-gear-summary small,
+.chief-gear-result small {
+  font-size: 0.74rem;
+}
+
+.chief-charm-workbench,
+.chief-charm-deep-grid,
+.chief-gear-workbench,
+.chief-gear-deep-grid {
+  gap: 10px;
+}
+
+.chief-charm-panel,
+.chief-gear-panel {
+  padding: 12px;
+}
+
+.chief-charm-panel-head,
+.chief-charm-chart-head {
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.chief-charm-panel-head strong {
+  font-size: 0.94rem;
+  line-height: 1.25;
+}
+
+.charm-quick-actions,
+.chief-gear-actions {
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.charm-quick-actions button,
+.chief-gear-actions button {
+  min-height: 34px;
+  padding: 5px 8px;
+  font-size: 0.7rem;
+}
+
+.charm-gear-grid,
+.chief-gear-grid {
+  gap: 8px;
+}
+
+.charm-gear-card,
+.chief-gear-card {
+  gap: 8px;
+  padding: 9px;
+}
+
+.charm-gear-card-head strong,
+.chief-gear-card-head strong {
+  font-size: 0.98rem;
+}
+
+.charm-gear-card-head b,
+.chief-gear-card-head b {
+  padding: 4px 7px;
+  font-size: 0.68rem;
+}
+
+.charm-visual-select,
+.chief-gear-visual-select {
+  padding: 7px;
+}
+
+.charm-visual-current span,
+.chief-gear-compare span {
+  border-radius: 6px;
+}
+
+.charm-visual-current span {
+  padding: 6px 4px;
+}
+
+.charm-visual-current img {
+  width: 42px;
+  height: 42px;
+}
+
+.chief-gear-compare img {
+  width: 58px;
+  height: 58px;
+}
+
+.charm-slot-list,
+.chief-gear-selects,
+.chief-gear-inventory,
+.charm-shortfall-list {
+  gap: 7px;
+}
+
+.charm-slot-row {
+  grid-template-columns: minmax(54px, 0.6fr) repeat(2, minmax(64px, 1fr));
+  gap: 6px;
+}
+
+.charm-slot-row select,
+.chief-gear-selects select,
+.chief-gear-inventory input {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+}
+
+.charm-gear-total span,
+.chief-gear-card-total span {
+  padding: 5px;
+  font-size: 0.66rem;
+}
+
+.charm-shortfall-row {
+  grid-template-columns: minmax(96px, 0.75fr) minmax(0, 1fr) 72px;
+  gap: 8px;
+}
+
+.chief-charm-chart,
+.chief-gear-chart {
+  border-color: rgba(34, 211, 238, 0.45);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(250, 204, 21, 0.08)),
+    var(--card);
+  box-shadow: 0 14px 28px rgba(2, 8, 23, 0.12);
+}
+
+.chief-charm-chart-head {
+  border-bottom-color: rgba(34, 211, 238, 0.34);
+  padding: 12px;
+  background:
+    linear-gradient(90deg, rgba(14, 165, 233, 0.18), rgba(244, 129, 32, 0.12)),
+    color-mix(in srgb, var(--card) 94%, transparent);
+}
+
+.chief-charm-chart-head h2 {
+  font-size: 1.08rem;
+}
+
+.chief-charm-table-wrap table {
+  min-width: 700px;
+}
+
+.chief-charm-table-wrap th,
+.chief-charm-table-wrap td {
+  border-bottom-color: color-mix(in srgb, var(--border) 78%, rgba(14, 165, 233, 0.32));
+  padding: 8px 10px;
+}
+
+.chief-charm-table-wrap th {
+  background:
+    linear-gradient(180deg, rgba(14, 165, 233, 0.28), rgba(244, 129, 32, 0.14)),
+    color-mix(in srgb, var(--muted) 82%, var(--card));
+  color: var(--foreground);
+}
+
+.chief-charm-table-wrap tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, rgba(14, 165, 233, 0.1) 70%, transparent);
+}
+
+.chief-charm-table-wrap tbody tr:nth-child(odd) td {
+  background: color-mix(in srgb, rgba(250, 204, 21, 0.06) 70%, transparent);
+}
+
+.chief-charm-table-wrap tr.selected td,
+.chief-charm-table-wrap tbody tr.selected:nth-child(even) td,
+.chief-charm-table-wrap tbody tr.selected:nth-child(odd) td {
+  background:
+    linear-gradient(90deg, rgba(244, 129, 32, 0.26), rgba(250, 204, 21, 0.14));
+  color: var(--foreground);
+  font-weight: 950;
+}
+
+@media (min-width: 1180px) {
+  .charm-gear-grid,
+  .chief-gear-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 980px) {
   .chief-gear-hero,
   .chief-gear-workbench,
