@@ -1338,7 +1338,7 @@ const navGroupVisuals: Record<"calculators" | "wiki" | "developer" | "more", Nav
   calculators: { src: "/woscalc/gear/helmet-gold.png", alt: "Calculators" },
   wiki: { src: "/wiki/heroes/molly/554d3a1795ca.png", alt: "WOS Wiki" },
   developer: { src: "/wos-logo.png", alt: "Developer tools" },
-  more: { src: "/whiteout-survival-logo.png", alt: "More tools" },
+  more: { src: "/wos-logo.png", alt: "More tools" },
 };
 
 const landingToolVisuals: Partial<Record<ActiveMenu, { src: string; alt: string; tone: "gold" | "ice" | "ember" | "blue" | "green" | "violet" }>> = {

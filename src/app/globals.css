@@ -16516,8 +16516,20 @@ body {
   }
 
   .sidebar-item .nav-icon-image {
-    width: 28px;
-    height: 28px;
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+  }
+
+  .collapsed-sidebar .sidebar-item .nav-icon-image {
+    display: inline-flex;
+  }
+
+  .sidebar-item .nav-icon-image img,
+  .mobile-more-item .nav-icon-image img,
+  .sidebar-wiki-subitem .nav-icon-image img {
+    padding: 2px;
+    object-fit: contain;
   }
 
   .sidebar-item .nav-label-desktop,
