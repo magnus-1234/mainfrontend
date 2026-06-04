@@ -1343,7 +1343,7 @@ const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string
 ];
 
 const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
-  home: { src: "/site-logo-512.png", alt: "WhiteoutSurvival.dev home logo" },
+  home: { src: "/molly-logo.png", alt: "Whiteout Survival Molly home logo" },
   gift: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
   redeem: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
   stateAge: { src: "/state-transfer.png", alt: "State transfer" },
@@ -1944,9 +1944,14 @@ function NavIcon({ icon, visual }: { icon: string; visual?: NavVisual }) {
   }
 
   return (
-    <span className="nav-icon-image" aria-hidden="true">
-      <img src={visual.src} alt="" loading="lazy" />
-    </span>
+    <>
+      <span className="nav-icon-image" aria-hidden="true">
+        <img src={visual.src} alt="" loading="lazy" />
+      </span>
+      <span className="nav-icon-fallback" aria-hidden="true">
+        <Icon name={icon} />
+      </span>
+    </>
   );
 }
 

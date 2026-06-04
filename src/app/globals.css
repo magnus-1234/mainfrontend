@@ -1239,6 +1239,18 @@ body {
   object-fit: contain;
 }
 
+.nav-icon-fallback {
+  display: none;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.nav-icon-fallback svg {
+  width: 17px;
+  height: 17px;
+}
+
 .sidebar-item span {
   min-width: 0;
   overflow: hidden;
@@ -17039,6 +17051,28 @@ body {
   .sidebar-wiki-subitem .nav-icon-image img {
     padding: 0;
     object-fit: contain;
+  }
+
+  .sidebar-content > .sidebar-item.mobile-primary .nav-icon-image,
+  .sidebar-content > .mobile-more-trigger .nav-icon-image {
+    display: none;
+  }
+
+  .sidebar-content > .sidebar-item.mobile-primary .nav-icon-fallback,
+  .sidebar-content > .mobile-more-trigger .nav-icon-fallback {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+  }
+
+  .sidebar-content > .sidebar-item.mobile-primary .nav-icon-fallback svg,
+  .sidebar-content > .mobile-more-trigger .nav-icon-fallback svg {
+    width: 18px;
+    height: 18px;
   }
 
   .sidebar-item .nav-label-desktop,
