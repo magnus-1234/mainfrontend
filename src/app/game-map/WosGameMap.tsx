@@ -13,6 +13,7 @@ type Coordinate = {
 };
 
 type MapMode = "2d" | "isometric" | "3d";
+type DepthMode = "2d" | "3d";
 
 type DragState = {
   pointerId: number;
@@ -103,6 +104,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
   const [hover, setHover] = useState<Coordinate | null>(null);
   const [mode, setMode] = useState<MapMode>("2d");
+  const [depthMode, setDepthMode] = useState<DepthMode>("2d");
   const [pitch, setPitch] = useState(0);
   const [yaw, setYaw] = useState(0);
   const [roll, setRoll] = useState(0);
@@ -131,6 +133,20 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     };
   };
 
+  useEffect(() => {
+    const stage = mapShellRef.current;
+    if (!stage) {
+      return;
+    }
+
+    const containWheel = (event: WheelEvent) => {
+      event.preventDefault();
+    };
+
+    stage.addEventListener("wheel", containWheel, { passive: false });
+    return () => stage.removeEventListener("wheel", containWheel);
+  }, []);
+
   const coordinateFromPointer = useCallback((event: PointerEvent<HTMLCanvasElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = clamp(Math.round(((event.clientX - rect.left) / rect.width) * MAP_SIZE), 1, MAP_SIZE);
@@ -155,6 +171,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const setMapMode = (nextMode: MapMode) => {
     setMode(nextMode);
     if (nextMode === "2d") {
+      setDepthMode("2d");
       setPitch(0);
       setYaw(0);
       setRoll(0);
@@ -163,13 +180,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       return;
     }
     if (nextMode === "isometric") {
-      setPitch(58);
+      setPitch(depthMode === "3d" ? 58 : 0);
       setYaw(0);
       setRoll(45);
-      setZoom(0.64);
+      setZoom(depthMode === "3d" ? 0.64 : 0.78);
       setPan({ x: 0, y: 0 });
       return;
     }
+    setDepthMode("3d");
     setPitch(58);
     setYaw(-28);
     setRoll(0);
@@ -187,10 +205,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       return;
     }
     if (mode === "isometric") {
-      setPitch(58);
+      setPitch(depthMode === "3d" ? 58 : 0);
       setYaw(0);
       setRoll(45);
-      setZoom(0.64);
+      setZoom(depthMode === "3d" ? 0.64 : 0.78);
       setPan({ x: 0, y: 0 });
       return;
     }
@@ -215,9 +233,17 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       </div>
 
       <div className="wos-map-workspace">
-        <div className="wos-map-stage" ref={mapShellRef}>
+        <div
+          className="wos-map-stage"
+          ref={mapShellRef}
+          onWheel={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.16 : 0.16), 0.3, 8));
+          }}
+        >
           <div
-            className={`wos-map-rotator mode-${mode}`}
+            className={`wos-map-rotator mode-${mode} depth-${depthMode}`}
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
@@ -235,12 +261,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch, panX: pan.x, panY: pan.y };
               }}
               onPointerMove={(event) => {
+                event.preventDefault();
                 setHover(coordinateFromPointer(event));
                 const drag = dragRef.current;
                 if (!drag || drag.pointerId !== event.pointerId) {
                   return;
                 }
-                if (mode !== "3d") {
+                if (mode !== "3d" && !(mode === "isometric" && depthMode === "3d")) {
                   setPan({ x: drag.panX + event.clientX - drag.x, y: drag.panY + event.clientY - drag.y });
                   return;
                 }
@@ -259,6 +286,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               onPointerLeave={() => setHover(null)}
               onWheel={(event) => {
                 event.preventDefault();
+                event.stopPropagation();
                 setZoom((value) => clamp(value + (event.deltaY > 0 ? -0.16 : 0.16), 0.3, 8));
               }}
               onKeyDown={(event) => {
