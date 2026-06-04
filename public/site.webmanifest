@@ -1,0 +1,21 @@
+{
+  "name": "WhiteoutSurvival.dev",
+  "short_name": "WOS Tools",
+  "description": "Whiteout Survival tools, calculators, wiki data, planners, gift codes, and Discord bot automation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fbff",
+  "theme_color": "#0f5fa8",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/site-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

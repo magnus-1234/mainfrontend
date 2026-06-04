@@ -16,29 +16,58 @@ const geistMono = Geist_Mono({
 const siteTitle = "Whiteout Survival Tools & Discord Bot | WhiteoutSurvival.dev";
 const siteDescription =
   "Whiteout Survival tools for gift codes, state age, chief gear and charm calculators, Foundry planning, WOS wiki data, and Discord bot automation.";
+const siteUrl = "https://whiteoutsurvival.dev";
+const siteLogoUrl = `${siteUrl}/site-logo-512.png`;
 const siteNavigationItems = [
-  ["Home", "https://whiteoutsurvival.dev/"],
-  ["Gift Codes", "https://whiteoutsurvival.dev/gift-codes"],
-  ["Gift Code Redeem", "https://whiteoutsurvival.dev/redeem"],
-  ["State Age Tracker", "https://whiteoutsurvival.dev/state-age"],
-  ["VIP Calculator", "https://whiteoutsurvival.dev/vip-calculator"],
-  ["Chief Gear Calculator", "https://whiteoutsurvival.dev/chief-gear-calculator"],
-  ["Chief Charm Calculator", "https://whiteoutsurvival.dev/chief-charm-calculator"],
-  ["SvS Appointment Planner", "https://whiteoutsurvival.dev/svs-appointment-planner"],
-  ["WOS Game Map", "https://whiteoutsurvival.dev/game-map"],
-  ["Foundry Team Planner", "https://whiteoutsurvival.dev/foundry-team-planner"],
-  ["Message Templates", "https://whiteoutsurvival.dev/message-templates"],
-  ["Heroes Wiki", "https://whiteoutsurvival.dev/wiki/heroes"],
-  ["Buildings Wiki", "https://whiteoutsurvival.dev/wiki/buildings"],
-  ["Daybreak Island Layouts", "https://whiteoutsurvival.dev/daybreak-island"],
-  ["Dreamscape Memory", "https://whiteoutsurvival.dev/dreamscape-memory"],
-  ["Sneak Peek", "https://whiteoutsurvival.dev/sneak-peek"],
-  ["Discord Bot", "https://whiteoutsurvival.dev/discord-bot"],
-  ["Site Map", "https://whiteoutsurvival.dev/site-map"],
-  ["API Docs", "https://whiteoutsurvival.dev/api-docs"],
-  ["Privacy Policy", "https://whiteoutsurvival.dev/privacy-policy"],
-  ["Terms of Service", "https://whiteoutsurvival.dev/terms-of-service"],
+  ["Home", `${siteUrl}/`],
+  ["Gift Codes", `${siteUrl}/gift-codes`],
+  ["Gift Code Redeem", `${siteUrl}/redeem`],
+  ["State Age Tracker", `${siteUrl}/state-age`],
+  ["VIP Calculator", `${siteUrl}/vip-calculator`],
+  ["Chief Gear Calculator", `${siteUrl}/chief-gear-calculator`],
+  ["Chief Charm Calculator", `${siteUrl}/chief-charm-calculator`],
+  ["SvS Appointment Planner", `${siteUrl}/svs-appointment-planner`],
+  ["WOS Game Map", `${siteUrl}/game-map`],
+  ["Foundry Team Planner", `${siteUrl}/foundry-team-planner`],
+  ["Message Templates", `${siteUrl}/message-templates`],
+  ["Heroes Wiki", `${siteUrl}/wiki/heroes`],
+  ["Buildings Wiki", `${siteUrl}/wiki/buildings`],
+  ["Daybreak Island Layouts", `${siteUrl}/daybreak-island`],
+  ["Dreamscape Memory", `${siteUrl}/dreamscape-memory`],
+  ["Sneak Peek", `${siteUrl}/sneak-peek`],
+  ["Discord Bot", `${siteUrl}/discord-bot`],
+  ["Site Map", `${siteUrl}/site-map`],
+  ["API Docs", `${siteUrl}/api-docs`],
+  ["Privacy Policy", `${siteUrl}/privacy-policy`],
+  ["Terms of Service", `${siteUrl}/terms-of-service`],
 ] as const;
+
+const siteIdentityJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: "WhiteoutSurvival.dev",
+      url: `${siteUrl}/`,
+      logo: {
+        "@type": "ImageObject",
+        url: siteLogoUrl,
+        width: 512,
+        height: 512,
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      name: "WhiteoutSurvival.dev",
+      url: `${siteUrl}/`,
+      publisher: {
+        "@id": `${siteUrl}/#organization`,
+      },
+    },
+  ],
+};
 
 const siteNavigationJsonLd = {
   "@context": "https://schema.org",
@@ -53,7 +82,7 @@ const siteNavigationJsonLd = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://whiteoutsurvival.dev"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: siteTitle,
     template: "%s | WhiteoutSurvival.dev",
@@ -78,6 +107,7 @@ export const metadata: Metadata = {
   authors: [{ name: "WhiteoutSurvival.dev" }],
   creator: "WhiteoutSurvival.dev",
   publisher: "WhiteoutSurvival.dev",
+  manifest: "/site.webmanifest",
   robots: {
     index: true,
     follow: true,
@@ -90,13 +120,17 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
+      { url: "/icon-192x192.png", type: "image/png", sizes: "192x192" },
+    ],
     shortcut: "/favicon.ico",
-    apple: "/wos-logo.png",
+    apple: [{ url: "/icon-192x192.png", type: "image/png", sizes: "192x192" }],
   },
   openGraph: {
     type: "website",
-    url: "https://whiteoutsurvival.dev/",
+    url: `${siteUrl}/`,
     siteName: "WhiteoutSurvival.dev",
     title: siteTitle,
     description: siteDescription,
@@ -133,6 +167,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteIdentityJsonLd) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavigationJsonLd) }}
