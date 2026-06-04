@@ -70,6 +70,31 @@
   transition: transform 80ms linear;
 }
 
+.wos-map-rotator::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border: 1px solid rgba(17, 24, 39, 0.26);
+  background:
+    radial-gradient(ellipse at 14% 15%, rgba(73, 143, 83, 0.58) 0 16%, transparent 27%),
+    radial-gradient(ellipse at 36% 13%, rgba(244, 247, 237, 0.82) 0 14%, transparent 24%),
+    radial-gradient(ellipse at 55% 14%, rgba(184, 119, 82, 0.5) 0 15%, transparent 25%),
+    radial-gradient(ellipse at 83% 16%, rgba(74, 137, 82, 0.58) 0 16%, transparent 27%),
+    radial-gradient(ellipse at 15% 37%, rgba(204, 101, 68, 0.5) 0 16%, transparent 27%),
+    radial-gradient(ellipse at 40% 38%, rgba(75, 135, 83, 0.54) 0 15%, transparent 26%),
+    radial-gradient(ellipse at 61% 35%, rgba(238, 244, 227, 0.76) 0 15%, transparent 27%),
+    radial-gradient(ellipse at 85% 39%, rgba(183, 102, 72, 0.5) 0 16%, transparent 26%),
+    radial-gradient(ellipse at 22% 61%, rgba(68, 127, 79, 0.58) 0 19%, transparent 30%),
+    radial-gradient(ellipse at 50% 55%, rgba(210, 115, 75, 0.45) 0 15%, transparent 25%),
+    radial-gradient(ellipse at 77% 62%, rgba(66, 126, 83, 0.58) 0 18%, transparent 30%),
+    radial-gradient(ellipse at 14% 86%, rgba(240, 246, 236, 0.78) 0 16%, transparent 27%),
+    radial-gradient(ellipse at 43% 86%, rgba(75, 139, 76, 0.54) 0 17%, transparent 28%),
+    radial-gradient(ellipse at 70% 87%, rgba(196, 108, 74, 0.5) 0 17%, transparent 28%),
+    radial-gradient(ellipse at 91% 84%, rgba(75, 143, 78, 0.56) 0 15%, transparent 25%),
+    radial-gradient(circle at center, #edf6ef 0, #d5e8e7 54%, #c6d8dd 100%);
+  content: "";
+}
+
 .wos-map-rotator.mode-2d {
   width: min(80vmin, 860px);
 }
@@ -79,6 +104,8 @@
 }
 
 .wos-map-canvas {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
@@ -89,6 +116,7 @@
     0 24px 70px rgba(15, 23, 42, 0.18),
     inset 0 0 0 1px rgba(17, 24, 39, 0.08);
   cursor: grab;
+  opacity: 0.68;
   touch-action: none;
 }
 
@@ -101,9 +129,101 @@
   outline-offset: 4px;
 }
 
+.wos-map-object-layer {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+}
+
+.wos-map-object-marker {
+  position: absolute;
+  display: grid;
+  aspect-ratio: 1;
+  min-width: 8px;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  background:
+    var(--marker-image) center / contain no-repeat,
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.82), var(--marker-color));
+  box-shadow:
+    0 3px 9px rgba(5, 15, 20, 0.32),
+    0 0 0 1px rgba(6, 23, 31, 0.18);
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(7px, 1.1vw, 11px);
+  font-weight: 950;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(5, 15, 20, 0.82);
+}
+
+.wos-map-object-marker.kind-capital {
+  z-index: 6;
+  border-color: rgba(255, 224, 151, 0.94);
+  box-shadow:
+    0 8px 18px rgba(95, 43, 13, 0.34),
+    0 0 0 3px rgba(246, 176, 79, 0.22),
+    0 0 24px rgba(246, 176, 79, 0.36);
+}
+
+.wos-map-object-marker.kind-turret {
+  z-index: 5;
+  border-color: rgba(255, 210, 154, 0.9);
+  box-shadow:
+    0 5px 12px rgba(60, 29, 16, 0.28),
+    0 0 0 2px rgba(240, 139, 67, 0.22);
+}
+
+.wos-map-object-marker.kind-stronghold,
+.wos-map-object-marker.kind-fortress {
+  z-index: 4;
+  border-color: rgba(245, 247, 250, 0.86);
+  background:
+    var(--marker-image) center / contain no-repeat,
+    radial-gradient(circle at 35% 22%, rgba(255, 255, 255, 0.78), rgba(93, 111, 123, 0.7));
+}
+
+.wos-map-object-marker.kind-facility {
+  z-index: 2;
+  border-color: rgba(7, 24, 32, 0.42);
+  border-radius: 3px;
+  background: var(--marker-color);
+  box-shadow:
+    0 2px 5px rgba(5, 15, 20, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.wos-map-object-marker.kind-facility span {
+  transform: rotate(-45deg);
+}
+
+.wos-map-object-marker em {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  width: max-content;
+  max-width: 92px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 3px;
+  padding: 2px 4px;
+  background: rgba(9, 24, 31, 0.78);
+  color: #ffffff;
+  font-size: clamp(8px, 1.2vw, 12px);
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1.05;
+  text-align: center;
+  white-space: normal;
+}
+
 .wos-coordinate-tag {
   position: absolute;
-  z-index: 2;
+  z-index: 7;
   display: inline-flex;
   width: 54px;
   height: 18px;
