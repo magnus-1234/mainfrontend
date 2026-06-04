@@ -52,9 +52,9 @@
   overflow: hidden;
   overscroll-behavior: contain;
   place-items: center;
-  border: 1px solid rgba(67, 178, 236, 0.2);
+  border: 1px solid rgba(17, 24, 39, 0.14);
   border-radius: 8px;
-  background: #101923;
+  background: #eef1f4;
   perspective: 1200px;
 }
 
@@ -79,12 +79,12 @@
   display: block;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(67, 178, 236, 0.8);
+  border: 1px solid rgba(17, 24, 39, 0.5);
   border-radius: 0;
-  background: #4a877a;
+  background: #ffffff;
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.28),
-    inset 0 0 0 1px rgba(67, 178, 236, 0.22);
+    0 24px 70px rgba(15, 23, 42, 0.18),
+    inset 0 0 0 1px rgba(17, 24, 39, 0.08);
   cursor: grab;
   touch-action: none;
 }
@@ -98,38 +98,43 @@
   outline-offset: 4px;
 }
 
-.wos-cell-label {
+.wos-coordinate-tag {
   position: absolute;
   z-index: 2;
   display: inline-flex;
-  width: 25px;
-  height: 10px;
+  width: 54px;
+  height: 18px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(91, 180, 255, 0.82);
-  border-radius: 1px;
-  background: #10213a;
+  border: 1px solid rgba(15, 23, 42, 0.95);
+  border-radius: 2px;
+  background: #111827;
   color: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 4.7px;
+  font-size: 10px;
   font-weight: 950;
   letter-spacing: 0;
   line-height: 1;
   opacity: var(--label-opacity, 1);
   pointer-events: none;
-  text-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
   white-space: nowrap;
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
 }
 
-.wos-cell-label.selected {
-  background: #10213a;
-  box-shadow: 0 0 0 1px rgba(7, 18, 32, 0.7);
+.wos-coordinate-tag.selected {
+  background: #111827;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 2px 5px rgba(15, 23, 42, 0.22);
 }
 
-.wos-cell-label.hover {
-  background: rgba(16, 33, 58, 0.9);
-  box-shadow: 0 0 0 1px rgba(7, 18, 32, 0.58);
+.wos-coordinate-tag.hover {
+  background: rgba(17, 24, 39, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.82),
+    0 2px 5px rgba(15, 23, 42, 0.18);
 }
 
 .wos-map-controls {

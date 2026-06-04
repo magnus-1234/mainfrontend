@@ -49,7 +49,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
   context.imageSmoothingEnabled = false;
 
-  context.fillStyle = "#4a877a";
+  context.fillStyle = "#ffffff";
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
   const majorEvery = 100;
@@ -59,7 +59,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   for (let value = 1; value <= MAP_SIZE; value += minorEvery) {
     const position = value - 1;
     const isMajor = value === 1 || value % majorEvery === 0 || value === MAP_SIZE;
-    context.strokeStyle = isMajor ? "rgba(87, 173, 181, 0.26)" : "rgba(105, 177, 169, 0.12)";
+    context.strokeStyle = isMajor ? "rgba(17, 24, 39, 0.42)" : "rgba(17, 24, 39, 0.12)";
     context.beginPath();
     context.moveTo(position, 0);
     context.lineTo(position, CANVAS_SIZE);
@@ -68,7 +68,7 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     context.stroke();
   }
 
-  context.strokeStyle = "rgba(67, 178, 236, 0.9)";
+  context.strokeStyle = "rgba(17, 24, 39, 0.72)";
   context.lineWidth = 3;
   context.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
 
@@ -76,10 +76,10 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     const cell = gridCellFor(coord);
     const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
     const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
-    context.fillStyle = selectedCell ? "rgba(91, 171, 255, 0.16)" : "rgba(91, 171, 255, 0.1)";
+    context.fillStyle = selectedCell ? "rgba(37, 99, 235, 0.14)" : "rgba(37, 99, 235, 0.08)";
     context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
-    context.strokeStyle = selectedCell ? "#5bb4ff" : "rgba(91, 180, 255, 0.72)";
-    context.lineWidth = selectedCell ? 5 : 2;
+    context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.62)";
+    context.lineWidth = selectedCell ? 4 : 2;
     context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
   };
 
@@ -114,10 +114,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
     const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
-    const inverseScale = clamp(1 / Math.max(zoom, 1), 0.16, 1);
+    const inverseScale = clamp(1 / Math.max(zoom, 1), 0.2, 1);
     return {
-      left: `${((cell.x + cellWidth - 2) / CANVAS_SIZE) * 100}%`,
-      top: `${((cell.y + 2) / CANVAS_SIZE) * 100}%`,
+      left: `${((cell.x + cellWidth - 1) / CANVAS_SIZE) * 100}%`,
+      top: `${((cell.y + 1) / CANVAS_SIZE) * 100}%`,
       transform: `translate(0, -100%) rotate(${mode === "isometric" ? 0 : 45}deg) scale(${inverseScale})`,
       transformOrigin: "0 100%",
       ["--label-opacity" as string]: selectedLabel ? "1" : "0.86",
@@ -318,11 +318,11 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 }
               }}
             />
-            <span className="wos-cell-label selected" style={coordinateLabelStyle(selected, true)}>
+            <span className="wos-coordinate-tag selected" style={coordinateLabelStyle(selected, true)}>
               {formatCoordinate(selected)}
             </span>
             {hover && (gridCellFor(hover).x !== gridCellFor(selected).x || gridCellFor(hover).y !== gridCellFor(selected).y) && (
-              <span className="wos-cell-label hover" style={coordinateLabelStyle(hover)}>
+              <span className="wos-coordinate-tag hover" style={coordinateLabelStyle(hover)}>
                 {formatCoordinate(hover)}
               </span>
             )}
