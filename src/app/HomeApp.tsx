@@ -1484,7 +1484,7 @@ const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string
 ];
 
 const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
-  home: { src: "/molly-logo.png", alt: "Whiteout Survival Molly home logo" },
+  home: { src: "/home-icons/home-house.svg", alt: "Home" },
   gift: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
   redeem: { src: "/home-icons/gift-code.svg", alt: "Gift code reward" },
   stateAge: { src: "/state-transfer.png", alt: "State transfer" },
