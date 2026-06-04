@@ -2245,6 +2245,7 @@ body {
     radial-gradient(circle at 90% 100%, rgba(97, 190, 255, 0.12), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, transparent), color-mix(in srgb, var(--muted) 34%, var(--card))),
     var(--card);
+  perspective: 700px;
   box-shadow: 0 10px 28px rgba(42, 32, 22, 0.08);
 }
 
@@ -2255,72 +2256,128 @@ body {
 .landing-tool-icon {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
   width: 62px;
   height: 62px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 198, 116, 0.72);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 216, 143, 0.78);
   background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.52), transparent 22%),
-    linear-gradient(145deg, #fff4d2, #ffc05f 48%, #8c4318);
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.78), transparent 18%),
+    radial-gradient(circle at 68% 82%, rgba(114, 54, 20, 0.4), transparent 48%),
+    linear-gradient(145deg, #fff0bb 0%, #f7b548 42%, #a04b19 100%);
   color: #a45013;
+  transform: rotateX(6deg) rotateY(-8deg) translateZ(0);
+  transform-style: preserve-3d;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
-    inset 0 -10px 16px rgba(55, 25, 10, 0.26),
-    0 12px 26px rgba(244, 162, 89, 0.22);
+    inset 0 2px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -12px 18px rgba(60, 24, 8, 0.28),
+    0 3px 0 rgba(116, 54, 17, 0.72),
+    0 16px 28px rgba(244, 162, 89, 0.24);
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .landing-tool-icon::before {
   content: "";
   position: absolute;
-  inset: 4px;
+  inset: 5px;
   z-index: -1;
-  border-radius: 6px;
+  border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(10, 19, 24, 0.28), rgba(10, 19, 24, 0.64)),
-    radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.22), transparent 42%);
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.26), transparent 36%),
+    linear-gradient(180deg, rgba(44, 27, 12, 0.1), rgba(44, 21, 8, 0.38));
+  transform: translateZ(-4px);
+}
+
+.landing-tool-icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 32%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 42%);
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 .landing-tool-icon.has-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 7px;
-  filter: saturate(1.12) contrast(1.04);
-  transform: scale(1.03);
+  position: relative;
+  z-index: 1;
+  width: 118%;
+  height: 118%;
+  margin: -9%;
+  object-fit: contain;
+  border-radius: 0;
+  filter: saturate(1.16) contrast(1.06) drop-shadow(0 10px 8px rgba(29, 12, 4, 0.36));
+  transform: translateZ(18px) scale(1.04);
+}
+
+.landing-tool-card:hover .landing-tool-icon,
+.landing-tool-card:focus-visible .landing-tool-icon {
+  transform: rotateX(0deg) rotateY(0deg) translateY(-3px) scale(1.04);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -12px 18px rgba(60, 24, 8, 0.26),
+    0 4px 0 rgba(116, 54, 17, 0.66),
+    0 20px 34px rgba(244, 162, 89, 0.3);
 }
 
 .landing-tool-icon.tone-gold {
   border-color: rgba(255, 213, 109, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 14px 30px rgba(245, 181, 72, 0.28);
+  background:
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.78), transparent 18%),
+    radial-gradient(circle at 68% 82%, rgba(114, 54, 20, 0.36), transparent 48%),
+    linear-gradient(145deg, #fff0bb 0%, #f7b548 42%, #a04b19 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.64), inset 0 -12px 18px rgba(60, 24, 8, 0.28), 0 3px 0 rgba(116, 54, 17, 0.72), 0 16px 30px rgba(245, 181, 72, 0.3);
 }
 
 .landing-tool-icon.tone-ice {
   border-color: rgba(127, 221, 255, 0.76);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 14px 30px rgba(74, 190, 255, 0.24);
+  background:
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.8), transparent 18%),
+    radial-gradient(circle at 70% 82%, rgba(27, 83, 112, 0.42), transparent 50%),
+    linear-gradient(145deg, #dffbff 0%, #73cef4 45%, #1c6fa3 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.64), inset 0 -12px 18px rgba(8, 36, 60, 0.24), 0 3px 0 rgba(20, 85, 121, 0.72), 0 16px 30px rgba(74, 190, 255, 0.28);
 }
 
 .landing-tool-icon.tone-ember {
   border-color: rgba(255, 148, 91, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 14px 30px rgba(255, 103, 49, 0.28);
+  background:
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.7), transparent 18%),
+    radial-gradient(circle at 68% 82%, rgba(111, 18, 13, 0.44), transparent 50%),
+    linear-gradient(145deg, #ffd073 0%, #f05f35 48%, #8c1826 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.62), inset 0 -12px 18px rgba(73, 8, 9, 0.28), 0 3px 0 rgba(116, 35, 17, 0.72), 0 16px 30px rgba(255, 103, 49, 0.32);
 }
 
 .landing-tool-icon.tone-blue {
   border-color: rgba(105, 170, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 14px 30px rgba(68, 136, 255, 0.26);
+  background:
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.74), transparent 18%),
+    radial-gradient(circle at 70% 82%, rgba(31, 45, 116, 0.44), transparent 50%),
+    linear-gradient(145deg, #dbe8ff 0%, #6da4ff 46%, #2c4aae 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.62), inset 0 -12px 18px rgba(17, 25, 72, 0.28), 0 3px 0 rgba(38, 62, 139, 0.72), 0 16px 30px rgba(68, 136, 255, 0.3);
 }
 
 .landing-tool-icon.tone-green {
   border-color: rgba(113, 222, 158, 0.78);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 14px 30px rgba(66, 190, 119, 0.24);
+  background:
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.74), transparent 18%),
+    radial-gradient(circle at 68% 82%, rgba(16, 86, 51, 0.42), transparent 50%),
+    linear-gradient(145deg, #d8ffd8 0%, #5dd08a 45%, #157345 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.62), inset 0 -12px 18px rgba(9, 58, 33, 0.28), 0 3px 0 rgba(22, 93, 54, 0.72), 0 16px 30px rgba(66, 190, 119, 0.28);
 }
 
 .landing-tool-icon.tone-violet {
   border-color: rgba(178, 151, 255, 0.78);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 14px 30px rgba(144, 112, 255, 0.24);
+  background:
+    radial-gradient(circle at 31% 18%, rgba(255, 255, 255, 0.74), transparent 18%),
+    radial-gradient(circle at 68% 82%, rgba(59, 29, 116, 0.44), transparent 50%),
+    linear-gradient(145deg, #eee3ff 0%, #a982ff 46%, #5533a5 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.62), inset 0 -12px 18px rgba(35, 16, 76, 0.28), 0 3px 0 rgba(72, 48, 130, 0.72), 0 16px 30px rgba(144, 112, 255, 0.28);
 }
 
-.dark .landing-tool-icon {
+.dark .landing-tool-icon:not(.has-image) {
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.24), transparent 22%),
     linear-gradient(145deg, rgba(255, 190, 92, 0.38), rgba(244, 129, 32, 0.16));

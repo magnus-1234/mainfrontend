@@ -1305,15 +1305,15 @@ const sidebarCalculatorItems: { label: string; mobileLabel: string; icon: string
 ];
 
 const landingToolVisuals: Partial<Record<ActiveMenu, { src: string; alt: string; tone: "gold" | "ice" | "ember" | "blue" | "green" | "violet" }>> = {
-  gift: { src: "/showcase-gift-alert.png", alt: "Whiteout Survival gift code alert", tone: "gold" },
+  gift: { src: "/home-icons/gift-code.svg", alt: "Whiteout Survival gift code reward", tone: "gold" },
   svsPlanner: { src: "/wiki/heroes/natalia/32b1c504e8ae.png", alt: "Whiteout Survival appointment resource", tone: "ember" },
   gameMap: { src: "/vendor/krozac-wos-interactive-map/furnace.png", alt: "Whiteout Survival map furnace marker", tone: "ice" },
   planner: { src: "/foundry-team-planner-map.webp", alt: "Whiteout Survival foundry team map", tone: "blue" },
   bot: { src: "/bot-logo.gif", alt: "Whiteout Survival Discord bot", tone: "violet" },
   templates: { src: "/wiki/heroes/estrella/18d9d05440cc.png", alt: "Whiteout Survival message template icon", tone: "green" },
-  vip: { src: "/wiki/heroes/natalia/2790fe8fc8af.png", alt: "Whiteout Survival VIP resource", tone: "gold" },
-  chiefGear: { src: "/wiki/heroes/smith/defa1c9b6614.png", alt: "Whiteout Survival chief gear stat icon", tone: "ember" },
-  chiefCharm: { src: "/wiki/heroes/molly/78e9ad60f6fd.png", alt: "Whiteout Survival chief charm icon", tone: "violet" },
+  vip: { src: "/svs-resources/fire-crystal.png", alt: "Whiteout Survival premium resource", tone: "ember" },
+  chiefGear: { src: "/woscalc/gear/helmet-gold.png", alt: "Whiteout Survival chief gear helmet", tone: "gold" },
+  chiefCharm: { src: "/woscalc/charms/Infantry_16.png", alt: "Whiteout Survival chief charm", tone: "green" },
   stateAge: { src: "/state-transfer.png", alt: "Whiteout Survival state transfer", tone: "blue" },
   daybreak: { src: "/daybreak-island-tree-of-life.webp", alt: "Whiteout Survival Daybreak Island tree", tone: "green" },
   dreamscape: { src: "/wiki/heroes/estrella/2cfef55ef649.png", alt: "Whiteout Survival dreamscape painting", tone: "violet" },
