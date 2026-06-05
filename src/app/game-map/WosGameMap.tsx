@@ -70,67 +70,94 @@ const gridCellFor = (coord: Coordinate) => ({
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x}:${coordinate.y}`;
 
-const drawCellBlock = (
-  context: CanvasRenderingContext2D,
-  col: number,
-  row: number,
-  size: number,
-  fill: string,
-  stroke: string,
-) => {
-  const x = col;
-  const y = row;
-  const blockSize = size;
-  context.fillStyle = fill;
-  context.fillRect(x, y, blockSize, blockSize);
-  context.strokeStyle = stroke;
-  context.lineWidth = 1.5;
-  context.strokeRect(x + 0.75, y + 0.75, blockSize - 1.5, blockSize - 1.5);
+const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number) => {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const nextLine = line ? `${line} ${word}` : word;
+    if (line && context.measureText(nextLine).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = nextLine;
+    }
+  }
+  if (line) {
+    lines.push(line);
+  }
+
+  return lines;
 };
 
-const drawFacilityLabel = (context: CanvasRenderingContext2D, facility: Facility) => {
+const drawWrappedFacilityLabel = (context: CanvasRenderingContext2D, facility: Facility) => {
+  const fontSize = facility.size * 0.24;
   const centerX = facility.col + facility.size / 2;
-  const label =
-    facility.kind === "castle"
-      ? "SFC"
-      : facility.kind === "stronghold"
-        ? `SH${facility.label.split(" ")[1]}`
-        : facility.kind === "fortress"
-          ? `F${facility.label.split(" ")[1]}`
-          : facility.label.split(" ")[0];
-  const width = facility.kind === "castle" ? 22 : facility.kind === "turret" ? 18 : 16;
-  const height = 7;
-  const x = centerX - width / 2;
-  const y = facility.row + facility.size + 2;
+  const lineHeight = fontSize * 1.2;
+  const maxWidth = Math.max(1, facility.size - 0.4);
+  const lines = wrapText(context, facility.label, maxWidth);
 
-  context.fillStyle = "rgba(13, 24, 38, 0.94)";
-  context.fillRect(x, y, width, height);
-  context.strokeStyle = "rgba(255, 255, 255, 0.82)";
-  context.lineWidth = 0.7;
-  context.strokeRect(x + 0.35, y + 0.35, width - 0.7, height - 0.7);
-  context.fillStyle = "#ffffff";
-  context.font = "700 4px Arial";
+  context.font = `700 ${fontSize}px Arial`;
   context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText(label, centerX, y + height / 2 + 0.25);
+  context.textBaseline = "top";
+  context.fillStyle = "#ffffff";
+  context.strokeStyle = "rgba(0, 0, 0, 0.82)";
+  context.lineWidth = Math.max(0.35, fontSize * 0.18);
+
+  const startY = facility.row + fontSize * 0.8;
+  lines.forEach((line, index) => {
+    const y = startY + index * lineHeight;
+    context.strokeText(line, centerX, y);
+    context.fillText(line, centerX, y);
+  });
+};
+
+const drawFixedFacility = (context: CanvasRenderingContext2D, facility: Facility) => {
+  const x = facility.col;
+  const y = facility.row;
+  const size = facility.size;
+  const centerX = x + size / 2;
+  const centerY = y + size / 2;
+  const padding = Math.max(0.18, size * 0.08);
+
+  if (facility.kind === "castle") {
+    context.fillStyle = "#d97706";
+    context.beginPath();
+    context.arc(centerX, centerY, (size - padding * 2) / 2, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "#78350f";
+    context.lineWidth = Math.max(0.45, size * 0.06);
+    context.stroke();
+  } else if (facility.kind === "turret") {
+    context.fillStyle = "#0e7490";
+    context.beginPath();
+    context.arc(centerX, centerY, ((size - padding * 2) / 2) * 0.85, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "#164e63";
+    context.lineWidth = Math.max(0.35, size * 0.06);
+    context.stroke();
+  } else if (facility.kind === "stronghold") {
+    context.fillStyle = "#166534";
+    context.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
+    context.strokeStyle = "#22c55e";
+    context.lineWidth = Math.max(0.5, size * 0.04);
+    context.strokeRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
+  } else {
+    context.fillStyle = "#312e81";
+    context.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
+    context.strokeStyle = "#818cf8";
+    context.lineWidth = Math.max(0.5, size * 0.04);
+    context.strokeRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
+  }
+
+  drawWrappedFacilityLabel(context, facility);
 };
 
 const drawFixedFacilities = (context: CanvasRenderingContext2D) => {
   context.save();
   for (const facility of FIXED_FACILITIES) {
-    if (facility.kind === "castle") {
-      drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(245, 158, 11, 0.88)", "#92400e");
-      context.strokeStyle = "rgba(255, 255, 255, 0.92)";
-      context.lineWidth = 0.9;
-      context.strokeRect(facility.col + 1.2, facility.row + 1.2, facility.size - 2.4, facility.size - 2.4);
-    } else if (facility.kind === "turret") {
-      drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(14, 165, 233, 0.86)", "#075985");
-    } else if (facility.kind === "stronghold") {
-      drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(34, 197, 94, 0.78)", "#166534");
-    } else {
-      drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(168, 85, 247, 0.72)", "#6b21a8");
-    }
-    drawFacilityLabel(context, facility);
+    drawFixedFacility(context, facility);
   }
   context.restore();
 };
