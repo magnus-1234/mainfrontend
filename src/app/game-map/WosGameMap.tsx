@@ -31,18 +31,34 @@ type DragState = {
 type Facility = {
   id: string;
   label: string;
-  kind: "castle" | "turret";
+  kind: "castle" | "turret" | "stronghold" | "fortress";
   col: number;
   row: number;
   size: number;
 };
 
-const SUNFIRE_FACILITIES: Facility[] = [
+const FIXED_FACILITIES: Facility[] = [
   { id: "sunfire-castle", label: "Sunfire Castle", kind: "castle", col: 597, row: 597, size: 4 },
   { id: "north-turret", label: "North Turret", kind: "turret", col: 593, row: 593, size: 2 },
   { id: "east-turret", label: "East Turret", kind: "turret", col: 603, row: 593, size: 2 },
   { id: "south-turret", label: "South Turret", kind: "turret", col: 603, row: 603, size: 2 },
   { id: "west-turret", label: "West Turret", kind: "turret", col: 593, row: 603, size: 2 },
+  { id: "stronghold-1", label: "Stronghold 1", kind: "stronghold", col: 394, row: 597, size: 6 },
+  { id: "stronghold-2", label: "Stronghold 2", kind: "stronghold", col: 597, row: 794, size: 6 },
+  { id: "stronghold-3", label: "Stronghold 3", kind: "stronghold", col: 794, row: 597, size: 6 },
+  { id: "stronghold-4", label: "Stronghold 4", kind: "stronghold", col: 597, row: 394, size: 6 },
+  { id: "fortress-1", label: "Fortress 1", kind: "fortress", col: 366, row: 957, size: 6 },
+  { id: "fortress-2", label: "Fortress 2", kind: "fortress", col: 588, row: 957, size: 6 },
+  { id: "fortress-3", label: "Fortress 3", kind: "fortress", col: 846, row: 957, size: 6 },
+  { id: "fortress-4", label: "Fortress 4", kind: "fortress", col: 957, row: 828, size: 6 },
+  { id: "fortress-5", label: "Fortress 5", kind: "fortress", col: 957, row: 606, size: 6 },
+  { id: "fortress-6", label: "Fortress 6", kind: "fortress", col: 957, row: 348, size: 6 },
+  { id: "fortress-7", label: "Fortress 7", kind: "fortress", col: 846, row: 237, size: 6 },
+  { id: "fortress-8", label: "Fortress 8", kind: "fortress", col: 588, row: 237, size: 6 },
+  { id: "fortress-9", label: "Fortress 9", kind: "fortress", col: 366, row: 237, size: 6 },
+  { id: "fortress-10", label: "Fortress 10", kind: "fortress", col: 237, row: 348, size: 6 },
+  { id: "fortress-11", label: "Fortress 11", kind: "fortress", col: 237, row: 588, size: 6 },
+  { id: "fortress-12", label: "Fortress 12", kind: "fortress", col: 237, row: 828, size: 6 },
 ];
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -74,8 +90,15 @@ const drawCellBlock = (
 
 const drawFacilityLabel = (context: CanvasRenderingContext2D, facility: Facility) => {
   const centerX = facility.col + facility.size / 2;
-  const label = facility.kind === "castle" ? "SC" : facility.label.split(" ")[0];
-  const width = facility.kind === "castle" ? 20 : 18;
+  const label =
+    facility.kind === "castle"
+      ? "SFC"
+      : facility.kind === "stronghold"
+        ? `SH${facility.label.split(" ")[1]}`
+        : facility.kind === "fortress"
+          ? `F${facility.label.split(" ")[1]}`
+          : facility.label.split(" ")[0];
+  const width = facility.kind === "castle" ? 22 : facility.kind === "turret" ? 18 : 16;
   const height = 7;
   const x = centerX - width / 2;
   const y = facility.row + facility.size + 2;
@@ -92,16 +115,20 @@ const drawFacilityLabel = (context: CanvasRenderingContext2D, facility: Facility
   context.fillText(label, centerX, y + height / 2 + 0.25);
 };
 
-const drawSunfireFacilities = (context: CanvasRenderingContext2D) => {
+const drawFixedFacilities = (context: CanvasRenderingContext2D) => {
   context.save();
-  for (const facility of SUNFIRE_FACILITIES) {
+  for (const facility of FIXED_FACILITIES) {
     if (facility.kind === "castle") {
       drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(245, 158, 11, 0.88)", "#92400e");
       context.strokeStyle = "rgba(255, 255, 255, 0.92)";
       context.lineWidth = 0.9;
       context.strokeRect(facility.col + 1.2, facility.row + 1.2, facility.size - 2.4, facility.size - 2.4);
-    } else {
+    } else if (facility.kind === "turret") {
       drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(14, 165, 233, 0.86)", "#075985");
+    } else if (facility.kind === "stronghold") {
+      drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(34, 197, 94, 0.78)", "#166534");
+    } else {
+      drawCellBlock(context, facility.col, facility.row, facility.size, "rgba(168, 85, 247, 0.72)", "#6b21a8");
     }
     drawFacilityLabel(context, facility);
   }
@@ -120,7 +147,7 @@ const drawSelection = (context: CanvasRenderingContext2D, coord: Coordinate, sel
   context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
 };
 
-const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number) => {
+const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number, showFixedFacilities: boolean) => {
   const context = canvas.getContext("2d");
   if (!context) {
     return;
@@ -163,7 +190,9 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
     drawSelection(context, hover);
   }
   drawSelection(context, selected, true);
-  drawSunfireFacilities(context);
+  if (showFixedFacilities) {
+    drawFixedFacilities(context);
+  }
 
   context.strokeStyle = "rgba(17, 24, 39, 0.72)";
   context.lineWidth = 3;
@@ -187,14 +216,15 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [roll, setRoll] = useState(0);
   const [zoom, setZoom] = useState(0.9);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [showFixedFacilities, setShowFixedFacilities] = useState(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
-    drawMap(canvas, selected, hover, zoom);
-  }, [hover, selected, zoom]);
+    drawMap(canvas, selected, hover, zoom, showFixedFacilities);
+  }, [hover, selected, showFixedFacilities, zoom]);
 
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
@@ -459,6 +489,10 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             <button className={mode === "isometric" ? "active" : ""} type="button" onClick={() => setMapMode("isometric")}>ISO</button>
             <button className={mode === "3d" ? "active" : ""} type="button" onClick={() => setMapMode("3d")}>3D</button>
           </div>
+          <label className="wos-map-toggle">
+            <input type="checkbox" checked={showFixedFacilities} onChange={(event) => setShowFixedFacilities(event.target.checked)} />
+            <span>Show Fixed Sites</span>
+          </label>
           <div className="wos-zoom-board" aria-label="Zoom controls">
             <button type="button" aria-label="Zoom out" onClick={() => setSmoothZoom((value) => value / 1.25)}>−</button>
             <div>

@@ -156,6 +156,7 @@
 }
 
 .wos-map-mode-control,
+.wos-map-toggle,
 .wos-zoom-board,
 .wos-coordinate-fields,
 .wos-map-nudge {
@@ -165,6 +166,29 @@
 
 .wos-map-mode-control {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wos-map-toggle {
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--muted) 48%, transparent);
+}
+
+.wos-map-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.wos-map-toggle span {
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .wos-zoom-board {
@@ -282,6 +306,7 @@
   }
 
   .wos-map-mode-control,
+  .wos-map-toggle,
   .wos-zoom-board,
   .wos-coordinate-fields,
   .wos-map-nudge {
