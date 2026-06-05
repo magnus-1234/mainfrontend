@@ -3,8 +3,9 @@
 import type { PointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const MAP_SIZE = 1199;
-const CANVAS_SIZE = 1199;
+const MAP_MIN = 0;
+const MAP_MAX = 1199;
+const CANVAS_SIZE = 1200;
 const GRID_STEP = 25;
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 24;
@@ -64,11 +65,11 @@ const FIXED_FACILITIES: Facility[] = [
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const gridCellFor = (coord: Coordinate) => ({
-  x: Math.floor((coord.x - 1) / GRID_STEP) * GRID_STEP,
-  y: Math.floor((coord.y - 1) / GRID_STEP) * GRID_STEP,
+  x: Math.floor(coord.x / GRID_STEP) * GRID_STEP,
+  y: Math.floor(coord.y / GRID_STEP) * GRID_STEP,
 });
 
-const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x}:${coordinate.y}`;
+const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x},${coordinate.y}`;
 
 const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   const words = text.split(" ");
@@ -92,7 +93,7 @@ const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: num
 };
 
 const drawWrappedFacilityLabel = (context: CanvasRenderingContext2D, facility: Facility) => {
-  const fontSize = facility.size * 0.24;
+  const fontSize = facility.size * 0.22;
   const centerX = facility.col + facility.size / 2;
   const lineHeight = fontSize * 1.2;
   const maxWidth = Math.max(1, facility.size - 0.4);
@@ -193,9 +194,8 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
   context.lineWidth = 1;
-  for (let value = 1; value <= MAP_SIZE; value += GRID_STEP) {
-    const position = value - 1;
-    const isMajor = value === 1 || value % 100 === 0 || value === MAP_SIZE;
+  for (let position = 0; position <= CANVAS_SIZE; position += GRID_STEP) {
+    const isMajor = position === 0 || position % 100 === 0 || position === CANVAS_SIZE;
     context.strokeStyle = isMajor ? "rgba(17, 24, 39, 0.38)" : "rgba(17, 24, 39, 0.11)";
     context.beginPath();
     context.moveTo(position, 0);
@@ -291,22 +291,22 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
 
   const coordinateFromPointer = useCallback((event: PointerEvent<HTMLCanvasElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = clamp(Math.round(((event.clientX - rect.left) / rect.width) * MAP_SIZE), 1, MAP_SIZE);
-    const y = clamp(Math.round(((event.clientY - rect.top) / rect.height) * MAP_SIZE), 1, MAP_SIZE);
+    const x = clamp(Math.floor(((event.clientX - rect.left) / rect.width) * CANVAS_SIZE), MAP_MIN, MAP_MAX);
+    const y = clamp(Math.floor(((event.clientY - rect.top) / rect.height) * CANVAS_SIZE), MAP_MIN, MAP_MAX);
     return { x, y };
   }, []);
 
   const selectCoordinate = (coordinate: Coordinate) => {
     setSelected({
-      x: Math.round(clamp(coordinate.x, 1, MAP_SIZE)),
-      y: Math.round(clamp(coordinate.y, 1, MAP_SIZE)),
+      x: Math.round(clamp(coordinate.x, MAP_MIN, MAP_MAX)),
+      y: Math.round(clamp(coordinate.y, MAP_MIN, MAP_MAX)),
     });
   };
 
   const moveSelection = (xDelta: number, yDelta: number) => {
     setSelected((value) => ({
-      x: Math.round(clamp(value.x + xDelta, 1, MAP_SIZE)),
-      y: Math.round(clamp(value.y + yDelta, 1, MAP_SIZE)),
+      x: Math.round(clamp(value.x + xDelta, MAP_MIN, MAP_MAX)),
+      y: Math.round(clamp(value.y + yDelta, MAP_MIN, MAP_MAX)),
     }));
   };
 
@@ -396,7 +396,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       <div className="wos-map-toolbar">
         <div>
           <span className="section-kicker">WOS Game Map</span>
-          <h1>1199 x 1199 Coordinate Grid</h1>
+          <h1>0-1199 Coordinate Grid</h1>
         </div>
         <div className="wos-map-selected" aria-live="polite">
           <strong>X:{selected.x}</strong>
@@ -425,7 +425,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               className="wos-map-canvas"
               width={CANVAS_SIZE}
               height={CANVAS_SIZE}
-              aria-label="Clickable 1199 by 1199 Whiteout Survival coordinate map"
+              aria-label="Clickable 0 to 1199 Whiteout Survival coordinate map"
               role="application"
               tabIndex={0}
               onPointerDown={(event) => {
@@ -532,11 +532,11 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           <div className="wos-coordinate-fields">
             <label>
               <span>X</span>
-              <input type="number" min="1" max={MAP_SIZE} value={selected.x} onChange={(event) => selectCoordinate({ ...selected, x: Number(event.target.value) })} />
+              <input type="number" min={MAP_MIN} max={MAP_MAX} value={selected.x} onChange={(event) => selectCoordinate({ ...selected, x: Number(event.target.value) })} />
             </label>
             <label>
               <span>Y</span>
-              <input type="number" min="1" max={MAP_SIZE} value={selected.y} onChange={(event) => selectCoordinate({ ...selected, y: Number(event.target.value) })} />
+              <input type="number" min={MAP_MIN} max={MAP_MAX} value={selected.y} onChange={(event) => selectCoordinate({ ...selected, y: Number(event.target.value) })} />
             </label>
           </div>
           <div className="wos-map-nudge" aria-label="Move selected coordinate">
