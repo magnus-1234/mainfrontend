@@ -124,11 +124,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
       { url: "/icon-192x192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon-48x48.png",
     apple: [{ url: "/icon-192x192.png", type: "image/png", sizes: "192x192" }],
   },
   openGraph: {
