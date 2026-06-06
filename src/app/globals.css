@@ -18477,6 +18477,129 @@ body {
     max-width: 100% !important;
   }
 
+  .chief-charm-page,
+  .vip-calculator-page {
+    padding: 10px !important;
+  }
+
+  .chief-charm-hero,
+  .vip-hero {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .chief-charm-art,
+  .vip-hero-meter {
+    min-height: 0 !important;
+  }
+
+  .charm-gear-ring {
+    width: min(100%, 292px) !important;
+    min-height: 232px !important;
+    gap: 12px 14px !important;
+    margin-inline: auto;
+  }
+
+  .charm-gear-ring span {
+    width: 30px !important;
+    height: 36px !important;
+  }
+
+  .charm-gear-ring span img {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .chief-charm-summary,
+  .chief-charm-results,
+  .vip-summary,
+  .vip-pack-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chief-charm-summary article,
+  .charm-result-card {
+    min-height: auto !important;
+    padding: 12px !important;
+  }
+
+  .chief-charm-workbench,
+  .chief-charm-deep-grid,
+  .vip-workbench {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charm-quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .charm-gear-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charm-visual-current {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .charm-visual-current img {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .charm-slot-row {
+    grid-template-columns: 1fr 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .charm-slot-row > span {
+    grid-column: 1 / -1;
+  }
+
+  .charm-gear-total {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charm-shortfall-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .vip-hero-meter {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-items: start;
+    gap: 8px 12px;
+    padding: 12px !important;
+  }
+
+  .vip-hero-meter > strong {
+    font-size: clamp(2.1rem, 14vw, 3.8rem) !important;
+  }
+
+  .vip-ring {
+    width: 104px !important;
+    grid-row: 1 / span 3;
+    grid-column: 2;
+  }
+
+  .vip-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .vip-toggle {
+    align-items: flex-start;
+  }
+
+  .vip-pack-list article {
+    grid-template-columns: 1fr !important;
+    align-items: start;
+  }
+
+  .vip-pack-cards {
+    gap: 8px !important;
+  }
+
   .charm-gear-card-head {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -19037,6 +19160,71 @@ body {
 
   .template-composer-modal .form-actions button {
     min-height: 40px;
+  }
+}
+
+@media (max-width: 420px) {
+  .chief-charm-page,
+  .vip-calculator-page {
+    padding: 8px !important;
+  }
+
+  .chief-charm-hero,
+  .vip-hero,
+  .chief-charm-panel {
+    padding: 10px !important;
+  }
+
+  .chief-charm-hero h1 {
+    font-size: clamp(1.85rem, 12vw, 2.25rem) !important;
+  }
+
+  .chief-charm-hero-chips {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charm-gear-ring {
+    width: min(100%, 258px) !important;
+    min-height: 208px !important;
+    gap: 9px 10px !important;
+  }
+
+  .charm-gear-group {
+    gap: 2px !important;
+  }
+
+  .charm-gear-ring span {
+    width: 27px !important;
+    height: 33px !important;
+  }
+
+  .charm-gear-ring span img {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  .charm-gear-ring span b {
+    font-size: 0.42rem !important;
+  }
+
+  .charm-quick-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charm-slot-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .vip-hero-meter {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .vip-ring {
+    grid-row: auto;
+    grid-column: auto;
+    width: 96px !important;
   }
 }
 
