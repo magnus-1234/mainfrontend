@@ -343,13 +343,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             >
               <defs>
                 <pattern id="wos-grid-unit" width={COORDINATE_STEP} height={COORDINATE_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.12)" strokeWidth="0.018" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(14, 165, 233, 0.36)" strokeWidth="0.026" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-mid" width={MID_GRID_STEP} height={MID_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.18)" strokeWidth="0.035" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(51, 65, 85, 0.22)" strokeWidth="0.045" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-minor" width={MINOR_GRID_STEP} height={MINOR_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(17, 24, 39, 0.22)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(30, 41, 59, 0.3)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-major" width={MAJOR_GRID_STEP} height={MAJOR_GRID_STEP} patternUnits="userSpaceOnUse">
                   <path d={`M ${MAJOR_GRID_STEP} 0 L 0 0 0 ${MAJOR_GRID_STEP}`} fill="none" stroke="rgba(17, 24, 39, 0.48)" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
