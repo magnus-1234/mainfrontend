@@ -342,20 +342,76 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               }}
             >
               <defs>
+                <filter id="wos-snow-grain" x="-10%" y="-10%" width="120%" height="120%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.018 0.035" numOctaves="5" seed="21" result="grain" />
+                  <feColorMatrix
+                    in="grain"
+                    type="matrix"
+                    values="
+                      0.34 0 0 0 0.76
+                      0 0.40 0 0 0.80
+                      0 0 0.52 0 0.88
+                      0 0 0 0.42 0"
+                    result="snowNoise"
+                  />
+                  <feBlend in="SourceGraphic" in2="snowNoise" mode="screen" />
+                </filter>
+                <filter id="wos-snow-drift-soften" x="-6%" y="-6%" width="112%" height="112%">
+                  <feGaussianBlur stdDeviation="10" />
+                </filter>
+                <linearGradient id="wos-snow-base" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#fafdff" />
+                  <stop offset="0.34" stopColor="#edf7fb" />
+                  <stop offset="0.7" stopColor="#dfeef4" />
+                  <stop offset="1" stopColor="#f8fbfd" />
+                </linearGradient>
+                <radialGradient id="wos-snow-cold-pocket" cx="32%" cy="24%" r="62%">
+                  <stop offset="0" stopColor="#ffffff" stopOpacity="0.9" />
+                  <stop offset="0.48" stopColor="#e8f4fa" stopOpacity="0.48" />
+                  <stop offset="1" stopColor="#bfd8e4" stopOpacity="0" />
+                </radialGradient>
+                <radialGradient id="wos-snow-hardpack" cx="64%" cy="68%" r="58%">
+                  <stop offset="0" stopColor="#c7dce7" stopOpacity="0.26" />
+                  <stop offset="0.58" stopColor="#edf6fa" stopOpacity="0.12" />
+                  <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+                </radialGradient>
+                <pattern id="wos-snow-wind" width="160" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-13)">
+                  <path d="M -16 20 C 26 11, 76 13, 130 2 S 214 -5, 246 -11" fill="none" stroke="#ffffff" strokeOpacity="0.42" strokeWidth="6" strokeLinecap="round" />
+                  <path d="M -24 62 C 26 53, 78 55, 126 44 S 210 34, 248 31" fill="none" stroke="#c9dde8" strokeOpacity="0.26" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M 6 86 C 38 80, 78 82, 124 74 S 184 65, 220 63" fill="none" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="2" strokeLinecap="round" />
+                </pattern>
+                <pattern id="wos-snow-speckles" width="62" height="62" patternUnits="userSpaceOnUse">
+                  <circle cx="8" cy="12" r="0.9" fill="#ffffff" opacity="0.72" />
+                  <circle cx="24" cy="44" r="1.1" fill="#d7e8ef" opacity="0.48" />
+                  <circle cx="39" cy="19" r="0.7" fill="#ffffff" opacity="0.68" />
+                  <circle cx="55" cy="37" r="1.3" fill="#c4dce7" opacity="0.32" />
+                  <circle cx="47" cy="55" r="0.75" fill="#ffffff" opacity="0.62" />
+                </pattern>
                 <pattern id="wos-grid-unit" width={COORDINATE_STEP} height={COORDINATE_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(14, 165, 233, 0.36)" strokeWidth="0.026" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(14, 116, 144, 0.26)" strokeWidth="0.026" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-mid" width={MID_GRID_STEP} height={MID_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(51, 65, 85, 0.22)" strokeWidth="0.045" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(30, 64, 75, 0.2)" strokeWidth="0.045" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-minor" width={MINOR_GRID_STEP} height={MINOR_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(30, 41, 59, 0.3)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(30, 64, 75, 0.26)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-major" width={MAJOR_GRID_STEP} height={MAJOR_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MAJOR_GRID_STEP} 0 L 0 0 0 ${MAJOR_GRID_STEP}`} fill="none" stroke="rgba(17, 24, 39, 0.48)" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MAJOR_GRID_STEP} 0 L 0 0 0 ${MAJOR_GRID_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.44)" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
                 </pattern>
               </defs>
-              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#ffffff" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-base)" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-cold-pocket)" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-hardpack)" />
+              <g filter="url(#wos-snow-drift-soften)" opacity="0.74">
+                <path d="M -100 202 C 88 150, 212 210, 390 168 C 590 120, 730 192, 916 150 C 1072 116, 1218 144, 1320 98 L 1320 0 L -100 0 Z" fill="#ffffff" opacity="0.44" />
+                <path d="M -96 890 C 80 842, 230 924, 410 876 C 596 828, 706 880, 892 844 C 1052 812, 1164 858, 1310 806 L 1310 1200 L -96 1200 Z" fill="#c9dfe8" opacity="0.3" />
+                <path d="M 48 520 C 210 454, 376 528, 548 492 C 720 456, 860 520, 1038 472 C 1138 444, 1224 462, 1276 432 L 1280 604 C 1110 648, 956 590, 792 628 C 620 668, 472 600, 308 642 C 178 676, 72 648, -20 682 L -20 560 C 4 548, 26 536, 48 520 Z" fill="#f8fcff" opacity="0.46" />
+              </g>
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-wind)" opacity="0.76" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-speckles)" opacity="0.88" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="transparent" filter="url(#wos-snow-grain)" opacity="0.58" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.54)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
               {zoom >= 12 && <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-unit)" />}
               {zoom >= 4 && <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-mid)" />}
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-minor)" />
