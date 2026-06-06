@@ -72,6 +72,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const viewY = clamp(camera.y - viewSize / 2, 0, CANVAS_SIZE - viewSize);
   const selectedCell = gridCellFor(selected);
   const hoverCell = hover ? gridCellFor(hover) : null;
+  const mapIsExpanded = zoom > 1.15;
   const selectedFill = zoom >= 24 ? "rgba(37, 99, 235, 0.1)" : zoom >= 6 ? "rgba(37, 99, 235, 0.18)" : "rgba(37, 99, 235, 0.28)";
   const hoverFill = zoom >= 24 ? "rgba(37, 99, 235, 0.06)" : zoom >= 6 ? "rgba(37, 99, 235, 0.1)" : "rgba(37, 99, 235, 0.16)";
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
@@ -252,7 +253,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           }}
         >
           <div
-            className={`wos-map-rotator mode-${mode} depth-${depthMode}`}
+            className={`wos-map-rotator mode-${mode} depth-${depthMode} ${mapIsExpanded ? "expanded" : "fit-board"}`}
             style={{
               transform: mode === "2d" ? "none" : `rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
