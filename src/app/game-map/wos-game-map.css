@@ -48,47 +48,47 @@
 .wos-map-stage {
   position: relative;
   display: grid;
-  min-height: 640px;
+  min-height: min(78vh, 860px);
   overflow: hidden;
   contain: layout paint;
   overscroll-behavior: contain;
   place-items: center;
   border: 1px solid rgba(17, 24, 39, 0.14);
   border-radius: 8px;
-  background: #e8eef5;
+  background: #ffffff;
   perspective: 1200px;
   touch-action: none;
 }
 
 .wos-map-rotator {
   position: relative;
-  width: min(86vmin, 900px);
+  width: min(100%, 78vh, 1160px);
   aspect-ratio: 1;
   contain: layout paint;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  transition: transform 40ms linear;
+  transition: transform 28ms linear;
   will-change: transform;
 }
 
 .wos-map-rotator.mode-2d {
-  width: min(80vmin, 860px);
+  width: min(100%, 78vh, 1160px);
 }
 
 .wos-map-rotator.mode-isometric {
-  width: min(76vmin, 840px);
+  width: min(100%, 76vh, 1080px);
 }
 
 .wos-map-canvas {
   display: block;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(17, 24, 39, 0.5);
+  border: 0;
   border-radius: 0;
-  background: #f8fafc;
+  background: #ffffff;
   box-shadow:
-    0 24px 70px rgba(15, 23, 42, 0.18),
-    inset 0 0 0 1px rgba(17, 24, 39, 0.08);
+    0 10px 34px rgba(15, 23, 42, 0.08),
+    inset 0 0 0 1px rgba(17, 24, 39, 0.045);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -331,16 +331,16 @@
   }
 
   .wos-map-stage {
-    min-height: 390px;
+    min-height: 72vh;
   }
 
   .wos-map-rotator {
-    width: min(104vw, 620px);
+    width: min(100%, 72vh, 720px);
   }
 
   .wos-map-rotator.mode-2d,
   .wos-map-rotator.mode-isometric {
-    width: min(92vw, 560px);
+    width: min(100%, 72vh, 720px);
   }
 
   .wos-map-controls {

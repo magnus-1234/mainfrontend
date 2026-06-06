@@ -72,6 +72,8 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const viewY = clamp(camera.y - viewSize / 2, 0, CANVAS_SIZE - viewSize);
   const selectedCell = gridCellFor(selected);
   const hoverCell = hover ? gridCellFor(hover) : null;
+  const selectedFill = zoom >= 24 ? "rgba(37, 99, 235, 0.1)" : zoom >= 6 ? "rgba(37, 99, 235, 0.18)" : "rgba(37, 99, 235, 0.28)";
+  const hoverFill = zoom >= 24 ? "rgba(37, 99, 235, 0.06)" : zoom >= 6 ? "rgba(37, 99, 235, 0.1)" : "rgba(37, 99, 235, 0.16)";
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
     return {
@@ -363,7 +365,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   y={gridCellFor(hover).y}
                   width={COORDINATE_STEP}
                   height={COORDINATE_STEP}
-                  fill="rgba(37, 99, 235, 0.2)"
+                  fill={hoverFill}
                   stroke="rgba(37, 99, 235, 0.72)"
                   strokeWidth="0.08"
                   vectorEffect="non-scaling-stroke"
@@ -374,12 +376,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 y={gridCellFor(selected).y}
                 width={COORDINATE_STEP}
                 height={COORDINATE_STEP}
-                fill="rgba(37, 99, 235, 0.34)"
+                fill={selectedFill}
                 stroke="#2563eb"
                 strokeWidth="0.12"
                 vectorEffect="non-scaling-stroke"
               />
-              <rect x="1.5" y="1.5" width={CANVAS_SIZE - 3} height={CANVAS_SIZE - 3} fill="none" stroke="rgba(17, 24, 39, 0.72)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+              {zoom <= 1.15 && <rect x="1.5" y="1.5" width={CANVAS_SIZE - 3} height={CANVAS_SIZE - 3} fill="none" stroke="rgba(17, 24, 39, 0.6)" strokeWidth="2" vectorEffect="non-scaling-stroke" />}
             </svg>
             <span className="wos-coordinate-tag selected" style={coordinateLabelStyle(selected, true)}>
               {formatCoordinate(selected)}
