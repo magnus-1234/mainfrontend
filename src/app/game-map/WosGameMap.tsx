@@ -13,7 +13,6 @@ const MAJOR_GRID_STEP = 100;
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 80;
 const WHEEL_ZOOM_FACTOR = 1.16;
-const MAX_RENDER_SCALE = 6;
 
 type Coordinate = {
   x: number;
@@ -42,70 +41,7 @@ const gridCellFor = (coord: Coordinate) => ({
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x},${coordinate.y}`;
 
-const drawSelection = (context: CanvasRenderingContext2D, coord: Coordinate, selectedCell = false) => {
-  const cell = gridCellFor(coord);
-  const cellWidth = Math.min(COORDINATE_STEP, CANVAS_SIZE - cell.x);
-  const cellHeight = Math.min(COORDINATE_STEP, CANVAS_SIZE - cell.y);
-
-  context.fillStyle = selectedCell ? "rgba(37, 99, 235, 0.34)" : "rgba(37, 99, 235, 0.2)";
-  context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
-  context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.62)";
-  context.lineWidth = selectedCell ? 0.12 : 0.08;
-  context.strokeRect(cell.x + 0.04, cell.y + 0.04, Math.max(0.08, cellWidth - 0.08), Math.max(0.08, cellHeight - 0.08));
-};
-
-const drawGridLines = (context: CanvasRenderingContext2D, step: number, color: string, lineWidth: number) => {
-  context.strokeStyle = color;
-  context.lineWidth = lineWidth;
-  context.beginPath();
-  for (let position = 0; position <= CANVAS_SIZE; position += step) {
-    context.moveTo(position, 0);
-    context.lineTo(position, CANVAS_SIZE);
-    context.moveTo(0, position);
-    context.lineTo(CANVAS_SIZE, position);
-  }
-  context.stroke();
-};
-
-const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number) => {
-  const context = canvas.getContext("2d");
-  if (!context) {
-    return;
-  }
-
-  const ratio = window.devicePixelRatio || 1;
-  const renderBoost = zoom > 1 ? Math.min(MAX_RENDER_SCALE, Math.ceil(Math.sqrt(zoom))) : 1;
-  const renderScale = Math.min(MAX_RENDER_SCALE, ratio * renderBoost);
-  canvas.width = CANVAS_SIZE * renderScale;
-  canvas.height = CANVAS_SIZE * renderScale;
-  context.setTransform(renderScale, 0, 0, renderScale, 0, 0);
-  context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  context.imageSmoothingEnabled = false;
-
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-  if (zoom >= 12) {
-    drawGridLines(context, COORDINATE_STEP, "rgba(15, 23, 42, 0.08)", 0.025);
-  }
-  if (zoom >= 4) {
-    drawGridLines(context, MID_GRID_STEP, "rgba(15, 23, 42, 0.16)", 0.05);
-  }
-  drawGridLines(context, MINOR_GRID_STEP, "rgba(17, 24, 39, 0.2)", 0.16);
-  drawGridLines(context, MAJOR_GRID_STEP, "rgba(17, 24, 39, 0.44)", 0.42);
-
-  if (hover) {
-    drawSelection(context, hover);
-  }
-  drawSelection(context, selected, true);
-
-  context.strokeStyle = "rgba(17, 24, 39, 0.72)";
-  context.lineWidth = 3;
-  context.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
-};
-
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mapShellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const hoverFrameRef = useRef<number | null>(null);
@@ -121,14 +57,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [roll, setRoll] = useState(0);
   const [zoom, setZoom] = useState(0.9);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-    drawMap(canvas, selected, hover, zoom);
-  }, [hover, selected, zoom]);
 
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
@@ -166,7 +94,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     }
   }, []);
 
-  const coordinateFromPointer = useCallback((event: PointerEvent<HTMLCanvasElement>): Coordinate => {
+  const coordinateFromPointer = useCallback((event: PointerEvent<SVGSVGElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = clamp(Math.floor(((event.clientX - rect.left) / rect.width) * CANVAS_SIZE) + MAP_MIN, MAP_MIN, MAP_MAX);
     const y = clamp(Math.floor(((event.clientY - rect.top) / rect.height) * CANVAS_SIZE) + MAP_MIN, MAP_MIN, MAP_MAX);
@@ -297,14 +225,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
           >
-            <canvas
-              ref={canvasRef}
+            <svg
               className="wos-map-canvas"
-              width={CANVAS_SIZE}
-              height={CANVAS_SIZE}
+              viewBox={`0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`}
               aria-label="Clickable 1199 by 1199 Whiteout Survival coordinate map"
               role="application"
               tabIndex={0}
+              preserveAspectRatio="none"
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch, panX: pan.x, panY: pan.y };
@@ -375,7 +302,50 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   setPitch((value) => clamp(value - 5, 0, 82));
                 }
               }}
-            />
+            >
+              <defs>
+                <pattern id="wos-grid-unit" width={COORDINATE_STEP} height={COORDINATE_STEP} patternUnits="userSpaceOnUse">
+                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.12)" strokeWidth="0.018" vectorEffect="non-scaling-stroke" />
+                </pattern>
+                <pattern id="wos-grid-mid" width={MID_GRID_STEP} height={MID_GRID_STEP} patternUnits="userSpaceOnUse">
+                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.18)" strokeWidth="0.035" vectorEffect="non-scaling-stroke" />
+                </pattern>
+                <pattern id="wos-grid-minor" width={MINOR_GRID_STEP} height={MINOR_GRID_STEP} patternUnits="userSpaceOnUse">
+                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(17, 24, 39, 0.22)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
+                </pattern>
+                <pattern id="wos-grid-major" width={MAJOR_GRID_STEP} height={MAJOR_GRID_STEP} patternUnits="userSpaceOnUse">
+                  <path d={`M ${MAJOR_GRID_STEP} 0 L 0 0 0 ${MAJOR_GRID_STEP}`} fill="none" stroke="rgba(17, 24, 39, 0.48)" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+                </pattern>
+              </defs>
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#ffffff" />
+              {zoom >= 12 && <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-unit)" />}
+              {zoom >= 4 && <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-mid)" />}
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-minor)" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-major)" />
+              {hover && (
+                <rect
+                  x={gridCellFor(hover).x}
+                  y={gridCellFor(hover).y}
+                  width={COORDINATE_STEP}
+                  height={COORDINATE_STEP}
+                  fill="rgba(37, 99, 235, 0.2)"
+                  stroke="rgba(37, 99, 235, 0.72)"
+                  strokeWidth="0.08"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+              <rect
+                x={gridCellFor(selected).x}
+                y={gridCellFor(selected).y}
+                width={COORDINATE_STEP}
+                height={COORDINATE_STEP}
+                fill="rgba(37, 99, 235, 0.34)"
+                stroke="#2563eb"
+                strokeWidth="0.12"
+                vectorEffect="non-scaling-stroke"
+              />
+              <rect x="1.5" y="1.5" width={CANVAS_SIZE - 3} height={CANVAS_SIZE - 3} fill="none" stroke="rgba(17, 24, 39, 0.72)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+            </svg>
             <span className="wos-coordinate-tag selected" style={coordinateLabelStyle(selected, true)}>
               {formatCoordinate(selected)}
             </span>
