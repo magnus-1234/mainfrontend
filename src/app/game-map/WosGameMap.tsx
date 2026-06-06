@@ -33,6 +33,178 @@ type DragState = {
   cameraY: number;
 };
 
+type ResourceKind = "iron" | "meat" | "wood" | "coal";
+
+type ResourceBuilding = {
+  id: string;
+  x: number;
+  y: number;
+  kind: ResourceKind;
+};
+
+const RESOURCE_BUILDING_SIZE = 2;
+
+const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; base: string; roof: string; shade: string; accent: string }> = {
+  iron: { label: "Iron", base: "#8794a3", roof: "#dbe5ef", shade: "#475569", accent: "#f8fafc" },
+  meat: { label: "Meat", base: "#a94128", roof: "#f47b4f", shade: "#6f271d", accent: "#ffd6c2" },
+  wood: { label: "Wood", base: "#8a5a2b", roof: "#c98a3e", shade: "#5b371c", accent: "#f2c783" },
+  coal: { label: "Coal", base: "#2f3744", roof: "#66717f", shade: "#111827", accent: "#cbd5e1" },
+};
+
+const WOS_RESOURCE_BUILDING_TUPLES = [
+  [563,886,"iron"],[884,885,"meat"],[890,884,"iron"],[564,880,"coal"],[555,880,"meat"],[880,879,"wood"],[574,879,"coal"],[568,874,"iron"],
+  [550,874,"iron"],[596,872,"meat"],[576,872,"meat"],[607,871,"coal"],[890,869,"coal"],[585,869,"wood"],[1177,868,"meat"],[549,868,"meat"],
+  [1141,867,"wood"],[601,866,"coal"],[576,866,"coal"],[523,865,"iron"],[1147,864,"coal"],[1191,863,"meat"],[1161,860,"meat"],[1073,859,"coal"],
+  [535,859,"iron"],[1082,858,"wood"],[593,858,"coal"],[1145,857,"wood"],[529,857,"iron"],[1108,856,"wood"],[549,856,"iron"],[876,854,"wood"],
+  [621,854,"wood"],[1135,853,"meat"],[1116,853,"wood"],[581,852,"iron"],[539,852,"wood"],[519,851,"meat"],[532,849,"wood"],[1044,848,"meat"],
+  [617,848,"iron"],[1062,846,"wood"],[1021,846,"wood"],[883,845,"iron"],[634,845,"iron"],[1037,844,"wood"],[576,844,"coal"],[1075,843,"meat"],
+  [532,843,"coal"],[513,843,"iron"],[589,842,"coal"],[566,842,"wood"],[600,841,"meat"],[889,840,"meat"],[897,839,"coal"],[638,838,"wood"],
+  [546,838,"coal"],[537,837,"iron"],[588,836,"coal"],[1037,835,"meat"],[626,835,"iron"],[925,833,"meat"],[565,833,"meat"],[918,832,"wood"],
+  [520,831,"coal"],[893,828,"coal"],[588,828,"iron"],[595,827,"iron"],[482,827,"wood"],[568,826,"coal"],[532,826,"wood"],[544,822,"meat"],
+  [522,822,"wood"],[501,818,"meat"],[522,813,"coal"],[512,811,"meat"],[499,810,"meat"],[537,807,"coal"],[510,802,"iron"],[801,790,"coal"],
+  [819,789,"iron"],[517,787,"meat"],[526,785,"coal"],[504,785,"meat"],[811,784,"coal"],[843,783,"iron"],[822,782,"iron"],[824,776,"coal"],
+  [818,776,"meat"],[514,775,"iron"],[830,773,"wood"],[796,773,"wood"],[524,773,"iron"],[808,771,"meat"],[773,770,"meat"],[763,769,"meat"],
+  [512,767,"wood"],[799,765,"coal"],[770,763,"meat"],[518,763,"wood"],[592,761,"meat"],[811,760,"meat"],[621,760,"meat"],[501,760,"meat"],
+  [799,758,"meat"],[534,758,"meat"],[545,757,"iron"],[836,756,"iron"],[627,756,"coal"],[601,756,"coal"],[856,752,"coal"],[797,751,"iron"],
+  [630,750,"iron"],[549,749,"iron"],[804,748,"coal"],[613,748,"iron"],[595,747,"iron"],[586,747,"iron"],[637,746,"coal"],[569,746,"coal"],
+  [764,745,"iron"],[548,743,"iron"],[859,742,"coal"],[489,742,"coal"],[788,741,"meat"],[606,741,"iron"],[576,741,"iron"],[518,741,"meat"],
+  [634,740,"iron"],[592,740,"iron"],[591,740,"iron"],[441,740,"wood"],[808,739,"iron"],[555,739,"iron"],[410,739,"meat"],[508,736,"coal"],
+  [620,735,"iron"],[597,734,"coal"],[433,734,"wood"],[779,733,"wood"],[606,733,"coal"],[453,733,"iron"],[410,733,"wood"],[569,731,"iron"],
+  [550,731,"coal"],[518,731,"coal"],[584,730,"coal"],[539,730,"iron"],[850,729,"iron"],[481,729,"coal"],[773,727,"iron"],[531,727,"coal"],
+  [524,726,"meat"],[416,725,"iron"],[410,725,"coal"],[426,724,"wood"],[848,723,"coal"],[766,723,"iron"],[547,723,"coal"],[560,722,"meat"],
+  [496,722,"iron"],[433,722,"wood"],[448,719,"iron"],[820,718,"coal"],[484,718,"coal"],[852,717,"iron"],[772,716,"wood"],[555,715,"meat"],
+  [807,714,"wood"],[839,713,"meat"],[759,713,"coal"],[829,711,"iron"],[450,711,"iron"],[738,706,"wood"],[825,704,"wood"],[727,703,"coal"],
+  [802,701,"wood"],[761,701,"meat"],[551,700,"iron"],[318,699,"iron"],[840,698,"meat"],[424,698,"meat"],[809,697,"coal"],[418,697,"meat"],
+  [751,696,"iron"],[739,695,"iron"],[441,694,"coal"],[435,693,"meat"],[725,692,"iron"],[802,691,"wood"],[814,690,"wood"],[750,689,"wood"],
+  [426,689,"iron"],[715,686,"iron"],[709,686,"meat"],[820,685,"meat"],[739,684,"coal"],[317,684,"iron"],[803,682,"wood"],[747,681,"iron"],
+  [441,680,"meat"],[708,678,"coal"],[305,677,"meat"],[727,676,"iron"],[742,675,"iron"],[736,675,"iron"],[800,674,"meat"],[767,674,"coal"],
+  [755,674,"wood"],[440,674,"coal"],[476,673,"wood"],[711,671,"iron"],[464,671,"coal"],[315,670,"coal"],[299,670,"wood"],[428,668,"coal"],
+  [474,667,"coal"],[770,666,"coal"],[321,666,"meat"],[440,665,"iron"],[723,664,"iron"],[451,664,"iron"],[757,662,"iron"],[714,662,"coal"],
+  [484,662,"wood"],[467,660,"coal"],[748,659,"meat"],[412,658,"meat"],[490,657,"coal"],[439,657,"coal"],[427,657,"wood"],[418,657,"coal"],
+  [293,657,"meat"],[778,656,"iron"],[321,656,"coal"],[454,654,"coal"],[496,652,"coal"],[445,651,"coal"],[525,650,"coal"],[303,650,"wood"],
+  [608,649,"iron"],[417,649,"iron"],[760,646,"iron"],[469,646,"coal"],[461,646,"coal"],[494,645,"iron"],[418,643,"wood"],[331,643,"iron"],
+  [315,643,"meat"],[741,642,"iron"],[708,642,"iron"],[486,642,"meat"],[515,641,"iron"],[478,640,"coal"],[522,638,"iron"],[508,638,"iron"],
+  [446,638,"wood"],[436,638,"wood"],[324,638,"meat"],[749,637,"coal"],[739,636,"coal"],[455,636,"coal"],[765,635,"wood"],[692,635,"wood"],
+  [461,635,"iron"],[420,633,"iron"],[490,632,"iron"],[432,632,"wood"],[722,630,"coal"],[522,630,"meat"],[499,630,"coal"],[480,630,"iron"],
+  [459,628,"iron"],[514,626,"iron"],[466,626,"coal"],[492,625,"iron"],[338,625,"coal"],[728,623,"iron"],[321,623,"coal"],[734,621,"coal"],
+  [523,621,"meat"],[445,621,"meat"],[477,618,"coal"],[427,617,"wood"],[451,616,"coal"],[519,614,"iron"],[508,614,"iron"],[467,613,"coal"],
+  [321,613,"meat"],[441,612,"meat"],[461,611,"coal"],[472,607,"coal"],[507,606,"iron"],[491,606,"iron"],[453,606,"iron"],[428,606,"meat"],
+  [523,603,"meat"],[497,603,"iron"],[509,599,"iron"],[434,598,"iron"],[765,597,"iron"],[500,597,"coal"],[487,597,"wood"],[465,597,"coal"],
+  [453,596,"coal"],[442,596,"wood"],[722,595,"wood"],[519,594,"coal"],[756,592,"meat"],[742,591,"meat"],[498,591,"meat"],[765,587,"wood"],
+  [466,587,"iron"],[433,587,"wood"],[744,585,"meat"],[507,585,"meat"],[717,584,"iron"],[444,584,"meat"],[515,583,"iron"],[522,582,"wood"],
+  [487,582,"iron"],[765,581,"wood"],[428,580,"iron"],[464,579,"iron"],[746,578,"coal"],[720,577,"coal"],[838,576,"iron"],[755,576,"iron"],
+  [733,576,"coal"],[727,576,"coal"],[829,574,"coal"],[473,572,"meat"],[462,572,"iron"],[525,571,"coal"],[444,571,"wood"],[502,569,"iron"],
+  [767,568,"meat"],[730,568,"coal"],[398,568,"coal"],[759,567,"wood"],[436,567,"wood"],[805,566,"iron"],[390,566,"meat"],[375,566,"coal"],
+  [492,565,"meat"],[418,565,"iron"],[742,564,"iron"],[518,564,"wood"],[785,563,"iron"],[443,563,"iron"],[766,562,"meat"],[823,561,"wood"],
+  [481,560,"iron"],[471,559,"iron"],[431,559,"wood"],[751,558,"coal"],[716,558,"meat"],[455,558,"iron"],[806,556,"iron"],[371,556,"coal"],
+  [763,555,"wood"],[722,555,"iron"],[813,554,"meat"],[446,553,"wood"],[381,553,"meat"],[755,552,"meat"],[494,551,"iron"],[739,550,"meat"],
+  [703,550,"coal"],[465,550,"meat"],[455,550,"iron"],[782,548,"iron"],[747,548,"coal"],[407,548,"meat"],[816,547,"meat"],[769,547,"wood"],
+  [422,547,"coal"],[448,546,"coal"],[789,545,"wood"],[763,545,"coal"],[730,545,"wood"],[475,545,"wood"],[428,545,"coal"],[706,544,"meat"],
+  [714,543,"iron"],[439,543,"coal"],[817,541,"wood"],[796,540,"meat"],[781,540,"coal"],[450,540,"iron"],[392,540,"iron"],[376,540,"coal"],
+  [370,540,"wood"],[826,536,"meat"],[761,536,"wood"],[712,536,"coal"],[423,536,"coal"],[807,535,"iron"],[739,535,"wood"],[781,534,"meat"],
+  [451,534,"coal"],[414,534,"wood"],[381,534,"meat"],[393,532,"coal"],[467,530,"coal"],[800,529,"iron"],[478,528,"iron"],[759,527,"iron"],
+  [432,527,"wood"],[387,527,"coal"],[734,525,"iron"],[426,525,"meat"],[796,522,"coal"],[453,522,"iron"],[475,521,"iron"],[401,521,"wood"],
+  [386,519,"meat"],[378,519,"meat"],[483,518,"iron"],[416,516,"coal"],[449,515,"iron"],[793,513,"iron"],[409,511,"iron"],[468,509,"coal"],
+  [460,509,"iron"],[493,508,"iron"],[431,508,"meat"],[386,508,"coal"],[449,507,"coal"],[416,505,"meat"],[407,503,"iron"],[397,503,"iron"],
+  [487,502,"coal"],[438,500,"iron"],[493,499,"coal"],[452,497,"iron"],[524,493,"wood"],[389,493,"meat"],[503,491,"coal"],[421,491,"coal"],
+  [451,485,"wood"],[424,485,"wood"],[487,484,"iron"],[475,483,"wood"],[410,483,"iron"],[404,483,"iron"],[391,483,"meat"],[505,482,"coal"],
+  [461,481,"iron"],[454,478,"meat"],[515,477,"iron"],[413,477,"wood"],[388,477,"meat"],[547,476,"iron"],[465,475,"coal"],[477,474,"wood"],
+  [528,472,"iron"],[439,470,"iron"],[483,469,"iron"],[464,469,"iron"],[619,468,"iron"],[517,468,"coal"],[504,467,"coal"],[477,467,"meat"],
+  [427,467,"iron"],[558,466,"meat"],[457,466,"wood"],[723,465,"iron"],[412,465,"coal"],[730,464,"meat"],[707,464,"coal"],[446,464,"meat"],
+  [544,463,"wood"],[389,463,"wood"],[699,462,"coal"],[382,462,"iron"],[737,461,"coal"],[512,461,"coal"],[494,459,"coal"],[477,459,"iron"],
+  [505,458,"coal"],[599,456,"iron"],[457,456,"wood"],[435,456,"coal"],[396,455,"coal"],[746,454,"meat"],[700,454,"iron"],[414,454,"iron"],
+  [528,453,"coal"],[477,453,"iron"],[467,453,"wood"],[505,451,"iron"],[449,451,"iron"],[434,450,"meat"],[517,449,"coal"],[496,449,"coal"],
+  [486,449,"coal"],[404,449,"meat"],[743,448,"meat"],[732,448,"meat"],[423,448,"wood"],[534,446,"coal"],[477,446,"coal"],[413,445,"coal"],
+  [397,444,"meat"],[698,443,"coal"],[611,443,"coal"],[597,443,"wood"],[445,443,"iron"],[510,442,"meat"],[421,441,"wood"],[461,440,"meat"],
+  [620,439,"coal"],[746,436,"meat"],[399,435,"iron"],[520,434,"iron"],[448,434,"wood"],[510,432,"coal"],[406,432,"meat"],[704,431,"wood"],
+  [485,431,"meat"],[456,431,"coal"],[765,430,"wood"],[491,430,"meat"],[463,430,"meat"],[747,429,"coal"],[697,429,"coal"],[538,429,"meat"],
+  [442,429,"iron"],[721,427,"coal"],[731,425,"wood"],[484,425,"wood"],[513,424,"wood"],[542,423,"wood"],[748,421,"iron"],[405,416,"wood"],
+  [536,414,"meat"],[392,414,"meat"],[726,413,"iron"],[472,411,"iron"],[452,410,"iron"],[442,408,"meat"],[735,406,"meat"],[720,406,"meat"],
+  [533,405,"meat"],[462,405,"iron"],[728,403,"wood"],[479,401,"iron"],[448,400,"wood"],[538,399,"wood"],[441,399,"meat"],[531,398,"iron"],
+  [465,398,"iron"],[533,392,"meat"],[441,391,"coal"],[447,390,"coal"],[538,386,"iron"],[443,382,"coal"],[542,378,"meat"],[535,374,"iron"],
+  [657,370,"wood"],[445,368,"wood"],[543,364,"iron"],[652,363,"coal"],[549,363,"coal"],[665,358,"wood"],[519,347,"coal"],[444,345,"meat"],
+  [652,344,"iron"],[453,343,"meat"],[542,339,"wood"],[515,338,"iron"],[622,336,"iron"],[509,336,"iron"],[449,335,"wood"],[640,332,"wood"],
+  [495,332,"wood"],[595,330,"iron"],[467,329,"wood"],[516,328,"iron"],[487,327,"coal"],[473,327,"wood"],[523,324,"coal"],[460,324,"wood"],
+  [514,322,"wood"],[507,322,"wood"],[611,318,"wood"],[643,317,"iron"],[496,317,"iron"],[543,315,"meat"],[537,315,"iron"],[438,314,"meat"],
+  [455,313,"coal"],[619,312,"wood"],[588,312,"coal"],[637,311,"meat"],[490,310,"wood"],[421,310,"coal"],[526,309,"meat"],[440,308,"wood"],
+  [538,306,"wood"],[475,305,"meat"],[516,304,"coal"],[504,304,"meat"],[483,304,"meat"],[527,303,"iron"],[442,302,"coal"],[435,302,"iron"],
+  [510,300,"wood"],[492,300,"wood"],[540,294,"coal"],[661,292,"meat"],[542,292,"meat"],[641,272,"meat"],[678,269,"coal"],[695,247,"coal"],
+  [4,6,"wood"]
+
+] as const satisfies readonly (readonly [number, number, ResourceKind])[];
+
+const WOS_RESOURCE_BUILDINGS: ResourceBuilding[] = WOS_RESOURCE_BUILDING_TUPLES.map(([x, y, kind], index) => ({
+  id: `resource-${kind}-${index}`,
+  x,
+  y,
+  kind,
+}));
+
+const renderFlatResourceBuilding = (node: ResourceBuilding) => {
+  const meta = RESOURCE_BUILDING_META[node.kind];
+  return (
+    <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={`${meta.label} resource building`}>
+      <rect
+        width={RESOURCE_BUILDING_SIZE}
+        height={RESOURCE_BUILDING_SIZE}
+        rx="0.18"
+        fill={meta.base}
+        stroke="rgba(15, 23, 42, 0.7)"
+        strokeWidth="0.08"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path d="M 0.24 0.85 L 1 0.28 L 1.76 0.85 L 1.54 1.74 L 0.46 1.74 Z" fill={meta.roof} opacity="0.94" />
+      <path d="M 0.46 1.74 L 1 0.28 L 1.54 1.74 Z" fill={meta.shade} opacity="0.3" />
+      {node.kind === "wood" && (
+        <>
+          <path d="M 0.36 1.25 H 1.62" stroke={meta.accent} strokeWidth="0.16" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path d="M 0.46 1.52 H 1.5" stroke={meta.accent} strokeWidth="0.13" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+        </>
+      )}
+      {node.kind === "coal" && (
+        <>
+          <circle cx="0.72" cy="1.34" r="0.2" fill={meta.shade} />
+          <circle cx="1.03" cy="1.24" r="0.23" fill={meta.shade} />
+          <circle cx="1.32" cy="1.42" r="0.18" fill={meta.accent} opacity="0.55" />
+        </>
+      )}
+      {node.kind === "iron" && <path d="M 0.58 1.5 L 1.14 0.8 L 1.42 1.48 Z" fill={meta.accent} opacity="0.88" />}
+      {node.kind === "meat" && <path d="M 0.58 1.28 C 0.7 0.92, 1.34 0.92, 1.44 1.28 C 1.28 1.58, 0.76 1.58, 0.58 1.28 Z" fill={meta.accent} opacity="0.82" />}
+    </g>
+  );
+};
+
+const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
+  const meta = RESOURCE_BUILDING_META[node.kind];
+  return (
+    <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={`${meta.label} resource building`}>
+      <rect
+        width={RESOURCE_BUILDING_SIZE}
+        height={RESOURCE_BUILDING_SIZE}
+        rx="0.18"
+        fill={meta.base}
+        opacity="0.28"
+        stroke="rgba(15, 23, 42, 0.64)"
+        strokeWidth="0.08"
+        vectorEffect="non-scaling-stroke"
+      />
+      <rect x="0.12" y="0.92" width="1.76" height="1" rx="0.14" fill="rgba(15, 23, 42, 0.34)" />
+      <path d="M 0.2 0.72 L 1 0.18 L 1.8 0.72 L 1.8 1.45 L 1 1.98 L 0.2 1.45 Z" fill={meta.base} stroke="rgba(15, 23, 42, 0.7)" strokeWidth="0.08" vectorEffect="non-scaling-stroke" />
+      <path d="M 0.2 0.72 L 1 0.18 L 1.8 0.72 L 1 1.22 Z" fill={meta.roof} />
+      <path d="M 0.2 0.72 L 1 1.22 L 1 1.98 L 0.2 1.45 Z" fill={meta.shade} opacity="0.64" />
+      <path d="M 1 1.22 L 1.8 0.72 L 1.8 1.45 L 1 1.98 Z" fill={meta.base} opacity="0.72" />
+      {node.kind === "wood" && <path d="M 0.56 1.35 H 1.46 M 0.66 1.62 H 1.34" stroke={meta.accent} strokeWidth="0.13" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
+      {node.kind === "coal" && <path d="M 0.58 1.48 Q 0.94 1.02 1.42 1.46 Q 1.18 1.76 0.76 1.7 Z" fill={meta.shade} />}
+      {node.kind === "iron" && <path d="M 0.68 1.62 L 1.12 0.86 L 1.46 1.58 Z" fill={meta.accent} opacity="0.9" />}
+      {node.kind === "meat" && <path d="M 0.58 1.42 C 0.72 1.06, 1.34 1.04, 1.48 1.4 C 1.3 1.72, 0.78 1.74, 0.58 1.42 Z" fill={meta.accent} opacity="0.86" />}
+    </g>
+  );
+};
+
+const renderResourceBuilding = (node: ResourceBuilding, mode: MapMode) => (
+  mode === "2d" ? renderFlatResourceBuilding(node) : renderRaisedResourceBuilding(node)
+);
+
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const gridCellFor = (coord: Coordinate) => ({
@@ -343,26 +515,30 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             >
               <defs>
                 <filter id="wos-snow-grain" x="-10%" y="-10%" width="120%" height="120%">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.018 0.035" numOctaves="5" seed="21" result="grain" />
+                  <feTurbulence type="fractalNoise" baseFrequency="0.012 0.032" numOctaves="6" seed="21" result="grain" />
                   <feColorMatrix
                     in="grain"
                     type="matrix"
                     values="
-                      0.34 0 0 0 0.76
-                      0 0.40 0 0 0.80
-                      0 0 0.52 0 0.88
-                      0 0 0 0.42 0"
+                      0.24 0 0 0 0.82
+                      0 0.30 0 0 0.86
+                      0 0 0.42 0 0.94
+                      0 0 0 0.34 0"
                     result="snowNoise"
                   />
                   <feBlend in="SourceGraphic" in2="snowNoise" mode="screen" />
                 </filter>
                 <filter id="wos-snow-drift-soften" x="-6%" y="-6%" width="112%" height="112%">
-                  <feGaussianBlur stdDeviation="10" />
+                  <feGaussianBlur stdDeviation="12" />
+                </filter>
+                <filter id="wos-snow-crust-soften" x="-8%" y="-8%" width="116%" height="116%">
+                  <feGaussianBlur stdDeviation="5" />
                 </filter>
                 <linearGradient id="wos-snow-base" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0" stopColor="#fafdff" />
-                  <stop offset="0.34" stopColor="#edf7fb" />
-                  <stop offset="0.7" stopColor="#dfeef4" />
+                  <stop offset="0.28" stopColor="#f1f9fc" />
+                  <stop offset="0.58" stopColor="#e4f2f7" />
+                  <stop offset="0.82" stopColor="#d9eaf1" />
                   <stop offset="1" stopColor="#f8fbfd" />
                 </linearGradient>
                 <radialGradient id="wos-snow-cold-pocket" cx="32%" cy="24%" r="62%">
@@ -370,52 +546,74 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   <stop offset="0.48" stopColor="#e8f4fa" stopOpacity="0.48" />
                   <stop offset="1" stopColor="#bfd8e4" stopOpacity="0" />
                 </radialGradient>
-                <radialGradient id="wos-snow-hardpack" cx="64%" cy="68%" r="58%">
-                  <stop offset="0" stopColor="#c7dce7" stopOpacity="0.26" />
-                  <stop offset="0.58" stopColor="#edf6fa" stopOpacity="0.12" />
+                <radialGradient id="wos-snow-hardpack" cx="66%" cy="70%" r="58%">
+                  <stop offset="0" stopColor="#bfd4df" stopOpacity="0.28" />
+                  <stop offset="0.54" stopColor="#edf6fa" stopOpacity="0.13" />
                   <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
                 </radialGradient>
-                <pattern id="wos-snow-wind" width="160" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-13)">
-                  <path d="M -16 20 C 26 11, 76 13, 130 2 S 214 -5, 246 -11" fill="none" stroke="#ffffff" strokeOpacity="0.42" strokeWidth="6" strokeLinecap="round" />
-                  <path d="M -24 62 C 26 53, 78 55, 126 44 S 210 34, 248 31" fill="none" stroke="#c9dde8" strokeOpacity="0.26" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M 6 86 C 38 80, 78 82, 124 74 S 184 65, 220 63" fill="none" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="2" strokeLinecap="round" />
+                <radialGradient id="wos-snow-crust" cx="42%" cy="52%" r="48%">
+                  <stop offset="0" stopColor="#d1e4ec" stopOpacity="0.18" />
+                  <stop offset="0.44" stopColor="#ffffff" stopOpacity="0.1" />
+                  <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+                </radialGradient>
+                <pattern id="wos-snow-wind" width="180" height="112" patternUnits="userSpaceOnUse" patternTransform="rotate(-14)">
+                  <path d="M -20 22 C 34 9, 84 15, 142 3 S 226 -6, 276 -14" fill="none" stroke="#ffffff" strokeOpacity="0.38" strokeWidth="6" strokeLinecap="round" />
+                  <path d="M -30 60 C 22 50, 86 55, 140 43 S 220 34, 270 27" fill="none" stroke="#c5dbe6" strokeOpacity="0.2" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M 8 92 C 42 83, 96 86, 148 75 S 204 66, 254 60" fill="none" stroke="#ffffff" strokeOpacity="0.32" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M 64 34 C 94 29, 138 31, 182 21" fill="none" stroke="#d7e8ef" strokeOpacity="0.16" strokeWidth="1.4" strokeLinecap="round" />
                 </pattern>
-                <pattern id="wos-snow-speckles" width="62" height="62" patternUnits="userSpaceOnUse">
-                  <circle cx="8" cy="12" r="0.9" fill="#ffffff" opacity="0.72" />
-                  <circle cx="24" cy="44" r="1.1" fill="#d7e8ef" opacity="0.48" />
-                  <circle cx="39" cy="19" r="0.7" fill="#ffffff" opacity="0.68" />
-                  <circle cx="55" cy="37" r="1.3" fill="#c4dce7" opacity="0.32" />
-                  <circle cx="47" cy="55" r="0.75" fill="#ffffff" opacity="0.62" />
+                <pattern id="wos-snow-ridges" width="260" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-7)">
+                  <path d="M -30 42 C 30 22, 92 32, 150 20 S 256 10, 320 -6" fill="none" stroke="#ffffff" strokeOpacity="0.26" strokeWidth="8" strokeLinecap="round" />
+                  <path d="M -20 112 C 42 92, 104 104, 164 88 S 254 74, 326 58" fill="none" stroke="#d9e9f0" strokeOpacity="0.14" strokeWidth="5" strokeLinecap="round" />
+                  <path d="M 40 156 C 92 144, 140 150, 204 136 S 274 124, 330 116" fill="none" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="3" strokeLinecap="round" />
+                </pattern>
+                <pattern id="wos-snow-speckles" width="74" height="74" patternUnits="userSpaceOnUse">
+                  <circle cx="8" cy="12" r="0.82" fill="#ffffff" opacity="0.62" />
+                  <circle cx="22" cy="50" r="1" fill="#d7e8ef" opacity="0.38" />
+                  <circle cx="41" cy="18" r="0.64" fill="#ffffff" opacity="0.56" />
+                  <circle cx="62" cy="39" r="1.12" fill="#c4dce7" opacity="0.24" />
+                  <circle cx="51" cy="64" r="0.7" fill="#ffffff" opacity="0.5" />
+                  <circle cx="68" cy="8" r="0.52" fill="#e6f2f6" opacity="0.46" />
                 </pattern>
                 <pattern id="wos-grid-unit" width={COORDINATE_STEP} height={COORDINATE_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(14, 116, 144, 0.26)" strokeWidth="0.026" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${COORDINATE_STEP} 0 L 0 0 0 ${COORDINATE_STEP}`} fill="none" stroke="rgba(14, 116, 144, 0.24)" strokeWidth="0.026" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-mid" width={MID_GRID_STEP} height={MID_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(30, 64, 75, 0.2)" strokeWidth="0.045" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MID_GRID_STEP} 0 L 0 0 0 ${MID_GRID_STEP}`} fill="none" stroke="rgba(30, 64, 75, 0.21)" strokeWidth="0.045" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-minor" width={MINOR_GRID_STEP} height={MINOR_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(30, 64, 75, 0.26)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MINOR_GRID_STEP} 0 L 0 0 0 ${MINOR_GRID_STEP}`} fill="none" stroke="rgba(30, 64, 75, 0.28)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
                 </pattern>
                 <pattern id="wos-grid-major" width={MAJOR_GRID_STEP} height={MAJOR_GRID_STEP} patternUnits="userSpaceOnUse">
-                  <path d={`M ${MAJOR_GRID_STEP} 0 L 0 0 0 ${MAJOR_GRID_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.44)" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+                  <path d={`M ${MAJOR_GRID_STEP} 0 L 0 0 0 ${MAJOR_GRID_STEP}`} fill="none" stroke="rgba(15, 23, 42, 0.42)" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
                 </pattern>
               </defs>
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-base)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-cold-pocket)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-hardpack)" />
-              <g filter="url(#wos-snow-drift-soften)" opacity="0.74">
-                <path d="M -100 202 C 88 150, 212 210, 390 168 C 590 120, 730 192, 916 150 C 1072 116, 1218 144, 1320 98 L 1320 0 L -100 0 Z" fill="#ffffff" opacity="0.44" />
-                <path d="M -96 890 C 80 842, 230 924, 410 876 C 596 828, 706 880, 892 844 C 1052 812, 1164 858, 1310 806 L 1310 1200 L -96 1200 Z" fill="#c9dfe8" opacity="0.3" />
-                <path d="M 48 520 C 210 454, 376 528, 548 492 C 720 456, 860 520, 1038 472 C 1138 444, 1224 462, 1276 432 L 1280 604 C 1110 648, 956 590, 792 628 C 620 668, 472 600, 308 642 C 178 676, 72 648, -20 682 L -20 560 C 4 548, 26 536, 48 520 Z" fill="#f8fcff" opacity="0.46" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-crust)" />
+              <g filter="url(#wos-snow-drift-soften)" opacity="0.78">
+                <path d="M -120 196 C 68 138, 210 210, 392 164 C 594 112, 728 190, 918 146 C 1070 112, 1222 140, 1330 90 L 1330 -40 L -120 -40 Z" fill="#ffffff" opacity="0.48" />
+                <path d="M -108 902 C 76 840, 230 930, 414 874 C 596 824, 710 882, 896 840 C 1054 806, 1164 860, 1324 800 L 1324 1230 L -108 1230 Z" fill="#c9dfe8" opacity="0.28" />
+                <path d="M 36 518 C 210 452, 374 530, 548 490 C 724 452, 858 520, 1042 468 C 1138 440, 1226 460, 1280 428 L 1280 608 C 1110 648, 956 590, 792 628 C 620 668, 472 600, 308 642 C 178 676, 70 648, -22 682 L -22 562 C 2 548, 18 536, 36 518 Z" fill="#f8fcff" opacity="0.46" />
+                <path d="M -60 356 C 90 316, 176 366, 326 332 C 476 298, 598 344, 752 312 C 910 280, 1038 330, 1238 286 L 1280 394 C 1110 436, 982 394, 830 428 C 650 468, 518 416, 354 454 C 196 492, 86 450, -54 492 Z" fill="#d9e8ef" opacity="0.18" />
               </g>
+              <g filter="url(#wos-snow-crust-soften)" opacity="0.62">
+                <path d="M 124 730 C 246 680, 352 724, 486 696 C 612 668, 706 720, 830 686 C 930 658, 1032 684, 1114 642 L 1164 740 C 1036 798, 922 748, 800 786 C 660 830, 548 778, 414 812 C 274 848, 198 810, 94 850 Z" fill="#bcd5e0" opacity="0.14" />
+                <path d="M 96 104 C 198 66, 320 92, 448 72 C 560 54, 660 90, 770 70 C 882 50, 988 70, 1118 30 L 1154 100 C 1014 136, 900 116, 780 138 C 646 162, 536 122, 416 150 C 280 182, 188 148, 82 184 Z" fill="#ffffff" opacity="0.2" />
+              </g>
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-ridges)" opacity="0.6" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-wind)" opacity="0.76" />
-              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-speckles)" opacity="0.88" />
-              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="transparent" filter="url(#wos-snow-grain)" opacity="0.58" />
-              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.54)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-speckles)" opacity="0.74" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#f5fbfe" filter="url(#wos-snow-grain)" opacity="0.34" />
+              <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.58)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
               {zoom >= 12 && <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-unit)" />}
               {zoom >= 4 && <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-mid)" />}
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-minor)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-grid-major)" />
+              <g aria-label="WOSTools fixed resource buildings">
+                {WOS_RESOURCE_BUILDINGS.map((node) => renderResourceBuilding(node, mode))}
+              </g>
               {hover && (
                 <rect
                   x={gridCellFor(hover).x}
