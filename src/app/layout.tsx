@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
+import { AdminVisitTracker } from "./admin/AdminVisitTracker";
 import "./globals.css";
 import { SecurityDeterrents } from "./security-deterrents";
 
@@ -178,6 +180,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavigationJsonLd) }}
         />
         <SecurityDeterrents />
+        <Suspense fallback={null}>
+          <AdminVisitTracker />
+        </Suspense>
         {children}
       </body>
     </html>
