@@ -44,11 +44,11 @@ type ResourceBuilding = {
 
 const RESOURCE_BUILDING_SIZE = 2;
 
-const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; base: string; roof: string; shade: string; accent: string }> = {
-  iron: { label: "Iron", base: "#8794a3", roof: "#dbe5ef", shade: "#475569", accent: "#f8fafc" },
-  meat: { label: "Meat", base: "#a94128", roof: "#f47b4f", shade: "#6f271d", accent: "#ffd6c2" },
-  wood: { label: "Wood", base: "#8a5a2b", roof: "#c98a3e", shade: "#5b371c", accent: "#f2c783" },
-  coal: { label: "Coal", base: "#2f3744", roof: "#66717f", shade: "#111827", accent: "#cbd5e1" },
+const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string; base: string; shade: string; accent: string }> = {
+  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron.png", base: "#8794a3", shade: "#475569", accent: "#f8fafc" },
+  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm.png", base: "#a94128", shade: "#6f271d", accent: "#ffd6c2" },
+  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood.png", base: "#8a5a2b", shade: "#5b371c", accent: "#f2c783" },
+  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal.png", base: "#2f3744", shade: "#111827", accent: "#cbd5e1" },
 };
 
 const WOS_RESOURCE_BUILDING_TUPLES = [
@@ -144,6 +144,7 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
   const meta = RESOURCE_BUILDING_META[node.kind];
   return (
     <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={`${meta.label} resource building`}>
+      <title>{`${meta.label} resource building at ${node.x},${node.y}`}</title>
       <rect
         width={RESOURCE_BUILDING_SIZE}
         height={RESOURCE_BUILDING_SIZE}
@@ -153,23 +154,9 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
         strokeWidth="0.08"
         vectorEffect="non-scaling-stroke"
       />
-      <path d="M 0.24 0.85 L 1 0.28 L 1.76 0.85 L 1.54 1.74 L 0.46 1.74 Z" fill={meta.roof} opacity="0.94" />
-      <path d="M 0.46 1.74 L 1 0.28 L 1.54 1.74 Z" fill={meta.shade} opacity="0.3" />
-      {node.kind === "wood" && (
-        <>
-          <path d="M 0.36 1.25 H 1.62" stroke={meta.accent} strokeWidth="0.16" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-          <path d="M 0.46 1.52 H 1.5" stroke={meta.accent} strokeWidth="0.13" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-        </>
-      )}
-      {node.kind === "coal" && (
-        <>
-          <circle cx="0.72" cy="1.34" r="0.2" fill={meta.shade} />
-          <circle cx="1.03" cy="1.24" r="0.23" fill={meta.shade} />
-          <circle cx="1.32" cy="1.42" r="0.18" fill={meta.accent} opacity="0.55" />
-        </>
-      )}
-      {node.kind === "iron" && <path d="M 0.58 1.5 L 1.14 0.8 L 1.42 1.48 Z" fill={meta.accent} opacity="0.88" />}
-      {node.kind === "meat" && <path d="M 0.58 1.28 C 0.7 0.92, 1.34 0.92, 1.44 1.28 C 1.28 1.58, 0.76 1.58, 0.58 1.28 Z" fill={meta.accent} opacity="0.82" />}
+      <circle cx="1" cy="1.25" r="0.82" fill="rgba(255, 255, 255, 0.28)" />
+      <image href={meta.image} x="0" y="0" width={RESOURCE_BUILDING_SIZE} height={RESOURCE_BUILDING_SIZE} preserveAspectRatio="xMidYMid meet" opacity="0.94" />
+      <rect width={RESOURCE_BUILDING_SIZE} height={RESOURCE_BUILDING_SIZE} rx="0.18" fill="none" stroke={meta.accent} strokeOpacity="0.38" strokeWidth="0.06" vectorEffect="non-scaling-stroke" />
     </g>
   );
 };
@@ -178,6 +165,7 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
   const meta = RESOURCE_BUILDING_META[node.kind];
   return (
     <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={`${meta.label} resource building`}>
+      <title>{`${meta.label} resource building at ${node.x},${node.y}`}</title>
       <rect
         width={RESOURCE_BUILDING_SIZE}
         height={RESOURCE_BUILDING_SIZE}
@@ -188,15 +176,11 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
         strokeWidth="0.08"
         vectorEffect="non-scaling-stroke"
       />
-      <rect x="0.12" y="0.92" width="1.76" height="1" rx="0.14" fill="rgba(15, 23, 42, 0.34)" />
-      <path d="M 0.2 0.72 L 1 0.18 L 1.8 0.72 L 1.8 1.45 L 1 1.98 L 0.2 1.45 Z" fill={meta.base} stroke="rgba(15, 23, 42, 0.7)" strokeWidth="0.08" vectorEffect="non-scaling-stroke" />
-      <path d="M 0.2 0.72 L 1 0.18 L 1.8 0.72 L 1 1.22 Z" fill={meta.roof} />
-      <path d="M 0.2 0.72 L 1 1.22 L 1 1.98 L 0.2 1.45 Z" fill={meta.shade} opacity="0.64" />
-      <path d="M 1 1.22 L 1.8 0.72 L 1.8 1.45 L 1 1.98 Z" fill={meta.base} opacity="0.72" />
-      {node.kind === "wood" && <path d="M 0.56 1.35 H 1.46 M 0.66 1.62 H 1.34" stroke={meta.accent} strokeWidth="0.13" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
-      {node.kind === "coal" && <path d="M 0.58 1.48 Q 0.94 1.02 1.42 1.46 Q 1.18 1.76 0.76 1.7 Z" fill={meta.shade} />}
-      {node.kind === "iron" && <path d="M 0.68 1.62 L 1.12 0.86 L 1.46 1.58 Z" fill={meta.accent} opacity="0.9" />}
-      {node.kind === "meat" && <path d="M 0.58 1.42 C 0.72 1.06, 1.34 1.04, 1.48 1.4 C 1.3 1.72, 0.78 1.74, 0.58 1.42 Z" fill={meta.accent} opacity="0.86" />}
+      <ellipse cx="1" cy="1.48" rx="0.9" ry="0.42" fill="rgba(15, 23, 42, 0.42)" />
+      <path d="M 0.16 1.18 L 1 0.74 L 1.84 1.18 L 1.62 1.86 L 0.38 1.86 Z" fill={meta.shade} opacity="0.5" />
+      <image href={meta.image} x="0" y="0" width={RESOURCE_BUILDING_SIZE} height={RESOURCE_BUILDING_SIZE} preserveAspectRatio="xMidYMid meet" />
+      <path d="M 0.24 0.42 C 0.62 0.16, 1.38 0.16, 1.76 0.42" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.09" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <rect width={RESOURCE_BUILDING_SIZE} height={RESOURCE_BUILDING_SIZE} rx="0.18" fill="none" stroke={meta.accent} strokeOpacity="0.42" strokeWidth="0.06" vectorEffect="non-scaling-stroke" />
     </g>
   );
 };
