@@ -11,8 +11,9 @@ const MINOR_GRID_STEP = 25;
 const MID_GRID_STEP = 5;
 const MAJOR_GRID_STEP = 100;
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 80;
-const WHEEL_ZOOM_FACTOR = 1.16;
+const MAX_ZOOM = 1200;
+const WHEEL_ZOOM_FACTOR = 1.22;
+const MIN_VIEW_SIZE = CANVAS_SIZE / MAX_ZOOM;
 
 type Coordinate = {
   x: number;
@@ -41,6 +42,15 @@ const gridCellFor = (coord: Coordinate) => ({
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x},${coordinate.y}`;
 
+const boundCamera = (camera: Coordinate, zoom: number) => {
+  const size = CANVAS_SIZE / zoom;
+  const halfSize = size / 2;
+  return {
+    x: clamp(camera.x, halfSize, CANVAS_SIZE - halfSize),
+    y: clamp(camera.y, halfSize, CANVAS_SIZE - halfSize),
+  };
+};
+
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
   const mapShellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
@@ -57,13 +67,19 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [roll, setRoll] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [camera, setCamera] = useState({ x: 600, y: 600 });
-  const viewSize = CANVAS_SIZE / zoom;
+  const viewSize = Math.max(MIN_VIEW_SIZE, CANVAS_SIZE / zoom);
   const viewX = clamp(camera.x - viewSize / 2, 0, CANVAS_SIZE - viewSize);
   const viewY = clamp(camera.y - viewSize / 2, 0, CANVAS_SIZE - viewSize);
-  const labelWidth = clamp(viewSize * 0.075, 0.7, 56);
-  const labelHeight = clamp(viewSize * 0.026, 0.24, 18);
-  const labelFontSize = clamp(viewSize * 0.014, 0.12, 10);
-  const labelStrokeWidth = clamp(viewSize * 0.002, 0.02, 0.8);
+  const selectedCell = gridCellFor(selected);
+  const hoverCell = hover ? gridCellFor(hover) : null;
+  const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
+    const cell = gridCellFor(coordinate);
+    return {
+      left: `${clamp(((cell.x + 0.5 - viewX) / viewSize) * 100, 3, 97)}%`,
+      top: `${clamp(((cell.y + 0.5 - viewY) / viewSize) * 100, 3, 97)}%`,
+      ["--label-opacity" as string]: selectedLabel ? "1" : "0.94",
+    };
+  };
 
   useEffect(() => {
     const stage = mapShellRef.current;
@@ -110,11 +126,32 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   };
 
   const setSmoothZoom = (updater: (value: number) => number) => {
-    setZoom((value) => clamp(updater(value), MIN_ZOOM, MAX_ZOOM));
+    setZoom((value) => {
+      const nextZoom = clamp(updater(value), MIN_ZOOM, MAX_ZOOM);
+      setCamera((cameraValue) => boundCamera(cameraValue, nextZoom));
+      return nextZoom;
+    });
   };
 
-  const zoomByWheel = (deltaY: number) => {
-    setSmoothZoom((value) => value * (deltaY > 0 ? 1 / WHEEL_ZOOM_FACTOR : WHEEL_ZOOM_FACTOR));
+  const zoomByWheel = (event: { clientX: number; clientY: number; currentTarget: SVGSVGElement; deltaY: number }) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const pointerXRatio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+    const pointerYRatio = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+    const mapX = viewX + pointerXRatio * viewSize;
+    const mapY = viewY + pointerYRatio * viewSize;
+    const nextZoom = clamp(zoom * (event.deltaY > 0 ? 1 / WHEEL_ZOOM_FACTOR : WHEEL_ZOOM_FACTOR), MIN_ZOOM, MAX_ZOOM);
+    const nextViewSize = Math.max(MIN_VIEW_SIZE, CANVAS_SIZE / nextZoom);
+
+    setZoom(nextZoom);
+    setCamera(
+      boundCamera(
+        {
+          x: mapX - (pointerXRatio - 0.5) * nextViewSize,
+          y: mapY - (pointerYRatio - 0.5) * nextViewSize,
+        },
+        nextZoom,
+      ),
+    );
   };
 
   const scheduleHover = (coordinate: Coordinate) => {
@@ -135,7 +172,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     }
     cameraFrameRef.current = window.requestAnimationFrame(() => {
       cameraFrameRef.current = null;
-      setCamera(pendingCameraRef.current);
+      setCamera(boundCamera(pendingCameraRef.current, zoom));
     });
   };
 
@@ -210,7 +247,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           onWheel={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            zoomByWheel(event.deltaY);
           }}
         >
           <div
@@ -262,7 +298,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               onWheel={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                zoomByWheel(event.deltaY);
+                zoomByWheel(event);
               }}
               onKeyDown={(event) => {
                 const step = event.shiftKey ? 10 : 1;
@@ -344,27 +380,15 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 vectorEffect="non-scaling-stroke"
               />
               <rect x="1.5" y="1.5" width={CANVAS_SIZE - 3} height={CANVAS_SIZE - 3} fill="none" stroke="rgba(17, 24, 39, 0.72)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
-              <g
-                transform={`translate(${gridCellFor(selected).x + 1.35} ${gridCellFor(selected).y - 0.35}) rotate(45)`}
-                opacity="1"
-              >
-                <rect width={labelWidth} height={labelHeight} rx={labelHeight * 0.12} fill="#111827" stroke="#ffffff" strokeWidth={labelStrokeWidth} vectorEffect="non-scaling-stroke" />
-                <text x={labelWidth / 2} y={labelHeight * 0.56} fill="#ffffff" textAnchor="middle" dominantBaseline="middle" fontSize={labelFontSize} fontFamily="Arial, Helvetica, sans-serif" fontWeight="900">
-                  {formatCoordinate(selected)}
-                </text>
-              </g>
-              {hover && (gridCellFor(hover).x !== gridCellFor(selected).x || gridCellFor(hover).y !== gridCellFor(selected).y) && (
-                <g
-                  transform={`translate(${gridCellFor(hover).x + 1.35} ${gridCellFor(hover).y - 0.35}) rotate(45)`}
-                  opacity="0.92"
-                >
-                  <rect width={labelWidth} height={labelHeight} rx={labelHeight * 0.12} fill="#111827" stroke="#ffffff" strokeWidth={labelStrokeWidth} vectorEffect="non-scaling-stroke" />
-                  <text x={labelWidth / 2} y={labelHeight * 0.56} fill="#ffffff" textAnchor="middle" dominantBaseline="middle" fontSize={labelFontSize} fontFamily="Arial, Helvetica, sans-serif" fontWeight="900">
-                    {formatCoordinate(hover)}
-                  </text>
-                </g>
-              )}
             </svg>
+            <span className="wos-coordinate-tag selected" style={coordinateLabelStyle(selected, true)}>
+              {formatCoordinate(selected)}
+            </span>
+            {hover && hoverCell && (hoverCell.x !== selectedCell.x || hoverCell.y !== selectedCell.y) && (
+              <span className="wos-coordinate-tag hover" style={coordinateLabelStyle(hover)}>
+                {formatCoordinate(hover)}
+              </span>
+            )}
           </div>
         </div>
 
@@ -416,7 +440,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </label>
           <label>
             <span>Zoom</span>
-            <input type="range" min="100" max="8000" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
+            <input type="range" min="100" max="120000" value={Math.round(zoom * 100)} onChange={(event) => setSmoothZoom(() => Number(event.target.value) / 100)} />
             <output>{Math.round(zoom * 100)}%</output>
           </label>
           <button type="button" onClick={resetView}>Reset View</button>

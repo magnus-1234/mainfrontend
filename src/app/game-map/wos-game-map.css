@@ -103,6 +103,48 @@
   outline-offset: 4px;
 }
 
+.wos-coordinate-tag {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  width: 76px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  border-radius: 3px;
+  background: #020617;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  opacity: var(--label-opacity, 1);
+  pointer-events: none;
+  text-rendering: geometricPrecision;
+  transform: translate(-50%, -125%) rotate(45deg);
+  transform-origin: 50% 100%;
+  white-space: nowrap;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(2, 6, 23, 0.95),
+    0 6px 14px rgba(15, 23, 42, 0.32);
+}
+
+.wos-coordinate-tag.selected {
+  background: #0f172a;
+  border-color: #dbeafe;
+  color: #ffffff;
+}
+
+.wos-coordinate-tag.hover {
+  background: #111827;
+  border-color: #e0f2fe;
+}
+
 .wos-map-controls {
   display: grid;
   align-content: start;
