@@ -90,7 +90,6 @@
     0 24px 70px rgba(15, 23, 42, 0.18),
     inset 0 0 0 1px rgba(17, 24, 39, 0.08);
   cursor: grab;
-  image-rendering: pixelated;
   touch-action: none;
   user-select: none;
 }
