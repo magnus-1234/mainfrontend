@@ -10,7 +10,7 @@ const COORDINATE_STEP = 1;
 const MINOR_GRID_STEP = 25;
 const MID_GRID_STEP = 5;
 const MAJOR_GRID_STEP = 100;
-const MIN_ZOOM = 0.3;
+const MIN_ZOOM = 1;
 const MAX_ZOOM = 80;
 const WHEEL_ZOOM_FACTOR = 1.16;
 
@@ -28,8 +28,8 @@ type DragState = {
   y: number;
   yaw: number;
   pitch: number;
-  panX: number;
-  panY: number;
+  cameraX: number;
+  cameraY: number;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -46,8 +46,8 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const dragRef = useRef<DragState | null>(null);
   const hoverFrameRef = useRef<number | null>(null);
   const pendingHoverRef = useRef<Coordinate | null>(null);
-  const panFrameRef = useRef<number | null>(null);
-  const pendingPanRef = useRef({ x: 0, y: 0 });
+  const cameraFrameRef = useRef<number | null>(null);
+  const pendingCameraRef = useRef({ x: 600, y: 600 });
   const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
   const [hover, setHover] = useState<Coordinate | null>(null);
   const [mode, setMode] = useState<MapMode>("2d");
@@ -55,21 +55,15 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [pitch, setPitch] = useState(0);
   const [yaw, setYaw] = useState(0);
   const [roll, setRoll] = useState(0);
-  const [zoom, setZoom] = useState(0.9);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-
-  const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
-    const cell = gridCellFor(coordinate);
-    const cellWidth = Math.min(COORDINATE_STEP, CANVAS_SIZE - cell.x);
-    const inverseScale = clamp(1 / Math.max(zoom, 1), 0.0125, 1);
-    return {
-      left: `${((cell.x + cellWidth - 1) / CANVAS_SIZE) * 100}%`,
-      top: `${((cell.y + 1) / CANVAS_SIZE) * 100}%`,
-      transform: `translate(0, -100%) rotate(${mode === "isometric" ? 0 : 45}deg) scale(${inverseScale})`,
-      transformOrigin: "0 100%",
-      ["--label-opacity" as string]: selectedLabel ? "1" : "0.86",
-    };
-  };
+  const [zoom, setZoom] = useState(1);
+  const [camera, setCamera] = useState({ x: 600, y: 600 });
+  const viewSize = CANVAS_SIZE / zoom;
+  const viewX = clamp(camera.x - viewSize / 2, 0, CANVAS_SIZE - viewSize);
+  const viewY = clamp(camera.y - viewSize / 2, 0, CANVAS_SIZE - viewSize);
+  const labelWidth = clamp(viewSize * 0.075, 0.7, 56);
+  const labelHeight = clamp(viewSize * 0.026, 0.24, 18);
+  const labelFontSize = clamp(viewSize * 0.014, 0.12, 10);
+  const labelStrokeWidth = clamp(viewSize * 0.002, 0.02, 0.8);
 
   useEffect(() => {
     const stage = mapShellRef.current;
@@ -89,17 +83,17 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     if (hoverFrameRef.current !== null) {
       window.cancelAnimationFrame(hoverFrameRef.current);
     }
-    if (panFrameRef.current !== null) {
-      window.cancelAnimationFrame(panFrameRef.current);
+    if (cameraFrameRef.current !== null) {
+      window.cancelAnimationFrame(cameraFrameRef.current);
     }
   }, []);
 
   const coordinateFromPointer = useCallback((event: PointerEvent<SVGSVGElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = clamp(Math.floor(((event.clientX - rect.left) / rect.width) * CANVAS_SIZE) + MAP_MIN, MAP_MIN, MAP_MAX);
-    const y = clamp(Math.floor(((event.clientY - rect.top) / rect.height) * CANVAS_SIZE) + MAP_MIN, MAP_MIN, MAP_MAX);
+    const x = clamp(Math.floor(viewX + ((event.clientX - rect.left) / rect.width) * viewSize) + MAP_MIN, MAP_MIN, MAP_MAX);
+    const y = clamp(Math.floor(viewY + ((event.clientY - rect.top) / rect.height) * viewSize) + MAP_MIN, MAP_MIN, MAP_MAX);
     return { x, y };
-  }, []);
+  }, [viewSize, viewX, viewY]);
 
   const selectCoordinate = (coordinate: Coordinate) => {
     setSelected({
@@ -134,14 +128,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     });
   };
 
-  const schedulePan = (nextPan: { x: number; y: number }) => {
-    pendingPanRef.current = nextPan;
-    if (panFrameRef.current !== null) {
+  const scheduleCamera = (nextCamera: { x: number; y: number }) => {
+    pendingCameraRef.current = nextCamera;
+    if (cameraFrameRef.current !== null) {
       return;
     }
-    panFrameRef.current = window.requestAnimationFrame(() => {
-      panFrameRef.current = null;
-      setPan(pendingPanRef.current);
+    cameraFrameRef.current = window.requestAnimationFrame(() => {
+      cameraFrameRef.current = null;
+      setCamera(pendingCameraRef.current);
     });
   };
 
@@ -152,24 +146,24 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setPitch(0);
       setYaw(0);
       setRoll(0);
-      setZoom(0.9);
-      setPan({ x: 0, y: 0 });
+      setZoom(1);
+      setCamera({ x: selected.x, y: selected.y });
       return;
     }
     if (nextMode === "isometric") {
       setPitch(depthMode === "3d" ? 58 : 0);
       setYaw(0);
       setRoll(45);
-      setZoom(depthMode === "3d" ? 0.64 : 0.78);
-      setPan({ x: 0, y: 0 });
+      setZoom(1);
+      setCamera({ x: selected.x, y: selected.y });
       return;
     }
     setDepthMode("3d");
     setPitch(58);
     setYaw(-28);
     setRoll(0);
-    setZoom(0.82);
-    setPan({ x: 0, y: 0 });
+    setZoom(1);
+    setCamera({ x: selected.x, y: selected.y });
   };
 
   const resetView = () => {
@@ -177,23 +171,23 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setPitch(0);
       setYaw(0);
       setRoll(0);
-      setZoom(0.9);
-      setPan({ x: 0, y: 0 });
+      setZoom(1);
+      setCamera({ x: selected.x, y: selected.y });
       return;
     }
     if (mode === "isometric") {
       setPitch(depthMode === "3d" ? 58 : 0);
       setYaw(0);
       setRoll(45);
-      setZoom(depthMode === "3d" ? 0.64 : 0.78);
-      setPan({ x: 0, y: 0 });
+      setZoom(1);
+      setCamera({ x: selected.x, y: selected.y });
       return;
     }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
-    setZoom(0.82);
-    setPan({ x: 0, y: 0 });
+    setZoom(1);
+    setCamera({ x: selected.x, y: selected.y });
   };
 
   return (
@@ -222,19 +216,19 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           <div
             className={`wos-map-rotator mode-${mode} depth-${depthMode}`}
             style={{
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
+              transform: mode === "2d" ? "none" : `rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
             }}
           >
             <svg
               className="wos-map-canvas"
-              viewBox={`0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`}
+              viewBox={`${viewX} ${viewY} ${viewSize} ${viewSize}`}
               aria-label="Clickable 1199 by 1199 Whiteout Survival coordinate map"
               role="application"
               tabIndex={0}
               preserveAspectRatio="none"
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
-                dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch, panX: pan.x, panY: pan.y };
+                dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, yaw, pitch, cameraX: camera.x, cameraY: camera.y };
               }}
               onPointerMove={(event) => {
                 event.preventDefault();
@@ -244,7 +238,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   return;
                 }
                 if (mode !== "3d" && !(mode === "isometric" && depthMode === "3d")) {
-                  schedulePan({ x: drag.panX + event.clientX - drag.x, y: drag.panY + event.clientY - drag.y });
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  const mapUnitsPerPixel = viewSize / Math.max(1, rect.width);
+                  scheduleCamera({
+                    x: clamp(drag.cameraX - (event.clientX - drag.x) * mapUnitsPerPixel, MAP_MIN, MAP_MAX),
+                    y: clamp(drag.cameraY - (event.clientY - drag.y) * mapUnitsPerPixel, MAP_MIN, MAP_MAX),
+                  });
                   return;
                 }
                 setYaw(Math.round(clamp(drag.yaw + (event.clientX - drag.x) * 0.35, -180, 180)));
@@ -345,15 +344,27 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 vectorEffect="non-scaling-stroke"
               />
               <rect x="1.5" y="1.5" width={CANVAS_SIZE - 3} height={CANVAS_SIZE - 3} fill="none" stroke="rgba(17, 24, 39, 0.72)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+              <g
+                transform={`translate(${gridCellFor(selected).x + 1.35} ${gridCellFor(selected).y - 0.35}) rotate(45)`}
+                opacity="1"
+              >
+                <rect width={labelWidth} height={labelHeight} rx={labelHeight * 0.12} fill="#111827" stroke="#ffffff" strokeWidth={labelStrokeWidth} vectorEffect="non-scaling-stroke" />
+                <text x={labelWidth / 2} y={labelHeight * 0.56} fill="#ffffff" textAnchor="middle" dominantBaseline="middle" fontSize={labelFontSize} fontFamily="Arial, Helvetica, sans-serif" fontWeight="900">
+                  {formatCoordinate(selected)}
+                </text>
+              </g>
+              {hover && (gridCellFor(hover).x !== gridCellFor(selected).x || gridCellFor(hover).y !== gridCellFor(selected).y) && (
+                <g
+                  transform={`translate(${gridCellFor(hover).x + 1.35} ${gridCellFor(hover).y - 0.35}) rotate(45)`}
+                  opacity="0.92"
+                >
+                  <rect width={labelWidth} height={labelHeight} rx={labelHeight * 0.12} fill="#111827" stroke="#ffffff" strokeWidth={labelStrokeWidth} vectorEffect="non-scaling-stroke" />
+                  <text x={labelWidth / 2} y={labelHeight * 0.56} fill="#ffffff" textAnchor="middle" dominantBaseline="middle" fontSize={labelFontSize} fontFamily="Arial, Helvetica, sans-serif" fontWeight="900">
+                    {formatCoordinate(hover)}
+                  </text>
+                </g>
+              )}
             </svg>
-            <span className="wos-coordinate-tag selected" style={coordinateLabelStyle(selected, true)}>
-              {formatCoordinate(selected)}
-            </span>
-            {hover && (gridCellFor(hover).x !== gridCellFor(selected).x || gridCellFor(hover).y !== gridCellFor(selected).y) && (
-              <span className="wos-coordinate-tag hover" style={coordinateLabelStyle(hover)}>
-                {formatCoordinate(hover)}
-              </span>
-            )}
           </div>
         </div>
 
@@ -405,7 +416,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </label>
           <label>
             <span>Zoom</span>
-            <input type="range" min="30" max="8000" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
+            <input type="range" min="100" max="8000" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
             <output>{Math.round(zoom * 100)}%</output>
           </label>
           <button type="button" onClick={resetView}>Reset View</button>
