@@ -6,10 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const MAP_MIN = 0;
 const MAP_MAX = 1199;
 const CANVAS_SIZE = 1200;
-const GRID_STEP = 25;
+const COORDINATE_STEP = 1;
+const MINOR_GRID_STEP = 25;
+const MID_GRID_STEP = 5;
+const MAJOR_GRID_STEP = 100;
 const MIN_ZOOM = 0.3;
-const MAX_ZOOM = 24;
+const MAX_ZOOM = 80;
 const WHEEL_ZOOM_FACTOR = 1.16;
+const MAX_RENDER_SCALE = 6;
 
 type Coordinate = {
   x: number;
@@ -65,8 +69,8 @@ const FIXED_FACILITIES: Facility[] = [
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const gridCellFor = (coord: Coordinate) => ({
-  x: Math.floor(coord.x / GRID_STEP) * GRID_STEP,
-  y: Math.floor(coord.y / GRID_STEP) * GRID_STEP,
+  x: Math.floor(coord.x / COORDINATE_STEP) * COORDINATE_STEP,
+  y: Math.floor(coord.y / COORDINATE_STEP) * COORDINATE_STEP,
 });
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x},${coordinate.y}`;
@@ -165,14 +169,27 @@ const drawFixedFacilities = (context: CanvasRenderingContext2D) => {
 
 const drawSelection = (context: CanvasRenderingContext2D, coord: Coordinate, selectedCell = false) => {
   const cell = gridCellFor(coord);
-  const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
-  const cellHeight = Math.min(GRID_STEP, CANVAS_SIZE - cell.y);
+  const cellWidth = Math.min(COORDINATE_STEP, CANVAS_SIZE - cell.x);
+  const cellHeight = Math.min(COORDINATE_STEP, CANVAS_SIZE - cell.y);
 
-  context.fillStyle = selectedCell ? "rgba(37, 99, 235, 0.14)" : "rgba(37, 99, 235, 0.08)";
+  context.fillStyle = selectedCell ? "rgba(37, 99, 235, 0.34)" : "rgba(37, 99, 235, 0.2)";
   context.fillRect(cell.x, cell.y, cellWidth, cellHeight);
   context.strokeStyle = selectedCell ? "#2563eb" : "rgba(37, 99, 235, 0.62)";
-  context.lineWidth = selectedCell ? 4 : 2;
-  context.strokeRect(cell.x + 1, cell.y + 1, Math.max(1, cellWidth - 2), Math.max(1, cellHeight - 2));
+  context.lineWidth = selectedCell ? 0.12 : 0.08;
+  context.strokeRect(cell.x + 0.04, cell.y + 0.04, Math.max(0.08, cellWidth - 0.08), Math.max(0.08, cellHeight - 0.08));
+};
+
+const drawGridLines = (context: CanvasRenderingContext2D, step: number, color: string, lineWidth: number) => {
+  context.strokeStyle = color;
+  context.lineWidth = lineWidth;
+  context.beginPath();
+  for (let position = 0; position <= CANVAS_SIZE; position += step) {
+    context.moveTo(position, 0);
+    context.lineTo(position, CANVAS_SIZE);
+    context.moveTo(0, position);
+    context.lineTo(CANVAS_SIZE, position);
+  }
+  context.stroke();
 };
 
 const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordinate | null, zoom: number, showFixedFacilities: boolean) => {
@@ -182,8 +199,8 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   }
 
   const ratio = window.devicePixelRatio || 1;
-  const renderBoost = zoom > 1 ? Math.min(4, Math.ceil(zoom)) : 1;
-  const renderScale = ratio * renderBoost;
+  const renderBoost = zoom > 1 ? Math.min(MAX_RENDER_SCALE, Math.ceil(Math.sqrt(zoom))) : 1;
+  const renderScale = Math.min(MAX_RENDER_SCALE, ratio * renderBoost);
   canvas.width = CANVAS_SIZE * renderScale;
   canvas.height = CANVAS_SIZE * renderScale;
   context.setTransform(renderScale, 0, 0, renderScale, 0, 0);
@@ -193,17 +210,14 @@ const drawMap = (canvas: HTMLCanvasElement, selected: Coordinate, hover: Coordin
   context.fillStyle = "#f8fafc";
   context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-  context.lineWidth = 1;
-  for (let position = 0; position <= CANVAS_SIZE; position += GRID_STEP) {
-    const isMajor = position === 0 || position % 100 === 0 || position === CANVAS_SIZE;
-    context.strokeStyle = isMajor ? "rgba(17, 24, 39, 0.38)" : "rgba(17, 24, 39, 0.11)";
-    context.beginPath();
-    context.moveTo(position, 0);
-    context.lineTo(position, CANVAS_SIZE);
-    context.moveTo(0, position);
-    context.lineTo(CANVAS_SIZE, position);
-    context.stroke();
+  if (zoom >= 12) {
+    drawGridLines(context, COORDINATE_STEP, "rgba(15, 23, 42, 0.08)", 0.025);
   }
+  if (zoom >= 4) {
+    drawGridLines(context, MID_GRID_STEP, "rgba(15, 23, 42, 0.16)", 0.05);
+  }
+  drawGridLines(context, MINOR_GRID_STEP, "rgba(17, 24, 39, 0.2)", 0.16);
+  drawGridLines(context, MAJOR_GRID_STEP, "rgba(17, 24, 39, 0.44)", 0.42);
 
   context.fillStyle = "rgba(15, 23, 42, 0.08)";
   context.fillRect(552, 552, 96, 96);
@@ -255,8 +269,8 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
 
   const coordinateLabelStyle = (coordinate: Coordinate, selectedLabel = false) => {
     const cell = gridCellFor(coordinate);
-    const cellWidth = Math.min(GRID_STEP, CANVAS_SIZE - cell.x);
-    const inverseScale = clamp(1 / Math.max(zoom, 1), 0.2, 1);
+    const cellWidth = Math.min(COORDINATE_STEP, CANVAS_SIZE - cell.x);
+    const inverseScale = clamp(1 / Math.max(zoom, 1), 0.0125, 1);
     return {
       left: `${((cell.x + cellWidth - 1) / CANVAS_SIZE) * 100}%`,
       top: `${((cell.y + 1) / CANVAS_SIZE) * 100}%`,
@@ -562,7 +576,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </label>
           <label>
             <span>Zoom</span>
-            <input type="range" min="30" max="2400" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
+            <input type="range" min="30" max="8000" value={Math.round(zoom * 100)} onChange={(event) => setZoom(Number(event.target.value) / 100)} />
             <output>{Math.round(zoom * 100)}%</output>
           </label>
           <button type="button" onClick={resetView}>Reset View</button>

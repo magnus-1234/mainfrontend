@@ -50,12 +50,14 @@
   display: grid;
   min-height: 640px;
   overflow: hidden;
+  contain: layout paint;
   overscroll-behavior: contain;
   place-items: center;
   border: 1px solid rgba(17, 24, 39, 0.14);
   border-radius: 8px;
   background: #e8eef5;
   perspective: 1200px;
+  touch-action: none;
 }
 
 .wos-map-rotator {
@@ -88,6 +90,7 @@
     0 24px 70px rgba(15, 23, 42, 0.18),
     inset 0 0 0 1px rgba(17, 24, 39, 0.08);
   cursor: grab;
+  image-rendering: pixelated;
   touch-action: none;
   user-select: none;
 }
