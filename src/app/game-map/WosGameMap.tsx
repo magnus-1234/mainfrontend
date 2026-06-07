@@ -42,10 +42,10 @@ type ResourceBuilding = {
 const RESOURCE_BUILDING_SIZE = 2;
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
-  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron.png" },
-  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm.png" },
-  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood.png" },
-  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal.png" },
+  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png" },
+  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png" },
+  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png" },
+  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png" },
 };
 
 const WOS_RESOURCE_BUILDING_TUPLES = [
