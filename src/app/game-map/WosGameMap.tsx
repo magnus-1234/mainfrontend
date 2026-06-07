@@ -240,6 +240,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const mapFrameStyle = {
     width: `${baseMapWidth + (100 - baseMapWidth) * easedMapGrowth}%`,
     height: `${baseMapHeight + (100 - baseMapHeight) * easedMapGrowth}%`,
+    aspectRatio: "auto",
     transform: mode === "2d" ? "none" : `rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(${roll}deg)`,
   } satisfies CSSProperties;
   const selectedFill = zoom >= 24 ? "rgba(14, 165, 233, 0.1)" : zoom >= 6 ? "rgba(14, 165, 233, 0.16)" : "rgba(14, 165, 233, 0.22)";
