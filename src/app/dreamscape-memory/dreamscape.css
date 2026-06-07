@@ -308,7 +308,7 @@
     inset 0 0 18px rgba(126, 224, 165, 0.22);
 }
 
-.dreamscape-hotspot span {
+.dreamscape-hotspot-number {
   display: grid;
   min-width: 24px;
   height: 24px;
@@ -320,6 +320,36 @@
   font-weight: 950;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.dreamscape-hotspot-name {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  max-width: 180px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border: 1px solid rgba(255, 226, 170, 0.56);
+  border-radius: 7px;
+  padding: 4px 7px;
+  background: rgba(5, 10, 12, 0.92);
+  color: #fff7dc;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.1;
+  opacity: 0;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.dreamscape-hotspot:hover .dreamscape-hotspot-name,
+.dreamscape-hotspot:focus-visible .dreamscape-hotspot-name,
+.dreamscape-hotspot.is-hinted .dreamscape-hotspot-name,
+.dreamscape-hotspot.is-found .dreamscape-hotspot-name {
+  opacity: 1;
+  transform: translate(-50%, -2px);
 }
 
 .dreamscape-hotspot.is-ellipse {
@@ -340,7 +370,7 @@
   opacity: 0.72;
 }
 
-.dreamscape-hotspot.is-found span {
+.dreamscape-hotspot.is-found .dreamscape-hotspot-number {
   color: #bff7d3;
 }
 

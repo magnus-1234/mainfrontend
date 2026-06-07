@@ -494,7 +494,8 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
                   aria-label={`Find ${label}`}
                   key={target.n}
                 >
-                  <span>{found ? "ok" : target.n}</span>
+                  <span className="dreamscape-hotspot-number">{found ? "ok" : target.n}</span>
+                  <span className="dreamscape-hotspot-name">{label}</span>
                 </button>
               );
             })}
