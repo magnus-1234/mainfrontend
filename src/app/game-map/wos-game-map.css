@@ -353,13 +353,6 @@
     width: min(100%, 72vh, 720px);
   }
 
-  .wos-map-rotator.expanded,
-  .wos-map-rotator.mode-2d.expanded,
-  .wos-map-rotator.mode-isometric.expanded {
-    width: 100%;
-    height: 100%;
-  }
-
   .wos-map-controls {
     grid-template-columns: 1fr;
   }
