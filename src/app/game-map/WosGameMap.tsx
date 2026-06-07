@@ -286,8 +286,6 @@ const sunfireFootprintTitle = (node: SunfireLandmark) => {
 const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
   const footprint = sunfireFootprintFor(node);
   const raised = mode !== "2d";
-  const inset = footprint.size * 0.08;
-  const wall = footprint.size - inset * 2;
   const towerRadius = footprint.size * 0.12;
   const domeRadius = footprint.size * 0.22;
   const goldStroke = "#c79947";
@@ -302,12 +300,14 @@ const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
       <title>{sunfireFootprintTitle(node)}</title>
       <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} fill="none" pointerEvents="none" />
       <g clipPath={`url(#${footprint.clipId})`}>
-        <rect x={footprint.x + inset} y={footprint.y + inset} width={wall} height={wall} rx={footprint.size * 0.14} fill="#1f2a38" stroke="#0b1018" strokeWidth={footprint.size * 0.035} />
         <circle cx={footprint.cx} cy={footprint.cy} r={footprint.size * 0.46} fill="none" stroke={goldStroke} strokeOpacity="0.42" strokeWidth={footprint.size * 0.035} />
         {raised && (
           <path
-            d={`M ${footprint.x + inset} ${footprint.y + footprint.size * 0.6} L ${footprint.x + footprint.size * 0.5} ${footprint.maxY - inset} L ${footprint.maxX - inset} ${footprint.y + footprint.size * 0.6} L ${footprint.maxX - inset} ${footprint.maxY - inset} L ${footprint.x + inset} ${footprint.maxY - inset} Z`}
+            d={`M ${footprint.x + footprint.size * 0.26} ${footprint.y + footprint.size * 0.64} C ${footprint.x + footprint.size * 0.42} ${footprint.maxY - footprint.size * 0.1}, ${footprint.x + footprint.size * 0.62} ${footprint.maxY - footprint.size * 0.1}, ${footprint.x + footprint.size * 0.78} ${footprint.y + footprint.size * 0.64}`}
             fill="#101824"
+            stroke="#101824"
+            strokeWidth={footprint.size * 0.14}
+            strokeLinecap="round"
             opacity="0.82"
           />
         )}
@@ -357,9 +357,15 @@ const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
       <title>{sunfireFootprintTitle(node)}</title>
       <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} fill="none" pointerEvents="none" />
       <g clipPath={`url(#${footprint.clipId})`}>
-        <path d={`M ${footprint.x + inset} ${footprint.y + footprint.size * 0.28} L ${footprint.x + footprint.size * 0.38} ${footprint.y + inset} L ${footprint.maxX - inset} ${footprint.y + footprint.size * 0.34} L ${footprint.maxX - footprint.size * 0.28} ${footprint.maxY - inset} L ${footprint.x + footprint.size * 0.24} ${footprint.maxY - footprint.size * 0.18} Z`} fill="#293748" stroke="#101723" strokeWidth={footprint.size * 0.035} />
         {raised && (
-          <path d={`M ${footprint.x + footprint.size * 0.2} ${footprint.y + footprint.size * 0.62} C ${footprint.x + footprint.size * 0.48} ${footprint.maxY - inset}, ${footprint.x + footprint.size * 0.72} ${footprint.maxY - inset}, ${footprint.maxX - footprint.size * 0.18} ${footprint.y + footprint.size * 0.58} L ${footprint.maxX - footprint.size * 0.26} ${footprint.maxY - footprint.size * 0.16} L ${footprint.x + footprint.size * 0.24} ${footprint.maxY - footprint.size * 0.16} Z`} fill="#111927" opacity="0.82" />
+          <path
+            d={`M ${footprint.x + footprint.size * 0.24} ${footprint.y + footprint.size * 0.68} C ${footprint.x + footprint.size * 0.48} ${footprint.maxY - inset}, ${footprint.x + footprint.size * 0.72} ${footprint.maxY - inset}, ${footprint.maxX - footprint.size * 0.2} ${footprint.y + footprint.size * 0.62}`}
+            fill="none"
+            stroke="#111927"
+            strokeWidth={footprint.size * 0.18}
+            strokeLinecap="round"
+            opacity="0.82"
+          />
         )}
         <ellipse cx={footprint.cx} cy={footprint.cy + footprint.size * 0.08} rx={footprint.size * 0.34} ry={footprint.size * 0.28} fill="#2e3d50" stroke="#0f1723" strokeWidth={footprint.size * 0.035} />
         <path d={`M ${footprint.cx - footprint.size * 0.22} ${footprint.cy + footprint.size * 0.08} C ${footprint.cx - footprint.size * 0.08} ${footprint.cy - footprint.size * 0.28}, ${footprint.cx + footprint.size * 0.17} ${footprint.cy - footprint.size * 0.28}, ${footprint.cx + footprint.size * 0.25} ${footprint.cy + footprint.size * 0.08}`} fill="none" stroke="#715040" strokeWidth={footprint.size * 0.11} strokeLinecap="round" />
