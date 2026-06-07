@@ -96,6 +96,11 @@
   color: #181008;
 }
 
+.dreamscape-bar button.is-secondary {
+  background: #24343c;
+  color: #e6edf1;
+}
+
 .dreamscape-actions {
   display: grid;
   grid-template-columns: 1fr 0.72fr;
@@ -154,20 +159,114 @@
   color: #ff876c;
 }
 
+.dreamscape-target-strip {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.36fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  background: #0c151a;
+}
+
+.dreamscape-target-strip > span {
+  display: grid;
+  gap: 2px;
+}
+
+.dreamscape-target-strip small {
+  color: #94a6af;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dreamscape-target-strip strong {
+  color: #ffe2aa;
+  font-size: 1rem;
+}
+
+.dreamscape-target-strip div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dreamscape-target-strip button {
+  min-height: 34px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 7px;
+  padding: 0 10px;
+  background: #17232a;
+  color: #d7f8ff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.dreamscape-target-strip .is-hinted {
+  border-color: #e8a23a;
+  box-shadow: 0 0 0 3px rgba(232, 162, 58, 0.16);
+}
+
 .dreamscape-stage-panel {
-  display: block;
+  display: grid;
+  justify-items: center;
   padding: 12px;
 }
 
 .dreamscape-stage-image {
   position: relative;
   overflow: hidden;
-  width: min(100%, 920px);
-  aspect-ratio: 798 / 1308;
+  width: auto;
+  max-width: 100%;
+  height: min(62vh, 680px);
+  aspect-ratio: var(--dreamscape-stage-ratio, 798 / 1308);
   border-radius: 8px;
   background: #05080a;
   justify-self: center;
   cursor: crosshair;
+}
+
+.dreamscape-zoom-lock {
+  overflow: hidden;
+}
+
+.dreamscape-page.is-stage-zoomed .dreamscape-stage-panel {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 64px 16px 16px;
+  border: 0;
+  border-radius: 0;
+  background: rgba(4, 8, 12, 0.94);
+}
+
+.dreamscape-page.is-stage-zoomed .dreamscape-stage-image {
+  width: auto;
+  max-width: calc(100vw - 32px);
+  height: min(calc(100vh - 88px), 1120px);
+  max-height: calc(100vh - 88px);
+}
+
+.dreamscape-zoom-close {
+  position: fixed;
+  z-index: 1002;
+  top: 14px;
+  right: 16px;
+  min-height: 38px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 7px;
+  padding: 0 14px;
+  background: #e8a23a;
+  color: #181008;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
 }
 
 .dreamscape-stage-image img {
@@ -178,8 +277,76 @@
   user-select: none;
 }
 
+.dreamscape-hotspot {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  min-width: 34px;
+  min-height: 34px;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 226, 170, 0.9);
+  border-radius: 8px;
+  background: rgba(8, 16, 20, 0.2);
+  color: #fff7dc;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 4px rgba(232, 162, 58, 0.2),
+    inset 0 0 18px rgba(255, 226, 170, 0.14);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.dreamscape-hotspot:hover,
+.dreamscape-hotspot:focus-visible {
+  border-color: #7ee0a5;
+  background: rgba(126, 224, 165, 0.16);
+  outline: none;
+  box-shadow:
+    0 0 0 5px rgba(126, 224, 165, 0.24),
+    inset 0 0 18px rgba(126, 224, 165, 0.22);
+}
+
+.dreamscape-hotspot span {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(5, 10, 12, 0.86);
+  color: #fff7dc;
+  font-size: 0.68rem;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dreamscape-hotspot.is-ellipse {
+  border-radius: 999px;
+}
+
+.dreamscape-hotspot.is-hinted {
+  border-color: #7dd3fc;
+  box-shadow:
+    0 0 0 5px rgba(125, 211, 252, 0.28),
+    0 0 34px rgba(125, 211, 252, 0.32);
+}
+
+.dreamscape-hotspot.is-found {
+  pointer-events: none;
+  border-color: rgba(126, 224, 165, 0.9);
+  background: rgba(126, 224, 165, 0.2);
+  opacity: 0.72;
+}
+
+.dreamscape-hotspot.is-found span {
+  color: #bff7d3;
+}
+
 .dreamscape-feedback {
   position: absolute;
+  z-index: 3;
   top: 18px;
   left: 50%;
   display: grid;
@@ -370,5 +537,9 @@
   .dreamscape-bar span {
     min-width: 0;
     flex: 1 1 112px;
+  }
+
+  .dreamscape-target-strip {
+    grid-template-columns: 1fr;
   }
 }
