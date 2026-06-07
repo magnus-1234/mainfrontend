@@ -100,10 +100,10 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
 ];
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
-  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png?v=resource-flat-v3" },
-  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png?v=resource-flat-v3" },
-  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png?v=resource-flat-v3" },
-  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png?v=resource-flat-v3" },
+  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png?v=resource-transparent-v4" },
+  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png?v=resource-transparent-v4" },
+  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png?v=resource-transparent-v4" },
+  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png?v=resource-transparent-v4" },
 };
 
 const WOS_RESOURCE_BUILDING_TUPLES = [
@@ -206,8 +206,8 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
         fill="none"
         pointerEvents="none"
       />
-      <image href={meta.image} x="0.44" y="0.22" width="1.12" height="0.96" preserveAspectRatio="xMidYMid meet" opacity="0.98" />
-      <text x="1" y="1.46" textAnchor="middle" fontSize="0.28" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.88)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
+      <image href={meta.image} x="0.34" y="0.16" width="1.32" height="1.08" preserveAspectRatio="xMidYMid meet" opacity="0.98" />
+      <text x="1" y="1.48" textAnchor="middle" fontSize="0.26" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
         {meta.label}
       </text>
     </g>
@@ -225,9 +225,9 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
         fill="none"
         pointerEvents="none"
       />
-      <image href={meta.image} x="0.4" y="0.12" width="1.2" height="1.02" preserveAspectRatio="xMidYMid meet" />
+      <image href={meta.image} x="0.3" y="0.1" width="1.4" height="1.12" preserveAspectRatio="xMidYMid meet" />
       <path d="M 0.24 0.42 C 0.62 0.16, 1.38 0.16, 1.76 0.42" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.09" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <text x="1" y="1.46" textAnchor="middle" fontSize="0.28" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.9)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
+      <text x="1" y="1.48" textAnchor="middle" fontSize="0.26" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
         {meta.label}
       </text>
     </g>
@@ -259,7 +259,6 @@ const renderSunfireAshBase = () => {
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
-      <rect x={x} y={y} width={width} height={height} fill="none" stroke="rgba(250, 189, 96, 0.42)" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
     </g>
   );
 };
@@ -332,7 +331,6 @@ const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
           <circle r={footprint.size * 0.07} fill="#ffe17a" />
         </g>
       </g>
-      <rect x={footprint.x + 0.04} y={footprint.y + 0.04} width={footprint.size - 0.08} height={footprint.size - 0.08} fill="none" stroke="rgba(255, 206, 122, 0.46)" strokeWidth="0.08" pointerEvents="none" />
     </g>
   );
 };
@@ -377,7 +375,6 @@ const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
         ))}
         <path d={`M ${footprint.x + footprint.size * 0.18} ${footprint.y + footprint.size * 0.22} L ${footprint.x + footprint.size * 0.36} ${footprint.y + footprint.size * 0.14} M ${footprint.x + footprint.size * 0.7} ${footprint.y + footprint.size * 0.2} L ${footprint.x + footprint.size * 0.82} ${footprint.y + footprint.size * 0.32}`} stroke="#e8eef6" strokeOpacity="0.4" strokeWidth={footprint.size * 0.035} strokeLinecap="round" />
       </g>
-      <rect x={footprint.x + 0.04} y={footprint.y + 0.04} width={footprint.size - 0.08} height={footprint.size - 0.08} fill="none" stroke="rgba(210, 226, 241, 0.58)" strokeWidth="0.06" pointerEvents="none" />
     </g>
   );
 };
@@ -389,9 +386,25 @@ const renderSunfireLandmark = (node: SunfireLandmark, mode: MapMode) => (
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const gridCellFor = (coord: Coordinate) => ({
-  x: Math.floor((coord.x - MAP_MIN) / COORDINATE_STEP) * COORDINATE_STEP,
-  y: Math.floor((coord.y - MAP_MIN) / COORDINATE_STEP) * COORDINATE_STEP,
+  x: Math.floor((MAP_MAX - coord.y) / COORDINATE_STEP) * COORDINATE_STEP,
+  y: Math.floor((MAP_MAX - coord.x) / COORDINATE_STEP) * COORDINATE_STEP,
 });
+
+const coordinateForGridCell = (cell: Coordinate) => ({
+  x: Math.round(clamp(MAP_MAX - cell.y, MAP_MIN, MAP_MAX)),
+  y: Math.round(clamp(MAP_MAX - cell.x, MAP_MIN, MAP_MAX)),
+});
+
+const cameraForCoordinate = (coordinate: Coordinate) => {
+  const cell = gridCellFor(coordinate);
+  return {
+    x: cell.x + COORDINATE_STEP / 2,
+    y: cell.y + COORDINATE_STEP / 2,
+  };
+};
+
+const INITIAL_COORDINATE = { x: 600, y: 600 };
+const INITIAL_CAMERA = cameraForCoordinate(INITIAL_COORDINATE);
 
 const formatCoordinate = (coordinate: Coordinate) => `${coordinate.x},${coordinate.y}`;
 
@@ -410,8 +423,8 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const hoverFrameRef = useRef<number | null>(null);
   const pendingHoverRef = useRef<Coordinate | null>(null);
   const cameraFrameRef = useRef<number | null>(null);
-  const pendingCameraRef = useRef({ x: 600, y: 600 });
-  const [selected, setSelected] = useState<Coordinate>({ x: 600, y: 600 });
+  const pendingCameraRef = useRef(INITIAL_CAMERA);
+  const [selected, setSelected] = useState<Coordinate>(INITIAL_COORDINATE);
   const [hover, setHover] = useState<Coordinate | null>(null);
   const [mode, setMode] = useState<MapMode>("2d");
   const [depthMode, setDepthMode] = useState<DepthMode>("2d");
@@ -419,7 +432,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [yaw, setYaw] = useState(0);
   const [roll, setRoll] = useState(0);
   const [zoom, setZoom] = useState(1);
-  const [camera, setCamera] = useState({ x: 600, y: 600 });
+  const [camera, setCamera] = useState(INITIAL_CAMERA);
   const viewSize = Math.max(MIN_VIEW_SIZE, CANVAS_SIZE / zoom);
   const viewX = clamp(camera.x - viewSize / 2, 0, CANVAS_SIZE - viewSize);
   const viewY = clamp(camera.y - viewSize / 2, 0, CANVAS_SIZE - viewSize);
@@ -471,9 +484,9 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
 
   const coordinateFromPointer = useCallback((event: PointerEvent<SVGSVGElement>): Coordinate => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = clamp(Math.floor(viewX + ((event.clientX - rect.left) / rect.width) * viewSize) + MAP_MIN, MAP_MIN, MAP_MAX);
-    const y = clamp(Math.floor(viewY + ((event.clientY - rect.top) / rect.height) * viewSize) + MAP_MIN, MAP_MIN, MAP_MAX);
-    return { x, y };
+    const mapX = clamp(Math.floor(viewX + ((event.clientX - rect.left) / rect.width) * viewSize), 0, CANVAS_SIZE - COORDINATE_STEP);
+    const mapY = clamp(Math.floor(viewY + ((event.clientY - rect.top) / rect.height) * viewSize), 0, CANVAS_SIZE - COORDINATE_STEP);
+    return coordinateForGridCell({ x: mapX, y: mapY });
   }, [viewSize, viewX, viewY]);
 
   const selectCoordinate = (coordinate: Coordinate) => {
@@ -549,7 +562,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(0);
       setZoom(1);
-      setCamera({ x: selected.x, y: selected.y });
+      setCamera(cameraForCoordinate(selected));
       return;
     }
     if (nextMode === "isometric") {
@@ -557,7 +570,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(45);
       setZoom(1);
-      setCamera({ x: selected.x, y: selected.y });
+      setCamera(cameraForCoordinate(selected));
       return;
     }
     setDepthMode("3d");
@@ -565,7 +578,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     setYaw(-28);
     setRoll(0);
     setZoom(1);
-    setCamera({ x: selected.x, y: selected.y });
+    setCamera(cameraForCoordinate(selected));
   };
 
   const resetView = () => {
@@ -574,7 +587,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(0);
       setZoom(1);
-      setCamera({ x: selected.x, y: selected.y });
+      setCamera(cameraForCoordinate(selected));
       return;
     }
     if (mode === "isometric") {
@@ -582,14 +595,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setYaw(0);
       setRoll(45);
       setZoom(1);
-      setCamera({ x: selected.x, y: selected.y });
+      setCamera(cameraForCoordinate(selected));
       return;
     }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
     setZoom(1);
-    setCamera({ x: selected.x, y: selected.y });
+    setCamera(cameraForCoordinate(selected));
   };
 
   return (
