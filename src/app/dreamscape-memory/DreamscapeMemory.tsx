@@ -461,6 +461,19 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
                 <span>{countdown}</span>
               </div>
             )}
+            {feedback && status === "playing" && (
+              <span
+                className={`dreamscape-feedback is-${feedback.tone}`}
+                key={feedback.key}
+                style={
+                  feedback.x !== undefined && feedback.y !== undefined
+                    ? { left: `${feedback.x * 100}%`, top: `${feedback.y * 100}%` }
+                    : undefined
+                }
+              >
+                {feedback.text}
+              </span>
+            )}
             {displayStatus !== "playing" && displayStatus !== "countdown" && (
               <div className="dreamscape-overlay">
                 {displayStatus === "ready" ? (
@@ -482,11 +495,6 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
               {nextTargets.map((target) => (
                 <span key={target.n}>{targetLabel(selectedMap.items, target)}</span>
               ))}
-              {feedback && (
-                <strong className={`dreamscape-play-feedback is-${feedback.tone}`} key={feedback.key}>
-                  {feedback.text}
-                </strong>
-              )}
             </div>
           )}
         </section>
