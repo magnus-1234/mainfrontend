@@ -68,28 +68,28 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     label: "North Turret",
     kind: "turret",
     planner: { col: 593, row: 593, size: 2 },
-    facing: -42,
+    facing: -135,
   },
   {
     id: "sunfire-turret-east",
     label: "East Turret",
     kind: "turret",
     planner: { col: 603, row: 593, size: 2 },
-    facing: 42,
+    facing: -45,
   },
   {
     id: "sunfire-turret-south",
     label: "South Turret",
     kind: "turret",
     planner: { col: 603, row: 603, size: 2 },
-    facing: 138,
+    facing: 45,
   },
   {
     id: "sunfire-turret-west",
     label: "West Turret",
     kind: "turret",
     planner: { col: 593, row: 603, size: 2 },
-    facing: -138,
+    facing: 135,
   },
   {
     id: "sunfire-castle",
@@ -264,10 +264,19 @@ const renderSunfireAshBase = () => {
   );
 };
 
-const sunfireFootprintCenter = (node: SunfireLandmark) => ({
-  x: node.planner.col + node.planner.size / 2,
-  y: node.planner.row + node.planner.size / 2,
-});
+const sunfireFootprintFor = (node: SunfireLandmark) => {
+  const { col: x, row: y, size } = node.planner;
+  return {
+    x,
+    y,
+    size,
+    cx: x + size / 2,
+    cy: y + size / 2,
+    maxX: x + size,
+    maxY: y + size,
+    clipId: `${node.id}-clip`,
+  };
+};
 
 const sunfireFootprintTitle = (node: SunfireLandmark) => {
   const maxCol = node.planner.col + node.planner.size - 1;
@@ -275,116 +284,107 @@ const sunfireFootprintTitle = (node: SunfireLandmark) => {
   return `${node.label}; WoSTools grid ${node.planner.col},${node.planner.row} to ${maxCol},${maxRow}`;
 };
 
-const renderFlatSunfireCastle = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) scale(${node.planner.size / 24})`} aria-label={node.label}>
-    <title>{sunfireFootprintTitle(node)}</title>
-    <circle r="8.7" fill="none" stroke="#c99a4a" strokeWidth="0.85" opacity="0.9" vectorEffect="non-scaling-stroke" />
-    <circle r="7.2" fill="#273241" stroke="#d4a75f" strokeWidth="0.48" vectorEffect="non-scaling-stroke" />
-    <path d="M -6.2 -1.1 L -3.2 -5.9 L 1 -6.8 L 5.7 -4 L 6.4 1.8 L 3.2 5.9 L -2.2 6.7 L -6.1 3.4 Z" fill="#2f3a4b" stroke="#131923" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
-    <path d="M -4.8 2.8 C -2.8 4.4, 2.8 4.4, 4.8 2.8 L 4.1 5.6 C 1.6 6.9, -1.7 6.9, -4.1 5.6 Z" fill="#15202c" opacity="0.72" />
-    <g fill="#6b452e" stroke="#16202b" strokeWidth="0.34" vectorEffect="non-scaling-stroke">
-      <rect x="-6.8" y="-1.2" width="1.8" height="4.5" rx="0.25" />
-      <rect x="5" y="-1.2" width="1.8" height="4.5" rx="0.25" />
-      <rect x="-2.9" y="-6.4" width="1.8" height="3.9" rx="0.25" />
-      <rect x="1.2" y="-6.4" width="1.8" height="3.9" rx="0.25" />
-    </g>
-    <g fill="#d3a354" stroke="#5a351b" strokeWidth="0.24" vectorEffect="non-scaling-stroke">
-      <circle cx="-5.9" cy="-1.4" r="1.05" />
-      <circle cx="5.9" cy="-1.4" r="1.05" />
-      <circle cx="-2" cy="-6.5" r="0.9" />
-      <circle cx="2.1" cy="-6.5" r="0.9" />
-    </g>
-    <circle r="3.4" fill="#a9bfd2" stroke="#1b2634" strokeWidth="0.36" vectorEffect="non-scaling-stroke" />
-    <path d="M -2.7 1.9 L 0 -4.1 L 2.7 1.9 Z" fill="#e2eef3" opacity="0.8" />
-    <path d="M -4.6 -4.8 L 0 -8.2 L 4.6 -4.8 M -6.6 0.8 L -1.8 -2.2 M 6.6 0.8 L 1.8 -2.2" fill="none" stroke="#c08c3e" strokeWidth="0.62" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    <g transform="translate(0 -9.3)">
-      <circle r="1.25" fill="#ffd766" stroke="#7b4a16" strokeWidth="0.26" vectorEffect="non-scaling-stroke" />
-      <path d="M 0 -2.8 L .5 -1.5 L 1.8 -2 L 1.25 -.7 L 2.7 0 L 1.25 .7 L 1.8 2 L .5 1.5 L 0 2.8 L -.5 1.5 L -1.8 2 L -1.25 .7 L -2.7 0 L -1.25 -.7 L -1.8 -2 L -.5 -1.5 Z" fill="#f5b233" stroke="#7b4a16" strokeWidth="0.18" vectorEffect="non-scaling-stroke" />
-    </g>
-  </g>
-);
+const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
+  const footprint = sunfireFootprintFor(node);
+  const raised = mode !== "2d";
+  const inset = footprint.size * 0.08;
+  const wall = footprint.size - inset * 2;
+  const towerRadius = footprint.size * 0.12;
+  const domeRadius = footprint.size * 0.22;
+  const goldStroke = "#c79947";
 
-const renderRaisedSunfireCastle = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) scale(${node.planner.size / 32})`} aria-label={node.label}>
-    <title>{sunfireFootprintTitle(node)}</title>
-    <ellipse cx="0" cy="5.9" rx="9.6" ry="2.6" fill="rgba(0, 0, 0, 0.34)" />
-    <circle r="9.1" fill="none" stroke="#c99a4a" strokeWidth="0.85" opacity="0.9" vectorEffect="non-scaling-stroke" />
-    <path d="M -7.8 1.8 C -5.4 6.7, 5.4 6.7, 7.8 1.8 L 7.8 5.2 C 4 9, -4 9, -7.8 5.2 Z" fill="#16212d" stroke="#0d141d" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
-    <ellipse cx="0" cy="1.8" rx="7.8" ry="4.8" fill="#303c4e" stroke="#d0a45c" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
-    <path d="M -5.8 2.2 C -3.8 4.1, 3.8 4.1, 5.8 2.2 L 4.8 5.8 C 1.9 7.2, -1.9 7.2, -4.8 5.8 Z" fill="#7b3f2d" opacity="0.92" />
-    <g fill="#6e4931" stroke="#172230" strokeWidth="0.32" vectorEffect="non-scaling-stroke">
-      <path d="M -7.7 -1.3 L -5.4 -2 L -5.2 4.3 L -7.6 3.7 Z" />
-      <path d="M 7.7 -1.3 L 5.4 -2 L 5.2 4.3 L 7.6 3.7 Z" />
-      <path d="M -3.7 -6.1 L -1.3 -6.7 L -1 0.3 L -3.4 0.8 Z" />
-      <path d="M 3.7 -6.1 L 1.3 -6.7 L 1 0.3 L 3.4 0.8 Z" />
+  return (
+    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
+      <defs>
+        <clipPath id={footprint.clipId} clipPathUnits="userSpaceOnUse">
+          <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} />
+        </clipPath>
+      </defs>
+      <title>{sunfireFootprintTitle(node)}</title>
+      <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} fill="none" pointerEvents="none" />
+      <g clipPath={`url(#${footprint.clipId})`}>
+        <rect x={footprint.x + inset} y={footprint.y + inset} width={wall} height={wall} rx={footprint.size * 0.14} fill="#1f2a38" stroke="#0b1018" strokeWidth={footprint.size * 0.035} />
+        <circle cx={footprint.cx} cy={footprint.cy} r={footprint.size * 0.46} fill="none" stroke={goldStroke} strokeOpacity="0.42" strokeWidth={footprint.size * 0.035} />
+        {raised && (
+          <path
+            d={`M ${footprint.x + inset} ${footprint.y + footprint.size * 0.6} L ${footprint.x + footprint.size * 0.5} ${footprint.maxY - inset} L ${footprint.maxX - inset} ${footprint.y + footprint.size * 0.6} L ${footprint.maxX - inset} ${footprint.maxY - inset} L ${footprint.x + inset} ${footprint.maxY - inset} Z`}
+            fill="#101824"
+            opacity="0.82"
+          />
+        )}
+        <ellipse cx={footprint.cx} cy={footprint.cy + footprint.size * 0.08} rx={footprint.size * 0.36} ry={footprint.size * 0.27} fill="#344257" stroke="#141d2a" strokeWidth={footprint.size * 0.035} />
+        <path d={`M ${footprint.cx - domeRadius} ${footprint.cy} L ${footprint.cx} ${footprint.y + footprint.size * 0.28} L ${footprint.cx + domeRadius} ${footprint.cy} Z`} fill="#b8c9d5" stroke="#192334" strokeWidth={footprint.size * 0.028} />
+        <path d={`M ${footprint.x + footprint.size * 0.24} ${footprint.y + footprint.size * 0.68} C ${footprint.x + footprint.size * 0.42} ${footprint.y + footprint.size * 0.86}, ${footprint.x + footprint.size * 0.62} ${footprint.y + footprint.size * 0.86}, ${footprint.x + footprint.size * 0.78} ${footprint.y + footprint.size * 0.68}`} fill="none" stroke="#7b3d2d" strokeWidth={footprint.size * 0.12} strokeLinecap="round" />
+        <path d={`M ${footprint.x + footprint.size * 0.2} ${footprint.y + footprint.size * 0.28} L ${footprint.cx} ${footprint.y + footprint.size * 0.12} L ${footprint.maxX - footprint.size * 0.2} ${footprint.y + footprint.size * 0.28} M ${footprint.cx} ${footprint.y + footprint.size * 0.12} L ${footprint.cx} ${footprint.cy + footprint.size * 0.34}`} fill="none" stroke={goldStroke} strokeWidth={footprint.size * 0.065} strokeLinecap="round" />
+        {[
+          [footprint.x + footprint.size * 0.23, footprint.y + footprint.size * 0.24],
+          [footprint.x + footprint.size * 0.77, footprint.y + footprint.size * 0.24],
+          [footprint.x + footprint.size * 0.23, footprint.y + footprint.size * 0.72],
+          [footprint.x + footprint.size * 0.77, footprint.y + footprint.size * 0.72],
+        ].map(([cx, cy], index) => (
+          <g key={index}>
+            <circle cx={cx} cy={cy} r={towerRadius} fill="#6b472f" stroke="#121a26" strokeWidth={footprint.size * 0.03} />
+            <circle cx={cx} cy={cy - towerRadius * 0.55} r={towerRadius * 0.74} fill="#d5a14a" stroke="#5b3514" strokeWidth={footprint.size * 0.025} />
+          </g>
+        ))}
+        <g transform={`translate(${footprint.cx} ${footprint.y + footprint.size * 0.12})`}>
+          <path d={`M 0 ${-footprint.size * 0.18} L ${footprint.size * 0.04} ${-footprint.size * 0.06} L ${footprint.size * 0.16} ${-footprint.size * 0.12} L ${footprint.size * 0.1} 0 L ${footprint.size * 0.18} ${footprint.size * 0.08} L ${footprint.size * 0.06} ${footprint.size * 0.06} L 0 ${footprint.size * 0.18} L ${-footprint.size * 0.06} ${footprint.size * 0.06} L ${-footprint.size * 0.18} ${footprint.size * 0.08} L ${-footprint.size * 0.1} 0 L ${-footprint.size * 0.16} ${-footprint.size * 0.12} L ${-footprint.size * 0.04} ${-footprint.size * 0.06} Z`} fill="#f8bc37" stroke="#704113" strokeWidth={footprint.size * 0.018} />
+          <circle r={footprint.size * 0.07} fill="#ffe17a" />
+        </g>
+      </g>
+      <rect x={footprint.x + 0.04} y={footprint.y + 0.04} width={footprint.size - 0.08} height={footprint.size - 0.08} fill="none" stroke="rgba(255, 206, 122, 0.46)" strokeWidth="0.08" pointerEvents="none" />
     </g>
-    <g fill="#d6a65a" stroke="#563515" strokeWidth="0.24" vectorEffect="non-scaling-stroke">
-      <ellipse cx="-6.6" cy="-1.6" rx="1.2" ry="0.8" />
-      <ellipse cx="6.6" cy="-1.6" rx="1.2" ry="0.8" />
-      <ellipse cx="-2.5" cy="-6.4" rx="1.05" ry="0.72" />
-      <ellipse cx="2.5" cy="-6.4" rx="1.05" ry="0.72" />
-    </g>
-    <path d="M -3.8 1.5 C -2.5 -2.6, 2.5 -2.6, 3.8 1.5 L 2.9 -7.2 C 1.4 -9.1, -1.4 -9.1, -2.9 -7.2 Z" fill="#adbfca" stroke="#172230" strokeWidth="0.36" vectorEffect="non-scaling-stroke" />
-    <path d="M -1.8 -8.1 L 0 -12.2 L 1.8 -8.1 M -5.8 -4.2 L -1.4 -7.7 M 5.8 -4.2 L 1.4 -7.7" fill="none" stroke="#c89644" strokeWidth="0.68" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    <g transform="translate(0 -13.6)">
-      <path d="M 0 -3 L .55 -1.45 L 2 -2.1 L 1.35 -.72 L 3 0 L 1.35 .72 L 2 2.1 L .55 1.45 L 0 3 L -.55 1.45 L -2 2.1 L -1.35 .72 L -3 0 L -1.35 -.72 L -2 -2.1 L -.55 -1.45 Z" fill="#f7b739" stroke="#6c4015" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
-      <circle r="1.25" fill="#ffe076" stroke="#6c4015" strokeWidth="0.2" vectorEffect="non-scaling-stroke" />
-    </g>
-    <path d="M -3.1 -6.6 L 0 -11.4 L 3.1 -6.6" fill="none" stroke="#fff1b8" strokeOpacity="0.65" strokeWidth="0.34" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-  </g>
-);
-
-const renderFlatSunfireTurret = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) rotate(${node.facing ?? 0}) scale(${node.planner.size / 12})`} aria-label={node.label}>
-    <title>{sunfireFootprintTitle(node)}</title>
-    <path d="M -3.9 -3.1 L 3.1 -3.9 L 4.3 3.4 L -3.1 4.2 Z" fill="#314050" stroke="#cfdae4" strokeOpacity="0.55" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
-    <ellipse cx="0" cy="0.45" rx="3.6" ry="2.85" fill="#26313f" stroke="#111827" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
-    <path d="M -2.4 1.8 C -1.1 3.1, 1.8 3.1, 2.7 1.4 L 2.1 3.6 C .8 4.3, -1.3 4.2, -2.5 3.4 Z" fill="#111827" opacity="0.72" />
-    <g fill="#4f5f71" stroke="#111827" strokeWidth="0.24" vectorEffect="non-scaling-stroke">
-      <circle cx="-2.8" cy="-1.2" r="0.9" />
-      <circle cx="2.8" cy="-1.2" r="0.9" />
-      <circle cx="-2.5" cy="2.2" r="0.85" />
-      <circle cx="2.5" cy="2.2" r="0.85" />
-    </g>
-    <path d="M -1.9 .4 C -1.5 -1.3, 1.4 -1.6, 2.2 .2 L 1.3 2.1 L -1.4 2.2 Z" fill="#5e4032" stroke="#111827" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
-    <g transform="translate(0 -1.3)">
-      <path d="M -0.65 0 L 0.65 0 L 0.9 -4.6 L -0.9 -4.6 Z" fill="#5d6b7d" stroke="#111827" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
-      <rect x="-0.9" y="-5.3" width="1.8" height="1.05" rx="0.25" fill="#798899" stroke="#111827" strokeWidth="0.2" vectorEffect="non-scaling-stroke" />
-      <rect x="-0.65" y="-3.4" width="1.3" height="0.7" fill="#9a6846" />
-    </g>
-    <path d="M -1.5 -1.9 C -.5 -2.8, .9 -2.8, 1.8 -1.8" fill="none" stroke="#e8eef6" strokeOpacity="0.44" strokeWidth="0.25" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-  </g>
-);
-
-const renderRaisedSunfireTurret = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) rotate(${node.facing ?? 0}) scale(${node.planner.size / 12})`} aria-label={node.label}>
-    <title>{sunfireFootprintTitle(node)}</title>
-    <ellipse cx="0.2" cy="3.4" rx="4.4" ry="1.25" fill="rgba(0, 0, 0, 0.32)" />
-    <path d="M -4.2 -2.8 L 3.2 -3.7 L 4.4 2.7 L -3.3 3.9 Z" fill="#37465a" stroke="#cfdae4" strokeOpacity="0.54" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
-    <path d="M -3.5 0.6 C -2 3.2, 2.3 3.2, 3.7 .4 L 3.3 3.2 C 1.1 4.9, -1.6 4.7, -3.3 3.1 Z" fill="#151e2b" stroke="#0c121b" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
-    <ellipse cx="0" cy="0.35" rx="3.7" ry="2.55" fill="#2c394a" stroke="#111827" strokeWidth="0.32" vectorEffect="non-scaling-stroke" />
-    <g fill="#56687b" stroke="#111827" strokeWidth="0.22" vectorEffect="non-scaling-stroke">
-      <path d="M -3.2 -1.2 C -2.5 -1.9, -1.4 -1.7, -1.2 -.8 L -1.2 2.4 C -2.2 3.1, -3.2 2.6, -3.4 1.7 Z" />
-      <path d="M 3.2 -1.2 C 2.5 -1.9, 1.4 -1.7, 1.2 -.8 L 1.2 2.4 C 2.2 3.1, 3.2 2.6, 3.4 1.7 Z" />
-    </g>
-    <path d="M -2.2 .4 C -1.6 -2.2, 1.8 -2.4, 2.6 .1 L 1.6 2.5 L -1.5 2.4 Z" fill="#5d4134" stroke="#111827" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
-    <g transform="translate(0 -2.1)">
-      <path d="M -0.72 .2 L .72 .2 L 1.05 -5.9 L -1.05 -5.9 Z" fill="#657384" stroke="#101823" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
-      <rect x="-1.05" y="-6.8" width="2.1" height="1.12" rx="0.28" fill="#8291a1" stroke="#101823" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
-      <rect x="-0.82" y="-4.75" width="1.64" height="0.82" fill="#9b6a45" />
-      <path d="M -0.82 -5.5 L .82 -5.5" stroke="#dbe4ee" strokeOpacity="0.55" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
-    </g>
-    <path d="M -2.1 -1.9 C -1 -3.1, 1.1 -3.2, 2.2 -1.9" fill="none" stroke="#eef6ff" strokeOpacity="0.48" strokeWidth="0.28" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-  </g>
-);
-
-const renderSunfireLandmark = (node: SunfireLandmark, mode: MapMode) => {
-  if (node.kind === "castle") {
-    return mode === "2d" ? renderFlatSunfireCastle(node) : renderRaisedSunfireCastle(node);
-  }
-
-  return mode === "2d" ? renderFlatSunfireTurret(node) : renderRaisedSunfireTurret(node);
+  );
 };
+
+const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
+  const footprint = sunfireFootprintFor(node);
+  const raised = mode !== "2d";
+  const inset = footprint.size * 0.08;
+  const angle = ((node.facing ?? 0) * Math.PI) / 180;
+  const barrelStartX = footprint.cx + Math.cos(angle) * footprint.size * 0.12;
+  const barrelStartY = footprint.cy + Math.sin(angle) * footprint.size * 0.12;
+  const barrelEndX = footprint.cx + Math.cos(angle) * footprint.size * 0.48;
+  const barrelEndY = footprint.cy + Math.sin(angle) * footprint.size * 0.48;
+  const barrelBandX = footprint.cx + Math.cos(angle) * footprint.size * 0.3;
+  const barrelBandY = footprint.cy + Math.sin(angle) * footprint.size * 0.3;
+
+  return (
+    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
+      <defs>
+        <clipPath id={footprint.clipId} clipPathUnits="userSpaceOnUse">
+          <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} />
+        </clipPath>
+      </defs>
+      <title>{sunfireFootprintTitle(node)}</title>
+      <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} fill="none" pointerEvents="none" />
+      <g clipPath={`url(#${footprint.clipId})`}>
+        <path d={`M ${footprint.x + inset} ${footprint.y + footprint.size * 0.28} L ${footprint.x + footprint.size * 0.38} ${footprint.y + inset} L ${footprint.maxX - inset} ${footprint.y + footprint.size * 0.34} L ${footprint.maxX - footprint.size * 0.28} ${footprint.maxY - inset} L ${footprint.x + footprint.size * 0.24} ${footprint.maxY - footprint.size * 0.18} Z`} fill="#293748" stroke="#101723" strokeWidth={footprint.size * 0.035} />
+        {raised && (
+          <path d={`M ${footprint.x + footprint.size * 0.2} ${footprint.y + footprint.size * 0.62} C ${footprint.x + footprint.size * 0.48} ${footprint.maxY - inset}, ${footprint.x + footprint.size * 0.72} ${footprint.maxY - inset}, ${footprint.maxX - footprint.size * 0.18} ${footprint.y + footprint.size * 0.58} L ${footprint.maxX - footprint.size * 0.26} ${footprint.maxY - footprint.size * 0.16} L ${footprint.x + footprint.size * 0.24} ${footprint.maxY - footprint.size * 0.16} Z`} fill="#111927" opacity="0.82" />
+        )}
+        <ellipse cx={footprint.cx} cy={footprint.cy + footprint.size * 0.08} rx={footprint.size * 0.34} ry={footprint.size * 0.28} fill="#2e3d50" stroke="#0f1723" strokeWidth={footprint.size * 0.035} />
+        <path d={`M ${footprint.cx - footprint.size * 0.22} ${footprint.cy + footprint.size * 0.08} C ${footprint.cx - footprint.size * 0.08} ${footprint.cy - footprint.size * 0.28}, ${footprint.cx + footprint.size * 0.17} ${footprint.cy - footprint.size * 0.28}, ${footprint.cx + footprint.size * 0.25} ${footprint.cy + footprint.size * 0.08}`} fill="none" stroke="#715040" strokeWidth={footprint.size * 0.11} strokeLinecap="round" />
+        <line x1={barrelStartX} y1={barrelStartY} x2={barrelEndX} y2={barrelEndY} stroke="#6f7f92" strokeWidth={footprint.size * 0.15} strokeLinecap="round" />
+        <line x1={barrelStartX} y1={barrelStartY} x2={barrelEndX} y2={barrelEndY} stroke="#161f2c" strokeWidth={footprint.size * 0.035} strokeLinecap="round" />
+        <circle cx={barrelBandX} cy={barrelBandY} r={footprint.size * 0.09} fill="#9d6b45" stroke="#101723" strokeWidth={footprint.size * 0.02} />
+        {[
+          [footprint.x + footprint.size * 0.24, footprint.y + footprint.size * 0.32],
+          [footprint.x + footprint.size * 0.76, footprint.y + footprint.size * 0.36],
+          [footprint.x + footprint.size * 0.28, footprint.y + footprint.size * 0.76],
+        ].map(([cx, cy], index) => (
+          <circle key={index} cx={cx} cy={cy} r={footprint.size * 0.12} fill="#53667a" stroke="#111827" strokeWidth={footprint.size * 0.03} />
+        ))}
+        <path d={`M ${footprint.x + footprint.size * 0.18} ${footprint.y + footprint.size * 0.22} L ${footprint.x + footprint.size * 0.36} ${footprint.y + footprint.size * 0.14} M ${footprint.x + footprint.size * 0.7} ${footprint.y + footprint.size * 0.2} L ${footprint.x + footprint.size * 0.82} ${footprint.y + footprint.size * 0.32}`} stroke="#e8eef6" strokeOpacity="0.4" strokeWidth={footprint.size * 0.035} strokeLinecap="round" />
+      </g>
+      <rect x={footprint.x + 0.04} y={footprint.y + 0.04} width={footprint.size - 0.08} height={footprint.size - 0.08} fill="none" stroke="rgba(210, 226, 241, 0.58)" strokeWidth="0.06" pointerEvents="none" />
+    </g>
+  );
+};
+
+const renderSunfireLandmark = (node: SunfireLandmark, mode: MapMode) => (
+  node.kind === "castle" ? renderSunfireCastle(node, mode) : renderSunfireTurret(node, mode)
+);
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
