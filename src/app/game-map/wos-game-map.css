@@ -88,15 +88,6 @@
   width: min(100%, 76vh, 1080px);
 }
 
-.wos-map-rotator.expanded,
-.wos-map-rotator.mode-2d.expanded,
-.wos-map-rotator.mode-isometric.expanded {
-  width: 100%;
-  height: 100%;
-  min-height: inherit;
-  aspect-ratio: auto;
-}
-
 .wos-map-canvas {
   display: block;
   width: 100%;

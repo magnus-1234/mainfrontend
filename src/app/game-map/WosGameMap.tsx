@@ -140,6 +140,17 @@ const WOS_RESOURCE_BUILDINGS: ResourceBuilding[] = WOS_RESOURCE_BUILDING_TUPLES.
   kind,
 }));
 
+const renderResourceFootprintBase = (meta: (typeof RESOURCE_BUILDING_META)[ResourceKind], raised = false) => (
+  <g opacity={raised ? 0.94 : 0.9} pointerEvents="none">
+    <path d="M 1 0.1 L 1.9 0.58 L 1.75 1.72 L 0.24 1.86 L 0.08 0.72 Z" fill="#f4fbff" stroke="rgba(51, 65, 85, 0.22)" strokeWidth="0.04" vectorEffect="non-scaling-stroke" />
+    <path d="M 0.2 0.76 L 0.98 0.32 L 1.8 0.66 L 1.58 0.94 L 0.78 0.88 Z" fill="#d9f4ff" opacity="0.5" />
+    <path d="M 0.32 1.34 L 0.84 0.98 L 1.62 1.04 L 1.72 1.54 L 1.06 1.72 Z" fill="#ffffff" opacity="0.54" />
+    <path d="M 0.18 1.66 L 0.7 1.76 L 1.42 1.64 L 1.74 1.44" fill="none" stroke="rgba(14, 116, 144, 0.26)" strokeWidth="0.045" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    <path d="M 0.46 0.64 L 0.78 0.76 L 1.06 0.66 M 1.16 1.2 L 1.36 1.36 L 1.66 1.28" fill="none" stroke="rgba(255, 255, 255, 0.72)" strokeWidth="0.055" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    <path d="M 0.36 1.06 L 0.62 1.02 L 0.78 1.2 M 1.22 0.76 L 1.48 0.8 L 1.58 0.96" fill="none" stroke={meta.accent} strokeOpacity="0.36" strokeWidth="0.04" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    <path d="M 0.28 1.82 L 1.72 1.66" fill="none" stroke={meta.shade} strokeOpacity="0.16" strokeWidth="0.08" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+  </g>
+);
 const renderFlatResourceBuilding = (node: ResourceBuilding) => {
   const meta = RESOURCE_BUILDING_META[node.kind];
   return (
@@ -151,6 +162,7 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
         fill="none"
         pointerEvents="none"
       />
+      {renderResourceFootprintBase(meta)}
       <image href={meta.image} x="0.18" y="0.08" width="1.64" height="1.42" preserveAspectRatio="xMidYMid meet" opacity="0.96" />
       <text x="1" y="1.86" textAnchor="middle" fontSize="0.34" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.88)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
         {meta.label}
@@ -170,6 +182,7 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
         fill="none"
         pointerEvents="none"
       />
+      {renderResourceFootprintBase(meta, true)}
       <image href={meta.image} x="0.14" y="0.02" width="1.72" height="1.5" preserveAspectRatio="xMidYMid meet" />
       <path d="M 0.24 0.42 C 0.62 0.16, 1.38 0.16, 1.76 0.42" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.09" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       <text x="1" y="1.86" textAnchor="middle" fontSize="0.34" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.9)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
