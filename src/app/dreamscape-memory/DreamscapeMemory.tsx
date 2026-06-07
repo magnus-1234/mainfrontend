@@ -100,28 +100,6 @@ const targetPoint = (
   y: scene.top + target.y * scene.height,
 });
 
-const targetHotspotStyle = (
-  target: DreamscapeTarget,
-  scene: { left: number; top: number; width: number; height: number },
-) => {
-  const point = targetPoint(target, scene);
-  const base = {
-    left: `${point.x * 100}%`,
-    top: `${point.y * 100}%`,
-  } as CSSProperties;
-
-  if (target.w !== undefined && target.h !== undefined) {
-    return {
-      ...base,
-      width: `${Math.max(0.052, target.w * scene.width) * 100}%`,
-      height: `${Math.max(0.052, target.h * scene.height) * 100}%`,
-      transform: `translate(-50%, -50%) rotate(${target.rot ?? 0}deg)`,
-    } as CSSProperties;
-  }
-
-  return base;
-};
-
 export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [selectedMapId, setSelectedMapId] = useState(dreamscapeMaps[0]?.id || "");
@@ -131,7 +109,8 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
     readStoredFound(dreamscapeMaps[0]?.id || "", dreamscapeMaps[0]?.stages[0]?.id || ""),
   );
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
-  const [status, setStatus] = useState<"ready" | "playing" | "complete" | "expired">("ready");
+  const [status, setStatus] = useState<"ready" | "countdown" | "playing" | "complete" | "expired">("ready");
+  const [countdown, setCountdown] = useState(3);
   const [misses, setMisses] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintedItem, setHintedItem] = useState<number | null>(null);
@@ -168,6 +147,7 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
   const foundCount = foundItems.size;
   const complete = stageItemCount > 0 && foundCount >= stageItemCount;
   const displayStatus = status === "playing" && complete ? "complete" : status;
+  const isActiveRun = status === "countdown" || status === "playing";
   const stageStyle = { "--dreamscape-stage-ratio": `${dimensions.width} / ${dimensions.height}` } as CSSProperties;
   const score = useMemo(
     () => scoreFor(foundCount, secondsLeft, hintsUsed, misses, complete),
@@ -199,6 +179,7 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
   useEffect(() => {
     setFoundItems(readStoredFound(selectedMap.id, selectedStage?.id || ""));
     setSecondsLeft(totalSeconds);
+    setCountdown(3);
     setStatus("ready");
     setMisses(0);
     setHintsUsed(0);
@@ -223,6 +204,22 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
     }, 1000);
     return () => window.clearInterval(timer);
   }, [complete, status]);
+
+  useEffect(() => {
+    if (status !== "countdown") {
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      setCountdown((value) => {
+        if (value <= 1) {
+          setStatus("playing");
+          return 3;
+        }
+        return value - 1;
+      });
+    }, 1000);
+    return () => window.clearTimeout(timeout);
+  }, [countdown, status]);
 
   useEffect(() => {
     if (!feedback) {
@@ -258,7 +255,8 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
   const startRun = () => {
     setFoundItems(new Set());
     setSecondsLeft(totalSeconds);
-    setStatus("playing");
+    setCountdown(3);
+    setStatus("countdown");
     setMisses(0);
     setHintsUsed(0);
     setHintedItem(null);
@@ -269,6 +267,7 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
   const resetChecklist = () => {
     setFoundItems(new Set());
     setSecondsLeft(totalSeconds);
+    setCountdown(3);
     setStatus("ready");
     setMisses(0);
     setHintsUsed(0);
@@ -425,7 +424,7 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
       </aside>
 
       <main className="dreamscape-game">
-        <div className="dreamscape-bar">
+        <div className={`dreamscape-bar ${isActiveRun ? "is-playing" : ""}`}>
           <span><small>Found</small><strong>{foundCount}/{stageItemCount}</strong></span>
           <span className={secondsLeft <= 10 && status === "playing" && !complete ? "is-low" : ""}><small>Time</small><strong>{secondsLeft}s</strong></span>
           <span><small>Miss</small><strong>{misses}</strong></span>
@@ -434,25 +433,6 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
           <button type="button" className="is-secondary" onClick={() => setIsZoomed((value) => !value)}>
             {isZoomed ? "Exit Zoom" : "Zoom"}
           </button>
-        </div>
-
-        <div className="dreamscape-target-strip" aria-live="polite">
-          <span>
-            <small>Target</small>
-            <strong>{targetLabel(selectedMap.items, currentTarget) || "Cleared"}</strong>
-          </span>
-          <div>
-            {nextTargets.map((target) => (
-              <button
-                type="button"
-                className={hintedItem === target.n ? "is-hinted" : ""}
-                onClick={() => setQuery(targetLabel(selectedMap.items, target))}
-                key={target.n}
-              >
-                {targetLabel(selectedMap.items, target)}
-              </button>
-            ))}
-          </div>
         </div>
 
         <section className="dreamscape-stage-panel" aria-label={`${selectedMap.name} ${selectedStage?.label || ""}`}>
@@ -476,42 +456,15 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
             ) : (
               <span>No stage image available</span>
             )}
-            {status === "playing" && stageTargets.map((target) => {
-              const label = targetLabel(selectedMap.items, target);
-              const found = foundItems.has(target.n);
-              return (
-                <button
-                  type="button"
-                  className={`dreamscape-hotspot ${found ? "is-found" : ""} ${hintedItem === target.n ? "is-hinted" : ""} ${target.shape === "ellipse" ? "is-ellipse" : ""}`}
-                  style={targetHotspotStyle(target, scene)}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (!found) {
-                      setTargetFound(target, targetPoint(target, scene));
-                    }
-                  }}
-                  title={label}
-                  aria-label={`Find ${label}`}
-                  key={target.n}
-                >
-                  <span className="dreamscape-hotspot-number">{found ? "ok" : target.n}</span>
-                  <span className="dreamscape-hotspot-name">{label}</span>
-                </button>
-              );
-            })}
-            {feedback && (
-              <span
-                className={`dreamscape-feedback is-${feedback.tone}`}
-                key={feedback.key}
-                style={feedback.x !== undefined && feedback.y !== undefined ? { left: `${feedback.x * 100}%`, top: `${feedback.y * 100}%` } : undefined}
-              >
-                {feedback.text}
-              </span>
+            {status === "countdown" && (
+              <div className="dreamscape-countdown" aria-live="assertive">
+                <span>{countdown}</span>
+              </div>
             )}
-            {displayStatus !== "playing" && (
+            {displayStatus !== "playing" && displayStatus !== "countdown" && (
               <div className="dreamscape-overlay">
                 {displayStatus === "ready" ? (
-                  <span>Start a run, then click objects directly in the scene.</span>
+                  <span>Start a run, memorize the target names, then click the objects in the scene.</span>
                 ) : (
                   <>
                     <h2>{displayStatus === "complete" ? "Map checklist cleared" : "Timer ended"}</h2>
@@ -524,20 +477,25 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
               </div>
             )}
           </div>
+          {isActiveRun && (
+            <div className="dreamscape-play-targets" aria-live="polite">
+              {nextTargets.map((target) => (
+                <span key={target.n}>{targetLabel(selectedMap.items, target)}</span>
+              ))}
+              {feedback && (
+                <strong className={`dreamscape-play-feedback is-${feedback.tone}`} key={feedback.key}>
+                  {feedback.text}
+                </strong>
+              )}
+            </div>
+          )}
         </section>
 
+        {!isActiveRun && (
         <section className="dreamscape-lists">
           <div className="dreamscape-current" aria-live="polite">
             <h2>Current Target</h2>
             <strong>{targetLabel(selectedMap.items, currentTarget) || "All targets cleared"}</strong>
-            <div>
-              <button type="button" onClick={() => markFound(currentTarget)} disabled={status !== "playing" || !currentTarget}>
-                Found
-              </button>
-              <button type="button" className="is-miss" onClick={() => recordMiss()} disabled={status !== "playing" || complete}>
-                Miss
-              </button>
-            </div>
           </div>
 
           <div className="dreamscape-targets" aria-live="polite">
@@ -573,6 +531,7 @@ export default function DreamscapeMemory({ embedded = false }: DreamscapeMemoryP
             </div>
           </div>
         </section>
+        )}
       </main>
     </section>
   );
