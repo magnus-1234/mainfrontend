@@ -55,9 +55,7 @@
   place-items: center;
   border: 1px solid rgba(17, 24, 39, 0.14);
   border-radius: 8px;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(248, 113, 22, 0.16), transparent 34%),
-    linear-gradient(180deg, #111827, #020617);
+  background: #ffffff;
   perspective: 1200px;
   touch-action: none;
 }
@@ -97,10 +95,10 @@
   min-height: inherit;
   border: 0;
   border-radius: 0;
-  background: #101820;
+  background: #ffffff;
   box-shadow:
-    0 10px 34px rgba(2, 6, 23, 0.34),
-    inset 0 0 0 1px rgba(248, 250, 252, 0.06);
+    0 10px 34px rgba(15, 23, 42, 0.08),
+    inset 0 0 0 1px rgba(17, 24, 39, 0.045);
   cursor: grab;
   touch-action: none;
   user-select: none;

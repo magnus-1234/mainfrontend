@@ -9,7 +9,6 @@ const CANVAS_SIZE = 1199;
 const COORDINATE_STEP = 1;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 1200;
-const DEFAULT_ZOOM = 3;
 const WHEEL_ZOOM_FACTOR = 1.22;
 const MIN_VIEW_SIZE = CANVAS_SIZE / MAX_ZOOM;
 
@@ -40,27 +39,7 @@ type ResourceBuilding = {
   kind: ResourceKind;
 };
 
-type SunfireLandmarkKind = "castle" | "turret";
-
-type SunfireLandmark = {
-  id: string;
-  label: string;
-  shortLabel: string;
-  x: number;
-  y: number;
-  kind: SunfireLandmarkKind;
-  size: number;
-};
-
 const RESOURCE_BUILDING_SIZE = 2;
-
-const SUNFIRE_LANDMARKS = [
-  { id: "sunfire-castle", label: "Sunfire Castle", shortLabel: "Castle", x: 600, y: 600, kind: "castle", size: 58 },
-  { id: "sunfire-turret-north", label: "North Sunfire Turret", shortLabel: "N Turret", x: 600, y: 560, kind: "turret", size: 24 },
-  { id: "sunfire-turret-east", label: "East Sunfire Turret", shortLabel: "E Turret", x: 640, y: 600, kind: "turret", size: 24 },
-  { id: "sunfire-turret-south", label: "South Sunfire Turret", shortLabel: "S Turret", x: 600, y: 640, kind: "turret", size: 24 },
-  { id: "sunfire-turret-west", label: "West Sunfire Turret", shortLabel: "W Turret", x: 560, y: 600, kind: "turret", size: 24 },
-] as const satisfies readonly SunfireLandmark[];
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
   iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png" },
@@ -201,95 +180,6 @@ const renderResourceBuilding = (node: ResourceBuilding, mode: MapMode) => (
   mode === "2d" ? renderFlatResourceBuilding(node) : renderRaisedResourceBuilding(node)
 );
 
-const renderSunfireGround = () => (
-  <g aria-label="Dark ashy Sunfire Castle ground" pointerEvents="none">
-    <ellipse cx="600" cy="600" rx="126" ry="122" fill="url(#wos-ash-core)" opacity="0.98" />
-    <ellipse cx="600" cy="600" rx="148" ry="142" fill="none" stroke="rgba(248, 113, 22, 0.2)" strokeWidth="1.8" vectorEffect="non-scaling-stroke" />
-    <ellipse cx="600" cy="600" rx="160" ry="154" fill="url(#wos-ash-falloff)" opacity="0.86" />
-    <path d="M 516 582 L 558 572 L 586 594 L 626 568 L 674 586 M 526 636 L 574 612 L 606 638 L 650 618 L 696 632 M 548 524 L 592 546 L 634 522" fill="none" stroke="#0b0f14" strokeOpacity="0.72" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-    <path d="M 540 668 C 574 650, 604 676, 638 654 S 690 650, 716 628 M 496 614 C 526 594, 544 612, 570 596" fill="none" stroke="#f97316" strokeOpacity="0.22" strokeWidth="1.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    <rect x="478" y="478" width="244" height="244" fill="url(#wos-ash-speckles)" opacity="0.72" />
-    <rect x="486" y="486" width="228" height="228" fill="url(#wos-ember-specks)" opacity="0.52" />
-  </g>
-);
-
-const renderFlatSunfireCastle = (landmark: SunfireLandmark) => {
-  const half = landmark.size / 2;
-  return (
-    <g key={landmark.id} transform={`translate(${landmark.x} ${landmark.y})`} aria-label={landmark.label} pointerEvents="none">
-      <title>{`${landmark.label} at ${landmark.x},${landmark.y}`}</title>
-      <circle r={half * 0.66} fill="#1f2933" stroke="#f59e0b" strokeWidth="1.1" vectorEffect="non-scaling-stroke" />
-      <path d={`M ${-half * 0.62} ${-half * 0.1} L ${-half * 0.28} ${-half * 0.46} L 0 ${-half * 0.28} L ${half * 0.28} ${-half * 0.46} L ${half * 0.62} ${-half * 0.1} L ${half * 0.48} ${half * 0.46} L ${-half * 0.48} ${half * 0.46} Z`} fill="#2f3744" stroke="#fbbf24" strokeWidth="0.9" vectorEffect="non-scaling-stroke" />
-      <path d={`M ${-half * 0.18} ${half * 0.44} L ${-half * 0.18} ${half * 0.12} Q 0 ${-half * 0.1} ${half * 0.18} ${half * 0.12} L ${half * 0.18} ${half * 0.44} Z`} fill="#0f172a" opacity="0.95" />
-      <circle r={half * 0.16} fill="#f97316" stroke="#fde68a" strokeWidth="0.65" vectorEffect="non-scaling-stroke" />
-      <path d={`M 0 ${-half * 0.2} C ${half * 0.12} ${-half * 0.04}, ${half * 0.08} ${half * 0.08}, 0 ${half * 0.17} C ${-half * 0.13} ${half * 0.02}, ${-half * 0.08} ${-half * 0.09}, 0 ${-half * 0.2} Z`} fill="#fde047" opacity="0.92" />
-      <text y={half * 0.76} textAnchor="middle" fontSize="7" fontWeight="900" fill="#fff7ed" stroke="#0f172a" strokeWidth="1.4" paintOrder="stroke">
-        {landmark.shortLabel}
-      </text>
-    </g>
-  );
-};
-
-const renderFlatSunfireTurret = (landmark: SunfireLandmark) => {
-  const half = landmark.size / 2;
-  return (
-    <g key={landmark.id} transform={`translate(${landmark.x} ${landmark.y})`} aria-label={landmark.label} pointerEvents="none">
-      <title>{`${landmark.label} at ${landmark.x},${landmark.y}`}</title>
-      <circle r={half * 0.9} fill="#171f2a" stroke="#fb923c" strokeWidth="0.95" vectorEffect="non-scaling-stroke" />
-      <rect x={-half * 0.45} y={-half * 0.45} width={half * 0.9} height={half * 0.9} rx="1.4" fill="#334155" stroke="#fed7aa" strokeWidth="0.65" vectorEffect="non-scaling-stroke" />
-      <path d={`M ${-half * 0.62} 0 L ${half * 0.62} 0 M 0 ${-half * 0.62} L 0 ${half * 0.62}`} stroke="#f97316" strokeWidth="1.1" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle r={half * 0.18} fill="#facc15" />
-      <text y={half * 1.36} textAnchor="middle" fontSize="4.8" fontWeight="900" fill="#fff7ed" stroke="#0f172a" strokeWidth="1" paintOrder="stroke">
-        {landmark.shortLabel}
-      </text>
-    </g>
-  );
-};
-
-const renderRaisedSunfireCastle = (landmark: SunfireLandmark) => {
-  const half = landmark.size / 2;
-  return (
-    <g key={landmark.id} transform={`translate(${landmark.x} ${landmark.y})`} aria-label={landmark.label} pointerEvents="none">
-      <title>{`${landmark.label} at ${landmark.x},${landmark.y}`}</title>
-      <ellipse cy={half * 0.54} rx={half * 0.82} ry={half * 0.28} fill="rgba(0,0,0,0.5)" />
-      <path d={`M ${-half * 0.6} ${half * 0.1} L ${-half * 0.5} ${half * 0.56} L ${half * 0.5} ${half * 0.56} L ${half * 0.6} ${half * 0.1} Z`} fill="#111827" />
-      <path d={`M ${-half * 0.62} ${-half * 0.12} L ${-half * 0.3} ${-half * 0.54} L 0 ${-half * 0.32} L ${half * 0.3} ${-half * 0.54} L ${half * 0.62} ${-half * 0.12} L ${half * 0.48} ${half * 0.18} L ${-half * 0.48} ${half * 0.18} Z`} fill="#3b4656" stroke="#fbbf24" strokeWidth="0.9" vectorEffect="non-scaling-stroke" />
-      <path d={`M ${-half * 0.48} ${half * 0.18} L ${half * 0.48} ${half * 0.18} L ${half * 0.5} ${half * 0.56} L ${-half * 0.5} ${half * 0.56} Z`} fill="#202938" />
-      <path d={`M ${-half * 0.18} ${half * 0.56} L ${-half * 0.18} ${half * 0.2} Q 0 ${-half * 0.08} ${half * 0.18} ${half * 0.2} L ${half * 0.18} ${half * 0.56} Z`} fill="#090e14" />
-      <circle cy={-half * 0.12} r={half * 0.16} fill="#fb923c" stroke="#fff7ed" strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
-      <path d={`M 0 ${-half * 0.34} C ${half * 0.16} ${-half * 0.14}, ${half * 0.08} ${half * 0.04}, 0 ${half * 0.14} C ${-half * 0.16} ${-half * 0.04}, ${-half * 0.08} ${-half * 0.2}, 0 ${-half * 0.34} Z`} fill="#fde047" opacity="0.94" />
-      <text y={half * 0.84} textAnchor="middle" fontSize="7" fontWeight="900" fill="#fff7ed" stroke="#0f172a" strokeWidth="1.4" paintOrder="stroke">
-        {landmark.shortLabel}
-      </text>
-    </g>
-  );
-};
-
-const renderRaisedSunfireTurret = (landmark: SunfireLandmark) => {
-  const half = landmark.size / 2;
-  return (
-    <g key={landmark.id} transform={`translate(${landmark.x} ${landmark.y})`} aria-label={landmark.label} pointerEvents="none">
-      <title>{`${landmark.label} at ${landmark.x},${landmark.y}`}</title>
-      <ellipse cy={half * 0.58} rx={half * 0.82} ry={half * 0.28} fill="rgba(0,0,0,0.46)" />
-      <path d={`M ${-half * 0.54} ${-half * 0.08} L ${-half * 0.42} ${half * 0.48} L ${half * 0.42} ${half * 0.48} L ${half * 0.54} ${-half * 0.08} Z`} fill="#111827" />
-      <path d={`M ${-half * 0.5} ${-half * 0.46} L ${half * 0.5} ${-half * 0.46} L ${half * 0.62} ${-half * 0.06} L ${half * 0.36} ${half * 0.16} L ${-half * 0.36} ${half * 0.16} L ${-half * 0.62} ${-half * 0.06} Z`} fill="#334155" stroke="#fdba74" strokeWidth="0.75" vectorEffect="non-scaling-stroke" />
-      <path d={`M ${-half * 0.36} ${half * 0.16} L ${half * 0.36} ${half * 0.16} L ${half * 0.42} ${half * 0.48} L ${-half * 0.42} ${half * 0.48} Z`} fill="#1f2937" />
-      <circle cy={-half * 0.1} r={half * 0.2} fill="#f97316" stroke="#fde68a" strokeWidth="0.55" vectorEffect="non-scaling-stroke" />
-      <path d={`M ${-half * 0.66} ${-half * 0.2} L ${half * 0.66} ${-half * 0.2}`} stroke="#facc15" strokeWidth="1.1" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <text y={half * 1.38} textAnchor="middle" fontSize="4.8" fontWeight="900" fill="#fff7ed" stroke="#0f172a" strokeWidth="1" paintOrder="stroke">
-        {landmark.shortLabel}
-      </text>
-    </g>
-  );
-};
-
-const renderSunfireLandmark = (landmark: SunfireLandmark, mode: MapMode) => {
-  if (landmark.kind === "castle") {
-    return mode === "2d" ? renderFlatSunfireCastle(landmark) : renderRaisedSunfireCastle(landmark);
-  }
-  return mode === "2d" ? renderFlatSunfireTurret(landmark) : renderRaisedSunfireTurret(landmark);
-};
-
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const gridCellFor = (coord: Coordinate) => ({
@@ -349,14 +239,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       ["--label-opacity" as string]: selectedLabel ? "1" : "0.94",
     };
   };
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setZoom(DEFAULT_ZOOM);
-      setCamera({ x: 600, y: 600 });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
 
   useEffect(() => {
     const stage = mapShellRef.current;
@@ -460,6 +342,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setPitch(0);
       setYaw(0);
       setRoll(0);
+      setZoom(1);
       setCamera({ x: selected.x, y: selected.y });
       return;
     }
@@ -467,6 +350,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setPitch(depthMode === "3d" ? 58 : 0);
       setYaw(0);
       setRoll(45);
+      setZoom(1);
       setCamera({ x: selected.x, y: selected.y });
       return;
     }
@@ -474,6 +358,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
     setPitch(58);
     setYaw(-28);
     setRoll(0);
+    setZoom(1);
     setCamera({ x: selected.x, y: selected.y });
   };
 
@@ -482,7 +367,7 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setPitch(0);
       setYaw(0);
       setRoll(0);
-      setZoom(DEFAULT_ZOOM);
+      setZoom(1);
       setCamera({ x: selected.x, y: selected.y });
       return;
     }
@@ -490,14 +375,14 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
       setPitch(depthMode === "3d" ? 58 : 0);
       setYaw(0);
       setRoll(45);
-      setZoom(DEFAULT_ZOOM);
+      setZoom(1);
       setCamera({ x: selected.x, y: selected.y });
       return;
     }
     setPitch(58);
     setYaw(-28);
     setRoll(0);
-    setZoom(DEFAULT_ZOOM);
+    setZoom(1);
     setCamera({ x: selected.x, y: selected.y });
   };
 
@@ -631,18 +516,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 <filter id="wos-snow-line-soften" x="-4%" y="-4%" width="108%" height="108%">
                   <feGaussianBlur stdDeviation="0.9" />
                 </filter>
-                <filter id="wos-ash-grain" x="-10%" y="-10%" width="120%" height="120%">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.08 0.12" numOctaves="4" seed="71" result="ashNoise" />
-                  <feColorMatrix
-                    in="ashNoise"
-                    type="matrix"
-                    values="
-                      0.08 0 0 0 0.04
-                      0 0.08 0 0 0.05
-                      0 0 0.08 0 0.06
-                      0 0 0 0.55 0"
-                  />
-                </filter>
                 <linearGradient id="wos-snow-base" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0" stopColor="#ffffff" />
                   <stop offset="0.28" stopColor="#fbfeff" />
@@ -659,18 +532,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   <stop offset="0" stopColor="#d8f6ff" stopOpacity="0.24" />
                   <stop offset="0.5" stopColor="#f5fdff" stopOpacity="0.2" />
                   <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="wos-ash-core" cx="50%" cy="48%" r="54%">
-                  <stop offset="0" stopColor="#020617" />
-                  <stop offset="0.36" stopColor="#111827" />
-                  <stop offset="0.66" stopColor="#1f2937" />
-                  <stop offset="1" stopColor="#374151" />
-                </radialGradient>
-                <radialGradient id="wos-ash-falloff" cx="50%" cy="50%" r="50%">
-                  <stop offset="0" stopColor="#030712" stopOpacity="0.78" />
-                  <stop offset="0.54" stopColor="#111827" stopOpacity="0.52" />
-                  <stop offset="0.82" stopColor="#374151" stopOpacity="0.24" />
-                  <stop offset="1" stopColor="#475569" stopOpacity="0" />
                 </radialGradient>
                 <linearGradient id="wos-snow-ice-sheen" x1="0" y1="1" x2="1" y2="0">
                   <stop offset="0" stopColor="#d7f5ff" stopOpacity="0.16" />
@@ -709,17 +570,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   <circle cx="62" cy="48" r="0.8" fill="#eefbff" opacity="0.3" />
                   <circle cx="8" cy="62" r="0.7" fill="#ffffff" opacity="0.32" />
                 </pattern>
-                <pattern id="wos-ash-speckles" width="34" height="34" patternUnits="userSpaceOnUse">
-                  <rect width="34" height="34" fill="#111827" filter="url(#wos-ash-grain)" opacity="0.7" />
-                  <circle cx="7" cy="9" r="1.2" fill="#475569" opacity="0.48" />
-                  <circle cx="27" cy="18" r="0.9" fill="#020617" opacity="0.62" />
-                  <path d="M 4 27 L 14 22 L 22 25" fill="none" stroke="#030712" strokeOpacity="0.55" strokeWidth="0.9" strokeLinecap="round" />
-                </pattern>
-                <pattern id="wos-ember-specks" width="56" height="56" patternUnits="userSpaceOnUse">
-                  <circle cx="12" cy="18" r="0.9" fill="#f97316" opacity="0.54" />
-                  <circle cx="38" cy="31" r="0.65" fill="#facc15" opacity="0.46" />
-                  <path d="M 22 46 L 30 42" stroke="#fb923c" strokeOpacity="0.32" strokeWidth="1" strokeLinecap="round" />
-                </pattern>
               </defs>
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-base)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-cold-pocket)" />
@@ -741,13 +591,9 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-speckles)" opacity="0.6" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-flurry)" opacity="0.42" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#f8fdff" filter="url(#wos-snow-grain)" opacity="0.2" />
-              {renderSunfireGround()}
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.58)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
               <g aria-label="WOSTools fixed resource buildings">
                 {WOS_RESOURCE_BUILDINGS.map((node) => renderResourceBuilding(node, mode))}
-              </g>
-              <g aria-label="Sunfire Castle and four turrets">
-                {SUNFIRE_LANDMARKS.map((landmark) => renderSunfireLandmark(landmark, mode))}
               </g>
               {hover && (
                 <rect
