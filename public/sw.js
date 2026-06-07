@@ -1,4 +1,4 @@
-const CACHE_NAME = "whiteoutsurvival-dev-v2";
+const CACHE_NAME = "whiteoutsurvival-dev-v3";
 const APP_SHELL = [
   "/",
   "/site.webmanifest",

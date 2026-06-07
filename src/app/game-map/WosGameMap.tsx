@@ -42,10 +42,10 @@ type ResourceBuilding = {
 const RESOURCE_BUILDING_SIZE = 2;
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
-  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png" },
-  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png" },
-  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png" },
-  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png" },
+  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png?v=resource-flat-v3" },
+  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png?v=resource-flat-v3" },
+  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png?v=resource-flat-v3" },
+  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png?v=resource-flat-v3" },
 };
 
 const WOS_RESOURCE_BUILDING_TUPLES = [
@@ -148,8 +148,8 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
         fill="none"
         pointerEvents="none"
       />
-      <image href={meta.image} x="0.18" y="0.08" width="1.64" height="1.42" preserveAspectRatio="xMidYMid meet" opacity="0.96" />
-      <text x="1" y="1.86" textAnchor="middle" fontSize="0.34" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.88)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
+      <image href={meta.image} x="0.44" y="0.22" width="1.12" height="0.96" preserveAspectRatio="xMidYMid meet" opacity="0.98" />
+      <text x="1" y="1.46" textAnchor="middle" fontSize="0.28" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.88)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
         {meta.label}
       </text>
     </g>
@@ -167,9 +167,9 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
         fill="none"
         pointerEvents="none"
       />
-      <image href={meta.image} x="0.14" y="0.02" width="1.72" height="1.5" preserveAspectRatio="xMidYMid meet" />
+      <image href={meta.image} x="0.4" y="0.12" width="1.2" height="1.02" preserveAspectRatio="xMidYMid meet" />
       <path d="M 0.24 0.42 C 0.62 0.16, 1.38 0.16, 1.76 0.42" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.09" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <text x="1" y="1.86" textAnchor="middle" fontSize="0.34" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.9)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
+      <text x="1" y="1.46" textAnchor="middle" fontSize="0.28" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.9)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
         {meta.label}
       </text>
     </g>
