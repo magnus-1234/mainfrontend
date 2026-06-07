@@ -148,18 +148,13 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
       <rect
         width={RESOURCE_BUILDING_SIZE}
         height={RESOURCE_BUILDING_SIZE}
-        rx="0.18"
-        fill={meta.base}
-        stroke="rgba(15, 23, 42, 0.7)"
-        strokeWidth="0.08"
-        vectorEffect="non-scaling-stroke"
+        fill="none"
+        pointerEvents="none"
       />
-      <path d="M 0.16 1.7 H 1.84 L 1.66 1.96 H 0.34 Z" fill="rgba(15, 23, 42, 0.5)" />
       <image href={meta.image} x="0.18" y="0.08" width="1.64" height="1.42" preserveAspectRatio="xMidYMid meet" opacity="0.96" />
       <text x="1" y="1.86" textAnchor="middle" fontSize="0.34" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.88)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
         {meta.label}
       </text>
-      <rect width={RESOURCE_BUILDING_SIZE} height={RESOURCE_BUILDING_SIZE} rx="0.16" fill="none" stroke={meta.accent} strokeOpacity="0.46" strokeWidth="0.06" vectorEffect="non-scaling-stroke" />
     </g>
   );
 };
@@ -172,21 +167,14 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
       <rect
         width={RESOURCE_BUILDING_SIZE}
         height={RESOURCE_BUILDING_SIZE}
-        rx="0.18"
-        fill={meta.base}
-        opacity="0.28"
-        stroke="rgba(15, 23, 42, 0.64)"
-        strokeWidth="0.08"
-        vectorEffect="non-scaling-stroke"
+        fill="none"
+        pointerEvents="none"
       />
-      <path d="M 0.16 1.44 L 1 0.96 L 1.84 1.44 L 1.64 1.96 L 0.36 1.96 Z" fill="rgba(15, 23, 42, 0.36)" />
-      <path d="M 0.2 1.68 H 1.8 L 1.62 1.98 H 0.38 Z" fill={meta.shade} opacity="0.72" />
       <image href={meta.image} x="0.14" y="0.02" width="1.72" height="1.5" preserveAspectRatio="xMidYMid meet" />
       <path d="M 0.24 0.42 C 0.62 0.16, 1.38 0.16, 1.76 0.42" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.09" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       <text x="1" y="1.86" textAnchor="middle" fontSize="0.34" fontWeight="800" fill="#f8fafc" stroke="rgba(15, 23, 42, 0.9)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
         {meta.label}
       </text>
-      <rect width={RESOURCE_BUILDING_SIZE} height={RESOURCE_BUILDING_SIZE} rx="0.18" fill="none" stroke={meta.accent} strokeOpacity="0.42" strokeWidth="0.06" vectorEffect="non-scaling-stroke" />
     </g>
   );
 };
