@@ -45,8 +45,6 @@ type SunfireLandmark = {
   id: string;
   label: string;
   kind: SunfireLandmarkKind;
-  x: number;
-  y: number;
   planner: {
     col: number;
     row: number;
@@ -69,8 +67,6 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     id: "sunfire-turret-north",
     label: "North Turret",
     kind: "turret",
-    x: 594,
-    y: 594,
     planner: { col: 593, row: 593, size: 2 },
     facing: -42,
   },
@@ -78,8 +74,6 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     id: "sunfire-turret-east",
     label: "East Turret",
     kind: "turret",
-    x: 604,
-    y: 594,
     planner: { col: 603, row: 593, size: 2 },
     facing: 42,
   },
@@ -87,8 +81,6 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     id: "sunfire-turret-south",
     label: "South Turret",
     kind: "turret",
-    x: 604,
-    y: 604,
     planner: { col: 603, row: 603, size: 2 },
     facing: 138,
   },
@@ -96,8 +88,6 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     id: "sunfire-turret-west",
     label: "West Turret",
     kind: "turret",
-    x: 594,
-    y: 604,
     planner: { col: 593, row: 603, size: 2 },
     facing: -138,
   },
@@ -105,8 +95,6 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     id: "sunfire-castle",
     label: "Sunfire Castle",
     kind: "castle",
-    x: 600,
-    y: 600,
     planner: { col: 597, row: 597, size: 4 },
   },
 ];
@@ -276,9 +264,20 @@ const renderSunfireAshBase = () => {
   );
 };
 
+const sunfireFootprintCenter = (node: SunfireLandmark) => ({
+  x: node.planner.col + node.planner.size / 2,
+  y: node.planner.row + node.planner.size / 2,
+});
+
+const sunfireFootprintTitle = (node: SunfireLandmark) => {
+  const maxCol = node.planner.col + node.planner.size - 1;
+  const maxRow = node.planner.row + node.planner.size - 1;
+  return `${node.label}; WoSTools grid ${node.planner.col},${node.planner.row} to ${maxCol},${maxRow}`;
+};
+
 const renderFlatSunfireCastle = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={node.label}>
-    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) scale(${node.planner.size / 24})`} aria-label={node.label}>
+    <title>{sunfireFootprintTitle(node)}</title>
     <circle r="8.7" fill="none" stroke="#c99a4a" strokeWidth="0.85" opacity="0.9" vectorEffect="non-scaling-stroke" />
     <circle r="7.2" fill="#273241" stroke="#d4a75f" strokeWidth="0.48" vectorEffect="non-scaling-stroke" />
     <path d="M -6.2 -1.1 L -3.2 -5.9 L 1 -6.8 L 5.7 -4 L 6.4 1.8 L 3.2 5.9 L -2.2 6.7 L -6.1 3.4 Z" fill="#2f3a4b" stroke="#131923" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
@@ -306,8 +305,8 @@ const renderFlatSunfireCastle = (node: SunfireLandmark) => (
 );
 
 const renderRaisedSunfireCastle = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={node.label}>
-    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) scale(${node.planner.size / 32})`} aria-label={node.label}>
+    <title>{sunfireFootprintTitle(node)}</title>
     <ellipse cx="0" cy="5.9" rx="9.6" ry="2.6" fill="rgba(0, 0, 0, 0.34)" />
     <circle r="9.1" fill="none" stroke="#c99a4a" strokeWidth="0.85" opacity="0.9" vectorEffect="non-scaling-stroke" />
     <path d="M -7.8 1.8 C -5.4 6.7, 5.4 6.7, 7.8 1.8 L 7.8 5.2 C 4 9, -4 9, -7.8 5.2 Z" fill="#16212d" stroke="#0d141d" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
@@ -336,8 +335,8 @@ const renderRaisedSunfireCastle = (node: SunfireLandmark) => (
 );
 
 const renderFlatSunfireTurret = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${node.x} ${node.y}) rotate(${node.facing ?? 0})`} aria-label={node.label}>
-    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) rotate(${node.facing ?? 0}) scale(${node.planner.size / 12})`} aria-label={node.label}>
+    <title>{sunfireFootprintTitle(node)}</title>
     <path d="M -3.9 -3.1 L 3.1 -3.9 L 4.3 3.4 L -3.1 4.2 Z" fill="#314050" stroke="#cfdae4" strokeOpacity="0.55" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
     <ellipse cx="0" cy="0.45" rx="3.6" ry="2.85" fill="#26313f" stroke="#111827" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
     <path d="M -2.4 1.8 C -1.1 3.1, 1.8 3.1, 2.7 1.4 L 2.1 3.6 C .8 4.3, -1.3 4.2, -2.5 3.4 Z" fill="#111827" opacity="0.72" />
@@ -358,8 +357,8 @@ const renderFlatSunfireTurret = (node: SunfireLandmark) => (
 );
 
 const renderRaisedSunfireTurret = (node: SunfireLandmark) => (
-  <g key={node.id} transform={`translate(${node.x} ${node.y}) rotate(${node.facing ?? 0})`} aria-label={node.label}>
-    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+  <g key={node.id} transform={`translate(${sunfireFootprintCenter(node).x} ${sunfireFootprintCenter(node).y}) rotate(${node.facing ?? 0}) scale(${node.planner.size / 12})`} aria-label={node.label}>
+    <title>{sunfireFootprintTitle(node)}</title>
     <ellipse cx="0.2" cy="3.4" rx="4.4" ry="1.25" fill="rgba(0, 0, 0, 0.32)" />
     <path d="M -4.2 -2.8 L 3.2 -3.7 L 4.4 2.7 L -3.3 3.9 Z" fill="#37465a" stroke="#cfdae4" strokeOpacity="0.54" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
     <path d="M -3.5 0.6 C -2 3.2, 2.3 3.2, 3.7 .4 L 3.3 3.2 C 1.1 4.9, -1.6 4.7, -3.3 3.1 Z" fill="#151e2b" stroke="#0c121b" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
