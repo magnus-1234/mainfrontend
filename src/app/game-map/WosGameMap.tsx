@@ -39,7 +39,77 @@ type ResourceBuilding = {
   kind: ResourceKind;
 };
 
+type SunfireLandmarkKind = "castle" | "turret";
+
+type SunfireLandmark = {
+  id: string;
+  label: string;
+  kind: SunfireLandmarkKind;
+  x: number;
+  y: number;
+  planner: {
+    col: number;
+    row: number;
+    size: number;
+  };
+  facing?: number;
+};
+
 const RESOURCE_BUILDING_SIZE = 2;
+
+const SUNFIRE_ASH_BASE = {
+  minX: 595,
+  minY: 595,
+  maxX: 605,
+  maxY: 605,
+};
+
+const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
+  {
+    id: "sunfire-turret-north",
+    label: "North Turret",
+    kind: "turret",
+    x: 594,
+    y: 594,
+    planner: { col: 593, row: 593, size: 2 },
+    facing: -42,
+  },
+  {
+    id: "sunfire-turret-east",
+    label: "East Turret",
+    kind: "turret",
+    x: 604,
+    y: 594,
+    planner: { col: 603, row: 593, size: 2 },
+    facing: 42,
+  },
+  {
+    id: "sunfire-turret-south",
+    label: "South Turret",
+    kind: "turret",
+    x: 604,
+    y: 604,
+    planner: { col: 603, row: 603, size: 2 },
+    facing: 138,
+  },
+  {
+    id: "sunfire-turret-west",
+    label: "West Turret",
+    kind: "turret",
+    x: 594,
+    y: 604,
+    planner: { col: 593, row: 603, size: 2 },
+    facing: -138,
+  },
+  {
+    id: "sunfire-castle",
+    label: "Sunfire Castle",
+    kind: "castle",
+    x: 600,
+    y: 600,
+    planner: { col: 597, row: 597, size: 4 },
+  },
+];
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
   iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png?v=resource-flat-v3" },
@@ -179,6 +249,143 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
 const renderResourceBuilding = (node: ResourceBuilding, mode: MapMode) => (
   mode === "2d" ? renderFlatResourceBuilding(node) : renderRaisedResourceBuilding(node)
 );
+
+const renderSunfireAshBase = () => {
+  const x = SUNFIRE_ASH_BASE.minX - 1;
+  const y = SUNFIRE_ASH_BASE.minY - 1;
+  const width = SUNFIRE_ASH_BASE.maxX - SUNFIRE_ASH_BASE.minX + 1;
+  const height = SUNFIRE_ASH_BASE.maxY - SUNFIRE_ASH_BASE.minY + 1;
+
+  return (
+    <g aria-label="Sunfire Castle dark ashy base">
+      <title>{`Sunfire ash base from ${SUNFIRE_ASH_BASE.minX},${SUNFIRE_ASH_BASE.minY} to ${SUNFIRE_ASH_BASE.maxX},${SUNFIRE_ASH_BASE.maxY}`}</title>
+      <rect x={x} y={y} width={width} height={height} fill="#191716" />
+      <rect x={x} y={y} width={width} height={height} fill="url(#wos-sunfire-ash)" opacity="0.95" />
+      <path
+        d={`M ${x + 1.2} ${y + 2.1} L ${x + 3.8} ${y + 4.2} L ${x + 2.9} ${y + 6.1} M ${x + 5.1} ${y + 1.4} L ${x + 7.4} ${y + 3.6} L ${x + 9.8} ${y + 2.8} M ${x + 4.3} ${y + 8.7} L ${x + 6.3} ${y + 7.2} L ${x + 9.2} ${y + 9.5}`}
+        fill="none"
+        stroke="#e26d2f"
+        strokeOpacity="0.26"
+        strokeWidth="0.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <rect x={x} y={y} width={width} height={height} fill="none" stroke="rgba(250, 189, 96, 0.42)" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
+    </g>
+  );
+};
+
+const renderFlatSunfireCastle = (node: SunfireLandmark) => (
+  <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={node.label}>
+    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+    <circle r="8.7" fill="none" stroke="#c99a4a" strokeWidth="0.85" opacity="0.9" vectorEffect="non-scaling-stroke" />
+    <circle r="7.2" fill="#273241" stroke="#d4a75f" strokeWidth="0.48" vectorEffect="non-scaling-stroke" />
+    <path d="M -6.2 -1.1 L -3.2 -5.9 L 1 -6.8 L 5.7 -4 L 6.4 1.8 L 3.2 5.9 L -2.2 6.7 L -6.1 3.4 Z" fill="#2f3a4b" stroke="#131923" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
+    <path d="M -4.8 2.8 C -2.8 4.4, 2.8 4.4, 4.8 2.8 L 4.1 5.6 C 1.6 6.9, -1.7 6.9, -4.1 5.6 Z" fill="#15202c" opacity="0.72" />
+    <g fill="#6b452e" stroke="#16202b" strokeWidth="0.34" vectorEffect="non-scaling-stroke">
+      <rect x="-6.8" y="-1.2" width="1.8" height="4.5" rx="0.25" />
+      <rect x="5" y="-1.2" width="1.8" height="4.5" rx="0.25" />
+      <rect x="-2.9" y="-6.4" width="1.8" height="3.9" rx="0.25" />
+      <rect x="1.2" y="-6.4" width="1.8" height="3.9" rx="0.25" />
+    </g>
+    <g fill="#d3a354" stroke="#5a351b" strokeWidth="0.24" vectorEffect="non-scaling-stroke">
+      <circle cx="-5.9" cy="-1.4" r="1.05" />
+      <circle cx="5.9" cy="-1.4" r="1.05" />
+      <circle cx="-2" cy="-6.5" r="0.9" />
+      <circle cx="2.1" cy="-6.5" r="0.9" />
+    </g>
+    <circle r="3.4" fill="#a9bfd2" stroke="#1b2634" strokeWidth="0.36" vectorEffect="non-scaling-stroke" />
+    <path d="M -2.7 1.9 L 0 -4.1 L 2.7 1.9 Z" fill="#e2eef3" opacity="0.8" />
+    <path d="M -4.6 -4.8 L 0 -8.2 L 4.6 -4.8 M -6.6 0.8 L -1.8 -2.2 M 6.6 0.8 L 1.8 -2.2" fill="none" stroke="#c08c3e" strokeWidth="0.62" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    <g transform="translate(0 -9.3)">
+      <circle r="1.25" fill="#ffd766" stroke="#7b4a16" strokeWidth="0.26" vectorEffect="non-scaling-stroke" />
+      <path d="M 0 -2.8 L .5 -1.5 L 1.8 -2 L 1.25 -.7 L 2.7 0 L 1.25 .7 L 1.8 2 L .5 1.5 L 0 2.8 L -.5 1.5 L -1.8 2 L -1.25 .7 L -2.7 0 L -1.25 -.7 L -1.8 -2 L -.5 -1.5 Z" fill="#f5b233" stroke="#7b4a16" strokeWidth="0.18" vectorEffect="non-scaling-stroke" />
+    </g>
+  </g>
+);
+
+const renderRaisedSunfireCastle = (node: SunfireLandmark) => (
+  <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={node.label}>
+    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+    <ellipse cx="0" cy="5.9" rx="9.6" ry="2.6" fill="rgba(0, 0, 0, 0.34)" />
+    <circle r="9.1" fill="none" stroke="#c99a4a" strokeWidth="0.85" opacity="0.9" vectorEffect="non-scaling-stroke" />
+    <path d="M -7.8 1.8 C -5.4 6.7, 5.4 6.7, 7.8 1.8 L 7.8 5.2 C 4 9, -4 9, -7.8 5.2 Z" fill="#16212d" stroke="#0d141d" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+    <ellipse cx="0" cy="1.8" rx="7.8" ry="4.8" fill="#303c4e" stroke="#d0a45c" strokeWidth="0.45" vectorEffect="non-scaling-stroke" />
+    <path d="M -5.8 2.2 C -3.8 4.1, 3.8 4.1, 5.8 2.2 L 4.8 5.8 C 1.9 7.2, -1.9 7.2, -4.8 5.8 Z" fill="#7b3f2d" opacity="0.92" />
+    <g fill="#6e4931" stroke="#172230" strokeWidth="0.32" vectorEffect="non-scaling-stroke">
+      <path d="M -7.7 -1.3 L -5.4 -2 L -5.2 4.3 L -7.6 3.7 Z" />
+      <path d="M 7.7 -1.3 L 5.4 -2 L 5.2 4.3 L 7.6 3.7 Z" />
+      <path d="M -3.7 -6.1 L -1.3 -6.7 L -1 0.3 L -3.4 0.8 Z" />
+      <path d="M 3.7 -6.1 L 1.3 -6.7 L 1 0.3 L 3.4 0.8 Z" />
+    </g>
+    <g fill="#d6a65a" stroke="#563515" strokeWidth="0.24" vectorEffect="non-scaling-stroke">
+      <ellipse cx="-6.6" cy="-1.6" rx="1.2" ry="0.8" />
+      <ellipse cx="6.6" cy="-1.6" rx="1.2" ry="0.8" />
+      <ellipse cx="-2.5" cy="-6.4" rx="1.05" ry="0.72" />
+      <ellipse cx="2.5" cy="-6.4" rx="1.05" ry="0.72" />
+    </g>
+    <path d="M -3.8 1.5 C -2.5 -2.6, 2.5 -2.6, 3.8 1.5 L 2.9 -7.2 C 1.4 -9.1, -1.4 -9.1, -2.9 -7.2 Z" fill="#adbfca" stroke="#172230" strokeWidth="0.36" vectorEffect="non-scaling-stroke" />
+    <path d="M -1.8 -8.1 L 0 -12.2 L 1.8 -8.1 M -5.8 -4.2 L -1.4 -7.7 M 5.8 -4.2 L 1.4 -7.7" fill="none" stroke="#c89644" strokeWidth="0.68" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    <g transform="translate(0 -13.6)">
+      <path d="M 0 -3 L .55 -1.45 L 2 -2.1 L 1.35 -.72 L 3 0 L 1.35 .72 L 2 2.1 L .55 1.45 L 0 3 L -.55 1.45 L -2 2.1 L -1.35 .72 L -3 0 L -1.35 -.72 L -2 -2.1 L -.55 -1.45 Z" fill="#f7b739" stroke="#6c4015" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
+      <circle r="1.25" fill="#ffe076" stroke="#6c4015" strokeWidth="0.2" vectorEffect="non-scaling-stroke" />
+    </g>
+    <path d="M -3.1 -6.6 L 0 -11.4 L 3.1 -6.6" fill="none" stroke="#fff1b8" strokeOpacity="0.65" strokeWidth="0.34" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+  </g>
+);
+
+const renderFlatSunfireTurret = (node: SunfireLandmark) => (
+  <g key={node.id} transform={`translate(${node.x} ${node.y}) rotate(${node.facing ?? 0})`} aria-label={node.label}>
+    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+    <path d="M -3.9 -3.1 L 3.1 -3.9 L 4.3 3.4 L -3.1 4.2 Z" fill="#314050" stroke="#cfdae4" strokeOpacity="0.55" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+    <ellipse cx="0" cy="0.45" rx="3.6" ry="2.85" fill="#26313f" stroke="#111827" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+    <path d="M -2.4 1.8 C -1.1 3.1, 1.8 3.1, 2.7 1.4 L 2.1 3.6 C .8 4.3, -1.3 4.2, -2.5 3.4 Z" fill="#111827" opacity="0.72" />
+    <g fill="#4f5f71" stroke="#111827" strokeWidth="0.24" vectorEffect="non-scaling-stroke">
+      <circle cx="-2.8" cy="-1.2" r="0.9" />
+      <circle cx="2.8" cy="-1.2" r="0.9" />
+      <circle cx="-2.5" cy="2.2" r="0.85" />
+      <circle cx="2.5" cy="2.2" r="0.85" />
+    </g>
+    <path d="M -1.9 .4 C -1.5 -1.3, 1.4 -1.6, 2.2 .2 L 1.3 2.1 L -1.4 2.2 Z" fill="#5e4032" stroke="#111827" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
+    <g transform="translate(0 -1.3)">
+      <path d="M -0.65 0 L 0.65 0 L 0.9 -4.6 L -0.9 -4.6 Z" fill="#5d6b7d" stroke="#111827" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
+      <rect x="-0.9" y="-5.3" width="1.8" height="1.05" rx="0.25" fill="#798899" stroke="#111827" strokeWidth="0.2" vectorEffect="non-scaling-stroke" />
+      <rect x="-0.65" y="-3.4" width="1.3" height="0.7" fill="#9a6846" />
+    </g>
+    <path d="M -1.5 -1.9 C -.5 -2.8, .9 -2.8, 1.8 -1.8" fill="none" stroke="#e8eef6" strokeOpacity="0.44" strokeWidth="0.25" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+  </g>
+);
+
+const renderRaisedSunfireTurret = (node: SunfireLandmark) => (
+  <g key={node.id} transform={`translate(${node.x} ${node.y}) rotate(${node.facing ?? 0})`} aria-label={node.label}>
+    <title>{`${node.label} at ${node.x},${node.y}; WoSTools planner ${node.planner.col},${node.planner.row}`}</title>
+    <ellipse cx="0.2" cy="3.4" rx="4.4" ry="1.25" fill="rgba(0, 0, 0, 0.32)" />
+    <path d="M -4.2 -2.8 L 3.2 -3.7 L 4.4 2.7 L -3.3 3.9 Z" fill="#37465a" stroke="#cfdae4" strokeOpacity="0.54" strokeWidth="0.35" vectorEffect="non-scaling-stroke" />
+    <path d="M -3.5 0.6 C -2 3.2, 2.3 3.2, 3.7 .4 L 3.3 3.2 C 1.1 4.9, -1.6 4.7, -3.3 3.1 Z" fill="#151e2b" stroke="#0c121b" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
+    <ellipse cx="0" cy="0.35" rx="3.7" ry="2.55" fill="#2c394a" stroke="#111827" strokeWidth="0.32" vectorEffect="non-scaling-stroke" />
+    <g fill="#56687b" stroke="#111827" strokeWidth="0.22" vectorEffect="non-scaling-stroke">
+      <path d="M -3.2 -1.2 C -2.5 -1.9, -1.4 -1.7, -1.2 -.8 L -1.2 2.4 C -2.2 3.1, -3.2 2.6, -3.4 1.7 Z" />
+      <path d="M 3.2 -1.2 C 2.5 -1.9, 1.4 -1.7, 1.2 -.8 L 1.2 2.4 C 2.2 3.1, 3.2 2.6, 3.4 1.7 Z" />
+    </g>
+    <path d="M -2.2 .4 C -1.6 -2.2, 1.8 -2.4, 2.6 .1 L 1.6 2.5 L -1.5 2.4 Z" fill="#5d4134" stroke="#111827" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
+    <g transform="translate(0 -2.1)">
+      <path d="M -0.72 .2 L .72 .2 L 1.05 -5.9 L -1.05 -5.9 Z" fill="#657384" stroke="#101823" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
+      <rect x="-1.05" y="-6.8" width="2.1" height="1.12" rx="0.28" fill="#8291a1" stroke="#101823" strokeWidth="0.22" vectorEffect="non-scaling-stroke" />
+      <rect x="-0.82" y="-4.75" width="1.64" height="0.82" fill="#9b6a45" />
+      <path d="M -0.82 -5.5 L .82 -5.5" stroke="#dbe4ee" strokeOpacity="0.55" strokeWidth="0.24" vectorEffect="non-scaling-stroke" />
+    </g>
+    <path d="M -2.1 -1.9 C -1 -3.1, 1.1 -3.2, 2.2 -1.9" fill="none" stroke="#eef6ff" strokeOpacity="0.48" strokeWidth="0.28" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+  </g>
+);
+
+const renderSunfireLandmark = (node: SunfireLandmark, mode: MapMode) => {
+  if (node.kind === "castle") {
+    return mode === "2d" ? renderFlatSunfireCastle(node) : renderRaisedSunfireCastle(node);
+  }
+
+  return mode === "2d" ? renderFlatSunfireTurret(node) : renderRaisedSunfireTurret(node);
+};
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -570,6 +777,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   <circle cx="62" cy="48" r="0.8" fill="#eefbff" opacity="0.3" />
                   <circle cx="8" cy="62" r="0.7" fill="#ffffff" opacity="0.32" />
                 </pattern>
+                <pattern id="wos-sunfire-ash" width="7" height="7" patternUnits="userSpaceOnUse">
+                  <rect width="7" height="7" fill="#171615" />
+                  <path d="M -1 5 L 2 2 L 5 3.8 L 8 1" fill="none" stroke="#4a4038" strokeWidth="0.45" strokeLinecap="round" />
+                  <path d="M 1 6.1 L 3.6 5.2 M 4.8 1.1 L 6.2 2.2" fill="none" stroke="#e26d2f" strokeOpacity="0.28" strokeWidth="0.32" strokeLinecap="round" />
+                  <circle cx="1.5" cy="1.6" r="0.28" fill="#f2a04d" opacity="0.38" />
+                  <circle cx="5.8" cy="5.2" r="0.22" fill="#c94d2a" opacity="0.38" />
+                </pattern>
               </defs>
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-base)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-cold-pocket)" />
@@ -591,9 +805,13 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-speckles)" opacity="0.6" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-flurry)" opacity="0.42" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#f8fdff" filter="url(#wos-snow-grain)" opacity="0.2" />
+              {renderSunfireAshBase()}
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.58)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
               <g aria-label="WOSTools fixed resource buildings">
                 {WOS_RESOURCE_BUILDINGS.map((node) => renderResourceBuilding(node, mode))}
+              </g>
+              <g aria-label="WoSTools Sunfire Castle fixed landmarks">
+                {SUNFIRE_LANDMARKS.map((node) => renderSunfireLandmark(node, mode))}
               </g>
               {hover && (
                 <rect
