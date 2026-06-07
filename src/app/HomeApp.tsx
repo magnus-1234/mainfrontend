@@ -5458,19 +5458,25 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       const teamCards = allFoundryTeams.map((team) => ({
         team,
         building: foundryBuildings.find((item) => item.id === team.buildingId),
-        members: [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile),
+        members: [team.rallyLeader, ...team.joiners],
       }));
-      const leftX = 42;
-      const leftWidth = 690;
-      const rightX = 780;
-      const rightWidth = 978;
+      const mapX = 40;
+      const mapY = 140;
+      const mapWidth = 1080;
+      const mapHeight = 824;
+      const mapInnerX = mapX + 18;
+      const mapInnerY = mapY + 58;
+      const mapInnerWidth = mapWidth - 36;
+      const mapInnerHeight = 720;
+      const tableX = 1160;
+      const tableWidth = 560;
       const headerHeight = 118;
-      const rowHeight = 31;
-      const cardGap = 14;
-      const tableHeight = teamCards.reduce((total, card) => total + 62 + Math.max(card.members.length, 1) * rowHeight + cardGap, 0);
+      const rowHeight = 34;
+      const cardGap = 12;
+      const tableHeight = teamCards.reduce((total, card) => total + 68 + Math.max(card.members.length, 1) * rowHeight + cardGap, 0);
       const canvas = document.createElement("canvas");
       canvas.width = 1800;
-      canvas.height = Math.max(1060, headerHeight + tableHeight + 34);
+      canvas.height = Math.max(1030, headerHeight + tableHeight + 34, mapY + mapHeight + 40);
       const context = canvas.getContext("2d");
       if (!context) {
         throw new Error("Canvas export is not available.");
@@ -5485,10 +5491,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       context.fillStyle = "#0f172a";
       context.textAlign = "left";
       context.font = "900 42px Arial";
-      context.fillText("Foundry Battle Planner", leftX, 52);
+      context.fillText("Foundry Battle Planner", mapX, 52);
       context.fillStyle = "#2563eb";
       context.font = "900 22px Arial";
-      context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}  |  ${teamCards.length} teams`, leftX, 86);
+      context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}  |  ${teamCards.length} teams`, mapX, 86);
       if (logo) {
         drawFoundryLogo(context, logo, canvas.width - 42, 20, 330, 76);
       }
@@ -5497,105 +5503,154 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       context.strokeStyle = "#cbd5e1";
       context.lineWidth = 2;
       context.beginPath();
-      context.roundRect(rightX, headerHeight + 34, rightWidth, 790, 18);
-      context.fill();
-      context.stroke();
-      context.save();
-      context.beginPath();
-      context.roundRect(rightX + 16, headerHeight + 50, rightWidth - 32, 708, 12);
-      context.clip();
-      context.drawImage(mapImage, rightX + 16, headerHeight + 50, rightWidth - 32, 708);
-      context.restore();
-      context.fillStyle = "#ffffff";
-      context.strokeStyle = "#cbd5e1";
-      context.beginPath();
-      context.roundRect(rightX + 28, headerHeight + 66, 252, 52, 12);
+      context.roundRect(mapX, mapY, mapWidth, mapHeight, 18);
       context.fill();
       context.stroke();
       context.fillStyle = "#0f172a";
-      context.font = "900 18px Arial";
-      context.fillText("Foundry Map", rightX + 48, headerHeight + 98);
+      context.font = "900 22px Arial";
+      context.textAlign = "left";
+      context.fillText("Foundry Map Assignments", mapX + 24, mapY + 36);
+      context.fillStyle = "#64748b";
+      context.font = "800 14px Arial";
+      context.fillText("Team chips match the battle-map export.", mapX + 292, mapY + 36);
+      context.save();
+      context.beginPath();
+      context.roundRect(mapInnerX, mapInnerY, mapInnerWidth, mapInnerHeight, 12);
+      context.clip();
+      context.drawImage(mapImage, mapInnerX, mapInnerY, mapInnerWidth, mapInnerHeight);
+      context.restore();
 
       foundryBuildings.forEach((building) => {
-        const mapX = rightX + 16 + (building.x / 100) * (rightWidth - 32);
-        const mapY = headerHeight + 50 + (building.y / 100) * 708;
+        const markerX = mapInnerX + (building.x / 100) * mapInnerWidth;
+        const markerY = mapInnerY + (building.y / 100) * mapInnerHeight;
         const markerColor = building.phase === "Spawn" ? "#0284c7" : building.id.includes("workshop") ? "#16a34a" : "#d97706";
         context.fillStyle = "#ffffff";
         context.strokeStyle = markerColor;
         context.lineWidth = 2;
         context.beginPath();
-        context.roundRect(mapX - 54, mapY - 14, 108, 28, 8);
+        context.roundRect(markerX - 54, markerY - 14, 108, 28, 8);
         context.fill();
         context.stroke();
         context.fillStyle = "#0f172a";
         context.font = "900 11px Arial";
         context.textAlign = "center";
-        context.fillText(building.shortName, mapX, mapY + 4);
+        context.fillText(building.shortName, markerX, markerY + 4);
       });
 
       allFoundryTeams.forEach((team, teamIndex) => {
         const building = foundryBuildings.find((item) => item.id === team.buildingId) || foundryBuildings[2];
         const color = foundryTeamColors[teamIndex % foundryTeamColors.length];
-        const mapX = rightX + 16 + (building.x / 100) * (rightWidth - 32);
-        const mapY = headerHeight + 50 + (building.y / 100) * 708;
-        const offset = foundryExportCircleOffset(teamIndex, allFoundryTeams.length, 0);
-        context.strokeStyle = color;
-        context.lineWidth = 4;
-        context.beginPath();
-        context.arc(mapX + offset.x * 0.18, mapY + offset.y * 0.18, 18, 0, Math.PI * 2);
-        context.stroke();
+        const centerX = mapInnerX + (building.x / 100) * mapInnerWidth;
+        const centerY = mapInnerY + (building.y / 100) * mapInnerHeight;
+        const members = [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile);
+        const visibleMembers = members.length ? members : [team.rallyLeader];
+        const teamsAtBuilding = allFoundryTeams.filter((item) => item.buildingId === team.buildingId);
+        const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
+        const teamOffset = Math.max(0, buildingTeamIndex);
+        const labelY = Math.max(mapInnerY + 34, centerY - 92 - teamOffset * 18);
+
+        context.save();
+        context.shadowColor = "rgba(15, 23, 42, 0.22)";
+        context.shadowBlur = 12;
+        context.shadowOffsetY = 5;
         context.fillStyle = "#ffffff";
+        context.strokeStyle = color;
+        context.lineWidth = 2;
         context.beginPath();
-        context.arc(mapX + offset.x * 0.18, mapY + offset.y * 0.18, 15, 0, Math.PI * 2);
+        context.roundRect(centerX - 120, labelY - 21, 240, 42, 12);
         context.fill();
-        context.fillStyle = "#0f172a";
-        context.font = "900 12px Arial";
+        context.stroke();
+        context.restore();
+        context.fillStyle = color;
+        context.font = "900 13px Arial";
         context.textAlign = "center";
-        context.fillText(String(teamIndex + 1), mapX + offset.x * 0.18, mapY + offset.y * 0.18 + 4);
+        context.fillText(`${teamIndex + 1}. ${trimCanvasText(context, team.name, 134)}`, centerX, labelY - 2);
+        context.fillStyle = "#0f172a";
+        context.font = "900 13px Arial";
+        context.fillText(trimCanvasText(context, building.shortName, 180), centerX, labelY + 15);
+
+        context.strokeStyle = color;
+        context.lineWidth = 2;
+        context.setLineDash([6, 8]);
+        context.beginPath();
+        context.ellipse(centerX, centerY, 92 + teamOffset * 15, 58 + teamOffset * 10, 0, 0, Math.PI * 2);
+        context.stroke();
+        context.setLineDash([]);
+
+        visibleMembers.forEach((member, memberIndex) => {
+          const offset = foundryExportCircleOffset(memberIndex, visibleMembers.length, teamOffset);
+          const chipWidth = member.role === "leader" ? 144 : 132;
+          const chipHeight = 48;
+          const rawX = centerX + offset.x * 0.44;
+          const rawY = centerY + offset.y * 0.44;
+          const chipX = Math.max(mapInnerX + 10, Math.min(mapInnerX + mapInnerWidth - chipWidth - 10, rawX - chipWidth / 2));
+          const chipY = Math.max(mapInnerY + 48, Math.min(mapInnerY + mapInnerHeight - chipHeight - 10, rawY - chipHeight / 2));
+          drawFoundryMemberChip(context, member, chipX, chipY, chipWidth, member.role === "leader" ? foundryLeaderColor : color, avatarImages.get(member.id));
+        });
       });
 
       context.textAlign = "left";
-      let y = headerHeight + 34;
+      context.fillStyle = "#0f172a";
+      context.font = "900 24px Arial";
+      context.fillText("Team Rosters", tableX, mapY + 8);
+      context.fillStyle = "#64748b";
+      context.font = "800 14px Arial";
+      context.fillText("Includes every leader and joiner slot.", tableX, mapY + 31);
+
+      let y = mapY + 50;
       teamCards.forEach((card, index) => {
         const color = foundryTeamColors[index % foundryTeamColors.length];
-        const cardHeight = 62 + Math.max(card.members.length, 1) * rowHeight;
+        const rows = card.members.length ? card.members : [card.team.rallyLeader];
+        const cardHeight = 68 + rows.length * rowHeight;
         context.fillStyle = "#ffffff";
         context.strokeStyle = "#dbe5ef";
         context.lineWidth = 1;
         context.beginPath();
-        context.roundRect(leftX, y, leftWidth, cardHeight, 14);
+        context.roundRect(tableX, y, tableWidth, cardHeight, 14);
         context.fill();
         context.stroke();
         context.fillStyle = color;
         context.beginPath();
-        context.roundRect(leftX, y, 12, cardHeight, 8);
+        context.roundRect(tableX, y, 12, cardHeight, 8);
         context.fill();
         context.fillStyle = "#0f172a";
-        context.font = "900 20px Arial";
-        context.fillText(`${index + 1}. ${trimCanvasText(context, card.team.name, 240)}`, leftX + 28, y + 28);
+        context.font = "900 19px Arial";
+        context.textAlign = "left";
+        context.fillText(`${index + 1}. ${trimCanvasText(context, card.team.name, 180)}`, tableX + 26, y + 28);
         context.fillStyle = "#475569";
-        context.font = "900 14px Arial";
+        context.font = "900 13px Arial";
         context.textAlign = "right";
-        context.fillText(trimCanvasText(context, card.building?.name || "Unassigned", 250), leftX + leftWidth - 18, y + 28);
+        context.fillText(trimCanvasText(context, card.building?.name || "Unassigned", 230), tableX + tableWidth - 18, y + 28);
         context.textAlign = "left";
         context.fillStyle = "#e2e8f0";
-        context.fillRect(leftX + 28, y + 42, leftWidth - 48, 1);
+        context.fillRect(tableX + 26, y + 42, tableWidth - 44, 1);
+        context.fillStyle = "#64748b";
+        context.font = "900 10px Arial";
+        context.fillText("ROLE", tableX + 58, y + 59);
+        context.fillText("PLAYER", tableX + 122, y + 59);
+        context.fillText("ID", tableX + 316, y + 59);
+        context.fillText("FC", tableX + 452, y + 59);
 
-        const rows = card.members.length ? card.members : [card.team.rallyLeader];
         rows.forEach((member, memberIndex) => {
-          const rowY = y + 69 + memberIndex * rowHeight;
+          const rowY = y + 86 + memberIndex * rowHeight;
           const roleColor = member.role === "leader" ? color : "#64748b";
-          drawFoundryAvatar(context, avatarImages.get(member.id), leftX + 45, rowY - 10, 24, roleColor, foundryMemberName(member));
+          if (memberIndex % 2 === 0) {
+            context.fillStyle = "#f8fafc";
+            context.beginPath();
+            context.roundRect(tableX + 22, rowY - 24, tableWidth - 38, 28, 8);
+            context.fill();
+          }
+          drawFoundryAvatar(context, avatarImages.get(member.id), tableX + 42, rowY - 10, 24, roleColor, foundryMemberName(member));
           context.fillStyle = roleColor;
           context.font = "900 11px Arial";
-          context.fillText(member.role === "leader" ? "LEADER" : "JOIN", leftX + 68, rowY - 6);
+          context.fillText(member.role === "leader" ? "LEAD" : "JOIN", tableX + 58, rowY - 6);
           context.fillStyle = "#0f172a";
           context.font = "900 14px Arial";
-          context.fillText(trimCanvasText(context, foundryMemberName(member), 168), leftX + 128, rowY - 6);
+          context.fillText(trimCanvasText(context, foundryMemberName(member), 174), tableX + 122, rowY - 6);
           context.fillStyle = "#475569";
           context.font = "800 13px Arial";
-          context.fillText(member.playerId || "-", leftX + 320, rowY - 6);
-          context.fillText(member.profile ? furnaceDisplay(member.profile) : "-", leftX + 448, rowY - 6);
+          context.fillText(member.playerId || "-", tableX + 316, rowY - 6);
+          context.fillText(member.profile ? furnaceDisplay(member.profile) : "-", tableX + 452, rowY - 6);
         });
         y += cardHeight + cardGap;
       });
