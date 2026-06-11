@@ -8615,6 +8615,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <a href="/daybreak-island" onClick={(event) => { event.preventDefault(); navigateToMenu("daybreak"); }}>Daybreak Island</a>
                 <a href={DISCORD_COMMUNITY_URL} target="_blank" rel="noreferrer">Discord Server</a>
               </div>
+              <div className="bottom-legal-links" aria-label="Legal links">
+                <h2>Legal</h2>
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
+              </div>
             </nav>
             <div className="bottom-community-meta">
               <span>(c) 2026 WhiteoutSurvival.dev - All rights reserved.</span>
