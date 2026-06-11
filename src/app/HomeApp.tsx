@@ -8705,7 +8705,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
             </div>
             <span className="section-kicker">Welcome back</span>
             <h2>Sign in to WhiteoutSurvival.dev</h2>
-            <p>Use your community account to manage your profile and linked game accounts.</p>
+            <p>Choose your preferred sign-in method</p>
             <div className="social-login-stack">
               <button className="social-login google" type="button" onClick={() => signInWith("google")}>
                 <span className="provider-mark"><SocialProviderLogo provider="google" /></span>
