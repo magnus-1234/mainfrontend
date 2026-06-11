@@ -7684,10 +7684,16 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
           ) : activeMenu === "planner" ? (
             <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
               <section className="foundry-hero">
-                <div>
+                <div className="foundry-hero-copy">
                   <span className="section-kicker">Planner Setup</span>
                   <h1>Whiteout Survival Foundry Team Planner</h1>
                   <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan exports map, team table, and compact battle sheet images.</p>
+                  <div className="foundry-hero-metrics" aria-label="Foundry planner summary">
+                    <span><strong>60m</strong> Event</span>
+                    <span><strong>{allFoundryTeams.length}</strong> Teams</span>
+                    <span><strong>Legion {foundryLegion}</strong> Active</span>
+                    <span><strong>{foundryUtcTime ? formatFoundryUtcTime(foundryUtcTime) : "UTC"}</strong> Time</span>
+                  </div>
                 </div>
                 <div className="foundry-hero-actions">
                   <button className="foundry-primary-download" type="button" onClick={() => void exportFoundryPlanImages()}>
