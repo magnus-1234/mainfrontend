@@ -8622,6 +8622,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <Image src="/magnus-logo-cropped.png" alt="Magnus" width={104} height={31} />
               </span>
             </div>
+            <div className="bottom-legal-text" style={{ textAlign: "center", marginTop: "1rem", fontSize: "0.75rem", opacity: 0.6 }}>
+              By continuing, you agree to our <a href="/terms-of-service">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>
+            </div>
           </section>
 
           <footer className={`site-footer ${footerVisible ? "footer-visible" : "footer-hidden"}`}>
