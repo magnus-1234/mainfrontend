@@ -55,13 +55,6 @@ type SunfireLandmark = {
 
 const RESOURCE_BUILDING_SIZE = 2;
 
-const SUNFIRE_ASH_BASE = {
-  minX: 595,
-  minY: 595,
-  maxX: 605,
-  maxY: 605,
-};
-
 const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
   {
     id: "sunfire-turret-north",
@@ -100,10 +93,10 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
 ];
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
-  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png?v=resource-transparent-v4" },
-  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png?v=resource-transparent-v4" },
-  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png?v=resource-transparent-v4" },
-  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png?v=resource-transparent-v4" },
+  iron: { label: "Iron", image: "/vendor/krozac-wos-interactive-map/alliance/iron-clean.png?v=resource-transparent-v5" },
+  meat: { label: "Meat", image: "/vendor/krozac-wos-interactive-map/alliance/farm-clean.png?v=resource-transparent-v5" },
+  wood: { label: "Wood", image: "/vendor/krozac-wos-interactive-map/alliance/wood-clean.png?v=resource-transparent-v5" },
+  coal: { label: "Coal", image: "/vendor/krozac-wos-interactive-map/alliance/coal-clean.png?v=resource-transparent-v5" },
 };
 
 const WOS_RESOURCE_BUILDING_TUPLES = [
@@ -237,31 +230,6 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
 const renderResourceBuilding = (node: ResourceBuilding, mode: MapMode) => (
   mode === "2d" ? renderFlatResourceBuilding(node) : renderRaisedResourceBuilding(node)
 );
-
-const renderSunfireAshBase = () => {
-  const x = SUNFIRE_ASH_BASE.minX - 1;
-  const y = SUNFIRE_ASH_BASE.minY - 1;
-  const width = SUNFIRE_ASH_BASE.maxX - SUNFIRE_ASH_BASE.minX + 1;
-  const height = SUNFIRE_ASH_BASE.maxY - SUNFIRE_ASH_BASE.minY + 1;
-
-  return (
-    <g aria-label="Sunfire Castle dark ashy base">
-      <title>{`Sunfire ash base from ${SUNFIRE_ASH_BASE.minX},${SUNFIRE_ASH_BASE.minY} to ${SUNFIRE_ASH_BASE.maxX},${SUNFIRE_ASH_BASE.maxY}`}</title>
-      <rect x={x} y={y} width={width} height={height} fill="#191716" />
-      <rect x={x} y={y} width={width} height={height} fill="url(#wos-sunfire-ash)" opacity="0.95" />
-      <path
-        d={`M ${x + 1.2} ${y + 2.1} L ${x + 3.8} ${y + 4.2} L ${x + 2.9} ${y + 6.1} M ${x + 5.1} ${y + 1.4} L ${x + 7.4} ${y + 3.6} L ${x + 9.8} ${y + 2.8} M ${x + 4.3} ${y + 8.7} L ${x + 6.3} ${y + 7.2} L ${x + 9.2} ${y + 9.5}`}
-        fill="none"
-        stroke="#e26d2f"
-        strokeOpacity="0.26"
-        strokeWidth="0.35"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </g>
-  );
-};
 
 const sunfireFootprintFor = (node: SunfireLandmark) => {
   const { col: x, row: y, size } = node.planner;
@@ -795,13 +763,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   <circle cx="62" cy="48" r="0.8" fill="#eefbff" opacity="0.3" />
                   <circle cx="8" cy="62" r="0.7" fill="#ffffff" opacity="0.32" />
                 </pattern>
-                <pattern id="wos-sunfire-ash" width="7" height="7" patternUnits="userSpaceOnUse">
-                  <rect width="7" height="7" fill="#171615" />
-                  <path d="M -1 5 L 2 2 L 5 3.8 L 8 1" fill="none" stroke="#4a4038" strokeWidth="0.45" strokeLinecap="round" />
-                  <path d="M 1 6.1 L 3.6 5.2 M 4.8 1.1 L 6.2 2.2" fill="none" stroke="#e26d2f" strokeOpacity="0.28" strokeWidth="0.32" strokeLinecap="round" />
-                  <circle cx="1.5" cy="1.6" r="0.28" fill="#f2a04d" opacity="0.38" />
-                  <circle cx="5.8" cy="5.2" r="0.22" fill="#c94d2a" opacity="0.38" />
-                </pattern>
               </defs>
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-base)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-cold-pocket)" />
@@ -823,7 +784,6 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-speckles)" opacity="0.6" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-flurry)" opacity="0.42" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#f8fdff" filter="url(#wos-snow-grain)" opacity="0.2" />
-              {renderSunfireAshBase()}
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.58)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
               <g aria-label="WOSTools fixed resource buildings">
                 {WOS_RESOURCE_BUILDINGS.map((node) => renderResourceBuilding(node, mode))}
