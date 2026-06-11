@@ -69,6 +69,7 @@ type FoundryMember = {
   id: string;
   role: FoundryMemberRole;
   playerId: string;
+  description: string;
   status: string;
   loading: boolean;
   profile?: PlayerProfile;
@@ -78,6 +79,7 @@ type FoundryTeam = {
   id: string;
   name: string;
   buildingId: string;
+  phaseId: string;
   rallyLeader: FoundryMember;
   joiners: FoundryMember[];
 };
@@ -520,6 +522,25 @@ const foundryBuildings: FoundryBuilding[] = [
 
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
 const foundryLeaderColor = "#facc15";
+const foundryPhaseOptions = [
+  { id: "all", label: "All phases", range: "0-60m" },
+  { id: "phase-1", label: "Phase 1", range: "0-15m" },
+  { id: "phase-2", label: "Phase 2", range: "12-30m" },
+  { id: "phase-3", label: "Phase 3", range: "30-60m" },
+];
+const foundryPhaseLabelById = new Map(foundryPhaseOptions.map((phase) => [phase.id, `${phase.label} ${phase.range}`]));
+const foundryBuildingPhaseId = (phase: string) => {
+  if (phase === "Phase 1") {
+    return "phase-1";
+  }
+  if (phase === "Phase 2") {
+    return "phase-2";
+  }
+  if (phase === "Phase 3" || phase === "Looter") {
+    return "phase-3";
+  }
+  return "all";
+};
 
 const foundryMapCircleOffset = (memberIndex: number, memberCount: number, teamOffset = 0) => {
   const radius = 8.2 + teamOffset * 1.2;
@@ -878,6 +899,7 @@ const createFoundryMember = (role: FoundryMemberRole, seed: string): FoundryMemb
   id: `${role}-${seed}`,
   role,
   playerId: "",
+  description: "",
   status: "",
   loading: false,
 });
@@ -886,6 +908,7 @@ const createFoundryTeam = (index: number): FoundryTeam => ({
   id: `team-${index + 1}`,
   name: `Team ${index + 1}`,
   buildingId: foundryBuildings.filter((building) => building.phase !== "Spawn")[index % (foundryBuildings.length - 2)].id,
+  phaseId: "all",
   rallyLeader: createFoundryMember("leader", `${index + 1}`),
   joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `${index + 1}-${joinerIndex + 1}`)),
 });
@@ -896,6 +919,7 @@ const createFoundryLooterTeam = (): FoundryTeam => ({
   id: "looter-team",
   name: "Looter Team",
   buildingId: "arsenal-supplies",
+  phaseId: "phase-3",
   rallyLeader: createFoundryMember("leader", "looter"),
   joiners: Array.from({ length: 4 }, (_, joinerIndex) => createFoundryMember("joiner", `looter-${joinerIndex + 1}`)),
 });
@@ -1013,13 +1037,14 @@ const decodeFoundryShareState = (value: string): FoundryShareState => {
   }
 };
 
-type FoundryShareMember = Pick<FoundryMember, "playerId"> & {
+type FoundryShareMember = Pick<FoundryMember, "description" | "playerId"> & {
   profile?: PlayerProfile;
 };
 type FoundryShareTeam = {
   buildingId: string;
   joiners: FoundryShareMember[];
   name: string;
+  phaseId?: string;
   rallyLeader: FoundryShareMember;
 };
 type FoundryShareState = {
@@ -4732,27 +4757,41 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     () => foundryBuildings.filter((building) => building.phase !== "Spawn"),
     [],
   );
+  const foundryBuildingsForTeam = (team: FoundryTeam) => {
+    if (team.phaseId === "all") {
+      return foundrySelectableBuildings;
+    }
+    const options = foundrySelectableBuildings.filter((building) => foundryBuildingPhaseId(building.phase) === team.phaseId);
+    return options.some((building) => building.id === team.buildingId)
+      ? options
+      : [...options, ...foundrySelectableBuildings.filter((building) => building.id === team.buildingId)];
+  };
 
   const foundryTeamToShare = (team: FoundryTeam): FoundryShareTeam => ({
     buildingId: team.buildingId,
-    joiners: team.joiners.map((member) => ({ playerId: member.playerId, profile: member.profile })),
+    joiners: team.joiners.map((member) => ({ description: member.description, playerId: member.playerId, profile: member.profile })),
     name: team.name,
-    rallyLeader: { playerId: team.rallyLeader.playerId, profile: team.rallyLeader.profile },
+    phaseId: team.phaseId,
+    rallyLeader: { description: team.rallyLeader.description, playerId: team.rallyLeader.playerId, profile: team.rallyLeader.profile },
   });
 
   const foundryTeamFromShare = useCallback((team: FoundryShareTeam, index: number): FoundryTeam => {
     const fallback = createFoundryTeam(index);
+    const phaseId = foundryPhaseOptions.some((phase) => phase.id === team.phaseId) ? team.phaseId || "all" : "all";
     return {
       ...fallback,
       buildingId: foundryBuildings.some((building) => building.id === team.buildingId) ? team.buildingId : fallback.buildingId,
       joiners: (team.joiners?.length ? team.joiners : fallback.joiners).map((member, joinerIndex) => ({
         ...createFoundryMember("joiner", `${index + 1}-${joinerIndex + 1}`),
+        description: member.description || "",
         playerId: member.playerId?.replace(/\D/g, "") || "",
         profile: member.profile ? normalizeFoundryPlayerProfile(member.profile) : undefined,
       })),
       name: team.name || fallback.name,
+      phaseId,
       rallyLeader: {
         ...fallback.rallyLeader,
+        description: team.rallyLeader?.description || "",
         playerId: team.rallyLeader?.playerId?.replace(/\D/g, "") || "",
         profile: team.rallyLeader?.profile ? normalizeFoundryPlayerProfile(team.rallyLeader.profile) : undefined,
       },
@@ -4987,7 +5026,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     });
   };
 
-  const updateFoundryTeam = (teamId: string, updates: Partial<Pick<FoundryTeam, "name" | "buildingId">>) => {
+  const updateFoundryTeam = (teamId: string, updates: Partial<Pick<FoundryTeam, "buildingId" | "name" | "phaseId">>) => {
     if (teamId === foundryLooterTeam.id) {
       setFoundryLooterTeam((team) => ({ ...team, ...updates }));
       return;
@@ -5024,6 +5063,27 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     }));
   };
 
+  const updateFoundryMemberForLookup = useCallback((teamId: string, memberId: string, expectedPlayerId: string, updates: Partial<FoundryMember>) => {
+    const applyLookupUpdate = (member: FoundryMember) => (
+      member.id === memberId && member.playerId.replace(/\D/g, "") === expectedPlayerId
+        ? { ...member, ...updates }
+        : member
+    );
+    if (teamId === foundryLooterTeam.id) {
+      setFoundryLooterTeam((team) => ({
+        ...team,
+        rallyLeader: applyLookupUpdate(team.rallyLeader),
+        joiners: team.joiners.map(applyLookupUpdate),
+      }));
+      return;
+    }
+    setFoundryTeams((teams) => teams.map((team) => (
+      team.id === teamId
+        ? { ...team, rallyLeader: applyLookupUpdate(team.rallyLeader), joiners: team.joiners.map(applyLookupUpdate) }
+        : team
+    )));
+  }, [foundryLooterTeam.id]);
+
   const addFoundryJoiner = (teamId: string) => {
     if (teamId === foundryLooterTeam.id) {
       setFoundryLooterTeam((team) => ({
@@ -5051,33 +5111,42 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     )));
   };
 
-  const lookupFoundryPlayer = async (teamId: string, member: FoundryMember) => {
-    const cleanedPlayerId = member.playerId.replace(/\D/g, "");
-    if (!/^\d{8,9}$/.test(cleanedPlayerId)) {
-      updateFoundryMember(teamId, member.id, { profile: undefined, status: "Enter an 8 or 9 digit ID." });
+  useEffect(() => {
+    const pendingMembers = allFoundryTeams.flatMap((team) => [team.rallyLeader, ...team.joiners].map((member) => ({ member, teamId: team.id })))
+      .filter(({ member }) => {
+        const cleanedPlayerId = member.playerId.replace(/\D/g, "");
+        return /^\d{8,9}$/.test(cleanedPlayerId) && !member.loading && !member.profile && !member.status;
+      });
+    if (!pendingMembers.length) {
       return;
     }
+    const timers = pendingMembers.map(({ member, teamId }) => window.setTimeout(() => {
+      const cleanedPlayerId = member.playerId.replace(/\D/g, "");
+      updateFoundryMemberForLookup(teamId, member.id, cleanedPlayerId, { loading: true, status: "Fetching player..." });
+      void (async () => {
+        try {
+          const profile = await fetchFoundryPlayerProfile(cleanedPlayerId);
+          if (!profile) {
+            throw new Error("Unable to fetch player.");
+          }
+          updateFoundryMemberForLookup(teamId, member.id, cleanedPlayerId, {
+            playerId: cleanedPlayerId,
+            profile,
+            status: "Loaded",
+            loading: false,
+          });
+        } catch (error) {
+          updateFoundryMemberForLookup(teamId, member.id, cleanedPlayerId, {
+            profile: undefined,
+            status: error instanceof Error ? error.message : "Unable to fetch player.",
+            loading: false,
+          });
+        }
+      })();
+    }, 650));
 
-    updateFoundryMember(teamId, member.id, { loading: true, status: "Fetching player..." });
-    try {
-      const profile = await fetchFoundryPlayerProfile(cleanedPlayerId);
-      if (!profile) {
-        throw new Error("Unable to fetch player.");
-      }
-      updateFoundryMember(teamId, member.id, {
-        playerId: cleanedPlayerId,
-        profile,
-        status: "Loaded",
-        loading: false,
-      });
-    } catch (error) {
-      updateFoundryMember(teamId, member.id, {
-        profile: undefined,
-        status: error instanceof Error ? error.message : "Unable to fetch player.",
-        loading: false,
-      });
-    }
-  };
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [allFoundryTeams, fetchFoundryPlayerProfile, updateFoundryMemberForLookup]);
 
   const downloadCanvas = (canvas: HTMLCanvasElement, filename: string) => {
     const link = document.createElement("a");
@@ -5409,7 +5478,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       context.fillText(card.team.name.slice(0, 28), x + 18, y + 34);
       context.font = "900 13px Arial";
       context.textAlign = "right";
-      context.fillText((card.building?.name || "Unassigned").slice(0, 28), x + cardWidth - 18, y + 34);
+      context.fillText((card.building?.name || "Unassigned").slice(0, 28), x + cardWidth - 18, y + 26);
+      context.font = "900 11px Arial";
+      context.fillText((foundryPhaseLabelById.get(card.team.phaseId) || "All phases 0-60m").slice(0, 24), x + cardWidth - 18, y + 42);
 
       const headerY = y + 78;
       context.fillStyle = "rgba(255, 255, 255, 0.08)";
@@ -5621,6 +5692,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         context.font = "900 13px Arial";
         context.textAlign = "right";
         context.fillText(trimCanvasText(context, card.building?.name || "Unassigned", 230), tableX + tableWidth - 18, y + 28);
+        context.fillStyle = "#64748b";
+        context.font = "900 11px Arial";
+        context.fillText(foundryPhaseLabelById.get(card.team.phaseId) || "All phases 0-60m", tableX + tableWidth - 18, y + 45);
         context.textAlign = "left";
         context.fillStyle = "#e2e8f0";
         context.fillRect(tableX + 26, y + 42, tableWidth - 44, 1);
@@ -7806,15 +7880,23 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         <input value={team.name} onChange={(event) => updateFoundryTeam(team.id, { name: event.target.value })} />
                       </label>
                       <label>
+                        Phase
+                        <select value={team.phaseId} onChange={(event) => updateFoundryTeam(team.id, { phaseId: event.target.value })}>
+                          {foundryPhaseOptions.map((phase) => (
+                            <option value={phase.id} key={phase.id}>{phase.label} ({phase.range})</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
                         Building
                         <select value={team.buildingId} onChange={(event) => updateFoundryTeam(team.id, { buildingId: event.target.value })}>
-                          {foundrySelectableBuildings.map((building) => (
+                          {foundryBuildingsForTeam(team).map((building) => (
                             <option value={building.id} key={building.id}>{building.name}</option>
                           ))}
                         </select>
                       </label>
                       <span style={{ ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length] }}>
-                        Team {teamIndex + 1}
+                        Team {teamIndex + 1} | {foundryPhaseLabelById.get(team.phaseId) || "All phases 0-60m"}
                       </span>
                     </header>
                     <div className="foundry-roster-table">
@@ -7823,8 +7905,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         <span>Player ID</span>
                         <span>Player</span>
                         <span>Furnace</span>
-                        <span>Status</span>
-                        <span>Action</span>
+                        <span>Note</span>
+                        <span></span>
                       </div>
                       {[team.rallyLeader, ...team.joiners].map((member) => (
                         <div className="foundry-roster-row" key={member.id}>
@@ -7834,25 +7916,27 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                             inputMode="numeric"
                             placeholder="Player ID"
                             onChange={(event) => updateFoundryMember(team.id, member.id, { playerId: event.target.value.replace(/\D/g, ""), status: "", profile: undefined })}
-                            onBlur={() => {
-                              if (member.playerId) {
-                                void lookupFoundryPlayer(team.id, member);
-                              }
-                            }}
                           />
                           <span className="foundry-roster-player">
                             <span className="foundry-roster-avatar">
                               <WosPlayerAvatar src={member.profile?.avatarImage} />
                             </span>
-                            <strong>{member.profile?.nickname || "-"}</strong>
+                            <strong>{member.loading ? "Fetching..." : member.profile?.nickname || (member.status && member.playerId.length >= 8 ? "Not found" : "-")}</strong>
                           </span>
                           <span>{member.profile ? furnaceDisplay(member.profile) : "-"}</span>
-                          <small>{member.loading ? "Fetching..." : member.status || "-"}</small>
-                          <div>
-                            <button type="button" onClick={() => void lookupFoundryPlayer(team.id, member)} disabled={member.loading}>
-                              <Icon name="search" />
-                              Fetch
-                            </button>
+                          <details className="foundry-member-note">
+                            <summary title="Player description">
+                              <Icon name={member.description ? "message" : "edit"} />
+                              <span>{member.description ? "Note" : "Add"}</span>
+                            </summary>
+                            <textarea
+                              value={member.description}
+                              rows={2}
+                              placeholder="Player description"
+                              onChange={(event) => updateFoundryMember(team.id, member.id, { description: event.target.value })}
+                            />
+                          </details>
+                          <div className="foundry-row-actions">
                             {member.role === "joiner" && (
                               <button type="button" className="danger" onClick={() => removeFoundryJoiner(team.id, member.id)}>
                                 <Icon name="trash" />
