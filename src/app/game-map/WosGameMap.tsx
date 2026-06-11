@@ -193,12 +193,7 @@ const renderFlatResourceBuilding = (node: ResourceBuilding) => {
   return (
     <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={`${meta.label} resource building`}>
       <title>{`${meta.label} resource building at ${node.x},${node.y}`}</title>
-      <rect
-        width={RESOURCE_BUILDING_SIZE}
-        height={RESOURCE_BUILDING_SIZE}
-        fill="none"
-        pointerEvents="none"
-      />
+
       <image href={meta.image} x="0.34" y="0.16" width="1.32" height="1.08" preserveAspectRatio="xMidYMid meet" opacity="0.98" />
       <text x="1" y="1.48" textAnchor="middle" fontSize="0.26" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
         {meta.label}
@@ -212,12 +207,7 @@ const renderRaisedResourceBuilding = (node: ResourceBuilding) => {
   return (
     <g key={node.id} transform={`translate(${node.x} ${node.y})`} aria-label={`${meta.label} resource building`}>
       <title>{`${meta.label} resource building at ${node.x},${node.y}`}</title>
-      <rect
-        width={RESOURCE_BUILDING_SIZE}
-        height={RESOURCE_BUILDING_SIZE}
-        fill="none"
-        pointerEvents="none"
-      />
+
       <image href={meta.image} x="0.3" y="0.1" width="1.4" height="1.12" preserveAspectRatio="xMidYMid meet" />
       <path d="M 0.24 0.42 C 0.62 0.16, 1.38 0.16, 1.76 0.42" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.09" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       <text x="1" y="1.48" textAnchor="middle" fontSize="0.26" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
@@ -266,7 +256,7 @@ const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
         </clipPath>
       </defs>
       <title>{sunfireFootprintTitle(node)}</title>
-      <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} fill="none" pointerEvents="none" />
+
       <g clipPath={`url(#${footprint.clipId})`}>
         <circle cx={footprint.cx} cy={footprint.cy} r={footprint.size * 0.46} fill="none" stroke={goldStroke} strokeOpacity="0.42" strokeWidth={footprint.size * 0.035} />
         {raised && (
@@ -323,7 +313,7 @@ const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
         </clipPath>
       </defs>
       <title>{sunfireFootprintTitle(node)}</title>
-      <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} fill="none" pointerEvents="none" />
+
       <g clipPath={`url(#${footprint.clipId})`}>
         {raised && (
           <path
