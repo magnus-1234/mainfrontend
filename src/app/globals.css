@@ -15984,10 +15984,10 @@ body {
 .wiki-card-image {
   width: 72px;
   height: 72px;
-  border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--muted);
   object-fit: contain;
+  background: transparent;
+  border: none;
 }
 
 .wiki-card-title {
