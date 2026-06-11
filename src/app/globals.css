@@ -20065,3 +20065,55 @@ body {
     flex-direction: column;
   }
 }
+/* Foundry Planner Compact & Button Overrides */
+.foundry-hero-actions button,
+.foundry-map-toolbar button,
+.foundry-table-head button,
+.foundry-roster-row button,
+.foundry-add-joiner {
+  background: var(--background) !important;
+  transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.foundry-map-toolbar button:hover,
+.foundry-table-head button:hover,
+.foundry-roster-row button:hover,
+.foundry-add-joiner:hover {
+  border-color: var(--gold-line) !important;
+  background: var(--muted) !important;
+}
+
+.foundry-hero-actions button:active,
+.foundry-map-toolbar button:active,
+.foundry-table-head button:active,
+.foundry-roster-row button:active,
+.foundry-add-joiner:active {
+  transform: scale(0.96) !important;
+}
+
+.foundry-setup-panel {
+  gap: 8px !important;
+  padding: 10px !important;
+}
+
+.foundry-setup-panel input,
+.foundry-setup-panel select,
+.foundry-team-table input,
+.foundry-team-table select,
+.foundry-roster-row input {
+  min-height: 34px !important;
+}
+
+.foundry-time-actions button {
+  background: var(--background) !important;
+  transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.foundry-time-actions button:hover {
+  border-color: var(--gold-line) !important;
+  background: var(--muted) !important;
+}
+
+.foundry-time-actions button:active {
+  transform: scale(0.96) !important;
+}
