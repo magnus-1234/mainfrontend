@@ -18819,6 +18819,144 @@ body {
   color: var(--foreground);
 }
 
+.foundry-planner-page {
+  --foundry-button-bg: #1f2933;
+  --foundry-button-bg-hover: #2b3744;
+  --foundry-button-border: #4b5b6d;
+  --foundry-button-text: #f8fafc;
+  --foundry-button-primary: #f48120;
+  --foundry-button-primary-hover: #ff9a3d;
+  --foundry-button-primary-text: #1b1005;
+  --foundry-button-danger: #b91c1c;
+  --foundry-button-danger-hover: #dc2626;
+}
+
+.light .foundry-planner-page {
+  --foundry-button-bg: #ffffff;
+  --foundry-button-bg-hover: #f1f5f9;
+  --foundry-button-border: #94a3b8;
+  --foundry-button-text: #0f172a;
+}
+
+.foundry-planner-page :is(
+  .foundry-hero-actions button,
+  .foundry-signin-gate button,
+  .foundry-time-actions button,
+  .foundry-map-toolbar button,
+  .foundry-table-head button,
+  .foundry-roster-row button,
+  .foundry-add-joiner,
+  .foundry-share-modal button,
+  .foundry-share-modal a.brand-share,
+  .foundry-member-note summary
+) {
+  border: 1px solid var(--foundry-button-border);
+  background: var(--foundry-button-bg);
+  background-image: none;
+  color: var(--foundry-button-text);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.16);
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.foundry-planner-page :is(
+  .foundry-hero-actions button,
+  .foundry-signin-gate button,
+  .foundry-time-actions button,
+  .foundry-map-toolbar button,
+  .foundry-table-head button,
+  .foundry-roster-row button,
+  .foundry-add-joiner,
+  .foundry-share-modal button,
+  .foundry-share-modal a.brand-share,
+  .foundry-member-note summary
+):hover {
+  border-color: var(--foundry-button-primary);
+  background: var(--foundry-button-bg-hover);
+  background-image: none;
+  color: var(--foundry-button-text);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+.foundry-planner-page :is(
+  .foundry-hero-actions button,
+  .foundry-signin-gate button,
+  .foundry-time-actions button,
+  .foundry-map-toolbar button,
+  .foundry-table-head button,
+  .foundry-roster-row button,
+  .foundry-add-joiner,
+  .foundry-share-modal button,
+  .foundry-share-modal a.brand-share,
+  .foundry-member-note summary
+):active {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.16);
+  transform: translateY(0);
+}
+
+.foundry-planner-page :is(
+  .foundry-hero-actions .foundry-primary-download,
+  .foundry-signin-gate button
+) {
+  border-color: #b45309;
+  background: var(--foundry-button-primary);
+  color: var(--foundry-button-primary-text);
+  box-shadow: 0 8px 18px rgba(244, 129, 32, 0.26);
+}
+
+.foundry-planner-page :is(
+  .foundry-hero-actions .foundry-primary-download,
+  .foundry-signin-gate button
+):hover {
+  border-color: #92400e;
+  background: var(--foundry-button-primary-hover);
+  color: var(--foundry-button-primary-text);
+  box-shadow: 0 10px 22px rgba(244, 129, 32, 0.32);
+}
+
+.foundry-planner-page .foundry-map-toolbar button.active,
+.foundry-planner-page .foundry-member-note[open] summary {
+  border-color: var(--foundry-button-primary);
+  background: var(--foundry-button-primary);
+  color: var(--foundry-button-primary-text);
+  box-shadow: 0 6px 14px rgba(244, 129, 32, 0.24);
+}
+
+.foundry-planner-page .foundry-roster-row button.danger {
+  border-color: var(--foundry-button-danger);
+  background: var(--foundry-button-danger);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.foundry-planner-page .foundry-roster-row button.danger:hover {
+  border-color: #991b1b;
+  background: var(--foundry-button-danger-hover);
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(185, 28, 28, 0.26);
+}
+
+.foundry-planner-page :is(
+  .foundry-hero-actions button,
+  .foundry-signin-gate button,
+  .foundry-time-actions button,
+  .foundry-map-toolbar button,
+  .foundry-table-head button,
+  .foundry-roster-row button,
+  .foundry-add-joiner,
+  .foundry-share-modal button,
+  .foundry-share-modal a.brand-share,
+  .foundry-member-note summary
+):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--foundry-button-primary) 55%, #ffffff);
+  outline-offset: 2px;
+}
+
 .hero-copy p,
 .landing-hero-copy p,
 .landing-tool-copy span,
