@@ -7688,12 +7688,6 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <span className="section-kicker">Planner Setup</span>
                   <h1>Whiteout Survival Foundry Team Planner</h1>
                   <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan exports map, team table, and compact battle sheet images.</p>
-                  <div className="foundry-hero-metrics" aria-label="Foundry planner summary">
-                    <span><strong>60m</strong> Event</span>
-                    <span><strong>{allFoundryTeams.length}</strong> Teams</span>
-                    <span><strong>Legion {foundryLegion}</strong> Active</span>
-                    <span><strong>{foundryUtcTime ? formatFoundryUtcTime(foundryUtcTime) : "UTC"}</strong> Time</span>
-                  </div>
                 </div>
                 <div className="foundry-hero-actions">
                   <button className="foundry-primary-download" type="button" onClick={() => void exportFoundryPlanImages()}>
@@ -7740,18 +7734,24 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <div className="foundry-time-control">
                   <span>2. Battle Time UTC</span>
                   <div className="foundry-time-inputs">
-                    <input
-                      aria-label="Foundry battle date in UTC"
-                      type="date"
-                      value={foundryUtcDatePart}
-                      onChange={(event) => setFoundryBattleTimeParts(event.target.value, foundryUtcClockPart)}
-                    />
-                    <input
-                      aria-label="Foundry battle time in UTC"
-                      type="time"
-                      value={foundryUtcClockPart}
-                      onChange={(event) => setFoundryBattleTimeParts(foundryUtcDatePart, event.target.value)}
-                    />
+                    <label className="foundry-time-field">
+                      <span>UTC Date</span>
+                      <input
+                        aria-label="Foundry battle date in UTC"
+                        type="date"
+                        value={foundryUtcDatePart}
+                        onChange={(event) => setFoundryBattleTimeParts(event.target.value, foundryUtcClockPart)}
+                      />
+                    </label>
+                    <label className="foundry-time-field">
+                      <span>UTC Time</span>
+                      <input
+                        aria-label="Foundry battle time in UTC"
+                        type="time"
+                        value={foundryUtcClockPart}
+                        onChange={(event) => setFoundryBattleTimeParts(foundryUtcDatePart, event.target.value)}
+                      />
+                    </label>
                   </div>
                   <div className="foundry-time-actions" aria-label="Foundry battle UTC quick actions">
                     <button type="button" onClick={() => setFoundryUtcTime(utcInputDateTime())}>Now UTC</button>
