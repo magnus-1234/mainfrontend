@@ -243,102 +243,33 @@ const sunfireFootprintTitle = (node: SunfireLandmark) => {
 
 const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
   const footprint = sunfireFootprintFor(node);
-  const raised = mode !== "2d";
-  const towerRadius = footprint.size * 0.12;
-  const domeRadius = footprint.size * 0.22;
-  const goldStroke = "#c79947";
-
   return (
-    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
-      <defs>
-        <clipPath id={footprint.clipId} clipPathUnits="userSpaceOnUse">
-          <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} />
-        </clipPath>
-      </defs>
+    <g key={node.id} aria-label={node.label}>
       <title>{sunfireFootprintTitle(node)}</title>
-
-      <g clipPath={`url(#${footprint.clipId})`}>
-        <circle cx={footprint.cx} cy={footprint.cy} r={footprint.size * 0.46} fill="none" stroke={goldStroke} strokeOpacity="0.42" strokeWidth={footprint.size * 0.035} />
-        {raised && (
-          <path
-            d={`M ${footprint.x + footprint.size * 0.26} ${footprint.y + footprint.size * 0.64} C ${footprint.x + footprint.size * 0.42} ${footprint.maxY - footprint.size * 0.1}, ${footprint.x + footprint.size * 0.62} ${footprint.maxY - footprint.size * 0.1}, ${footprint.x + footprint.size * 0.78} ${footprint.y + footprint.size * 0.64}`}
-            fill="#101824"
-            stroke="#101824"
-            strokeWidth={footprint.size * 0.14}
-            strokeLinecap="round"
-            opacity="0.82"
-          />
-        )}
-        <ellipse cx={footprint.cx} cy={footprint.cy + footprint.size * 0.08} rx={footprint.size * 0.36} ry={footprint.size * 0.27} fill="#344257" stroke="#141d2a" strokeWidth={footprint.size * 0.035} />
-        <path d={`M ${footprint.cx - domeRadius} ${footprint.cy} L ${footprint.cx} ${footprint.y + footprint.size * 0.28} L ${footprint.cx + domeRadius} ${footprint.cy} Z`} fill="#b8c9d5" stroke="#192334" strokeWidth={footprint.size * 0.028} />
-        <path d={`M ${footprint.x + footprint.size * 0.24} ${footprint.y + footprint.size * 0.68} C ${footprint.x + footprint.size * 0.42} ${footprint.y + footprint.size * 0.86}, ${footprint.x + footprint.size * 0.62} ${footprint.y + footprint.size * 0.86}, ${footprint.x + footprint.size * 0.78} ${footprint.y + footprint.size * 0.68}`} fill="none" stroke="#7b3d2d" strokeWidth={footprint.size * 0.12} strokeLinecap="round" />
-        <path d={`M ${footprint.x + footprint.size * 0.2} ${footprint.y + footprint.size * 0.28} L ${footprint.cx} ${footprint.y + footprint.size * 0.12} L ${footprint.maxX - footprint.size * 0.2} ${footprint.y + footprint.size * 0.28} M ${footprint.cx} ${footprint.y + footprint.size * 0.12} L ${footprint.cx} ${footprint.cy + footprint.size * 0.34}`} fill="none" stroke={goldStroke} strokeWidth={footprint.size * 0.065} strokeLinecap="round" />
-        {[
-          [footprint.x + footprint.size * 0.23, footprint.y + footprint.size * 0.24],
-          [footprint.x + footprint.size * 0.77, footprint.y + footprint.size * 0.24],
-          [footprint.x + footprint.size * 0.23, footprint.y + footprint.size * 0.72],
-          [footprint.x + footprint.size * 0.77, footprint.y + footprint.size * 0.72],
-        ].map(([cx, cy], index) => (
-          <g key={index}>
-            <circle cx={cx} cy={cy} r={towerRadius} fill="#6b472f" stroke="#121a26" strokeWidth={footprint.size * 0.03} />
-            <circle cx={cx} cy={cy - towerRadius * 0.55} r={towerRadius * 0.74} fill="#d5a14a" stroke="#5b3514" strokeWidth={footprint.size * 0.025} />
-          </g>
-        ))}
-        <g transform={`translate(${footprint.cx} ${footprint.y + footprint.size * 0.12})`}>
-          <path d={`M 0 ${-footprint.size * 0.18} L ${footprint.size * 0.04} ${-footprint.size * 0.06} L ${footprint.size * 0.16} ${-footprint.size * 0.12} L ${footprint.size * 0.1} 0 L ${footprint.size * 0.18} ${footprint.size * 0.08} L ${footprint.size * 0.06} ${footprint.size * 0.06} L 0 ${footprint.size * 0.18} L ${-footprint.size * 0.06} ${footprint.size * 0.06} L ${-footprint.size * 0.18} ${footprint.size * 0.08} L ${-footprint.size * 0.1} 0 L ${-footprint.size * 0.16} ${-footprint.size * 0.12} L ${-footprint.size * 0.04} ${-footprint.size * 0.06} Z`} fill="#f8bc37" stroke="#704113" strokeWidth={footprint.size * 0.018} />
-          <circle r={footprint.size * 0.07} fill="#ffe17a" />
-        </g>
-      </g>
+      <image href="/vendor/krozac-wos-interactive-map/alliance/sunfire-castle.png" x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} preserveAspectRatio="xMidYMid meet" />
+      <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.35" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.05" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
     </g>
   );
 };
 
 const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
   const footprint = sunfireFootprintFor(node);
-  const raised = mode !== "2d";
-  const inset = footprint.size * 0.08;
-  const angle = ((node.facing ?? 0) * Math.PI) / 180;
-  const barrelStartX = footprint.cx + Math.cos(angle) * footprint.size * 0.12;
-  const barrelStartY = footprint.cy + Math.sin(angle) * footprint.size * 0.12;
-  const barrelEndX = footprint.cx + Math.cos(angle) * footprint.size * 0.48;
-  const barrelEndY = footprint.cy + Math.sin(angle) * footprint.size * 0.48;
-  const barrelBandX = footprint.cx + Math.cos(angle) * footprint.size * 0.3;
-  const barrelBandY = footprint.cy + Math.sin(angle) * footprint.size * 0.3;
-
+  const imageHref = mode === "2d" ? "/vendor/krozac-wos-interactive-map/alliance/turret-2d.png" : "/vendor/krozac-wos-interactive-map/alliance/turret-3d.png";
+  
+  // Transform to rotate the turret to face outwards based on node.facing
+  const rotation = node.facing ? `rotate(${node.facing} ${footprint.cx} ${footprint.cy})` : "";
+  
   return (
-    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
-      <defs>
-        <clipPath id={footprint.clipId} clipPathUnits="userSpaceOnUse">
-          <rect x={footprint.x} y={footprint.y} width={footprint.size} height={footprint.size} />
-        </clipPath>
-      </defs>
+    <g key={node.id} aria-label={node.label}>
       <title>{sunfireFootprintTitle(node)}</title>
-
-      <g clipPath={`url(#${footprint.clipId})`}>
-        {raised && (
-          <path
-            d={`M ${footprint.x + footprint.size * 0.24} ${footprint.y + footprint.size * 0.68} C ${footprint.x + footprint.size * 0.48} ${footprint.maxY - inset}, ${footprint.x + footprint.size * 0.72} ${footprint.maxY - inset}, ${footprint.maxX - footprint.size * 0.2} ${footprint.y + footprint.size * 0.62}`}
-            fill="none"
-            stroke="#111927"
-            strokeWidth={footprint.size * 0.18}
-            strokeLinecap="round"
-            opacity="0.82"
-          />
-        )}
-        <ellipse cx={footprint.cx} cy={footprint.cy + footprint.size * 0.08} rx={footprint.size * 0.34} ry={footprint.size * 0.28} fill="#2e3d50" stroke="#0f1723" strokeWidth={footprint.size * 0.035} />
-        <path d={`M ${footprint.cx - footprint.size * 0.22} ${footprint.cy + footprint.size * 0.08} C ${footprint.cx - footprint.size * 0.08} ${footprint.cy - footprint.size * 0.28}, ${footprint.cx + footprint.size * 0.17} ${footprint.cy - footprint.size * 0.28}, ${footprint.cx + footprint.size * 0.25} ${footprint.cy + footprint.size * 0.08}`} fill="none" stroke="#715040" strokeWidth={footprint.size * 0.11} strokeLinecap="round" />
-        <line x1={barrelStartX} y1={barrelStartY} x2={barrelEndX} y2={barrelEndY} stroke="#6f7f92" strokeWidth={footprint.size * 0.15} strokeLinecap="round" />
-        <line x1={barrelStartX} y1={barrelStartY} x2={barrelEndX} y2={barrelEndY} stroke="#161f2c" strokeWidth={footprint.size * 0.035} strokeLinecap="round" />
-        <circle cx={barrelBandX} cy={barrelBandY} r={footprint.size * 0.09} fill="#9d6b45" stroke="#101723" strokeWidth={footprint.size * 0.02} />
-        {[
-          [footprint.x + footprint.size * 0.24, footprint.y + footprint.size * 0.32],
-          [footprint.x + footprint.size * 0.76, footprint.y + footprint.size * 0.36],
-          [footprint.x + footprint.size * 0.28, footprint.y + footprint.size * 0.76],
-        ].map(([cx, cy], index) => (
-          <circle key={index} cx={cx} cy={cy} r={footprint.size * 0.12} fill="#53667a" stroke="#111827" strokeWidth={footprint.size * 0.03} />
-        ))}
-        <path d={`M ${footprint.x + footprint.size * 0.18} ${footprint.y + footprint.size * 0.22} L ${footprint.x + footprint.size * 0.36} ${footprint.y + footprint.size * 0.14} M ${footprint.x + footprint.size * 0.7} ${footprint.y + footprint.size * 0.2} L ${footprint.x + footprint.size * 0.82} ${footprint.y + footprint.size * 0.32}`} stroke="#e8eef6" strokeOpacity="0.4" strokeWidth={footprint.size * 0.035} strokeLinecap="round" />
+      <g transform={rotation}>
+        <image href={imageHref} x={footprint.x - footprint.size * 0.1} y={footprint.y - footprint.size * 0.1} width={footprint.size * 1.2} height={footprint.size * 1.2} preserveAspectRatio="xMidYMid meet" />
       </g>
+      <text x={footprint.cx} y={footprint.maxY + 0.4} textAnchor="middle" fontSize="0.26" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.045" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
     </g>
   );
 };
