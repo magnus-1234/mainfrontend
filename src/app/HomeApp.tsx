@@ -2499,7 +2499,13 @@ function LanguageSwitcher() {
       }
 
       const translateElementId = "google_translate_element";
-      const element = document.getElementById(translateElementId);
+      let element = document.getElementById(translateElementId);
+      if (!element) {
+        element = document.createElement("div");
+        element.id = translateElementId;
+        element.setAttribute("aria-hidden", "true");
+        document.body.appendChild(element);
+      }
       if (element && element.innerHTML.trim() === "") {
         new translateWindow.google.translate.TranslateElement({
           pageLanguage,
@@ -2549,7 +2555,6 @@ function LanguageSwitcher() {
 
   return (
     <div className="language-switcher notranslate" translate="no">
-      <div id="google_translate_element" aria-hidden="true" />
       <button
         className="language-button"
         type="button"

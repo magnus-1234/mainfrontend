@@ -5,7 +5,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://translate.google.com https://translate.googleapis.com${isProduction ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://translate.google.com https://translate.googleapis.com`,
   "style-src 'self' 'unsafe-inline' https://translate.googleapis.com https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://api.qrserver.com https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev https://*.googleusercontent.com https://cdn.discordapp.com https://media.discordapp.net https://translate.googleapis.com https://www.gstatic.com",
   "font-src 'self' data: https://fonts.gstatic.com",
