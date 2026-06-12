@@ -7772,10 +7772,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <div className="wiki-poster-grid">
                   {filteredWosPosters.map((poster) => (
                     <article className="wiki-poster-card" key={poster.id}>
-                      <img src={poster.image} alt={poster.title ? `Whiteout Survival poster ${poster.title}` : "Whiteout Survival poster"} loading="lazy" />
-                      <div>
-                        <span>{poster.category}</span>
-                        <strong>{poster.title}</strong>
+                      <div className="wiki-poster-image-wrapper">
+                        <img src={poster.image} alt="Whiteout Survival poster" loading="lazy" />
+                        <div className="wiki-poster-overlay">
+                          <span className="wiki-poster-category">{poster.category}</span>
+                        </div>
                       </div>
                     </article>
                   ))}

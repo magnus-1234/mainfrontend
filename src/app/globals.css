@@ -16722,49 +16722,74 @@ body {
 
 .wiki-poster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .wiki-poster-card {
+  position: relative;
   overflow: hidden;
   display: flex;
   min-width: 0;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 8px;
-  box-shadow: 0 18px 48px rgba(5, 13, 24, 0.18);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transform: translateZ(0);
 }
 
-.wiki-poster-card img {
+.wiki-poster-image-wrapper {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
+  overflow: hidden;
   background: rgba(8, 17, 31, 0.88);
 }
 
-.wiki-poster-card div {
-  display: grid;
-  gap: 4px;
-  padding: 11px 12px 12px;
+.wiki-poster-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: block;
 }
 
-.wiki-poster-card span {
-  color: rgba(var(--foreground-rgb), 0.56);
-  font-size: 0.72rem;
+.wiki-poster-card:hover .wiki-poster-image-wrapper img {
+  transform: scale(1.08);
+}
+
+.wiki-poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 40%, transparent 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.wiki-poster-card:hover .wiki-poster-overlay {
+  opacity: 1;
+}
+
+.wiki-poster-category {
+  color: #fff;
+  font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  transform: translateY(10px);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.wiki-poster-card strong {
-  overflow: hidden;
-  color: var(--foreground);
-  font-size: 0.94rem;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.wiki-poster-card:hover .wiki-poster-category {
+  transform: translateY(0);
 }
 
 @media (max-width: 900px) {
