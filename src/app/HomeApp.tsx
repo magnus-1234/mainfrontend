@@ -2435,8 +2435,9 @@ function LanguageSwitcher() {
   const setTranslateCookie = useCallback((nextLanguage: string) => {
     const value = nextLanguage === pageLanguage ? "" : `/${pageLanguage}/${nextLanguage}`;
     const expires = nextLanguage === pageLanguage ? "Thu, 01 Jan 1970 00:00:00 GMT" : "Fri, 31 Dec 9999 23:59:59 GMT";
-    const hostParts = window.location.hostname.split(".");
-    const domains = [window.location.hostname];
+    const hostname = window.location.hostname;
+    const hostParts = hostname.split(".");
+    const domains = [hostname, `.${hostname}`];
 
     if (hostParts.length > 2) {
       domains.push(`.${hostParts.slice(-2).join(".")}`);
@@ -2475,22 +2476,22 @@ function LanguageSwitcher() {
 
     window.setTimeout(() => setLanguage(validLanguage), 0);
     document.documentElement.lang = validLanguage;
+    setTranslateCookie(validLanguage);
 
     const translateWindow = window as TranslateWindow;
     translateWindow.googleTranslateElementInit = () => {
-      const TranslateElement = translateWindow.google?.translate?.TranslateElement;
-      if (!TranslateElement) {
+      if (!translateWindow.google?.translate?.TranslateElement) {
         return;
       }
 
       const translateElementId = "google_translate_element";
-      const element = document.getElementById(translateElementId);
-      if (element && !element.hasChildNodes()) {
-        new TranslateElement({
+      if (!(window as any)._googleTranslateInitialized) {
+        new translateWindow.google.translate.TranslateElement({
           pageLanguage,
           includedLanguages: siteLanguages.map((item) => item.code).join(","),
           autoDisplay: false,
         }, translateElementId);
+        (window as any)._googleTranslateInitialized = true;
       }
 
       if (validLanguage !== pageLanguage) {
@@ -2506,7 +2507,7 @@ function LanguageSwitcher() {
     } else if (translateWindow.google?.translate?.TranslateElement) {
       translateWindow.googleTranslateElementInit();
     }
-  }, [applyLanguageWhenReady]);
+  }, [applyLanguageWhenReady, setTranslateCookie]);
 
   useEffect(() => {
     if (!open) {
