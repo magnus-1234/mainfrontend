@@ -5291,9 +5291,10 @@ body {
   }
 
   .foundry-map-logo {
-    top: 8px;
+    top: auto;
+    bottom: 8px;
     right: 8px;
-    width: min(132px, 34vw);
+    width: min(80px, 24vw);
   }
 
   .foundry-map-marker {
