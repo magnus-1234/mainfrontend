@@ -5122,7 +5122,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (activeTab === "tools" && activeSubTab === "foundry-planner") {
+      if (activeMenu === "planner") {
         if (authUser) {
           const savedAt = new Date().toISOString();
           const payload = {
@@ -5141,7 +5141,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [activeTab, activeSubTab, authUser]);
+  }, [activeMenu, authUser]);
 
   useEffect(() => {
     if (foundryShareLoadedRef.current || typeof window === "undefined") {
