@@ -1483,6 +1483,32 @@ const groupedHeroStats = (stats?: WosWikiStat[]) => {
 const pageLanguage = "en";
 const languageStorageKey = "whiteoutsurvival-dev-language";
 const translateCookieName = "googtrans";
+
+const languageFromPath = (pathname: string) => {
+  const match = pathname.match(/^\/([^/]+)(?:\/|$)/);
+  if (!match) {
+    return pageLanguage;
+  }
+
+  const candidate = match[1];
+  return siteLanguages.some((item) => item.code === candidate) ? candidate : pageLanguage;
+};
+
+const stripLanguagePrefix = (pathname: string) => {
+  const match = pathname.match(/^\/([^/]+)(?:\/|$)/);
+  if (!match) {
+    return pathname;
+  }
+
+  const candidate = match[1];
+  if (!siteLanguages.some((item) => item.code === candidate)) {
+    return pathname;
+  }
+
+  const rest = pathname.slice(candidate.length + 1);
+  return rest.startsWith("/") ? rest : `/${rest}`;
+};
+
 const siteLanguages: SiteLanguage[] = [
   { code: "en", name: "English", shortCode: "EN" },
   { code: "hi", name: "Hindi", shortCode: "HI" },
@@ -1716,6 +1742,7 @@ const menuUrls: Record<ActiveMenu, string> = {
 };
 
 const resolveActiveMenu = (location: Location): ActiveMenu => {
+  const pathname = stripLanguagePrefix(location.pathname);
   const params = new URLSearchParams(location.search);
   const hashMenu = hashMenuAliases[location.hash];
   if (hashMenu || location.hash.startsWith("#island-")) {
@@ -1734,79 +1761,79 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
     return "daybreak";
   }
 
-  if (location.pathname.startsWith("/gift-codes")) {
+  if (pathname.startsWith("/gift-codes")) {
     return "gift";
   }
 
-  if (location.pathname.startsWith("/redeem")) {
+  if (pathname.startsWith("/redeem")) {
     return "redeem";
   }
 
-  if (location.pathname.startsWith("/state-age")) {
+  if (pathname.startsWith("/state-age")) {
     return "stateAge";
   }
 
-  if (location.pathname.startsWith("/vip-calculator") || location.pathname.startsWith("/vip")) {
+  if (pathname.startsWith("/vip-calculator") || pathname.startsWith("/vip")) {
     return "vip";
   }
 
-  if (location.pathname.startsWith("/fire-crystals") || location.pathname.startsWith("/fire-crystal-calculator") || location.pathname.startsWith("/fc-calculator")) {
+  if (pathname.startsWith("/fire-crystals") || pathname.startsWith("/fire-crystal-calculator") || pathname.startsWith("/fc-calculator")) {
     return "fireCrystals";
   }
 
-  if (location.pathname.startsWith("/chief-charm-calculator") || location.pathname.startsWith("/chief-charms")) {
+  if (pathname.startsWith("/chief-charm-calculator") || pathname.startsWith("/chief-charms")) {
     return "chiefCharm";
   }
 
-  if (location.pathname.startsWith("/chief-gear-calculator") || location.pathname.startsWith("/chief-gear")) {
+  if (pathname.startsWith("/chief-gear-calculator") || pathname.startsWith("/chief-gear")) {
     return "chiefGear";
   }
 
-  if (location.pathname.startsWith("/war-academy-calculator") || location.pathname.startsWith("/war-academy")) {
+  if (pathname.startsWith("/war-academy-calculator") || pathname.startsWith("/war-academy")) {
     return "warAcademy";
   }
 
-  if (location.pathname.startsWith("/svs-appointment-planner") || location.pathname.startsWith("/svs-planner")) {
+  if (pathname.startsWith("/svs-appointment-planner") || pathname.startsWith("/svs-planner")) {
     return "svsPlanner";
   }
 
-  if (location.pathname.startsWith("/game-map")) {
+  if (pathname.startsWith("/game-map")) {
     return "gameMap";
   }
 
-  if (location.pathname.startsWith("/message-templates")) {
+  if (pathname.startsWith("/message-templates")) {
     return "templates";
   }
 
-  if (location.pathname.startsWith("/foundry-team-planner")) {
+  if (pathname.startsWith("/foundry-team-planner")) {
     return "planner";
   }
 
-  if (location.pathname.startsWith("/sneak-peek")) {
+  if (pathname.startsWith("/sneak-peek")) {
     return "sneak";
   }
 
-  if (location.pathname.startsWith("/daybreak-island")) {
+  if (pathname.startsWith("/daybreak-island")) {
     return "daybreak";
   }
 
-  if (location.pathname.startsWith("/dreamscape-memory")) {
+  if (pathname.startsWith("/dreamscape-memory")) {
     return "dreamscape";
   }
 
-  if (location.pathname.startsWith("/discord-bot")) {
+  if (pathname.startsWith("/discord-bot")) {
     return "bot";
   }
 
-  if (location.pathname.startsWith("/wiki/buildings")) {
+  if (pathname.startsWith("/wiki/buildings")) {
     return "wikiBuildings";
   }
 
-  if (location.pathname.startsWith("/wiki/posters") || location.pathname.startsWith("/wiki/gallery")) {
+  if (pathname.startsWith("/wiki/posters") || pathname.startsWith("/wiki/gallery")) {
     return "wikiPosters";
   }
 
-  if (location.pathname.startsWith("/wiki/heroes") || location.pathname.startsWith("/wiki")) {
+  if (pathname.startsWith("/wiki/heroes") || pathname.startsWith("/wiki")) {
     return "wikiHeroes";
   }
 
@@ -2362,7 +2389,19 @@ function StateTransferCountdown() {
 
 function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
-  const [language, setLanguage] = useState(pageLanguage);
+  const [language, setLanguage] = useState(() => {
+    if (typeof window === "undefined") {
+      return pageLanguage;
+    }
+
+    const pathLanguage = languageFromPath(window.location.pathname);
+    if (pathLanguage !== pageLanguage) {
+      return pathLanguage;
+    }
+
+    const savedLanguage = localStorage.getItem(languageStorageKey);
+    return siteLanguages.some((item) => item.code === savedLanguage) ? (savedLanguage as string) : pageLanguage;
+  });
 
   const activeLanguage = siteLanguages.find((item) => item.code === language) || siteLanguages[0];
 
@@ -2410,17 +2449,24 @@ function LanguageSwitcher() {
     document.documentElement.lang = nextLanguage;
     setTranslateCookie(nextLanguage);
 
+    const targetPath = stripLanguagePrefix(window.location.pathname);
     if (nextLanguage === pageLanguage) {
-      window.location.reload();
+      window.location.href = targetPath || "/";
       return;
     }
 
-    applyLanguageWhenReady(nextLanguage);
-  }, [applyLanguageWhenReady, setTranslateCookie]);
+    window.location.href = targetPath === "/" || targetPath === "" ? `/${nextLanguage}` : `/${nextLanguage}${targetPath}`;
+  }, [setTranslateCookie]);
 
   useEffect(() => {
+    const pathLanguage = languageFromPath(window.location.pathname);
     const savedLanguage = localStorage.getItem(languageStorageKey);
-    const validLanguage = siteLanguages.some((item) => item.code === savedLanguage) ? savedLanguage || pageLanguage : pageLanguage;
+    const validLanguage = pathLanguage !== pageLanguage
+      ? pathLanguage
+      : siteLanguages.some((item) => item.code === savedLanguage)
+        ? (savedLanguage as string)
+        : pageLanguage;
+
     window.setTimeout(() => setLanguage(validLanguage), 0);
     document.documentElement.lang = validLanguage;
 
@@ -2775,7 +2821,14 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [playerLookup, setPlayerLookup] = useState<PlayerProfile | null>(null);
   const [playerLookupStatus, setPlayerLookupStatus] = useState("");
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
-  const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>({});
+  const [likedIslands, setLikedIslands] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(window.localStorage.getItem("wosLikedIslands") || "{}"); } catch { return {}; }
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("wosLikedIslands", JSON.stringify(likedIslands));
+  }, [likedIslands]);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(initialMenu);
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
   const [sidebarWikiOpen, setSidebarWikiOpen] = useState(false);
@@ -2832,9 +2885,17 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [templateView, setTemplateView] = useState<TemplateView>("gallery");
   const [templateSort] = useState<"popular" | "recent">("popular");
   const [selectedTemplateTag, setSelectedTemplateTag] = useState("");
-  const [likedTemplates, setLikedTemplates] = useState<Record<string, boolean>>({});
+  const [likedTemplates, setLikedTemplates] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(window.localStorage.getItem("wosLikedTemplates") || "{}"); } catch { return {}; }
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("wosLikedTemplates", JSON.stringify(likedTemplates));
+  }, [likedTemplates]);
   const [templateLikeDeltas, setTemplateLikeDeltas] = useState<Record<string, number>>({});
   const [templateLikeBursts, setTemplateLikeBursts] = useState<Record<string, number>>({});
+  const [islandLikeBursts, setIslandLikeBursts] = useState<Record<string, number>>({});
   const [templateStatus, setTemplateStatus] = useState("");
   const [templateComposerOpen, setTemplateComposerOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
@@ -3650,21 +3711,46 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     }
   };
 
+  const markIslandLikeBurst = (islandId: string) => {
+    setIslandLikeBursts((current) => ({ ...current, [islandId]: Date.now() }));
+    window.setTimeout(() => {
+      setIslandLikeBursts((current) => {
+        const next = { ...current };
+        delete next[islandId];
+        return next;
+      });
+    }, 620);
+  };
+
   const likeIsland = async (island: Island) => {
-    if (likedIslands[island.id]) {
-      return;
-    }
+    const wasLiked = Boolean(likedIslands[island.id]);
+    const nextLiked = !wasLiked;
+
+    setLikedIslands((current) => {
+      const next = { ...current };
+      if (nextLiked) next[island.id] = true;
+      else delete next[island.id];
+      return next;
+    });
+    markIslandLikeBurst(island.id);
 
     const response = await fetch(`${apiBase}/api/daybreak/islands/${island.id}/like`, {
-      method: "POST",
+      method: nextLiked ? "POST" : "DELETE",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ viewerId }),
-    });
-    const data = (await response.json()) as { island?: Island };
-    if (data.island) {
-      setLikedIslands((current) => ({ ...current, [island.id]: true }));
+    }).catch(() => null);
+    
+    const data = await response?.json().catch(() => null) as { island?: Island } | null;
+    if (data?.island) {
       updateIsland(data.island);
+    } else {
+      setLikedIslands((current) => {
+        const next = { ...current };
+        if (wasLiked) next[island.id] = true;
+        else delete next[island.id];
+        return next;
+      });
     }
   };
 
@@ -3966,11 +4052,6 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   };
 
   const likeTemplate = async (template: MessageTemplate) => {
-    if (!authUser) {
-      requireTemplateSignIn("Sign in to like message templates.");
-      return;
-    }
-
     const wasLiked = Boolean(likedTemplates[template.id]);
     const delta = wasLiked ? -1 : 1;
     const nextLiked = !wasLiked;
@@ -3986,7 +4067,6 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     });
     setTemplateLikeDeltas((current) => ({ ...current, [template.id]: (current[template.id] || 0) + delta }));
     markTemplateLikeBurst(template.id);
-    setTemplateStatus(template.builtin ? (nextLiked ? "Template liked." : "Template unliked.") : "");
 
     if (template.builtin) {
       return;
@@ -3997,6 +4077,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         method: nextLiked ? "POST" : "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json", ...(authUser ? { "x-user-id": authUser.id } : {}) },
+        body: JSON.stringify({ viewerId }),
       });
       const data = (await response.json().catch(() => null)) as { template?: MessageTemplate; error?: string } | null;
       if (!response.ok) {
@@ -4010,7 +4091,6 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
           return next;
         });
       }
-      setTemplateStatus(nextLiked ? "Template liked." : "Template unliked.");
     } catch (error) {
       setLikedTemplates((current) => {
         const next = { ...current };
@@ -5766,7 +5846,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     }
     setActiveMenu(menu);
     setActiveWikiSlug("");
-    const nextUrl = menuUrls[menu];
+    const langPrefix = languageFromPath(window.location.pathname) === pageLanguage ? "" : `/${languageFromPath(window.location.pathname)}`;
+    const nextUrl = `${langPrefix}${menuUrls[menu]}`;
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
       window.history.pushState(null, "", nextUrl);
     }
@@ -5776,8 +5857,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     setSidebarWikiOpen(true);
     setActiveMenu(menu);
     setActiveWikiSlug(slug);
+    const langPrefix = languageFromPath(window.location.pathname) === pageLanguage ? "" : `/${languageFromPath(window.location.pathname)}`;
     const baseUrl = menuUrls[menu];
-    const nextUrl = `${baseUrl}?item=${encodeURIComponent(slug)}`;
+    const nextUrl = `${langPrefix}${baseUrl}?item=${encodeURIComponent(slug)}`;
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
       window.history.pushState(null, "", nextUrl);
     }
@@ -8576,7 +8658,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     </div>
                     <div className="island-card-footer">
                       <div className="island-actions">
-                        <button className={`card-icon-action ${likedIslands[island.id] ? "liked" : ""}`} type="button" onClick={() => likeIsland(island)} aria-label="Like island">
+                        <button className={`card-icon-action ${likedIslands[island.id] ? "liked" : ""} ${islandLikeBursts[island.id] ? "like-burst" : ""}`} type="button" onClick={() => likeIsland(island)} aria-label="Like island">
                           <Icon name="heart" />
                           {island.likes}
                         </button>
@@ -9368,7 +9450,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </div>
               )}
               <div className="detail-actions">
-                <button className={likedIslands[viewerImage.id] ? "liked" : ""} type="button" onClick={() => likeIsland(viewerImage)}><Icon name="heart" />{likedIslands[viewerImage.id] ? "Liked" : "Like"}</button>
+                <button className={`${likedIslands[viewerImage.id] ? "liked" : ""} ${islandLikeBursts[viewerImage.id] ? "like-burst" : ""}`} type="button" onClick={() => likeIsland(viewerImage)}><Icon name="heart" />{likedIslands[viewerImage.id] ? "Liked" : "Like"}</button>
                 <button type="button" onClick={() => setShareIslandTarget(viewerImage)}><Icon name="share" />Share</button>
               </div>
               <section className="comments-panel">
