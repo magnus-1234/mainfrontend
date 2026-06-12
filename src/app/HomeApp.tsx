@@ -8028,13 +8028,13 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         const isSelected = selectedFoundryBuildingId === building.id;
                         return (
                           <button
-                            className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"} ${isSelected ? "selected" : ""}`}
+                            className={`foundry-map-marker-node ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"} ${isSelected ? "selected" : ""}`}
                             key={building.id}
                             style={{ left: `${building.x}%`, top: `${building.y}%` }}
                             onClick={() => setSelectedFoundryBuildingId(isSelected ? null : building.id)}
                             type="button"
                           >
-                            {building.name}
+                            <span className="foundry-map-marker-label">{building.name}</span>
                           </button>
                         );
                       })}
@@ -8056,8 +8056,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                               <div
                                 className="foundry-map-team-ring"
                                 style={{
-                                  left: `${Math.max(6, Math.min(94, building.x))}%`,
-                                  top: `${Math.max(8, Math.min(92, building.y))}%`,
+                                  left: `${building.x}%`,
+                                  top: `${building.y}%`,
                                   width: `${circleRadius * 2}%`,
                                   height: `${circleRadius * 2}%`,
                                   ["--foundry-team-color" as string]: teamColor,
@@ -8076,8 +8076,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                             </span>
                             {members.map((member, memberIndex) => {
                               const offset = foundryMapCircleOffset(memberIndex, members.length, teamOffset);
-                              const left = Math.max(6, Math.min(94, building.x + offset.x));
-                              const top = Math.max(8, Math.min(92, building.y + offset.y));
+                              const left = building.x + offset.x;
+                              const top = building.y + offset.y;
                               const memberColor = member.role === "leader" ? foundryLeaderColor : teamColor;
                               const roleLabel = member.role === "leader" ? "Rally" : "Joiner";
                               return (
