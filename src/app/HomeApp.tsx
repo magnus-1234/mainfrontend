@@ -520,6 +520,14 @@ const foundryBuildings: FoundryBuilding[] = [
   { id: "arsenal-supplies", name: "Arsenal Supplies", shortName: "Supplies", x: 18, y: 75, phase: "Looter" },
 ];
 
+const getFoundryBuildingPoints = (shortName: string) => {
+  if (shortName.startsWith("Prototype")) return { firstControl: { alliance: 6000, personal: 3000 }, occupation: { alliance: 1200, personal: 600 } };
+  if (shortName.startsWith("Repair")) return { firstControl: { alliance: 3000, personal: 1500 }, occupation: { alliance: 600, personal: 300 } };
+  if (shortName === "Boiler Room" || shortName === "Transit Station" || shortName === "Mercenary" || shortName === "Munition") return { firstControl: { alliance: 1200, personal: 600 }, occupation: { alliance: 240, personal: 120 } };
+  if (shortName === "Imperial") return { firstControl: { alliance: 9000, personal: 4500 }, occupation: { alliance: 1800, personal: 900 } };
+  return null;
+};
+
 const foundryTeamColors = ["#22d3ee", "#f97316", "#a78bfa", "#34d399", "#f43f5e", "#facc15", "#60a5fa", "#fb7185"];
 const foundryLeaderColor = "#facc15";
 const foundryPhaseOptions = [
@@ -2905,6 +2913,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [foundryShowBuildingLabels, setFoundryShowBuildingLabels] = useState(true);
   const [selectedFoundryBuildingId, setSelectedFoundryBuildingId] = useState<string | null>(null);
   const [foundryShowTeamRoster, setFoundryShowTeamRoster] = useState(true);
+  const [foundryShowPoints, setFoundryShowPoints] = useState(false);
   const [foundryShareOpen, setFoundryShareOpen] = useState(false);
   const [foundryManageSharesOpen, setFoundryManageSharesOpen] = useState(false);
   const [foundryShareAccess, setFoundryShareAccess] = useState<"editable" | "view-only">("editable");
@@ -8047,6 +8056,13 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                       >
                         {foundryShowTeamRoster ? "Hide Players" : "Show Players"}
                       </button>
+                      <button
+                        className={foundryShowPoints ? "active" : ""}
+                        type="button"
+                        onClick={() => setFoundryShowPoints((value) => !value)}
+                      >
+                        {foundryShowPoints ? "Hide Points" : "Show Points"}
+                      </button>
                       <span className="foundry-status-pill">Legion {foundryLegion}</span>
                       <span className="foundry-status-pill accent">{formatFoundryUtcTime(foundryUtcTime) || "UTC not set"}</span>
                       <span className="foundry-status-pill">{allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"}</span>
@@ -8072,6 +8088,32 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                           >
                             {building.name}
                           </button>
+                        );
+                      })}
+                      {foundryShowPoints && foundryBuildings.map((building) => {
+                        const points = getFoundryBuildingPoints(building.shortName);
+                        if (!points) return null;
+                        return (
+                          <div
+                            key={`points-${building.id}`}
+                            className="foundry-map-points"
+                            style={{ left: `${building.x}%`, top: `${building.y}%` }}
+                          >
+                            <div className="points-row">
+                              <span className="points-label">1st Control</span>
+                              <div className="points-val">
+                                <span className="alliance" title="Alliance Points">{points.firstControl.alliance}</span>
+                                <span className="personal" title="Personal Points">{points.firstControl.personal}</span>
+                              </div>
+                            </div>
+                            <div className="points-row">
+                              <span className="points-label">Occupation</span>
+                              <div className="points-val">
+                                <span className="alliance" title="Alliance Points/min">+{points.occupation.alliance}/m</span>
+                                <span className="personal" title="Personal Points/min">+{points.occupation.personal}/m</span>
+                              </div>
+                            </div>
+                          </div>
                         );
                       })}
                       {foundryShowTeamRoster && allFoundryTeams.map((team, teamIndex) => {
