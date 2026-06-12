@@ -122,11 +122,15 @@ const proxyToBackend = async (request: NextRequest, path = "") => {
   const headers = new Headers();
   const contentType = request.headers.get("content-type");
   const userId = request.headers.get("x-user-id");
+  const cookie = request.headers.get("cookie");
   if (contentType) {
     headers.set("content-type", contentType);
   }
   if (userId) {
     headers.set("x-user-id", userId);
+  }
+  if (cookie) {
+    headers.set("cookie", cookie);
   }
   headers.set("accept", "application/json");
 
