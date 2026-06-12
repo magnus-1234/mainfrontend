@@ -4304,23 +4304,72 @@ body {
 
 .foundry-setup-panel {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  padding: 14px;
+  grid-template-columns: minmax(160px, 1fr) minmax(300px, 1.8fr) minmax(160px, 1fr) minmax(180px, 1.2fr);
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(20, 24, 28, 0.4) 0%, rgba(10, 12, 14, 0.6) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.04), 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 900px) {
+  .foundry-setup-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .foundry-setup-panel {
+    grid-template-columns: 1fr;
+  }
 }
 
 .foundry-setup-step {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  border-radius: 10px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--background) 76%, var(--card));
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%), rgba(12, 15, 18, 0.7);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.foundry-setup-step:hover {
+  border-color: rgba(244, 129, 32, 0.25);
+  background: linear-gradient(135deg, rgba(244, 129, 32, 0.04) 0%, transparent 100%), rgba(15, 18, 22, 0.8);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04), 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.foundry-setup-step::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary, #f48120), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.foundry-setup-step:hover::before {
+  opacity: 1;
 }
 
 .foundry-setup-panel label,
-.foundry-time-control,
+.foundry-time-control {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
 .foundry-team-table header label {
   display: grid;
   gap: 6px;
@@ -4332,62 +4381,38 @@ body {
   text-transform: uppercase;
 }
 
+.foundry-setup-panel label > span,
+.foundry-time-control > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold, #f48120);
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 .foundry-setup-panel input,
 .foundry-setup-panel select,
 .foundry-team-table input,
 .foundry-team-table select,
 .foundry-roster-row input {
-  min-height: 38px;
+  min-height: 42px;
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--input);
-  border-radius: 6px;
-  padding: 0 10px;
-  background: var(--background);
-  color: var(--foreground);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 800;
   outline: none;
-}
-
-.foundry-time-control {
-  text-transform: none;
-}
-
-.foundry-time-control > span {
-  color: var(--muted-foreground);
-  font-size: 0.76rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.foundry-time-inputs,
-.foundry-time-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: 6px;
-}
-
-.foundry-time-actions {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.foundry-time-actions button {
-  min-height: 28px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0 7px;
-  background: color-mix(in srgb, var(--background) 92%, var(--muted));
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.foundry-time-actions button:hover {
-  border-color: var(--gold-line);
-  background: var(--gold-soft);
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .foundry-setup-panel input:focus,
@@ -4395,39 +4420,105 @@ body {
 .foundry-team-table input:focus,
 .foundry-team-table select:focus,
 .foundry-roster-row input:focus {
-  border-color: var(--gold-line);
-  box-shadow: 0 0 0 3px var(--gold-soft);
+  border-color: var(--gold-line, #f48120);
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 3px rgba(244, 129, 32, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.foundry-time-control {
+  text-transform: none;
+}
+
+.foundry-time-field span {
+  color: var(--muted-foreground);
+  font-size: 0.72rem !important;
+  font-weight: 900;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase;
+  text-shadow: none !important;
+}
+
+.foundry-time-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 12px;
+}
+
+.foundry-time-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.foundry-time-actions button {
+  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.foundry-time-actions button:hover {
+  border-color: var(--gold-line, #f48120);
+  background: rgba(244, 129, 32, 0.15);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .foundry-export-note {
-  display: grid;
-  align-content: center;
-  justify-items: start;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .foundry-export-note small {
   color: var(--muted-foreground);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .foundry-looter-toggle {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: var(--foreground);
+  gap: 12px;
+  color: #fff;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 900;
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.foundry-looter-toggle:hover {
+  color: var(--gold, #f48120);
 }
 
 .foundry-looter-toggle input {
-  width: 18px;
-  min-height: 18px;
-  height: 18px;
-  accent-color: var(--primary);
+  width: 24px;
+  min-height: 24px;
+  height: 24px;
+  accent-color: var(--gold, #f48120);
+  cursor: pointer;
+  box-shadow: none;
+  border: none;
+  background: rgba(0,0,0,0.4);
 }
 
 .foundry-planner-shell {
