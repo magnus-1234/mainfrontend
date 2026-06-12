@@ -4988,7 +4988,7 @@ body {
 
 .foundry-roster-row {
   display: grid;
-  grid-template-columns: 104px 136px minmax(150px, 1fr) 74px minmax(74px, 0.55fr) 44px;
+  grid-template-columns: 104px 130px minmax(120px, 0.65fr) 64px minmax(130px, 1fr) 44px;
   gap: 6px;
   align-items: center;
   min-width: 660px;
@@ -5066,6 +5066,17 @@ body {
   font-size: 0.72rem;
   font-weight: 900;
   list-style: none;
+  white-space: nowrap;
+}
+
+.foundry-member-note summary.has-note {
+  justify-content: flex-start;
+}
+
+.foundry-member-note summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .foundry-member-note summary::-webkit-details-marker {
@@ -5255,7 +5266,7 @@ body {
   }
 
   .foundry-roster-row {
-    grid-template-columns: 88px 116px minmax(130px, 1fr) 64px 74px 40px;
+    grid-template-columns: 80px 110px minmax(110px, 0.5fr) 54px minmax(100px, 1fr) 40px;
     min-width: 560px;
     padding: 5px 6px;
   }
@@ -19540,7 +19551,7 @@ body {
 }
 
 .foundry-roster-row {
-  grid-template-columns: 108px 136px minmax(170px, 1fr) 72px 78px 42px;
+  grid-template-columns: 108px 130px minmax(140px, 0.65fr) 72px minmax(130px, 1fr) 42px;
   min-height: 46px;
   border-color: var(--foundry-panel-border);
   background: var(--foundry-panel-bg);
@@ -19614,7 +19625,7 @@ body {
   }
 
   .foundry-roster-row {
-    grid-template-columns: 88px 116px minmax(138px, 1fr) 60px 74px 38px;
+    grid-template-columns: 80px 110px minmax(120px, 0.5fr) 60px minmax(100px, 1fr) 38px;
     min-width: 568px;
   }
 }

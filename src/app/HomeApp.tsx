@@ -8180,9 +8180,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                           </span>
                           <span>{member.profile ? furnaceDisplay(member.profile) : "-"}</span>
                           <details className="foundry-member-note">
-                            <summary title="Player description">
+                            <summary title="Player description" className={member.description ? "has-note" : ""}>
                               <Icon name={member.description ? "message" : "edit"} />
-                              <span>{member.description ? "Note" : "Add"}</span>
+                              <span>{member.description || "Add"}</span>
                             </summary>
                             <textarea
                               value={member.description}
