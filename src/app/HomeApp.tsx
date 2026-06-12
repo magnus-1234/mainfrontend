@@ -5104,7 +5104,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     setFoundryExportStatus("Saving...");
     fetch("/api/foundry-planner/personal", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-user-id": authUser.id },
       body: JSON.stringify({ payload: JSON.stringify(payload), savedAt })
     }).then(res => {
       if (!res.ok) throw new Error("Failed");
@@ -5129,10 +5129,15 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
             ...foundrySharePayloadRef.current(),
             savedAt,
           };
-          navigator.sendBeacon("/api/foundry-planner/personal", JSON.stringify({
-            payload: JSON.stringify(payload),
-            savedAt,
-          }));
+          fetch("/api/foundry-planner/personal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-user-id": authUser.id },
+            body: JSON.stringify({
+              payload: JSON.stringify(payload),
+              savedAt,
+            }),
+            keepalive: true,
+          }).catch(() => null);
         } else {
           e.preventDefault();
           e.returnValue = "";
@@ -5197,7 +5202,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       return;
     }
     
-    fetch("/api/foundry-planner/personal")
+    fetch("/api/foundry-planner/personal", {
+      headers: { "x-user-id": authUser.id }
+    })
       .then((res) => {
         if (!res.ok) throw new Error("Load failed");
         return res.json();
