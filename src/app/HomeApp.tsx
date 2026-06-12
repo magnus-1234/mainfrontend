@@ -8043,8 +8043,21 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         const buildingTeamIndex = teamsAtBuilding.findIndex((item) => item.id === team.id);
                         const teamOffset = Math.max(0, buildingTeamIndex);
                         const labelOffset = 12.3 + teamOffset * 1.6;
+                        const circleRadius = 8.2 + teamOffset * 1.2;
                         return (
                           <div key={team.id}>
+                            {members.length > 0 && (
+                              <div
+                                className="foundry-map-team-ring"
+                                style={{
+                                  left: `${Math.max(6, Math.min(94, building.x))}%`,
+                                  top: `${Math.max(8, Math.min(92, building.y))}%`,
+                                  width: `${circleRadius * 2}%`,
+                                  height: `${circleRadius * 2}%`,
+                                  ["--foundry-team-color" as string]: teamColor,
+                                }}
+                              />
+                            )}
                             <span
                               className="foundry-map-team-label"
                               style={{
