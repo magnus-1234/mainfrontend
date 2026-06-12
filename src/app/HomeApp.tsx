@@ -5588,8 +5588,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       context.font = "900 12px Arial";
       context.textAlign = "left";
       context.fillText("ROLE", x + 26, headerY - 3);
-      context.fillText("PFP", x + 122, headerY - 3);
-      context.fillText("PLAYER", x + 172, headerY - 3);
+      context.fillText("PLAYER ID", x + 172, headerY - 3);
       context.fillText("NAME", x + 286, headerY - 3);
       context.fillText("FURNACE", x + 425, headerY - 3);
 
