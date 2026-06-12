@@ -5533,15 +5533,15 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       }));
 
       const headerHeight = 108;
-      const mapX = 0;
-      const mapY = headerHeight;
-      const mapWidth = 1220;
-      const mapHeight = 940;
-      const tableX = mapWidth + 20;
+      const mapX = 20;
+      const mapY = headerHeight + 20;
+      const mapWidth = 1180;
+      const mapHeight = 900;
+      const tableX = mapX + mapWidth + 24;
       const tableWidth = 560;
       const rowHeight = 42;
-      const cardGap = 14;
-      const cardPadding = 14;
+      const cardGap = 16;
+      const cardPadding = 16;
 
       const tableHeight = teamCards.reduce((total, card) => {
         const rows = card.members.length ? card.members : [card.team.rallyLeader];
@@ -5549,35 +5549,49 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       }, 0);
 
       const canvas = document.createElement("canvas");
-      canvas.width = mapWidth + 20 + tableWidth + 20;
-      canvas.height = Math.max(mapY + mapHeight + 20, headerHeight + tableHeight + 30);
+      canvas.width = tableX + tableWidth + 20;
+      canvas.height = Math.max(mapY + mapHeight + 30, headerHeight + tableHeight + 40);
       const context = canvas.getContext("2d");
       if (!context) {
         throw new Error("Canvas export is not available.");
       }
 
-      context.fillStyle = "#0d1113";
+      // Background - light theme
+      context.fillStyle = "#f8fafc";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      context.fillStyle = "rgba(8, 10, 11, 0.92)";
+      // Header - dark theme so logo is visible
+      context.fillStyle = "#0f172a";
       context.fillRect(0, 0, canvas.width, headerHeight);
-      context.fillStyle = "rgba(255,255,255,0.08)";
-      context.fillRect(0, headerHeight - 2, canvas.width, 2);
+      context.fillStyle = "#1e293b";
+      context.fillRect(0, headerHeight - 4, canvas.width, 4);
 
       context.fillStyle = "#ffffff";
       context.textAlign = "left";
       context.font = "900 38px Arial";
-      context.fillText("Foundry Battle Plan", 36, 44);
+      context.fillText("Foundry Battle Plan", 36, 46);
       context.fillStyle = "#f7b267";
       context.font = "800 20px Arial";
-      context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}  |  ${teamCards.length} teams`, 38, 78);
+      context.fillText(`Legion ${foundryLegion}  |  ${formatFoundryUtcTime(foundryUtcTime)}  |  ${teamCards.length} teams`, 38, 80);
       if (logo) {
         drawFoundryLogo(context, logo, canvas.width - 40, 18, 314, 72);
       }
 
+      // Map panel
+      context.save();
+      context.beginPath();
+      context.roundRect(mapX, mapY, mapWidth, mapHeight, 16);
+      context.clip();
       context.drawImage(mapImage, mapX, mapY, mapWidth, mapHeight);
-      context.fillStyle = "rgba(8, 10, 11, 0.10)";
+      context.fillStyle = "rgba(8, 10, 11, 0.14)";
       context.fillRect(mapX, mapY, mapWidth, mapHeight);
+      context.restore();
+
+      context.strokeStyle = "#cbd5e1";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.roundRect(mapX, mapY, mapWidth, mapHeight, 16);
+      context.stroke();
 
       foundryBuildings.forEach((building) => {
         const x = mapX + (building.x / 100) * mapWidth;
@@ -5652,74 +5666,69 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         });
       });
 
-      let y = headerHeight + 14;
+      let y = headerHeight + 20;
       teamCards.forEach((card, index) => {
         const color = foundryTeamColors[index % foundryTeamColors.length];
         const rows = card.members.length ? card.members : [card.team.rallyLeader];
         const cardHeight = 72 + rows.length * rowHeight;
 
-        // Card background
-        context.fillStyle = "#121719";
-        context.strokeStyle = "rgba(255, 255, 255, 0.10)";
-        context.lineWidth = 1;
+        context.fillStyle = "#ffffff";
+        context.strokeStyle = "#cbd5e1";
+        context.lineWidth = 2;
         context.beginPath();
-        context.roundRect(tableX, y, tableWidth, cardHeight, 14);
+        context.roundRect(tableX, y, tableWidth, cardHeight, 16);
         context.fill();
         context.stroke();
 
-        // Color accent bar
         context.fillStyle = color;
         context.beginPath();
-        context.roundRect(tableX, y, tableWidth, 52, 14);
+        context.roundRect(tableX, y, tableWidth, 52, 16);
         context.fill();
-        // Flatten bottom corners of accent
         context.fillRect(tableX, y + 38, tableWidth, 14);
 
-        // Team name
-        context.fillStyle = "#101314";
+        context.fillStyle = "#ffffff";
         context.font = "900 20px Arial";
         context.textAlign = "left";
         context.fillText(`${index + 1}. ${card.team.name.slice(0, 26)}`, tableX + cardPadding + 4, y + 34);
-
-        // Building + phase (right aligned)
         context.textAlign = "right";
         context.font = "900 13px Arial";
         context.fillText((card.building?.name || "Unassigned").slice(0, 28), tableX + tableWidth - cardPadding, y + 26);
         context.font = "900 11px Arial";
         context.fillText((foundryPhaseLabelById.get(card.team.phaseId) || "All phases 0-60m").slice(0, 24), tableX + tableWidth - cardPadding, y + 42);
 
-        // Header row
         const headerY = y + 68;
-        context.fillStyle = "rgba(255, 255, 255, 0.07)";
+        context.fillStyle = "#f1f5f9";
         context.beginPath();
         context.roundRect(tableX + 10, headerY - 22, tableWidth - 20, 28, 8);
         context.fill();
-        context.fillStyle = "#f7b267";
+        context.fillStyle = "#475569";
         context.font = "900 11px Arial";
         context.textAlign = "left";
         context.fillText("ROLE", tableX + 20, headerY - 3);
-        context.fillText("PLAYER", tableX + 110, headerY - 3);
-        context.fillText("ID", tableX + 310, headerY - 3);
-        context.fillText("FC", tableX + 450, headerY - 3);
+        context.fillText("PLAYER", tableX + 120, headerY - 3);
+        context.fillText("ID", tableX + 330, headerY - 3);
+        context.fillText("FC", tableX + 460, headerY - 3);
 
-        // Member rows
         rows.forEach((member, memberIndex) => {
           const rowY = y + 90 + memberIndex * rowHeight;
-          context.fillStyle = memberIndex % 2 ? "#171d20" : "#101416";
+          context.fillStyle = memberIndex % 2 ? "#ffffff" : "#f8fafc";
           context.beginPath();
           context.roundRect(tableX + 10, rowY - 22, tableWidth - 20, 34, 8);
           context.fill();
-
-          const roleColor = member.role === "leader" ? color : "#94a3b8";
-          drawFoundryAvatar(context, avatarImages.get(member.id), tableX + 26 + 12, rowY - 5, 24, roleColor, foundryMemberName(member));
+          
+          const roleColor = member.role === "leader" ? color : "#64748b";
+          drawFoundryAvatar(context, avatarImages.get(member.id), tableX + 86, rowY - 5, 24, roleColor, foundryMemberName(member));
           context.fillStyle = roleColor;
           context.font = "900 11px Arial";
           context.textAlign = "left";
-          context.fillText(member.role === "leader" ? "LEAD" : "JOIN", tableX + 20, rowY - 5);
-          context.fillStyle = "#e5e7eb";
+          context.fillText(member.role === "leader" ? "LEADER" : "JOINER", tableX + 20, rowY - 4);
+          
+          context.fillStyle = "#0f172a";
+          context.font = "800 14px Arial";
+          context.fillText(trimCanvasText(context, foundryMemberName(member), 190), tableX + 120, rowY - 4);
+          
+          context.fillStyle = "#475569";
           context.font = "800 13px Arial";
-          context.fillText(member.playerId || "-", tableX + 316, rowY - 6);
-          context.fillText(member.profile ? furnaceDisplay(member.profile) : "-", tableX + 452, rowY - 6);
         });
         y += cardHeight + cardGap;
       });
