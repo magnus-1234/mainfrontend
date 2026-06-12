@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AdminVisitTracker } from "./admin/AdminVisitTracker";
 import "./globals.css";
 import { SecurityDeterrents } from "./security-deterrents";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -185,6 +186,7 @@ export default function RootLayout({
           <AdminVisitTracker />
         </Suspense>
         {children}
+        <CookieConsent />
       </body>
     </html>
   );
