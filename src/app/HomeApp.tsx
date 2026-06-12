@@ -2443,7 +2443,8 @@ function LanguageSwitcher() {
       return;
     }
 
-    if (attempt < 24) {
+    // Google Translate options fetch can take a few seconds
+    if (attempt < 60) {
       window.setTimeout(() => retryApplyLanguage(nextLanguage, attempt + 1), 250);
     }
   }, [applyGoogleLanguage]);

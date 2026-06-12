@@ -767,25 +767,24 @@ svg {
   letter-spacing: 0.04em;
 }
 
-#google_translate_element {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
+#google_translate_element,
 .goog-te-banner-frame,
 .goog-te-balloon-frame,
+.goog-te-menu-frame,
 .skiptranslate iframe,
 body > .skiptranslate {
-  display: none !important;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1000 !important;
 }
 
 body {
