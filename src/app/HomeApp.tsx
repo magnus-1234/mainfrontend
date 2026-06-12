@@ -5124,6 +5124,30 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     setFoundryExportStatus("Foundry planner progress saved.");
   };
 
+  const foundrySharePayloadRef = useRef(foundrySharePayload);
+  useEffect(() => {
+    foundrySharePayloadRef.current = foundrySharePayload;
+  });
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (activeTab === "tools" && activeSubTab === "foundry-planner") {
+        if (authUser) {
+          const savedAt = new Date().toISOString();
+          localStorage.setItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`, JSON.stringify({
+            ...foundrySharePayloadRef.current(),
+            savedAt,
+          }));
+        } else {
+          e.preventDefault();
+          e.returnValue = "";
+        }
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [activeTab, activeSubTab, authUser]);
+
   useEffect(() => {
     if (foundryShareLoadedRef.current || typeof window === "undefined") {
       return;
@@ -8236,7 +8260,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                       <div className="foundry-roster-row head">
                         <span>Role</span>
                         <span>Player ID</span>
-                        <span>Player</span>
+                        <span>Player Name</span>
                         <span>Furnace</span>
                         <span>Note</span>
                         <span></span>
