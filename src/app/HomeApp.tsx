@@ -2419,6 +2419,12 @@ function LanguageSwitcher() {
 
     const targetValue = nextLanguage === pageLanguage ? "" : nextLanguage;
 
+    // Google Translate takes a moment to populate the options array.
+    // If the options aren't there yet, return false to trigger the retry loop.
+    if (combo.options.length === 0 || (targetValue !== "" && !Array.from(combo.options).some(opt => opt.value === targetValue))) {
+      return false;
+    }
+
     if (combo.value !== targetValue) {
       combo.value = targetValue;
       combo.dispatchEvent(new Event("change", { bubbles: true }));
@@ -2429,8 +2435,6 @@ function LanguageSwitcher() {
       combo.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    // Google Translate applies asynchronously, so we just confirm the combo
-    // widget exists and the change was dispatched — the translation will apply.
     return true;
   }, []);
 
