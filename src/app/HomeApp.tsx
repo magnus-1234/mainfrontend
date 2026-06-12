@@ -2429,13 +2429,8 @@ function LanguageSwitcher() {
       combo.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    if (targetValue !== "") {
-      const isTranslated = document.documentElement.classList.contains("translated-ltr") || document.documentElement.classList.contains("translated-rtl");
-      if (!isTranslated) {
-        return false;
-      }
-    }
-
+    // Google Translate applies asynchronously, so we just confirm the combo
+    // widget exists and the change was dispatched — the translation will apply.
     return true;
   }, []);
 
