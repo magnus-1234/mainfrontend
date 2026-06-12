@@ -2893,6 +2893,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [foundryLooterTeam, setFoundryLooterTeam] = useState<FoundryTeam>(() => createFoundryLooterTeam());
   const [foundryExportStatus, setFoundryExportStatus] = useState("");
   const [foundryShowBuildingLabels, setFoundryShowBuildingLabels] = useState(true);
+  const [selectedFoundryBuildingId, setSelectedFoundryBuildingId] = useState<string | null>(null);
   const [foundryShowTeamRoster, setFoundryShowTeamRoster] = useState(true);
   const [foundryShareOpen, setFoundryShareOpen] = useState(false);
   const [foundryManageSharesOpen, setFoundryManageSharesOpen] = useState(false);
@@ -8023,15 +8024,20 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <div className="foundry-map-frame">
                     <div className="foundry-map-stage">
                       <img src={foundryMapImage} alt="Whiteout Survival Foundry battlefield map" />
-                      {foundryShowBuildingLabels && foundryBuildings.map((building) => (
-                        <span
-                          className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"}`}
-                          key={building.id}
-                          style={{ left: `${building.x}%`, top: `${building.y}%` }}
-                        >
-                          {building.name}
-                        </span>
-                      ))}
+                      {foundryShowBuildingLabels && foundryBuildings.map((building) => {
+                        const isSelected = selectedFoundryBuildingId === building.id;
+                        return (
+                          <button
+                            className={`foundry-map-marker ${building.phase === "Spawn" ? "spawn" : building.id.includes("workshop") ? "workshop" : "building"} ${isSelected ? "selected" : ""}`}
+                            key={building.id}
+                            style={{ left: `${building.x}%`, top: `${building.y}%` }}
+                            onClick={() => setSelectedFoundryBuildingId(isSelected ? null : building.id)}
+                            type="button"
+                          >
+                            {building.name}
+                          </button>
+                        );
+                      })}
                       {foundryShowTeamRoster && allFoundryTeams.map((team, teamIndex) => {
                         const building = foundryBuildings.find((item) => item.id === team.buildingId);
                         if (!building) {
