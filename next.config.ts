@@ -84,7 +84,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    return [
+    const baseRedirects = [
       {
         source: "/giftcodes",
         destination: "/gift-codes",
@@ -141,9 +141,20 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
     ];
+
+    const locales = ["hi", "es", "fr", "de", "it", "pt", "ru", "ar", "tr", "id", "vi", "th", "ja", "ko", "zh-CN", "zh-TW", "pl", "nl", "sv"];
+    const langPrefix = `/:lang(${locales.join("|")})`;
+
+    const localizedRedirects = baseRedirects.map((redirect) => ({
+      ...redirect,
+      source: `${langPrefix}${redirect.source}`,
+      destination: `/:lang${redirect.destination}`,
+    }));
+
+    return [...baseRedirects, ...localizedRedirects];
   },
   async rewrites() {
-    return [
+    const baseRewrites = [
       {
         source: "/daybreak/island/:id",
         destination: "/?menu=daybreak&island=:id",
@@ -208,6 +219,19 @@ const nextConfig: NextConfig = {
         source: "/wiki/buildings",
         destination: "/?menu=buildings",
       },
+    ];
+
+    const locales = ["hi", "es", "fr", "de", "it", "pt", "ru", "ar", "tr", "id", "vi", "th", "ja", "ko", "zh-CN", "zh-TW", "pl", "nl", "sv"];
+    const langPrefix = `/:lang(${locales.join("|")})`;
+
+    const localizedRewrites = baseRewrites.map((rewrite) => ({
+      ...rewrite,
+      source: `${langPrefix}${rewrite.source}`,
+    }));
+
+    return [
+      ...baseRewrites,
+      ...localizedRewrites,
       {
         source: "/api/gift-codes",
         destination: `${backendUrl}/api/gift-codes`,
