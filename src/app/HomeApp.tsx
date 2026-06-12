@@ -2453,7 +2453,6 @@ function LanguageSwitcher() {
     setLanguage(nextLanguage);
     setOpen(false);
     localStorage.setItem(languageStorageKey, nextLanguage);
-    document.documentElement.lang = nextLanguage;
     setTranslateCookie(nextLanguage);
 
     const targetPath = stripLanguagePrefix(window.location.pathname);
@@ -2475,7 +2474,6 @@ function LanguageSwitcher() {
         : pageLanguage;
 
     window.setTimeout(() => setLanguage(validLanguage), 0);
-    document.documentElement.lang = validLanguage;
     setTranslateCookie(validLanguage);
 
     const translateWindow = window as TranslateWindow;
