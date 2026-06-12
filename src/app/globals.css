@@ -18956,6 +18956,7 @@ body {
   --control-border: color-mix(in srgb, var(--gold-line) 62%, rgba(255, 255, 255, 0.2));
   --copy-accent: #8ed7e2;
   --copy-accent-soft: rgba(142, 215, 226, 0.12);
+  color-scheme: dark;
 }
 
 .actions .icon-button:not(.plain-action),

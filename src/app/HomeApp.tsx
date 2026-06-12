@@ -5410,7 +5410,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     const teamCards = allFoundryTeams.map((team) => ({
       team,
       building: foundryBuildings.find((item) => item.id === team.buildingId),
-      members: [team.rallyLeader, ...team.joiners],
+      members: [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile),
     }));
     const cardColumns = Math.min(3, Math.max(1, teamCards.length));
     const cardWidth = 520;
@@ -5529,7 +5529,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       const teamCards = allFoundryTeams.map((team) => ({
         team,
         building: foundryBuildings.find((item) => item.id === team.buildingId),
-        members: [team.rallyLeader, ...team.joiners],
+        members: [team.rallyLeader, ...team.joiners].filter((member) => member.playerId || member.profile),
       }));
       const mapX = 40;
       const mapY = 140;
@@ -7758,7 +7758,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <div className="foundry-setup-step foundry-time-control">
                   <span>Battle Time UTC</span>
                   <div className="foundry-time-inputs">
-                    <label className="foundry-time-field">
+                    <label className="foundry-time-field" onClick={(e) => { try { const input = e.currentTarget.querySelector('input'); if (input && 'showPicker' in input) input.showPicker(); } catch {} }}>
                       <span>UTC Date</span>
                       <input
                         aria-label="Foundry battle date in UTC"
@@ -7767,7 +7767,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         onChange={(event) => setFoundryBattleTimeParts(event.target.value, foundryUtcClockPart)}
                       />
                     </label>
-                    <label className="foundry-time-field">
+                    <label className="foundry-time-field" onClick={(e) => { try { const input = e.currentTarget.querySelector('input'); if (input && 'showPicker' in input) input.showPicker(); } catch {} }}>
                       <span>UTC Time</span>
                       <input
                         aria-label="Foundry battle time in UTC"
