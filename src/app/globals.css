@@ -20439,7 +20439,13 @@ body {
 .foundry-add-joiner,
 .foundry-hero-actions .foundry-secondary-btn {
   background: var(--background) !important;
+  color: var(--foreground) !important;
   transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.foundry-planner-page .foundry-roster-row button.danger {
+  background: var(--foundry-button-danger) !important;
+  color: #ffffff !important;
 }
 
 .foundry-hero-actions .foundry-primary-download {
