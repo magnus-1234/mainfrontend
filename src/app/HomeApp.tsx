@@ -1553,7 +1553,7 @@ const sidebarItems: {
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/discord-bot", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
-    { label: "WOS Game Map", mobileLabel: "Map", icon: "mapPin", menu: "gameMap", href: "/game-map" },
+    { label: "WOS Game Map", mobileLabel: "Map", icon: "mapPin", menu: "gameMap", href: "/game-map", beta: true },
     { label: "SvS Appointment Planner", mobileLabel: "SvS", icon: "calendar", menu: "svsPlanner", href: "/svs-appointment-planner", beta: true },
     { label: "Foundry Team Planner", mobileLabel: "Foundry", icon: "grid", menu: "planner", href: "/foundry-team-planner", beta: true },
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
