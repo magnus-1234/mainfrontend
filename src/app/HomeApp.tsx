@@ -1926,6 +1926,16 @@ function Icon({ name }: { name: string }) {
         <path d="M12 4c2.5.5 4.2 1.8 5 4-2.5.2-4.2-1.1-5-4Z" />
       </>
     ),
+    grip: (
+      <>
+        <circle cx="9" cy="5" r="1" />
+        <circle cx="15" cy="5" r="1" />
+        <circle cx="9" cy="12" r="1" />
+        <circle cx="15" cy="12" r="1" />
+        <circle cx="9" cy="19" r="1" />
+        <circle cx="15" cy="19" r="1" />
+      </>
+    ),
     bot: (
       <>
         <rect width="16" height="12" x="4" y="8" rx="3" />
@@ -5303,6 +5313,24 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     )));
   };
 
+  const moveFoundryJoiner = (teamId: string, sourceJoinerId: string, targetJoinerId: string) => {
+    const applyMove = (team: FoundryTeam): FoundryTeam => {
+      const sourceIndex = team.joiners.findIndex((j) => j.id === sourceJoinerId);
+      const targetIndex = team.joiners.findIndex((j) => j.id === targetJoinerId);
+      if (sourceIndex === -1 || targetIndex === -1) return team;
+      const newJoiners = [...team.joiners];
+      const [moved] = newJoiners.splice(sourceIndex, 1);
+      newJoiners.splice(targetIndex, 0, moved);
+      return { ...team, joiners: newJoiners };
+    };
+
+    if (teamId === foundryLooterTeam.id) {
+      setFoundryLooterTeam(applyMove);
+      return;
+    }
+    setFoundryTeams((teams) => teams.map((team) => (team.id === teamId ? applyMove(team) : team)));
+  };
+
   useEffect(() => {
     const pendingMembers = allFoundryTeams.flatMap((team) => [team.rallyLeader, ...team.joiners].map((member) => ({ member, teamId: team.id })))
       .filter(({ member }) => {
@@ -5689,7 +5717,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
 
       card.members.forEach((member, memberIndex) => {
         const rowY = y + 104 + memberIndex * rowHeight;
-        context.fillStyle = memberIndex % 2 ? "#171d20" : "#101416";
+        if (member.role === "leader") {
+          context.fillStyle = `color-mix(in srgb, ${color} 15%, #101416)`;
+        } else {
+          context.fillStyle = memberIndex % 2 ? "#171d20" : "#101416";
+        }
         context.beginPath();
         context.roundRect(x + 14, rowY - 24, cardWidth - 28, 34, 9);
         context.fill();
@@ -5902,7 +5934,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
 
         rows.forEach((member, memberIndex) => {
           const rowY = y + 90 + memberIndex * rowHeight;
-          context.fillStyle = memberIndex % 2 ? "#ffffff" : "#f8fafc";
+          if (member.role === "leader") {
+            context.fillStyle = `color-mix(in srgb, ${color} 10%, #ffffff)`;
+          } else {
+            context.fillStyle = memberIndex % 2 ? "#ffffff" : "#f8fafc";
+          }
           context.beginPath();
           context.roundRect(tableX + 10, rowY - 22, tableWidth - 20, 34, 8);
           context.fill();
@@ -8164,8 +8200,38 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         <span></span>
                       </div>
                       {[team.rallyLeader, ...team.joiners].map((member) => (
-                        <div className="foundry-roster-row" key={member.id}>
-                          <strong>{member.role === "leader" ? "Rally Leader" : "Joiner"}</strong>
+                        <div
+                          className="foundry-roster-row"
+                          key={member.id}
+                          draggable={member.role === "joiner"}
+                          onDragStart={(e) => {
+                            if (member.role === "joiner") {
+                              e.dataTransfer.setData("application/foundry-joiner", JSON.stringify({ teamId: team.id, joinerId: member.id }));
+                              e.dataTransfer.effectAllowed = "move";
+                            }
+                          }}
+                          onDragOver={(e) => {
+                            if (member.role === "joiner" && e.dataTransfer.types.includes("application/foundry-joiner")) {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = "move";
+                            }
+                          }}
+                          onDrop={(e) => {
+                            if (member.role === "joiner" && e.dataTransfer.types.includes("application/foundry-joiner")) {
+                              e.preventDefault();
+                              try {
+                                const data = JSON.parse(e.dataTransfer.getData("application/foundry-joiner"));
+                                if (data.teamId === team.id && data.joinerId !== member.id) {
+                                  moveFoundryJoiner(team.id, data.joinerId, member.id);
+                                }
+                              } catch {}
+                            }
+                          }}
+                        >
+                          <strong className="foundry-roster-role">
+                            {member.role === "joiner" && <span className="foundry-drag-handle"><Icon name="grip" /></span>}
+                            {member.role === "leader" ? "Rally Leader" : "Joiner"}
+                          </strong>
                           <input
                             value={member.playerId}
                             inputMode="numeric"
@@ -8179,10 +8245,18 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                             <strong>{member.loading ? "Fetching..." : member.profile?.nickname || (member.status && member.playerId.length >= 8 ? "Not found" : "-")}</strong>
                           </span>
                           <span>{member.profile ? furnaceDisplay(member.profile) : "-"}</span>
-                          <details className="foundry-member-note">
+                          <details
+                            className="foundry-member-note"
+                            name={`foundry-notes-${team.id}`}
+                            onBlur={(e) => {
+                              if (!e.currentTarget.contains(e.relatedTarget)) {
+                                e.currentTarget.removeAttribute("open");
+                              }
+                            }}
+                          >
                             <summary title="Player description" className={member.description ? "has-note" : ""}>
                               <Icon name={member.description ? "message" : "edit"} />
-                              <span>{member.description || "Add"}</span>
+                              {member.description ? <span>{member.description}</span> : null}
                             </summary>
                             <textarea
                               value={member.description}

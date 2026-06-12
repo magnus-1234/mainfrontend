@@ -5022,6 +5022,34 @@ body {
   font-size: 0.82rem;
 }
 
+.foundry-roster-role {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.foundry-drag-handle {
+  display: flex;
+  color: var(--muted-foreground);
+  cursor: grab;
+  opacity: 0.4;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.foundry-drag-handle:hover {
+  opacity: 1;
+  color: var(--foreground);
+}
+
+.draggable-joiner[draggable="true"] {
+  cursor: grab;
+}
+
+.draggable-joiner[draggable="true"]:active,
+.draggable-joiner[draggable="true"]:active .foundry-drag-handle {
+  cursor: grabbing;
+}
+
 .foundry-roster-row span,
 .foundry-roster-row small {
   min-width: 0;
