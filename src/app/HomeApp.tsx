@@ -7800,12 +7800,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <Icon name="download" />
                     Download Map + Teams + Sheet
                   </button>
-                  {authUser && (
-                    <button className="foundry-secondary-btn" type="button" onClick={saveFoundryPlanner}>
-                      <Icon name="copy" />
-                      Save Progress
-                    </button>
-                  )}
+                  <button className="foundry-secondary-btn" type="button" onClick={saveFoundryPlanner}>
+                    <Icon name="copy" />
+                    Save Progress
+                  </button>
                   <button className="foundry-secondary-btn" type="button" onClick={() => void shareFoundryPlanner()}>
                     <Icon name="share" />
                     Share Editable Link
@@ -7814,41 +7812,25 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </div>
               </section>
 
-              {authUser && (
-                <section className="foundry-workflow" aria-label="Planner workflow">
-                  {[
-                    { step: "1", title: "Configure", detail: "Legion & UTC time" },
-                    { step: "2", title: "Assign Buildings", detail: "Map team targets" },
-                    { step: "3", title: "Build Rosters", detail: "Leaders & joiners" },
-                    { step: "4", title: "Export & Share", detail: "Alliance-ready images" },
-                  ].map((item) => (
-                    <div key={item.step}>
-                      <span>{item.step}</span>
-                      <div>
-                        <strong>{item.title}</strong>
-                        <small>{item.detail}</small>
-                      </div>
+              <section className="foundry-workflow" aria-label="Planner workflow">
+                {[
+                  { step: "1", title: "Configure", detail: "Legion & UTC time" },
+                  { step: "2", title: "Assign Buildings", detail: "Map team targets" },
+                  { step: "3", title: "Build Rosters", detail: "Leaders & joiners" },
+                  { step: "4", title: "Export & Share", detail: "Alliance-ready images" },
+                ].map((item) => (
+                  <div key={item.step}>
+                    <span>{item.step}</span>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <small>{item.detail}</small>
                     </div>
-                  ))}
-                </section>
-              )}
-
-
-              {!authUser && (
-                <section className="foundry-signin-gate" aria-label="Foundry planner sign in required">
-                  <div>
-                    <span className="section-kicker">Sign In Required</span>
-                    <h2>Sign in to build, edit, download, and share Foundry plans.</h2>
-                    <p>Editable planner links can be shared with alliance members, but every editor must sign in first.</p>
                   </div>
-                  <button type="button" onClick={() => setLoginOpen(true)}>
-                    <Icon name="user" />
-                    Sign In to Use Planner
-                  </button>
-                </section>
-              )}
+                ))}
+              </section>
 
-              {authUser && <section className="foundry-setup-panel" aria-label="Foundry setup steps">
+
+              <section className="foundry-setup-panel" aria-label="Foundry setup steps">
                 <div className="foundry-setup-step">
                   <label>
                     <span>Legion</span>
@@ -7904,9 +7886,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   </label>
                   <small>{allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"} in plan</small>
                 </div>
-              </section>}
+              </section>
 
-              {authUser && <section className="foundry-planner-shell">
+              <section className="foundry-planner-shell">
                 <div className="foundry-map-panel">
                   <div className="foundry-map-toolbar">
                     <div className="foundry-map-toolbar-title">
@@ -8007,9 +7989,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <img className="foundry-map-logo" src={foundryLogoImage} alt="Whiteout Survival" />
                   </div>
                 </div>
-              </section>}
+              </section>
 
-              {authUser && <section className="foundry-team-editor" aria-label="Foundry team editor">
+              <section className="foundry-team-editor" aria-label="Foundry team editor">
                 <div className="foundry-table-head">
                   <div>
                     <span className="section-kicker">Team Roster</span>
@@ -8106,7 +8088,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     </button>
                   </article>
                 ))}
-              </section>}
+              </section>
             </section>
           ) : activeMenu === "templates" ? (
             <section className="home-page message-templates-page" id="message-templates" aria-label="Whiteout Survival message templates">
