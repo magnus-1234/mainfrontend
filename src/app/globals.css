@@ -1560,6 +1560,30 @@ body {
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   padding: 12px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-border) transparent;
+}
+
+/* Custom scrollbar for sidebar-content to match the premium dark/light theme */
+.sidebar-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--sidebar-border);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-line);
 }
 
 .collapsed-sidebar .sidebar-content {

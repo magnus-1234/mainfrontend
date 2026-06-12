@@ -2831,9 +2831,26 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   }, [likedIslands]);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(initialMenu);
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
-  const [sidebarWikiOpen, setSidebarWikiOpen] = useState(false);
-  const [sidebarCalculatorOpen, setSidebarCalculatorOpen] = useState(false);
+  const [sidebarWikiOpen, setSidebarWikiOpen] = useState(
+    initialMenu === "wikiHeroes" || initialMenu === "wikiBuildings" || initialMenu === "wikiPosters"
+  );
+  const [sidebarCalculatorOpen, setSidebarCalculatorOpen] = useState(
+    initialMenu === "chiefGear" || initialMenu === "chiefCharm" || initialMenu === "vip" || initialMenu === "fireCrystals" || initialMenu === "warAcademy"
+  );
   const [sidebarDeveloperOpen, setSidebarDeveloperOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeMenu === "wikiHeroes" || activeMenu === "wikiBuildings" || activeMenu === "wikiPosters") {
+      setSidebarWikiOpen(true);
+    } else {
+      setSidebarWikiOpen(false);
+    }
+    if (activeMenu === "chiefGear" || activeMenu === "chiefCharm" || activeMenu === "vip" || activeMenu === "fireCrystals" || activeMenu === "warAcademy") {
+      setSidebarCalculatorOpen(true);
+    } else {
+      setSidebarCalculatorOpen(false);
+    }
+  }, [activeMenu]);
   const [activeHeroFilter, setActiveHeroFilter] = useState<WosHeroFilter>("Rare");
   const [activeBuildingFilter, setActiveBuildingFilter] = useState<WosBuildingFilter>("Military");
   const [activePosterCategory, setActivePosterCategory] = useState("All");
@@ -6099,12 +6116,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
                 </a>
               ))}
-              <div className={`mobile-more-wiki ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
+              <div className={`mobile-more-wiki ${sidebarCalculatorOpen ? "open" : ""}`}>
                 <button
                   className={`mobile-more-item mobile-more-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
                   type="button"
                   role="menuitem"
-                  aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
+                  aria-expanded={sidebarCalculatorOpen}
                   onClick={() => setSidebarCalculatorOpen((value) => !value)}
                 >
                   <NavIcon icon="calculator" visual={navGroupVisuals.calculators} />
@@ -6133,12 +6150,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   ))}
                 </div>
               </div>
-              <div className={`mobile-more-wiki ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
+              <div className={`mobile-more-wiki ${sidebarWikiOpen ? "open" : ""}`}>
                 <button
                   className={`mobile-more-item mobile-more-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
                   type="button"
                   role="menuitem"
-                  aria-expanded={sidebarWikiOpen || wikiMenuActive}
+                  aria-expanded={sidebarWikiOpen}
                   onClick={() => setSidebarWikiOpen((value) => !value)}
                 >
                   <NavIcon icon="book" visual={navGroupVisuals.wiki} />
@@ -6227,11 +6244,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 {item.beta && <strong className="sidebar-beta-badge">Beta</strong>}
               </a>
             ))}
-            <div className={`sidebar-wiki-group mobile-primary ${sidebarCalculatorOpen || calculatorMenuActive ? "open" : ""}`}>
+            <div className={`sidebar-wiki-group mobile-primary ${sidebarCalculatorOpen ? "open" : ""}`}>
               <button
                 className={`sidebar-item sidebar-wiki-trigger ${calculatorMenuActive ? "active" : ""}`}
                 type="button"
-                aria-expanded={sidebarCalculatorOpen || calculatorMenuActive}
+                aria-expanded={sidebarCalculatorOpen}
                 aria-controls="sidebar-calculators-submenu"
                 onClick={() => setSidebarCalculatorOpen((value) => !value)}
               >
@@ -6259,11 +6276,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 ))}
               </div>
             </div>
-            <div className={`sidebar-wiki-group mobile-primary ${sidebarWikiOpen || wikiMenuActive ? "open" : ""}`}>
+            <div className={`sidebar-wiki-group mobile-primary ${sidebarWikiOpen ? "open" : ""}`}>
               <button
                 className={`sidebar-item sidebar-wiki-trigger ${wikiMenuActive ? "active" : ""}`}
                 type="button"
-                aria-expanded={sidebarWikiOpen || wikiMenuActive}
+                aria-expanded={sidebarWikiOpen}
                 aria-controls="sidebar-wos-wiki-submenu"
                 onClick={() => setSidebarWikiOpen((value) => !value)}
               >
