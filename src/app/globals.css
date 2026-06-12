@@ -4006,41 +4006,135 @@ body {
 
 .foundry-planner-page {
   display: grid;
-  gap: 14px;
-  padding: 18px;
+  gap: clamp(12px, 1.8vw, 18px);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(14px, 2vw, 24px);
 }
 
 .foundry-hero,
 .foundry-setup-panel,
 .foundry-planner-shell,
 .foundry-team-editor,
-.foundry-team-table {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+.foundry-team-table,
+.foundry-workflow {
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--card) 96%, var(--gold-soft)), var(--card)),
+    var(--card);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 18px 42px rgba(0, 0, 0, 0.1);
 }
 
 .foundry-hero {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 18px;
-  padding: 22px;
+  gap: clamp(16px, 2.4vw, 28px);
+  padding: clamp(18px, 2.4vw, 28px);
+  position: relative;
+  overflow: hidden;
+}
+
+.foundry-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
 .foundry-hero h1 {
-  margin: 6px 0 8px;
-  font-size: clamp(2.2rem, 4.4vw, 4.75rem);
-  line-height: 0.96;
-  letter-spacing: 0;
+  display: grid;
+  max-width: 760px;
+  margin: 10px 0 0;
+  font-size: clamp(2.4rem, 4.8vw, 4.4rem);
+  font-weight: 900;
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+}
+
+.foundry-hero h1 span {
+  display: block;
+}
+
+.foundry-hero h1 span:first-child {
+  color: var(--muted-foreground);
+  font-size: 0.42em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .foundry-hero p,
-.foundry-panel-head p {
+.foundry-panel-head p,
+.foundry-table-head p {
+  max-width: 680px;
   margin: 0;
   color: var(--muted-foreground);
-  line-height: 1.5;
+  font-size: clamp(0.92rem, 1.2vw, 1.02rem);
+  line-height: 1.55;
+}
+
+.foundry-table-head p {
+  margin-top: 8px;
+}
+
+.foundry-workflow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.foundry-workflow div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--background) 72%, var(--card));
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.foundry-workflow div:hover {
+  border-color: var(--gold-line);
+  transform: translateY(-1px);
+}
+
+.foundry-workflow div > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.foundry-workflow div strong {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.1;
+}
+
+.foundry-workflow div small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .foundry-hero-actions,
@@ -4072,18 +4166,31 @@ body {
   font-weight: 850;
 }
 
-.foundry-hero-actions button {
-  border-color: var(--gold-line);
-  background: var(--primary);
-  color: #1d1208;
-}
-
 .foundry-hero-actions .foundry-primary-download {
   min-height: 46px;
-  border-width: 2px;
+  border: 2px solid var(--gold-line);
   padding: 0 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 92%, #fff), var(--primary));
+  color: #1d1208;
   box-shadow: 0 12px 28px rgba(244, 129, 32, 0.26);
   font-size: 0.96rem;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.foundry-hero-actions .foundry-primary-download:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 16px 34px rgba(244, 129, 32, 0.34);
+}
+
+.foundry-hero-actions .foundry-secondary-btn {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--background) 88%, var(--muted));
+  color: var(--foreground);
+}
+
+.foundry-hero-actions .foundry-secondary-btn:hover {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
 }
 
 .foundry-save-meta {
@@ -4100,9 +4207,12 @@ body {
   justify-content: space-between;
   gap: 18px;
   border: 1px solid var(--gold-line);
-  border-radius: 8px;
-  padding: 18px;
-  background: var(--gold-soft);
+  border-radius: 12px;
+  padding: clamp(16px, 2vw, 22px);
+  background:
+    linear-gradient(135deg, var(--gold-soft), color-mix(in srgb, var(--card) 90%, transparent)),
+    var(--card);
+  box-shadow: 0 14px 34px rgba(244, 129, 32, 0.08);
 }
 
 .foundry-signin-gate h2,
@@ -4175,6 +4285,16 @@ body {
   padding: 14px;
 }
 
+.foundry-setup-step {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 10px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--background) 76%, var(--card));
+}
+
 .foundry-setup-panel label,
 .foundry-time-control,
 .foundry-team-table header label {
@@ -4182,8 +4302,9 @@ body {
   gap: 6px;
   min-width: 0;
   color: var(--muted-foreground);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 900;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -4258,10 +4379,7 @@ body {
   display: grid;
   align-content: center;
   justify-items: start;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: var(--muted);
+  gap: 8px;
 }
 
 .foundry-export-note small {
@@ -4304,31 +4422,108 @@ body {
 
 .foundry-map-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  color: var(--muted-foreground);
-  font-size: 0.82rem;
-  font-weight: 900;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.foundry-map-toolbar-title {
+  display: grid;
+  gap: 4px;
+}
+
+.foundry-map-toolbar-title > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground);
+  font-size: 0.92rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.foundry-map-toolbar span,
-.foundry-map-toolbar div {
+.foundry-map-toolbar-title small {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.foundry-map-toolbar-controls {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.foundry-map-toolbar strong {
+.foundry-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 0 10px;
   background: var(--background);
   color: var(--foreground);
   font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.foundry-status-pill.accent {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--foreground);
+}
+
+.foundry-map-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.foundry-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.foundry-map-legend span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.foundry-map-legend span.spawn::before {
+  background: #22d3ee;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+.foundry-map-legend span.building::before {
+  background: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+}
+
+.foundry-map-legend span.workshop::before {
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.45);
 }
 
 .foundry-map-frame {
@@ -4336,7 +4531,7 @@ body {
   overflow: hidden;
   aspect-ratio: 2400 / 1936;
   border: 1px solid color-mix(in srgb, var(--gold-line) 60%, var(--border));
-  border-radius: 8px;
+  border-radius: 12px;
   background: #a993a5;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.08) inset,
@@ -4543,9 +4738,40 @@ body {
 
 .foundry-table-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+  padding-bottom: 4px;
+}
+
+.foundry-table-stats {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.foundry-table-stats span {
+  display: grid;
+  min-width: 92px;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--background) 78%, var(--card));
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.foundry-table-stats strong {
+  color: var(--foreground);
+  font-size: 0.92rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-transform: none;
 }
 
 .site-toast-stack {
@@ -4644,8 +4870,20 @@ body {
 .foundry-team-table {
   display: grid;
   gap: 8px;
-  padding: 10px;
+  padding: 12px;
   box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.foundry-team-table::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--foundry-team-color, var(--gold));
 }
 
 .foundry-team-table header {
@@ -4695,12 +4933,19 @@ body {
 }
 
 .foundry-roster-row.head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   min-height: 38px;
-  background: var(--muted);
+  background: color-mix(in srgb, var(--muted) 92%, var(--card));
   color: var(--muted-foreground);
   font-size: 0.76rem;
   font-weight: 950;
   text-transform: uppercase;
+}
+
+.foundry-roster-row:not(.head):nth-child(even) {
+  background: color-mix(in srgb, var(--muted) 34%, var(--card));
 }
 
 .foundry-roster-row strong {
@@ -4841,8 +5086,13 @@ body {
     font-size: 2.15rem;
   }
 
+  .foundry-workflow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px;
+  }
+
   .foundry-hero-actions,
-  .foundry-table-head > div:last-child {
+  .foundry-table-stats {
     width: 100%;
   }
 
@@ -4866,14 +5116,19 @@ body {
     flex-direction: column;
   }
 
-  .foundry-map-toolbar div {
+  .foundry-map-toolbar-controls {
     width: 100%;
   }
 
   .foundry-map-toolbar button,
-  .foundry-map-toolbar strong {
+  .foundry-status-pill {
     flex: 1 1 auto;
     justify-content: center;
+  }
+
+  .foundry-table-stats span {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
   }
 
   .foundry-map-logo {
@@ -4944,6 +5199,10 @@ body {
 }
 
 @media (max-width: 430px) {
+  .foundry-workflow {
+    grid-template-columns: 1fr;
+  }
+
   .foundry-map-frame {
     border-radius: 6px;
   }
@@ -4952,12 +5211,12 @@ body {
     inset: -4.5%;
   }
 
-  .foundry-map-toolbar div {
+  .foundry-map-toolbar-controls {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .foundry-map-toolbar strong {
+  .foundry-status-pill {
     min-height: 28px;
   }
 
@@ -20066,28 +20325,34 @@ body {
   }
 }
 /* Foundry Planner Compact & Button Overrides */
-.foundry-hero-actions button,
 .foundry-map-toolbar button,
 .foundry-table-head button,
 .foundry-roster-row button,
-.foundry-add-joiner {
+.foundry-add-joiner,
+.foundry-hero-actions .foundry-secondary-btn {
   background: var(--background) !important;
   transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.foundry-hero-actions .foundry-primary-download {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 92%, #fff), var(--primary)) !important;
 }
 
 .foundry-map-toolbar button:hover,
 .foundry-table-head button:hover,
 .foundry-roster-row button:hover,
-.foundry-add-joiner:hover {
+.foundry-add-joiner:hover,
+.foundry-hero-actions .foundry-secondary-btn:hover {
   border-color: var(--gold-line) !important;
   background: var(--muted) !important;
 }
 
-.foundry-hero-actions button:active,
 .foundry-map-toolbar button:active,
 .foundry-table-head button:active,
 .foundry-roster-row button:active,
-.foundry-add-joiner:active {
+.foundry-add-joiner:active,
+.foundry-hero-actions .foundry-secondary-btn:active,
+.foundry-hero-actions .foundry-primary-download:active {
   transform: scale(0.96) !important;
 }
 

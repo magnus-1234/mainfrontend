@@ -7685,9 +7685,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
             <section className="home-page foundry-planner-page" id="foundry-team-planner" aria-label="Foundry Team Planner">
               <section className="foundry-hero">
                 <div className="foundry-hero-copy">
-                  <span className="section-kicker">Planner Setup</span>
-                  <h1>Whiteout Survival Foundry Team Planner</h1>
-                  <p>Select legion, UTC time, teams, buildings, rally leaders, and joiners. The plan exports map, team table, and compact battle sheet images.</p>
+                  <span className="section-kicker">Foundry Battle Planner</span>
+                  <h1>
+                    <span>Whiteout Survival</span>
+                    <span>Foundry Team Planner</span>
+                  </h1>
+                  <p>Configure legion, UTC battle time, team assignments, rally leaders, and joiners. Export a polished map overlay, roster table, and compact battle sheet for your alliance.</p>
                 </div>
                 <div className="foundry-hero-actions">
                   <button className="foundry-primary-download" type="button" onClick={() => void exportFoundryPlanImages()}>
@@ -7695,18 +7698,37 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     Download Map + Teams + Sheet
                   </button>
                   {authUser && (
-                    <button type="button" onClick={saveFoundryPlanner}>
+                    <button className="foundry-secondary-btn" type="button" onClick={saveFoundryPlanner}>
                       <Icon name="copy" />
                       Save Progress
                     </button>
                   )}
-                  <button type="button" onClick={() => void shareFoundryPlanner()}>
+                  <button className="foundry-secondary-btn" type="button" onClick={() => void shareFoundryPlanner()}>
                     <Icon name="share" />
                     Share Editable Link
                   </button>
-                  {authUser && foundrySavedAt && <small className="foundry-save-meta">Saved {formatFoundrySavedAt(foundrySavedAt)}</small>}
+                  {authUser && foundrySavedAt && <small className="foundry-save-meta">Last saved {formatFoundrySavedAt(foundrySavedAt)}</small>}
                 </div>
               </section>
+
+              {authUser && (
+                <section className="foundry-workflow" aria-label="Planner workflow">
+                  {[
+                    { step: "1", title: "Configure", detail: "Legion & UTC time" },
+                    { step: "2", title: "Assign Buildings", detail: "Map team targets" },
+                    { step: "3", title: "Build Rosters", detail: "Leaders & joiners" },
+                    { step: "4", title: "Export & Share", detail: "Alliance-ready images" },
+                  ].map((item) => (
+                    <div key={item.step}>
+                      <span>{item.step}</span>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <small>{item.detail}</small>
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              )}
 
 
               {!authUser && (
@@ -7724,15 +7746,17 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               )}
 
               {authUser && <section className="foundry-setup-panel" aria-label="Foundry setup steps">
-                <label>
-                  <span>1. Legion</span>
-                  <select value={foundryLegion} onChange={(event) => setFoundryLegion(event.target.value as "1" | "2")}>
-                    <option value="1">Legion 1</option>
-                    <option value="2">Legion 2</option>
-                  </select>
-                </label>
-                <div className="foundry-time-control">
-                  <span>2. Battle Time UTC</span>
+                <div className="foundry-setup-step">
+                  <label>
+                    <span>Legion</span>
+                    <select value={foundryLegion} onChange={(event) => setFoundryLegion(event.target.value as "1" | "2")}>
+                      <option value="1">Legion 1</option>
+                      <option value="2">Legion 2</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="foundry-setup-step foundry-time-control">
+                  <span>Battle Time UTC</span>
                   <div className="foundry-time-inputs">
                     <label className="foundry-time-field">
                       <span>UTC Date</span>
@@ -7760,28 +7784,33 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <button type="button" onClick={() => setFoundryUtcTime("")}>Clear</button>
                   </div>
                 </div>
-                <label>
-                  <span>3. Number of Teams</span>
-                  <select value={foundryTeamCount} onChange={(event) => updateFoundryTeamCount(Number(event.target.value))}>
-                    {Array.from({ length: 8 }, (_, index) => index + 1).map((count) => (
-                      <option value={count} key={count}>{count} team{count > 1 ? "s" : ""}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="foundry-export-note">
+                <div className="foundry-setup-step">
+                  <label>
+                    <span>Number of Teams</span>
+                    <select value={foundryTeamCount} onChange={(event) => updateFoundryTeamCount(Number(event.target.value))}>
+                      {Array.from({ length: 8 }, (_, index) => index + 1).map((count) => (
+                        <option value={count} key={count}>{count} team{count > 1 ? "s" : ""}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className="foundry-setup-step foundry-export-note">
                   <label className="foundry-looter-toggle">
                     <input type="checkbox" checked={foundryIncludeLooter} onChange={(event) => setFoundryIncludeLooter(event.target.checked)} />
                     <span>Add Looter Team</span>
                   </label>
-                  <small>{allFoundryTeams.length} editable team table rows</small>
+                  <small>{allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"} in plan</small>
                 </div>
               </section>}
 
               {authUser && <section className="foundry-planner-shell">
                 <div className="foundry-map-panel">
                   <div className="foundry-map-toolbar">
-                    <span><Icon name="mapPin" /> Building map</span>
-                    <div>
+                    <div className="foundry-map-toolbar-title">
+                      <span><Icon name="mapPin" /> Battlefield Map</span>
+                      <small>Assign teams to buildings and preview player placement</small>
+                    </div>
+                    <div className="foundry-map-toolbar-controls">
                       <button
                         className={foundryShowBuildingLabels ? "active" : ""}
                         type="button"
@@ -7796,9 +7825,15 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                       >
                         {foundryShowTeamRoster ? "Hide Players" : "Show Players"}
                       </button>
-                      <strong>Legion {foundryLegion}</strong>
-                      <strong>{formatFoundryUtcTime(foundryUtcTime)}</strong>
+                      <span className="foundry-status-pill">Legion {foundryLegion}</span>
+                      <span className="foundry-status-pill accent">{formatFoundryUtcTime(foundryUtcTime) || "UTC not set"}</span>
+                      <span className="foundry-status-pill">{allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"}</span>
                     </div>
+                  </div>
+                  <div className="foundry-map-legend" aria-label="Building legend">
+                    <span className="spawn">Spawn</span>
+                    <span className="building">Building</span>
+                    <span className="workshop">Workshop</span>
                   </div>
                   <div className="foundry-map-frame">
                     <div className="foundry-map-stage">
@@ -7874,12 +7909,22 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               {authUser && <section className="foundry-team-editor" aria-label="Foundry team editor">
                 <div className="foundry-table-head">
                   <div>
-                    <span className="section-kicker">4. Team Table</span>
+                    <span className="section-kicker">Team Roster</span>
                     <h2>Edit Teams, Buildings, Leaders, and Joiners</h2>
+                    <p>Player IDs auto-fetch nicknames and furnace levels. Add notes for special rally instructions.</p>
+                  </div>
+                  <div className="foundry-table-stats" aria-label="Plan summary">
+                    <span><strong>{allFoundryTeams.length}</strong>Teams</span>
+                    <span><strong>Legion {foundryLegion}</strong>Assignment</span>
+                    <span><strong>{formatFoundryUtcTime(foundryUtcTime) || "—"}</strong>UTC</span>
                   </div>
                 </div>
                 {allFoundryTeams.map((team, teamIndex) => (
-                  <article className="foundry-team-table" key={team.id}>
+                  <article
+                    className="foundry-team-table"
+                    key={team.id}
+                    style={{ ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length] }}
+                  >
                     <header>
                       <label>
                         Team Name
