@@ -1756,9 +1756,6 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
   if (params.get("foundry")) {
     return "planner";
   }
-  if (params.get("gameMapId")) {
-    return "gameMap";
-  }
 
   if (params.has("island") || location.pathname.startsWith("/daybreak/island/")) {
     return "daybreak";
@@ -3174,7 +3171,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         setStateAgeInput(stateParam);
       }
       setActiveWikiSlug(params.get("item") || "");
-      setActiveMenu(params.get("foundry") ? "planner" : params.get("gameMapId") ? "gameMap" : resolveActiveMenu(window.location));
+      setActiveMenu(params.get("foundry") ? "planner" : resolveActiveMenu(window.location));
     };
 
     syncMenuFromLocation();
