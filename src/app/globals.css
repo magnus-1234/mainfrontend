@@ -9594,7 +9594,8 @@ body {
   color: #fff;
 }
 
-.brand-logo img {
+.brand-logo img,
+.brand-logo svg {
   width: 14px;
   height: 14px;
   object-fit: contain;
