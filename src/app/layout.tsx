@@ -126,11 +126,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
-      { url: "/icon-192x192.png", type: "image/png", sizes: "192x192" },
+      { url: `${siteUrl}/favicon.ico`, sizes: "any" },
+      { url: `${siteUrl}/favicon-48x48.png`, type: "image/png", sizes: "48x48" },
+      { url: `${siteUrl}/icon-192x192.png`, type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/favicon-48x48.png",
-    apple: [{ url: "/icon-192x192.png", type: "image/png", sizes: "192x192" }],
+    shortcut: `${siteUrl}/favicon-48x48.png`,
+    apple: [{ url: `${siteUrl}/icon-192x192.png`, type: "image/png", sizes: "192x192" }],
   },
   openGraph: {
     type: "website",
