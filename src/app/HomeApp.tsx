@@ -8254,12 +8254,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                       </label>
                       <div>
                         <span style={{ fontSize: "12px", color: "var(--foreground)", marginBottom: "4px", display: "block" }}>Phases</span>
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "nowrap", marginBottom: "8px" }}>
                           {foundryPhaseOptions.filter(p => p.id !== "all").map((phase) => {
                             const selectedPhases = (team.phaseId || "all").split(",");
                             const isSelected = selectedPhases.includes("all") || selectedPhases.includes(phase.id);
                             return (
-                              <label key={phase.id} style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "normal", cursor: "pointer", flexDirection: "row", margin: 0 }}>
+                              <label key={phase.id} style={{ display: "flex", alignItems: "center", gap: "2px", fontSize: "11px", fontWeight: "normal", cursor: "pointer", flexDirection: "row", margin: 0, whiteSpace: "nowrap" }}>
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
@@ -8294,7 +8294,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                           ))}
                         </select>
                       </label>
-                      <span style={{ ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length] }}>
+                      <span style={{ ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length], overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                         Team {teamIndex + 1} | {getFoundryPhaseLabel(team.phaseId)}
                       </span>
                     </header>
