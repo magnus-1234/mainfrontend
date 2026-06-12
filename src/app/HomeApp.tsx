@@ -4958,7 +4958,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       const payload = encodeFoundryShareState(foundrySharePayload());
       const response = await fetch("/api/foundry-planner", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-user-id": authUser.id },
         body: JSON.stringify({ payload, access: foundryShareAccess }),
       });
       const data = await response.json();
@@ -4978,7 +4978,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const loadMyFoundryShares = async () => {
     if (!authUser) return;
     try {
-      const response = await fetch("/api/foundry-planner/me");
+      const response = await fetch("/api/foundry-planner/me", {
+        headers: { "x-user-id": authUser.id }
+      });
       const data = await response.json();
       setFoundryMyShares(data.plans || []);
     } catch {}
@@ -4989,7 +4991,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       const newAccess = currentAccess === "editable" ? "view-only" : "editable";
       await fetch(`/api/foundry-planner/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(authUser ? { "x-user-id": authUser.id } : {}) },
         body: JSON.stringify({ access: newAccess }),
       });
       await loadMyFoundryShares();
@@ -4998,7 +5000,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
 
   const stopFoundryShare = async (id: string) => {
     try {
-      await fetch(`/api/foundry-planner/${id}`, { method: "DELETE" });
+      await fetch(`/api/foundry-planner/${id}`, {
+        method: "DELETE",
+        headers: authUser ? { "x-user-id": authUser.id } : undefined
+      });
       await loadMyFoundryShares();
     } catch {}
   };
