@@ -2895,6 +2895,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [foundryShowBuildingLabels, setFoundryShowBuildingLabels] = useState(true);
   const [foundryShowTeamRoster, setFoundryShowTeamRoster] = useState(true);
   const [foundryShareOpen, setFoundryShareOpen] = useState(false);
+  const [foundryManageSharesOpen, setFoundryManageSharesOpen] = useState(false);
+  const [foundryShareAccess, setFoundryShareAccess] = useState<"editable" | "view-only">("editable");
+  const [foundryShareId, setFoundryShareId] = useState("");
+  const [foundryIsSavingShare, setFoundryIsSavingShare] = useState(false);
+  const [foundryMyShares, setFoundryMyShares] = useState<any[]>([]);
+  const [foundryReadonly, setFoundryReadonly] = useState(false);
   const [foundrySavedAt, setFoundrySavedAt] = useState("");
   const [activeTemplateCategory, setActiveTemplateCategory] = useState<MessageTemplateCategory>("all");
   const [copiedTemplateId, setCopiedTemplateId] = useState("");
@@ -4905,11 +4911,17 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   });
 
   const foundryShareUrl = () => {
-    const payload = encodeFoundryShareState(foundrySharePayload());
     const url = new URL(window.location.href);
     url.pathname = "/";
     url.hash = "foundry-team-planner";
-    url.searchParams.set("foundry", payload);
+    if (foundryShareId) {
+      url.searchParams.set("foundryId", foundryShareId);
+      url.searchParams.delete("foundry");
+    } else {
+      const payload = encodeFoundryShareState(foundrySharePayload());
+      url.searchParams.set("foundry", payload);
+      url.searchParams.delete("foundryId");
+    }
     return url.toString();
   };
 
@@ -4934,9 +4946,62 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       setLoginOpen(true);
       return;
     }
+    setFoundryShareId("");
+    setFoundryShareAccess("editable");
     setFoundryShareOpen(true);
   };
 
+  const generateFoundryShareLink = async () => {
+    if (!authUser) return;
+    setFoundryIsSavingShare(true);
+    try {
+      const payload = encodeFoundryShareState(foundrySharePayload());
+      const response = await fetch("/api/foundry-planner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload, access: foundryShareAccess }),
+      });
+      const data = await response.json();
+      if (data.plan?.id) {
+        setFoundryShareId(data.plan.id);
+        setFoundryExportStatus(`Generated ${foundryShareAccess === "view-only" ? "view-only" : "editable"} link.`);
+      } else {
+        setFoundryExportStatus(data.error || "Failed to generate link.");
+      }
+    } catch {
+      setFoundryExportStatus("Failed to generate link.");
+    } finally {
+      setFoundryIsSavingShare(false);
+    }
+  };
+
+  const loadMyFoundryShares = async () => {
+    if (!authUser) return;
+    try {
+      const response = await fetch("/api/foundry-planner/me");
+      const data = await response.json();
+      setFoundryMyShares(data.plans || []);
+    } catch {}
+  };
+
+  const toggleFoundryShareAccess = async (id: string, currentAccess: string) => {
+    try {
+      const newAccess = currentAccess === "editable" ? "view-only" : "editable";
+      await fetch(`/api/foundry-planner/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access: newAccess }),
+      });
+      await loadMyFoundryShares();
+    } catch {}
+  };
+
+  const stopFoundryShare = async (id: string) => {
+    try {
+      await fetch(`/api/foundry-planner/${id}`, { method: "DELETE" });
+      await loadMyFoundryShares();
+    } catch {}
+  };
   const copyFoundryShareLink = async () => {
     await copyTextToClipboard(foundryShareUrl(), "Copy Foundry plan link");
     setFoundryExportStatus("Editable Foundry plan link copied.");
@@ -5034,7 +5099,27 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     if (foundryShareLoadedRef.current || typeof window === "undefined") {
       return;
     }
-    const encoded = new URLSearchParams(window.location.search).get("foundry");
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get("foundry");
+    const foundryId = params.get("foundryId");
+    
+    if (foundryId) {
+      foundryShareLoadedRef.current = true;
+      fetch(`/api/foundry-planner/${foundryId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.plan) {
+            const parsed = decodeFoundryShareState(data.plan.payload);
+            setFoundryReadonly(data.plan.access === "view-only");
+            applyFoundryPlanState(parsed, { status: `Shared Foundry plan loaded (${data.plan.access === 'view-only' ? 'View Only' : 'Editable'}).` });
+          } else {
+            setFoundryExportStatus(data.error || "Shared Foundry plan link could not be loaded.");
+          }
+        })
+        .catch(() => setFoundryExportStatus("Failed to load shared Foundry plan."));
+      return;
+    }
+
     if (!encoded) {
       foundryShareLoadedRef.current = true;
       return;
@@ -7800,14 +7885,20 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <Icon name="download" />
                     Download Map + Teams + Sheet
                   </button>
-                  <button className="foundry-secondary-btn" type="button" onClick={saveFoundryPlanner}>
+                  <button className="foundry-secondary-btn" type="button" onClick={saveFoundryPlanner} disabled={foundryReadonly}>
                     <Icon name="copy" />
                     Save Progress
                   </button>
                   <button className="foundry-secondary-btn" type="button" onClick={() => void shareFoundryPlanner()}>
                     <Icon name="share" />
-                    Share Editable Link
+                    Share Link
                   </button>
+                  {authUser && (
+                    <button className="foundry-secondary-btn" type="button" onClick={() => { loadMyFoundryShares(); setFoundryManageSharesOpen(true); }}>
+                      <Icon name="link" />
+                      Manage My Shared Links
+                    </button>
+                  )}
                   {authUser && foundrySavedAt && <small className="foundry-save-meta">Last saved {formatFoundrySavedAt(foundrySavedAt)}</small>}
                 </div>
               </section>
@@ -7830,7 +7921,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               </section>
 
 
-              <section className="foundry-setup-panel" aria-label="Foundry setup steps">
+              <section className="foundry-setup-panel" aria-label="Foundry setup steps" style={foundryReadonly ? { pointerEvents: "none", opacity: 0.7 } : {}}>
                 <div className="foundry-setup-step">
                   <label>
                     <span>Legion</span>
@@ -7991,7 +8082,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </div>
               </section>
 
-              <section className="foundry-team-editor" aria-label="Foundry team editor">
+              <section className="foundry-team-editor" aria-label="Foundry team editor" style={foundryReadonly ? { pointerEvents: "none", opacity: 0.7 } : {}}>
                 <div className="foundry-table-head">
                   <div>
                     <span className="section-kicker">Team Roster</span>
@@ -9368,31 +9459,84 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <p>Legion {foundryLegion} | {formatFoundryUtcTime(foundryUtcTime)} | {allFoundryTeams.length} team{allFoundryTeams.length === 1 ? "" : "s"}</p>
               </div>
             </div>
-            <div className="share-preview-row">
-              <div className="share-url-box">
-                <span>{foundryShareUrl()}</span>
-                <button type="button" onClick={() => void copyFoundryShareLink()} aria-label="Copy Foundry plan URL">
-                  <Icon name="copy" />
+            {!foundryShareId ? (
+              <div className="foundry-generate-share">
+                <div className="foundry-access-toggle" style={{ display: 'flex', gap: '1rem', margin: '1rem 0' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="radio" name="foundryAccess" checked={foundryShareAccess === "editable"} onChange={() => setFoundryShareAccess("editable")} />
+                    <strong>Editable</strong> (Anyone can edit)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="radio" name="foundryAccess" checked={foundryShareAccess === "view-only"} onChange={() => setFoundryShareAccess("view-only")} />
+                    <strong>View Only</strong> (No edits allowed)
+                  </label>
+                </div>
+                <button type="button" className="primary-btn" style={{ width: '100%', padding: '0.75rem', fontSize: '1.1rem', borderRadius: '8px', cursor: 'pointer', background: '#3b82f6', color: 'white', border: 'none' }} disabled={foundryIsSavingShare} onClick={() => void generateFoundryShareLink()}>
+                  {foundryIsSavingShare ? "Generating..." : "Generate Link"}
                 </button>
               </div>
-              <img className="share-qr" src={qrCodeUrlFor(foundryShareUrl())} alt="Foundry plan share QR code" />
-            </div>
-            <div className="foundry-share-summary" aria-label="Foundry share summary">
-              <span><Icon name="shield" /><strong>Editable</strong>Signed-in alliance members can edit the plan from this link.</span>
-              <span><Icon name="download" /><strong>Exports</strong>Map and team plan images stay available after opening.</span>
-            </div>
-            <div className="share-icon-row share-option-grid">
-              <button type="button" onClick={() => void nativeShareFoundryPlanner()}><Icon name="share" />Native</button>
-              <button type="button" onClick={() => void copyFoundryShareLink()}><Icon name="copy" />Copy</button>
-              <a href={foundryShareUrl()} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
-              <button type="button" onClick={() => void exportFoundryPlanImages()}><Icon name="image" />Images</button>
-              <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
-              <a className="brand-share discord" href={socialShareUrl("discord", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="discord" /><span>Discord</span></a>
-              <a className="brand-share x" href={socialShareUrl("x", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="x" /><span>X</span></a>
-              <a className="brand-share facebook" href={socialShareUrl("facebook", foundryShareUrl(), "Foundry Battle Plan")} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="facebook" /><span>Facebook</span></a>
-              <a className="brand-share linkedin" href={socialShareUrl("linkedin", foundryShareUrl(), "Foundry Battle Plan")} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
-              <a className="brand-share telegram" href={socialShareUrl("telegram", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="telegram" /><span>Telegram</span></a>
-              <a className="brand-share email" href={socialShareUrl("email", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} onClick={() => void copyFoundryShareLink()}><BrandLogo brand="email" /><span>Email</span></a>
+            ) : (
+              <>
+                <div className="share-preview-row">
+                  <div className="share-url-box">
+                    <span>{foundryShareUrl()}</span>
+                    <button type="button" onClick={() => void copyFoundryShareLink()} aria-label="Copy Foundry plan URL">
+                      <Icon name="copy" />
+                    </button>
+                  </div>
+                  <img className="share-qr" src={qrCodeUrlFor(foundryShareUrl())} alt="Foundry plan share QR code" />
+                </div>
+                <div className="foundry-share-summary" aria-label="Foundry share summary">
+                  <span><Icon name={foundryShareAccess === "editable" ? "shield" : "eye"} /><strong>{foundryShareAccess === "editable" ? "Editable" : "View Only"}</strong>{foundryShareAccess === "editable" ? "Signed-in alliance members can edit the plan from this link." : "Viewers cannot modify this plan."}</span>
+                  <span><Icon name="download" /><strong>Exports</strong>Map and team plan images stay available after opening.</span>
+                </div>
+                <div className="share-icon-row share-option-grid">
+                  <button type="button" onClick={() => void nativeShareFoundryPlanner()}><Icon name="share" />Native</button>
+                  <button type="button" onClick={() => void copyFoundryShareLink()}><Icon name="copy" />Copy</button>
+                  <a href={foundryShareUrl()} target="_blank" rel="noreferrer"><Icon name="external" />Open</a>
+                  <button type="button" onClick={() => void exportFoundryPlanImages()}><Icon name="image" />Images</button>
+                  <a className="brand-share whatsapp" href={socialShareUrl("whatsapp", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="whatsapp" /><span>WhatsApp</span></a>
+                  <a className="brand-share discord" href={socialShareUrl("discord", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="discord" /><span>Discord</span></a>
+                  <a className="brand-share x" href={socialShareUrl("x", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="x" /><span>X</span></a>
+                  <a className="brand-share facebook" href={socialShareUrl("facebook", foundryShareUrl(), "Foundry Battle Plan")} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="facebook" /><span>Facebook</span></a>
+                  <a className="brand-share linkedin" href={socialShareUrl("linkedin", foundryShareUrl(), "Foundry Battle Plan")} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="linkedin" /><span>LinkedIn</span></a>
+                  <a className="brand-share telegram" href={socialShareUrl("telegram", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} target="_blank" rel="noreferrer" onClick={() => void copyFoundryShareLink()}><BrandLogo brand="telegram" /><span>Telegram</span></a>
+                  <a className="brand-share email" href={socialShareUrl("email", foundryShareUrl(), "Foundry Battle Plan", `Legion ${foundryLegion} Foundry battle plan`)} onClick={() => void copyFoundryShareLink()}><BrandLogo brand="email" /><span>Email</span></a>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+
+      {foundryManageSharesOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Manage Foundry shared plans" onClick={() => setFoundryManageSharesOpen(false)}>
+          <section className="share-modal foundry-share-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: '600px', width: '100%' }}>
+            <button className="close-button" type="button" onClick={() => setFoundryManageSharesOpen(false)} aria-label="Close">x</button>
+            <h2>Manage Shared Links</h2>
+            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
+              {foundryMyShares.length === 0 ? (
+                <p>You have no shared plans.</p>
+              ) : (
+                foundryMyShares.map(share => (
+                  <div key={share.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <a href={`/?foundryId=${share.id}#foundry-team-planner`} target="_blank" rel="noreferrer" style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>
+                        Link: {share.id}
+                      </a>
+                      <small style={{ opacity: 0.8 }}>{new Date(share.createdAt).toLocaleString()}</small>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button type="button" style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer' }} onClick={() => void toggleFoundryShareAccess(share.id, share.access)}>
+                        {share.access === "editable" ? "Set View Only" : "Set Editable"}
+                      </button>
+                      <button type="button" style={{ padding: '0.5rem', borderRadius: '4px', border: 'none', background: 'var(--danger-color)', color: 'white', cursor: 'pointer' }} onClick={() => void stopFoundryShare(share.id)}>
+                        Stop Link
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
         </div>
