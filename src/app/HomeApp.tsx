@@ -537,6 +537,13 @@ const foundryPhaseOptions = [
   { id: "phase-3", label: "Phase 3", range: "30-60m" },
 ];
 const foundryPhaseLabelById = new Map(foundryPhaseOptions.map((phase) => [phase.id, `${phase.label} ${phase.range}`]));
+const getFoundryPhaseLabel = (phaseIdStr: string | undefined) => {
+  if (!phaseIdStr || phaseIdStr === "all") return "All phases 0-60m";
+  const ids = phaseIdStr.split(",");
+  if (ids.length >= 3) return "All phases 0-60m";
+  const labels = ids.map((id) => foundryPhaseOptions.find((p) => p.id === id)?.label).filter(Boolean);
+  return labels.length ? labels.join(" + ") : "All phases 0-60m";
+};
 const foundryBuildingPhaseId = (phase: string) => {
   if (phase === "Phase 1") {
     return "phase-1";
@@ -4862,10 +4869,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     [],
   );
   const foundryBuildingsForTeam = (team: FoundryTeam) => {
-    if (team.phaseId === "all") {
+    const selectedPhases = (team.phaseId || "all").split(",");
+    if (selectedPhases.includes("all")) {
       return foundrySelectableBuildings;
     }
-    const options = foundrySelectableBuildings.filter((building) => foundryBuildingPhaseId(building.phase) === team.phaseId);
+    const options = foundrySelectableBuildings.filter((building) => selectedPhases.includes(foundryBuildingPhaseId(building.phase)));
     return options.some((building) => building.id === team.buildingId)
       ? options
       : [...options, ...foundrySelectableBuildings.filter((building) => building.id === team.buildingId)];
@@ -4881,7 +4889,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
 
   const foundryTeamFromShare = useCallback((team: FoundryShareTeam, index: number): FoundryTeam => {
     const fallback = createFoundryTeam(index);
-    const phaseId = foundryPhaseOptions.some((phase) => phase.id === team.phaseId) ? team.phaseId || "all" : "all";
+    const phaseId = team.phaseId
+      ? team.phaseId.split(",").filter((id) => foundryPhaseOptions.some((p) => p.id === id)).join(",") || "all"
+      : "all";
     return {
       ...fallback,
       buildingId: foundryBuildings.some((building) => building.id === team.buildingId) ? team.buildingId : fallback.buildingId,
@@ -5739,7 +5749,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       context.textAlign = "right";
       context.fillText((card.building?.name || "Unassigned").slice(0, 28), x + cardWidth - 18, y + 26);
       context.font = "900 11px Arial";
-      context.fillText((foundryPhaseLabelById.get(card.team.phaseId) || "All phases 0-60m").slice(0, 24), x + cardWidth - 18, y + 42);
+      context.fillText(getFoundryPhaseLabel(card.team.phaseId).slice(0, 24), x + cardWidth - 18, y + 42);
 
       const headerY = y + 78;
       context.fillStyle = "rgba(255, 255, 255, 0.08)";
@@ -5956,7 +5966,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         context.font = "900 13px Arial";
         context.fillText((card.building?.name || "Unassigned").slice(0, 28), tableX + tableWidth - cardPadding, y + 26);
         context.font = "900 11px Arial";
-        context.fillText((foundryPhaseLabelById.get(card.team.phaseId) || "All phases 0-60m").slice(0, 24), tableX + tableWidth - cardPadding, y + 42);
+        context.fillText(getFoundryPhaseLabel(card.team.phaseId).slice(0, 24), tableX + tableWidth - cardPadding, y + 42);
 
         const headerY = y + 68;
         context.fillStyle = "#f1f5f9";
@@ -8242,14 +8252,40 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         Team Name
                         <input value={team.name} onChange={(event) => updateFoundryTeam(team.id, { name: event.target.value })} />
                       </label>
-                      <label>
-                        Phase
-                        <select value={team.phaseId} onChange={(event) => updateFoundryTeam(team.id, { phaseId: event.target.value })}>
-                          {foundryPhaseOptions.map((phase) => (
-                            <option value={phase.id} key={phase.id}>{phase.label} ({phase.range})</option>
-                          ))}
-                        </select>
-                      </label>
+                      <div>
+                        <span style={{ fontSize: "12px", color: "var(--foreground)", marginBottom: "4px", display: "block" }}>Phases</span>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+                          {foundryPhaseOptions.filter(p => p.id !== "all").map((phase) => {
+                            const selectedPhases = (team.phaseId || "all").split(",");
+                            const isSelected = selectedPhases.includes("all") || selectedPhases.includes(phase.id);
+                            return (
+                              <label key={phase.id} style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "normal", cursor: "pointer", flexDirection: "row", margin: 0 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    let newPhases = selectedPhases.filter(id => id !== "all");
+                                    if (e.target.checked) {
+                                      newPhases.push(phase.id);
+                                      if (newPhases.length >= 3) newPhases = ["all"];
+                                    } else {
+                                      if (selectedPhases.includes("all")) {
+                                        newPhases = foundryPhaseOptions.filter(p => p.id !== "all" && p.id !== phase.id).map(p => p.id);
+                                      } else {
+                                        newPhases = newPhases.filter(id => id !== phase.id);
+                                      }
+                                      if (newPhases.length === 0) newPhases = ["all"];
+                                    }
+                                    updateFoundryTeam(team.id, { phaseId: newPhases.join(",") });
+                                  }}
+                                  style={{ margin: 0 }}
+                                />
+                                {phase.label}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
                       <label>
                         Building
                         <select value={team.buildingId} onChange={(event) => updateFoundryTeam(team.id, { buildingId: event.target.value })}>
@@ -8259,7 +8295,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                         </select>
                       </label>
                       <span style={{ ["--foundry-team-color" as string]: foundryTeamColors[teamIndex % foundryTeamColors.length] }}>
-                        Team {teamIndex + 1} | {foundryPhaseLabelById.get(team.phaseId) || "All phases 0-60m"}
+                        Team {teamIndex + 1} | {getFoundryPhaseLabel(team.phaseId)}
                       </span>
                     </header>
                     <div className="foundry-roster-table">
