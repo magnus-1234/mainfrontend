@@ -13,6 +13,12 @@ type FoundryPlanDoc = {
   updatedAt: Date | string;
 };
 
+type FoundryPersonalPlanDoc = {
+  userId: string;
+  payload: string;
+  savedAt: Date | string;
+};
+
 let envFileValues: Record<string, string> | null = null;
 
 const readEnvFileValues = () => {
@@ -80,6 +86,17 @@ const collection = async (): Promise<Collection<FoundryPlanDoc>> => {
   }
   await globalThis.foundryPlannerMongoClient.connect();
   return globalThis.foundryPlannerMongoClient.db(mongoDbName).collection<FoundryPlanDoc>("foundry_plans");
+};
+
+const personalCollection = async (): Promise<Collection<FoundryPersonalPlanDoc>> => {
+  if (!mongoUri) {
+    throw new Error("Storage is not configured");
+  }
+  if (!globalThis.foundryPlannerMongoClient) {
+    globalThis.foundryPlannerMongoClient = new MongoClient(mongoUri);
+  }
+  await globalThis.foundryPlannerMongoClient.connect();
+  return globalThis.foundryPlannerMongoClient.db(mongoDbName).collection<FoundryPersonalPlanDoc>("foundry_personal_plans");
 };
 
 export const proxyToBackend = async (request: NextRequest, path = "") => {
@@ -270,6 +287,69 @@ export const getMyPlans = async (request: NextRequest) => {
         return publicDoc;
       }),
     });
+  } catch (error) {
+    return storageError(error);
+  }
+};
+
+export const getPersonalPlan = async (request: NextRequest) => {
+  try {
+    if (!mongoUri) {
+      return proxyToBackend(request, "/personal");
+    }
+    const userId = request.headers.get("x-user-id");
+    if (!userId) {
+      return NextResponse.json({ error: "Sign in to access personal plan" }, { status: 401 });
+    }
+
+    const col = await personalCollection();
+    const doc = await col.findOne({ userId });
+    if (!doc) {
+      return NextResponse.json({ plan: null });
+    }
+    const { _id, userId: _, ...publicDoc } = doc as any;
+    return NextResponse.json({ plan: publicDoc });
+  } catch (error) {
+    return storageError(error);
+  }
+};
+
+export const savePersonalPlan = async (request: NextRequest) => {
+  try {
+    if (!mongoUri) {
+      return proxyToBackend(request, "/personal");
+    }
+    const userId = request.headers.get("x-user-id");
+    if (!userId) {
+      return NextResponse.json({ error: "Sign in to save personal plan" }, { status: 401 });
+    }
+
+    const bodyText = await request.text();
+    let body: any = {};
+    if (bodyText) {
+      try { body = JSON.parse(bodyText); } catch {}
+    }
+    
+    const { payload, savedAt } = body;
+    if (typeof payload !== "string" || !payload) {
+      return NextResponse.json({ error: "Missing plan payload" }, { status: 400 });
+    }
+
+    const col = await personalCollection();
+    
+    const doc: FoundryPersonalPlanDoc = {
+      userId,
+      payload,
+      savedAt: savedAt || new Date().toISOString(),
+    };
+
+    await col.updateOne(
+      { userId },
+      { $set: doc },
+      { upsert: true }
+    );
+    
+    return NextResponse.json({ success: true, savedAt: doc.savedAt });
   } catch (error) {
     return storageError(error);
   }

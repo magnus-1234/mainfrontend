@@ -5119,9 +5119,19 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       ...foundrySharePayload(),
       savedAt,
     };
-    localStorage.setItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`, JSON.stringify(payload));
-    setFoundrySavedAt(savedAt);
-    setFoundryExportStatus("Foundry planner progress saved.");
+    
+    setFoundryExportStatus("Saving...");
+    fetch("/api/foundry-planner/personal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload: JSON.stringify(payload), savedAt })
+    }).then(res => {
+      if (!res.ok) throw new Error("Failed");
+      setFoundrySavedAt(savedAt);
+      setFoundryExportStatus("Foundry planner progress saved.");
+    }).catch(() => {
+      setFoundryExportStatus("Failed to save progress to the cloud.");
+    });
   };
 
   const foundrySharePayloadRef = useRef(foundrySharePayload);
@@ -5134,8 +5144,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       if (activeTab === "tools" && activeSubTab === "foundry-planner") {
         if (authUser) {
           const savedAt = new Date().toISOString();
-          localStorage.setItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`, JSON.stringify({
+          const payload = {
             ...foundrySharePayloadRef.current(),
+            savedAt,
+          };
+          navigator.sendBeacon("/api/foundry-planner/personal", JSON.stringify({
+            payload: JSON.stringify(payload),
             savedAt,
           }));
         } else {
@@ -5201,23 +5215,27 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     if (new URLSearchParams(window.location.search).get("foundry")) {
       return;
     }
-    const saved = localStorage.getItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`);
-    if (!saved) {
-      return;
-    }
-    try {
-      const parsed = JSON.parse(saved) as FoundrySavedState;
-      window.setTimeout(() => {
-        void applyFoundryPlanState(parsed, {
-          savedAt: parsed.savedAt,
-        });
-      }, 0);
-    } catch {
-      localStorage.removeItem(`${foundryPlannerSaveKeyPrefix}:${authUser.id}`);
-      window.setTimeout(() => {
-        setFoundryExportStatus("Saved Foundry planner progress could not be loaded.");
-      }, 0);
-    }
+    
+    fetch("/api/foundry-planner/personal")
+      .then((res) => {
+        if (!res.ok) throw new Error("Load failed");
+        return res.json();
+      })
+      .then((data) => {
+        if (data.plan && data.plan.payload) {
+          const parsed = JSON.parse(data.plan.payload) as FoundrySavedState;
+          window.setTimeout(() => {
+            void applyFoundryPlanState(parsed, {
+              savedAt: data.plan.savedAt || parsed.savedAt,
+            });
+          }, 0);
+        }
+      })
+      .catch(() => {
+        window.setTimeout(() => {
+          setFoundryExportStatus("Saved Foundry planner progress could not be loaded.");
+        }, 0);
+      });
   }, [applyFoundryPlanState, authUser]);
 
   useEffect(() => {
