@@ -6002,9 +6002,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
           context.fillStyle = "#0f172a";
           context.font = "800 14px Arial";
           context.fillText(trimCanvasText(context, foundryMemberName(member), 190), tableX + 120, rowY - 4);
-          
           context.fillStyle = "#475569";
           context.font = "800 13px Arial";
+          context.fillText(member.playerId || "-", tableX + 330, rowY - 4);
+          context.fillText(member.profile ? furnaceDisplay(member.profile) : "-", tableX + 460, rowY - 4);
         });
         y += cardHeight + cardGap;
       });
