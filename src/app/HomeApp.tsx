@@ -2417,8 +2417,25 @@ function LanguageSwitcher() {
       return false;
     }
 
-    combo.value = nextLanguage === pageLanguage ? "" : nextLanguage;
-    combo.dispatchEvent(new Event("change", { bubbles: true }));
+    const targetValue = nextLanguage === pageLanguage ? "" : nextLanguage;
+
+    if (combo.value !== targetValue) {
+      combo.value = targetValue;
+      combo.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      combo.value = "";
+      combo.dispatchEvent(new Event("change", { bubbles: true }));
+      combo.value = targetValue;
+      combo.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    if (targetValue !== "") {
+      const isTranslated = document.documentElement.classList.contains("translated-ltr") || document.documentElement.classList.contains("translated-rtl");
+      if (!isTranslated) {
+        return false;
+      }
+    }
+
     return true;
   }, []);
 
@@ -2483,17 +2500,17 @@ function LanguageSwitcher() {
       }
 
       const translateElementId = "google_translate_element";
-      if (!(window as any)._googleTranslateInitialized) {
+      const element = document.getElementById(translateElementId);
+      if (element && element.innerHTML.trim() === "") {
         new translateWindow.google.translate.TranslateElement({
           pageLanguage,
           includedLanguages: siteLanguages.map((item) => item.code).join(","),
           autoDisplay: false,
         }, translateElementId);
-        (window as any)._googleTranslateInitialized = true;
       }
 
       if (validLanguage !== pageLanguage) {
-        window.setTimeout(() => applyLanguageWhenReady(validLanguage), 350);
+        window.setTimeout(() => applyLanguageWhenReady(validLanguage), 50);
       }
     };
 
