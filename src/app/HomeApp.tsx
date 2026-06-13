@@ -1,15 +1,17 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
+import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import DreamscapeMemory from "./dreamscape-memory/DreamscapeMemory";
+const DreamscapeMemory = dynamic(() => import("./dreamscape-memory/DreamscapeMemory"));
 import "./dreamscape-memory/dreamscape.css";
-import WosGameMap from "./game-map/WosGameMap";
+const WosGameMap = dynamic(() => import("./game-map/WosGameMap"));
 import "./game-map/wos-game-map.css";
-import SvsAppointmentPlanner from "./svs-appointment-planner/SvsAppointmentPlanner";
+const SvsAppointmentPlanner = dynamic(() => import("./svs-appointment-planner/SvsAppointmentPlanner"));
 import "./svs-appointment-planner/svs-appointment-planner.css";
-import WarAcademyCalculator from "./war-academy-calculator/WarAcademyCalculator";
+const WarAcademyCalculator = dynamic(() => import("./war-academy-calculator/WarAcademyCalculator"));
 import chatArtTemplates from "@/data/message-templates/chat-art-templates.json";
 import wikiBuildingsData from "@/data/wiki/buildings.json";
 import wikiHeroesData from "@/data/wiki/heroes.json";
@@ -9073,8 +9075,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               </div>
               <div className="bottom-legal-links" aria-label="Legal links">
                 <h2>Legal</h2>
-                <a href="/privacy-policy">Privacy Policy</a>
-                <a href="/terms-of-service">Terms of Service</a>
+                <Link href="/privacy-policy">Privacy Policy</Link>
+                <Link href="/terms-of-service">Terms of Service</Link>
               </div>
             </nav>
             <div className="bottom-community-meta">
