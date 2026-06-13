@@ -451,6 +451,7 @@ const renderFacility = (node: SunfireLandmark, mode: MapMode) => {
         width={footprint.size}
         height={footprint.size * 1.3}
         preserveAspectRatio="xMidYMid meet"
+        filter="url(#wos-building-shadow)"
       />
       <text x={footprint.cx} y={footprint.maxY + 0.4} textAnchor="middle" fontSize="0.45" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.06" paintOrder="stroke" pointerEvents="none">
         {node.label}
@@ -729,29 +730,43 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 event.preventDefault();
                 scheduleHover(coordinateFromPointer(event));
                 const drag = dragRef.current;
-                if (!drag || drag.pointerId !== event.pointerId) {
-                  return;
-                }
-                if (mode !== "3d" && !(mode === "isometric" && depthMode === "3d")) {
+                if (!drag) return;
+                if (event.pointerId !== drag.pointerId) return;
+
+                const dx = event.clientX - drag.x;
+                const dy = event.clientY - drag.y;
+                const moved = Math.sqrt(dx * dx + dy * dy);
+
+                if (moved > 2) {
                   const rect = event.currentTarget.getBoundingClientRect();
-                  const mapUnitsPerPixel = viewSize / Math.max(1, rect.width);
-                  scheduleCamera({
-                    x: clamp(drag.cameraX - (event.clientX - drag.x) * mapUnitsPerPixel, MAP_MIN, MAP_MAX),
-                    y: clamp(drag.cameraY - (event.clientY - drag.y) * mapUnitsPerPixel, MAP_MIN, MAP_MAX),
-                  });
-                  return;
+                  const isRotate = mode === "3d" && (event.buttons === 2 || event.buttons === 4);
+                  
+                  if (isRotate) {
+                    setYaw(drag.yaw - dx * 0.4);
+                    setPitch(clamp(drag.pitch - dy * 0.4, 0, 82));
+                  } else {
+                    scheduleCamera({
+                      x: drag.cameraX - (dx * viewSize) / rect.width,
+                      y: drag.cameraY - (dy * viewSize) / rect.height,
+                    });
+                  }
                 }
-                setYaw(Math.round(clamp(drag.yaw + (event.clientX - drag.x) * 0.35, -180, 180)));
-                setPitch(Math.round(clamp(drag.pitch - (event.clientY - drag.y) * 0.28, 0, 82)));
               }}
               onPointerUp={(event) => {
-                if (dragRef.current?.pointerId === event.pointerId) {
-                  const moved = Math.abs(event.clientX - dragRef.current.x) + Math.abs(event.clientY - dragRef.current.y);
+                const drag = dragRef.current;
+                if (drag && event.pointerId === drag.pointerId) {
+                  const dx = event.clientX - drag.x;
+                  const dy = event.clientY - drag.y;
+                  const moved = Math.sqrt(dx * dx + dy * dy);
+
                   dragRef.current = null;
                   if (moved < 8) {
                     selectCoordinate(coordinateFromPointer(event));
                   }
                 }
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
               }}
               onPointerLeave={() => setHover(null)}
               onWheel={(event) => {
@@ -811,6 +826,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                     result="snowNoise"
                   />
                   <feBlend in="SourceGraphic" in2="snowNoise" mode="screen" />
+                </filter>
+                <filter id="wos-building-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="2" dy="5" stdDeviation="4" floodColor="#041221" floodOpacity="0.45" />
+                </filter>
+                <filter id="wos-fortress-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="4" dy="8" stdDeviation="6" floodColor="#041221" floodOpacity="0.55" />
                 </filter>
                 <filter id="wos-snow-glow" x="-8%" y="-8%" width="116%" height="116%">
                   <feGaussianBlur stdDeviation="8" />
