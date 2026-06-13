@@ -382,6 +382,8 @@ type MessageTemplate = {
 };
 
 const giftCodesStorageKey = "whiteoutsurvival-gift-codes-cache-v1";
+const botMetricsStorageKey = "whiteoutsurvival-bot-metrics-cache-v1";
+const stateAgeRecentStorageKey = "whiteoutsurvival-state-age-recent-cache-v1";
 const feedbackBannerStorageKey = "whiteoutsurvival-feedback-banner-hidden-until";
 
 const readStoredGiftCodes = (): GiftCodePayload | null => {
@@ -2825,7 +2827,15 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [botMetrics, setBotMetrics] = useState<BotMetrics>(fallbackBotMetrics);
+  const [botMetrics, setBotMetrics] = useState<BotMetrics>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(botMetricsStorageKey);
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return fallbackBotMetrics;
+  });
   const [authStatus, setAuthStatus] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -2900,8 +2910,26 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [stateAgeResult, setStateAgeResult] = useState<StateAgeResult | null>(null);
   const [stateAgeLoading, setStateAgeLoading] = useState(false);
   const [stateAgeStatus, setStateAgeStatus] = useState("");
-  const [stateAgeRecentStates, setStateAgeRecentStates] = useState<RecentlyOpenedState[]>([]);
-  const [stateAgeRecentUpdatedAt, setStateAgeRecentUpdatedAt] = useState("");
+  const [stateAgeRecentStates, setStateAgeRecentStates] = useState<RecentlyOpenedState[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(stateAgeRecentStorageKey);
+        if (stored) return JSON.parse(stored).states || [];
+      } catch {}
+    }
+    return [];
+  });
+  const [stateAgeRecentUpdatedAt, setStateAgeRecentUpdatedAt] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(stateAgeRecentStorageKey);
+        if (stored) return JSON.parse(stored).updatedAt || "";
+      } catch {}
+    }
+    return "";
+  });
+  const stateAgeRecentAttempted = useRef(false);
+  const giftCodeAttempted = useRef(false);
   const [stateAgeRecentLoading, setStateAgeRecentLoading] = useState(false);
   const [stateAgeRecentStatus, setStateAgeRecentStatus] = useState("");
   const [charmGearState, setCharmGearState] = useState<ChiefCharmGearState>(() => createChiefCharmGearState(0, 11));
@@ -3249,14 +3277,16 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         }
         const metrics = await response.json();
 
-        setBotMetrics({
+        const newMetrics = {
           servers: formatMetric(metrics.servers),
           members: formatMetric(metrics.monitoredMembers),
           discordMembers: formatMetric(metrics.discordMembers),
           monitors: formatMetric(metrics.activeMonitors),
           redeemServers: formatMetric(metrics.autoRedeemServers),
           giftCodes: formatMetric(metrics.activeGiftCodes),
-        });
+        };
+        setBotMetrics(newMetrics);
+        localStorage.setItem(botMetricsStorageKey, JSON.stringify(newMetrics));
       } catch {
         setBotMetrics(fallbackBotMetrics);
       }
@@ -3311,7 +3341,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   }, [giftCodes.length]);
 
   useEffect(() => {
-    if ((activeMenu === "gift" || activeMenu === "redeem") && !giftCodes.length && !giftCodeLoading) {
+    if ((activeMenu === "gift" || activeMenu === "redeem") && !giftCodes.length && !giftCodeLoading && !giftCodeAttempted.current) {
+      giftCodeAttempted.current = true;
       const timer = window.setTimeout(() => void loadGiftCodes(), 0);
       return () => window.clearTimeout(timer);
     }
@@ -4346,6 +4377,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       const recentPayload = payload as StateAgeRecentResult;
       setStateAgeRecentStates(recentPayload.recentlyOpenedStates || []);
       setStateAgeRecentUpdatedAt(recentPayload.sourceUpdatedAt || "");
+      localStorage.setItem(stateAgeRecentStorageKey, JSON.stringify({
+        states: recentPayload.recentlyOpenedStates || [],
+        updatedAt: recentPayload.sourceUpdatedAt || ""
+      }));
     } catch (error) {
       setStateAgeRecentStatus(error instanceof Error ? error.message : "Unable to load recent state openings.");
     } finally {
@@ -4354,10 +4389,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   }, [stateAgeRecentLoading]);
 
   useEffect(() => {
-    if (activeMenu !== "stateAge" || stateAgeRecentStates.length || stateAgeRecentLoading) {
+    if (activeMenu !== "stateAge" || stateAgeRecentStates.length || stateAgeRecentLoading || stateAgeRecentAttempted.current) {
       return;
     }
 
+    stateAgeRecentAttempted.current = true;
     const timer = window.setTimeout(() => void loadRecentlyOpenedStates(), 0);
     return () => window.clearTimeout(timer);
   }, [activeMenu, loadRecentlyOpenedStates, stateAgeRecentLoading, stateAgeRecentStates.length]);
@@ -4386,6 +4422,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       setStateAgeResult(nextResult);
       setStateAgeRecentStates(nextResult.recentlyOpenedStates || []);
       setStateAgeRecentUpdatedAt(nextResult.sourceUpdatedAt || "");
+      localStorage.setItem(stateAgeRecentStorageKey, JSON.stringify({
+        states: nextResult.recentlyOpenedStates || [],
+        updatedAt: nextResult.sourceUpdatedAt || ""
+      }));
       window.history.pushState(null, "", `/state-age?state=${encodeURIComponent(state)}`);
     } catch (error) {
       setStateAgeResult(null);
