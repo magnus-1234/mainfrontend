@@ -1,22 +1,4 @@
-{selectedTool === "place" && hover && (
-                <image
-                  href={`/vendor/krozac-wos-interactive-map/alliance_${selectedObject}.png`}
-                  x={gridCellFor(hover).x}
-                  y={gridCellFor(hover).y - (selectedObject === "hq" ? 4 : selectedObject === "beartrap" ? 3 : selectedObject === "city" ? 2 : 1) * 0.15}
-                  width={selectedObject === "hq" ? 4 : selectedObject === "beartrap" ? 3 : selectedObject === "city" ? 2 : 1}
-                  height={(selectedObject === "hq" ? 4 : selectedObject === "beartrap" ? 3 : selectedObject === "city" ? 2 : 1) * 1.3}
-                  preserveAspectRatio="xMidYMid meet"
-                  opacity="0.5"
-                />
-              )}<image
-        href={`/vendor/krozac-wos-interactive-map/alliance_${item.kind}.png`}
-        x={x}
-        y={y - size * 0.15}
-        width={size}
-        height={size * 1.3}
-        preserveAspectRatio="xMidYMid meet"
-        filter="url(#wos-building-shadow)"
-      />"use client";
+"use client";
 
 import type { CSSProperties, PointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
