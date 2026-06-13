@@ -55,13 +55,15 @@ type SunfireLandmark = {
   color?: string;
 };
 
-type PlannerItemKind = "hq" | "banner";
+type PlannerItemKind = "city" | "banner" | "beartrap" | "hq" | "resource" | "obstacle" | "enemy";
 type PlannerItem = {
   id: string;
   kind: PlannerItemKind;
   col: number;
   row: number;
 };
+
+type PlannerTool = "select" | "place" | "pan" | "delete";
 
 const RESOURCE_BUILDING_SIZE = 2;
 
@@ -472,7 +474,16 @@ const renderFacility = (node: SunfireLandmark, mode: MapMode) => {
 };
 
 const renderPlannerItem = (item: PlannerItem) => {
-  const size = item.kind === "hq" ? 4 : 1;
+  let size = 1;
+  let emoji = "🔲";
+  if (item.kind === "hq") { size = 4; emoji = "🏛️"; }
+  else if (item.kind === "city") { size = 2; emoji = "🏙️"; }
+  else if (item.kind === "beartrap") { size = 3; emoji = "⚠️"; }
+  else if (item.kind === "resource") { size = 1; emoji = "⭐"; }
+  else if (item.kind === "obstacle") { size = 1; emoji = "🪨"; }
+  else if (item.kind === "enemy") { size = 1; emoji = "💀"; }
+  else if (item.kind === "banner") { size = 1; emoji = "🚩"; }
+
   const col = item.col;
   const row = item.row;
   const cx = col + size / 2;
@@ -482,16 +493,23 @@ const renderPlannerItem = (item: PlannerItem) => {
 
   return (
     <g key={item.id} shapeRendering="geometricPrecision">
-      <title>{item.kind === "hq" ? "Alliance HQ" : "Alliance Banner"} ({col}, {row})</title>
-      <image
-        href={`/vendor/krozac-wos-interactive-map/alliance_${item.kind}.png`}
-        x={x}
-        y={y - size * 0.15}
-        width={size}
-        height={size * 1.3}
-        preserveAspectRatio="xMidYMid meet"
-        filter="url(#wos-building-shadow)"
-      />
+      <title>{item.kind.toUpperCase()} ({col}, {row})</title>
+      {item.kind === "hq" || item.kind === "banner" ? (
+        <image
+          href={`/vendor/krozac-wos-interactive-map/alliance_${item.kind}.png`}
+          x={x}
+          y={y - size * 0.15}
+          width={size}
+          height={size * 1.3}
+          preserveAspectRatio="xMidYMid meet"
+          filter="url(#wos-building-shadow)"
+        />
+      ) : (
+        <>
+          <rect x={x} y={y} width={size} height={size} fill="rgba(0,0,0,0.5)" rx="0.2" filter="url(#wos-building-shadow)" />
+          <text x={cx} y={cy + size * 0.3} textAnchor="middle" fontSize={size * 0.6} pointerEvents="none">{emoji}</text>
+        </>
+      )}
     </g>
   );
 };
@@ -551,7 +569,9 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [zoom, setZoom] = useState(1);
   const [camera, setCamera] = useState(INITIAL_CAMERA);
   const [plannerItems, setPlannerItems] = useState<PlannerItem[]>([]);
-  const [buildMode, setBuildMode] = useState<PlannerItemKind | null>(null);
+  const [history, setHistory] = useState<PlannerItem[][]>([]);
+  const [selectedTool, setSelectedTool] = useState<PlannerTool>("select");
+  const [selectedObject, setSelectedObject] = useState<PlannerItemKind>("hq");
 
   useEffect(() => {
     try {
@@ -811,18 +831,21 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                   dragRef.current = null;
                   if (moved < 8) {
                     const coord = coordinateFromPointer(event);
-                    if (buildMode) {
+                    if (selectedTool === "place") {
+                      const newCell = gridCellFor(coord);
+                      setHistory(prev => [...prev, plannerItems]);
+                      setPlannerItems(prev => [...prev, {
+                        id: Date.now().toString(),
+                        kind: selectedObject,
+                        col: newCell.x,
+                        row: newCell.y
+                      }]);
+                    } else if (selectedTool === "delete") {
                       const newCell = gridCellFor(coord);
                       const existingIndex = plannerItems.findIndex(i => i.col === newCell.x && i.row === newCell.y);
                       if (existingIndex >= 0) {
+                        setHistory(prev => [...prev, plannerItems]);
                         setPlannerItems(prev => prev.filter((_, idx) => idx !== existingIndex));
-                      } else {
-                        setPlannerItems(prev => [...prev, {
-                          id: Date.now().toString(),
-                          kind: buildMode,
-                          col: newCell.x,
-                          row: newCell.y
-                        }]);
                       }
                     } else {
                       selectCoordinate(coord);
@@ -1021,21 +1044,21 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 <rect
                   x={gridCellFor(hover).x}
                   y={gridCellFor(hover).y}
-                  width={buildMode === "hq" ? 4 : COORDINATE_STEP}
-                  height={buildMode === "hq" ? 4 : COORDINATE_STEP}
+                  width={selectedTool === "place" && selectedObject === "hq" ? 4 : selectedTool === "place" && selectedObject === "beartrap" ? 3 : selectedTool === "place" && selectedObject === "city" ? 2 : COORDINATE_STEP}
+                  height={selectedTool === "place" && selectedObject === "hq" ? 4 : selectedTool === "place" && selectedObject === "beartrap" ? 3 : selectedTool === "place" && selectedObject === "city" ? 2 : COORDINATE_STEP}
                   fill={hoverFill}
                   stroke="rgba(34, 211, 238, 0.68)"
                   strokeWidth="1.6"
                   vectorEffect="non-scaling-stroke"
                 />
               )}
-              {buildMode && hover && (
+              {selectedTool === "place" && hover && (selectedObject === "hq" || selectedObject === "banner") && (
                 <image
-                  href={`/vendor/krozac-wos-interactive-map/alliance_${buildMode}.png`}
+                  href={`/vendor/krozac-wos-interactive-map/alliance_${selectedObject}.png`}
                   x={gridCellFor(hover).x}
-                  y={gridCellFor(hover).y - (buildMode === "hq" ? 4 : 1) * 0.15}
-                  width={buildMode === "hq" ? 4 : 1}
-                  height={(buildMode === "hq" ? 4 : 1) * 1.3}
+                  y={gridCellFor(hover).y - (selectedObject === "hq" ? 4 : 1) * 0.15}
+                  width={selectedObject === "hq" ? 4 : 1}
+                  height={(selectedObject === "hq" ? 4 : 1) * 1.3}
                   preserveAspectRatio="xMidYMid meet"
                   opacity="0.5"
                 />
@@ -1063,97 +1086,63 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
           </div>
         </div>
 
-        <aside className="wos-map-controls" aria-label="Map controls">
-          <div className="wos-map-mode-control" role="group" aria-label="Map mode">
-            <button className={mode === "2d" ? "active" : ""} type="button" onClick={() => setMapMode("2d")}>2D</button>
-            <button className={mode === "isometric" ? "active" : ""} type="button" onClick={() => setMapMode("isometric")}>ISO</button>
-            <button className={mode === "3d" ? "active" : ""} type="button" onClick={() => setMapMode("3d")}>3D</button>
+        <div className="wos-bottom-toolbar">
+          <div className="wos-toolbar-segment">
+            <span className="wos-toolbar-segment-label">View</span>
+            <button className={`wos-toolbar-btn active`}>Full Map</button>
+            <button className={`wos-toolbar-btn`}>Sunfire Castle</button>
+            <button className={`wos-toolbar-btn`}>Bear Trap</button>
           </div>
-          <div className="wos-zoom-board" aria-label="Zoom controls">
-            <button type="button" aria-label="Zoom out" onClick={() => setSmoothZoom((value) => value / 1.25)}>−</button>
-            <div>
-              <span>Zoom</span>
-              <strong>{Math.round(zoom * 100)}%</strong>
+          <div className="wos-toolbar-segment">
+            <span className="wos-toolbar-segment-label">Persp</span>
+            <button className={`wos-toolbar-btn ${mode === "isometric" || mode === "3d" ? "active" : ""}`} onClick={() => setMapMode("isometric")}>Iso</button>
+            <button className={`wos-toolbar-btn ${mode === "2d" ? "active" : ""}`} onClick={() => setMapMode("2d")}>Flat</button>
+          </div>
+          <div className="wos-toolbar-segment">
+            <span className="wos-toolbar-segment-label">Actions</span>
+            <button 
+              className={`wos-toolbar-btn`} 
+              disabled={history.length === 0} 
+              onClick={() => {
+                const prev = history[history.length - 1];
+                setHistory(history.slice(0, -1));
+                setPlannerItems(prev);
+              }}
+            >
+              Undo
+            </button>
+            <button 
+              className="wos-toolbar-btn danger" 
+              onClick={() => {
+                if (confirm("Clear your entire layout plan? This cannot be undone.")) {
+                  setHistory(prev => [...prev, plannerItems]);
+                  setPlannerItems([]);
+                }
+              }}
+            >
+              Clear All
+            </button>
+          </div>
+          <div className="wos-toolbar-segment">
+            <span className="wos-toolbar-segment-label">Tools</span>
+            <button className={`wos-toolbar-btn ${selectedTool === "select" ? "active" : ""}`} onClick={() => setSelectedTool("select")}>Select</button>
+            <button className={`wos-toolbar-btn ${selectedTool === "place" ? "active" : ""}`} onClick={() => setSelectedTool("place")}>Place</button>
+            <button className={`wos-toolbar-btn ${selectedTool === "pan" ? "active" : ""}`} onClick={() => setSelectedTool("pan")}>Pan</button>
+            <button className={`wos-toolbar-btn ${selectedTool === "delete" ? "active" : ""}`} onClick={() => setSelectedTool("delete")}>Delete</button>
+          </div>
+          {selectedTool === "place" && (
+            <div className="wos-toolbar-segment">
+              <span className="wos-toolbar-segment-label">Objects</span>
+              <button className={`wos-toolbar-btn ${selectedObject === "city" ? "active" : ""}`} onClick={() => setSelectedObject("city")}>City</button>
+              <button className={`wos-toolbar-btn ${selectedObject === "banner" ? "active" : ""}`} onClick={() => setSelectedObject("banner")}>Banner</button>
+              <button className={`wos-toolbar-btn ${selectedObject === "beartrap" ? "active" : ""}`} onClick={() => setSelectedObject("beartrap")}>Trap</button>
+              <button className={`wos-toolbar-btn ${selectedObject === "hq" ? "active" : ""}`} onClick={() => setSelectedObject("hq")}>HQ</button>
+              <button className={`wos-toolbar-btn ${selectedObject === "resource" ? "active" : ""}`} onClick={() => setSelectedObject("resource")}>Resrc</button>
+              <button className={`wos-toolbar-btn ${selectedObject === "obstacle" ? "active" : ""}`} onClick={() => setSelectedObject("obstacle")}>Obstcl</button>
+              <button className={`wos-toolbar-btn ${selectedObject === "enemy" ? "active" : ""}`} onClick={() => setSelectedObject("enemy")}>Enemy</button>
             </div>
-            <button type="button" aria-label="Zoom in" onClick={() => setSmoothZoom((value) => value * 1.25)}>+</button>
-            <button type="button" onClick={resetView}>Fit</button>
-          </div>
-          <div className="wos-coordinate-fields">
-            <label>
-              <span>X</span>
-              <input type="number" min={MAP_MIN} max={MAP_MAX} value={selected.x} onChange={(event) => selectCoordinate({ ...selected, x: Number(event.target.value) })} />
-            </label>
-            <label>
-              <span>Y</span>
-              <input type="number" min={MAP_MIN} max={MAP_MAX} value={selected.y} onChange={(event) => selectCoordinate({ ...selected, y: Number(event.target.value) })} />
-            </label>
-          </div>
-          <div className="wos-map-nudge" aria-label="Move selected coordinate">
-            <button type="button" aria-label="Move up" onClick={() => moveSelection(0, -1)}>↑</button>
-            <button type="button" aria-label="Move left" onClick={() => moveSelection(-1, 0)}>←</button>
-            <button type="button" aria-label="Move right" onClick={() => moveSelection(1, 0)}>→</button>
-            <button type="button" aria-label="Move down" onClick={() => moveSelection(0, 1)}>↓</button>
-          </div>
-          <label>
-            <span>Pitch</span>
-            <input type="range" min="0" max="82" value={pitch} disabled={mode !== "3d"} onChange={(event) => setPitch(Number(event.target.value))} />
-            <output>{pitch} deg</output>
-          </label>
-          <label>
-            <span>Yaw</span>
-            <input type="range" min="-180" max="180" value={yaw} disabled={mode !== "3d"} onChange={(event) => setYaw(Number(event.target.value))} />
-            <output>{yaw} deg</output>
-          </label>
-          <label>
-            <span>Roll</span>
-            <input type="range" min="-45" max="45" value={roll} disabled={mode !== "3d"} onChange={(event) => setRoll(Number(event.target.value))} />
-            <output>{roll} deg</output>
-          </label>
-          <label>
-            <span>Zoom</span>
-            <input type="range" min="100" max="120000" value={Math.round(zoom * 100)} onChange={(event) => setSmoothZoom(() => Number(event.target.value) / 100)} />
-            <output>{Math.round(zoom * 100)}%</output>
-          </label>
-          <button type="button" onClick={resetView}>Reset View</button>
-
-          <div className="wos-planner-panel">
-            <h3>Layout Planner</h3>
-            <div className="wos-planner-tools">
-              <button 
-                className={`wos-planner-button ${buildMode === "hq" ? "active" : ""}`}
-                onClick={() => setBuildMode(buildMode === "hq" ? null : "hq")}
-              >
-                <img src="/vendor/krozac-wos-interactive-map/alliance_hq.png" alt="Alliance HQ" />
-                <span>Alliance HQ</span>
-              </button>
-              <button 
-                className={`wos-planner-button ${buildMode === "banner" ? "active" : ""}`}
-                onClick={() => setBuildMode(buildMode === "banner" ? null : "banner")}
-              >
-                <img src="/vendor/krozac-wos-interactive-map/alliance_banner.png" alt="Alliance Banner" />
-                <span>Banner</span>
-              </button>
-            </div>
-            {buildMode && (
-              <span style={{ fontSize: "12px", color: "#0ea5e9", marginTop: "4px", textAlign: "center" }}>
-                Click map to place. Click item to delete.
-              </span>
-            )}
-            <div className="wos-planner-actions">
-              <button onClick={() => setBuildMode(null)} disabled={!buildMode}>Exit Build Mode</button>
-              <button 
-                className="danger" 
-                onClick={() => {
-                  if (confirm("Clear your entire layout plan? This cannot be undone.")) {
-                    setPlannerItems([]);
-                  }
-                }}
-              >
-                Clear Map
-              </button>
-            </div>
-          </div>
-        </aside>
+          )}
+        </div>
       </div>
     </section>
   );
