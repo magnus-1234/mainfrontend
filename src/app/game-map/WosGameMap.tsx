@@ -309,19 +309,23 @@ const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
 
 const renderStronghold = (node: SunfireLandmark, mode: MapMode) => {
   const footprint = sunfireFootprintFor(node);
+  const actualSize = 12; // Much larger bounding box for the entire region
+  const x = footprint.cx - actualSize / 2;
+  const y = footprint.cy - actualSize / 2;
+  const maxY = y + actualSize;
 
   return (
     <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
       <title>{sunfireFootprintTitle(node)}</title>
       <image
         href="/vendor/krozac-wos-interactive-map/stronghold.png"
-        x={footprint.x}
-        y={footprint.y - footprint.size * 0.15}
-        width={footprint.size}
-        height={footprint.size * 1.3}
+        x={x}
+        y={y - actualSize * 0.05}
+        width={actualSize}
+        height={actualSize * 1.2}
         preserveAspectRatio="xMidYMid meet"
       />
-      <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.6" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
+      <text x={footprint.cx} y={maxY + 1.2} textAnchor="middle" fontSize="1.2" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.15" paintOrder="stroke" pointerEvents="none">
         {node.label}
       </text>
     </g>
@@ -330,19 +334,23 @@ const renderStronghold = (node: SunfireLandmark, mode: MapMode) => {
 
 const renderFortress = (node: SunfireLandmark, mode: MapMode) => {
   const footprint = sunfireFootprintFor(node);
+  const actualSize = 10; // Large bounding box for fortress region
+  const x = footprint.cx - actualSize / 2;
+  const y = footprint.cy - actualSize / 2;
+  const maxY = y + actualSize;
 
   return (
     <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
       <title>{sunfireFootprintTitle(node)}</title>
       <image
         href="/vendor/krozac-wos-interactive-map/fortress.png"
-        x={footprint.x}
-        y={footprint.y - footprint.size * 0.2}
-        width={footprint.size}
-        height={footprint.size * 1.4}
+        x={x}
+        y={y - actualSize * 0.05}
+        width={actualSize}
+        height={actualSize * 1.2}
         preserveAspectRatio="xMidYMid meet"
       />
-      <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.6" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
+      <text x={footprint.cx} y={maxY + 1} textAnchor="middle" fontSize="1" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.1" paintOrder="stroke" pointerEvents="none">
         {node.label}
       </text>
     </g>
