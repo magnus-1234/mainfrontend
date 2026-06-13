@@ -697,6 +697,25 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
                 </pattern>
               </defs>
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-base)" />
+              {/* --- Map Zones --- */}
+              <g pointerEvents="none" aria-label="Map Zones">
+                {/* Tundra Zone */}
+                <rect x={200} y={200} width={800} height={800} fill="#7ec6e3" opacity="0.12" />
+                <rect x={200} y={200} width={800} height={800} fill="none" stroke="rgba(126, 198, 227, 0.45)" strokeWidth="3" strokeDasharray="20 30" vectorEffect="non-scaling-stroke" />
+                <text x={212} y={228} fill="rgba(126, 198, 227, 0.8)" fontSize="16" fontWeight="800" style={{ textTransform: 'uppercase', letterSpacing: '4px' }}>Tundra</text>
+                <text x={988} y={988} fill="rgba(126, 198, 227, 0.8)" fontSize="16" fontWeight="800" textAnchor="end" style={{ textTransform: 'uppercase', letterSpacing: '4px' }}>Tundra</text>
+
+                {/* Fertile Land Zone */}
+                <rect x={400} y={400} width={400} height={400} fill="#a4d168" opacity="0.12" />
+                <rect x={400} y={400} width={400} height={400} fill="none" stroke="rgba(164, 209, 104, 0.55)" strokeWidth="4" strokeDasharray="30 40" vectorEffect="non-scaling-stroke" />
+                <text x={412} y={428} fill="rgba(164, 209, 104, 0.85)" fontSize="18" fontWeight="900" style={{ textTransform: 'uppercase', letterSpacing: '4px' }}>Fertile Land</text>
+                <text x={788} y={788} fill="rgba(164, 209, 104, 0.85)" fontSize="18" fontWeight="900" textAnchor="end" style={{ textTransform: 'uppercase', letterSpacing: '4px' }}>Fertile Land</text>
+                
+                {/* Ice Field Zone Labels */}
+                <text x={12} y={28} fill="rgba(200, 230, 255, 0.6)" fontSize="20" fontWeight="800" style={{ textTransform: 'uppercase', letterSpacing: '8px' }}>Ice Field</text>
+                <text x={1188} y={1188} fill="rgba(200, 230, 255, 0.6)" fontSize="20" fontWeight="800" textAnchor="end" style={{ textTransform: 'uppercase', letterSpacing: '8px' }}>Ice Field</text>
+              </g>
+              {/* ----------------- */}
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-cold-pocket)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-hardpack)" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="url(#wos-snow-ice-sheen)" />
