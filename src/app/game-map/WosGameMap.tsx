@@ -250,11 +250,14 @@ const renderSunfireCastle = (node: SunfireLandmark, mode: MapMode) => {
       <image
         href="/vendor/krozac-wos-interactive-map/sunfire_castle.png"
         x={footprint.x}
-        y={footprint.y - footprint.size * 0.2}
+        y={footprint.y - footprint.size * 0.05}
         width={footprint.size}
         height={footprint.size * 1.2}
         preserveAspectRatio="xMidYMid meet"
       />
+      <text x={footprint.cx} y={footprint.maxY + 0.8} textAnchor="middle" fontSize="0.8" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.1" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
     </g>
   );
 };
@@ -269,12 +272,15 @@ const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
       <image
         href="/vendor/krozac-wos-interactive-map/sunfire_turret.png"
         x={footprint.x}
-        y={footprint.y - footprint.size * 0.2}
+        y={footprint.y - footprint.size * 0.05}
         width={footprint.size}
         height={footprint.size * 1.2}
         preserveAspectRatio="xMidYMid meet"
         transform={isWest ? `translate(${footprint.cx * 2}, 0) scale(-1, 1)` : ""}
       />
+      <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.6" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
     </g>
   );
 };
