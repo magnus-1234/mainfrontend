@@ -39,7 +39,7 @@ type ResourceBuilding = {
   kind: ResourceKind;
 };
 
-type SunfireLandmarkKind = "castle" | "turret";
+type SunfireLandmarkKind = "castle" | "turret" | "stronghold" | "fortress";
 
 type SunfireLandmark = {
   id: string;
@@ -90,6 +90,28 @@ const SUNFIRE_LANDMARKS: SunfireLandmark[] = [
     kind: "castle",
     planner: { col: 597, row: 597, size: 4 },
   },
+];
+
+const WOS_STRONGHOLDS: SunfireLandmark[] = [
+  { id: "stronghold-1", label: "Stronghold 1", kind: "stronghold", planner: { col: 394, row: 597, size: 3 } },
+  { id: "stronghold-2", label: "Stronghold 2", kind: "stronghold", planner: { col: 597, row: 794, size: 3 } },
+  { id: "stronghold-3", label: "Stronghold 3", kind: "stronghold", planner: { col: 794, row: 597, size: 3 } },
+  { id: "stronghold-4", label: "Stronghold 4", kind: "stronghold", planner: { col: 597, row: 394, size: 3 } },
+];
+
+const WOS_FORTRESSES: SunfireLandmark[] = [
+  { id: "fortress-1", label: "Fortress 1", kind: "fortress", planner: { col: 366, row: 957, size: 2 } },
+  { id: "fortress-2", label: "Fortress 2", kind: "fortress", planner: { col: 588, row: 957, size: 2 } },
+  { id: "fortress-3", label: "Fortress 3", kind: "fortress", planner: { col: 846, row: 957, size: 2 } },
+  { id: "fortress-4", label: "Fortress 4", kind: "fortress", planner: { col: 957, row: 828, size: 2 } },
+  { id: "fortress-5", label: "Fortress 5", kind: "fortress", planner: { col: 957, row: 606, size: 2 } },
+  { id: "fortress-6", label: "Fortress 6", kind: "fortress", planner: { col: 957, row: 348, size: 2 } },
+  { id: "fortress-7", label: "Fortress 7", kind: "fortress", planner: { col: 846, row: 237, size: 2 } },
+  { id: "fortress-8", label: "Fortress 8", kind: "fortress", planner: { col: 588, row: 237, size: 2 } },
+  { id: "fortress-9", label: "Fortress 9", kind: "fortress", planner: { col: 366, row: 237, size: 2 } },
+  { id: "fortress-10", label: "Fortress 10", kind: "fortress", planner: { col: 237, row: 348, size: 2 } },
+  { id: "fortress-11", label: "Fortress 11", kind: "fortress", planner: { col: 237, row: 588, size: 2 } },
+  { id: "fortress-12", label: "Fortress 12", kind: "fortress", planner: { col: 237, row: 828, size: 2 } },
 ];
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
@@ -277,6 +299,48 @@ const renderSunfireTurret = (node: SunfireLandmark, mode: MapMode) => {
         height={footprint.size * 1.2}
         preserveAspectRatio="xMidYMid meet"
         transform={isWest ? `translate(${footprint.cx * 2}, 0) scale(-1, 1)` : ""}
+      />
+      <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.6" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
+    </g>
+  );
+};
+
+const renderStronghold = (node: SunfireLandmark, mode: MapMode) => {
+  const footprint = sunfireFootprintFor(node);
+
+  return (
+    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
+      <title>{sunfireFootprintTitle(node)}</title>
+      <image
+        href="/vendor/krozac-wos-interactive-map/stronghold.png"
+        x={footprint.x}
+        y={footprint.y - footprint.size * 0.15}
+        width={footprint.size}
+        height={footprint.size * 1.3}
+        preserveAspectRatio="xMidYMid meet"
+      />
+      <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.6" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
+    </g>
+  );
+};
+
+const renderFortress = (node: SunfireLandmark, mode: MapMode) => {
+  const footprint = sunfireFootprintFor(node);
+
+  return (
+    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
+      <title>{sunfireFootprintTitle(node)}</title>
+      <image
+        href="/vendor/krozac-wos-interactive-map/fortress.png"
+        x={footprint.x}
+        y={footprint.y - footprint.size * 0.2}
+        width={footprint.size}
+        height={footprint.size * 1.4}
+        preserveAspectRatio="xMidYMid meet"
       />
       <text x={footprint.cx} y={footprint.maxY + 0.6} textAnchor="middle" fontSize="0.6" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
         {node.label}
@@ -741,6 +805,12 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               </g>
               <g aria-label="WoSTools Sunfire Castle fixed landmarks">
                 {SUNFIRE_LANDMARKS.map((node) => renderSunfireLandmark(node, mode))}
+              </g>
+              <g aria-label="WoSTools Strongholds">
+                {WOS_STRONGHOLDS.map((node) => renderStronghold(node, mode))}
+              </g>
+              <g aria-label="WoSTools Fortresses">
+                {WOS_FORTRESSES.map((node) => renderFortress(node, mode))}
               </g>
               {hover && (
                 <rect
