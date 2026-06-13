@@ -376,3 +376,83 @@
     min-height: 46px;
   }
 }
+
+.wos-planner-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.wos-planner-panel h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.wos-planner-tools {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.wos-planner-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: var(--control-surface, var(--background));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wos-planner-button img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.wos-planner-button span {
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.wos-planner-button:hover {
+  border-color: var(--primary);
+}
+
+.wos-planner-button.active {
+  border-color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.15);
+  box-shadow: inset 0 0 0 1px #0ea5e9;
+}
+
+.wos-planner-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.wos-planner-actions button {
+  flex: 1;
+  font-size: 12px;
+}
+
+.wos-planner-actions button.danger {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.wos-planner-actions button.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
