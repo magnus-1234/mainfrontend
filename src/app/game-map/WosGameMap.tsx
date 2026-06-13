@@ -39,7 +39,7 @@ type ResourceBuilding = {
   kind: ResourceKind;
 };
 
-type SunfireLandmarkKind = "castle" | "turret" | "stronghold" | "fortress";
+type SunfireLandmarkKind = "castle" | "turret" | "stronghold" | "fortress" | "facility";
 
 type SunfireLandmark = {
   id: string;
@@ -51,6 +51,8 @@ type SunfireLandmark = {
     size: number;
   };
   facing?: number;
+  bonus?: string;
+  color?: string;
 };
 
 const RESOURCE_BUILDING_SIZE = 2;
@@ -112,6 +114,83 @@ const WOS_FORTRESSES: SunfireLandmark[] = [
   { id: "fortress-10", label: "Fortress 10", kind: "fortress", planner: { col: 237, row: 348, size: 2 } },
   { id: "fortress-11", label: "Fortress 11", kind: "fortress", planner: { col: 237, row: 588, size: 2 } },
   { id: "fortress-12", label: "Fortress 12", kind: "fortress", planner: { col: 237, row: 828, size: 2 } },
+];
+
+const WOS_FACILITIES: SunfireLandmark[] = [
+  { id: "facility-1", label: "Construction Lv. 1", kind: "facility", planner: { col: 1068, row: 138, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-2", label: "Construction Lv. 1", kind: "facility", planner: { col: 537, row: 138, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-3", label: "Construction Lv. 1", kind: "facility", planner: { col: 138, row: 138, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-4", label: "Construction Lv. 1", kind: "facility", planner: { col: 138, row: 666, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-5", label: "Construction Lv. 1", kind: "facility", planner: { col: 138, row: 1038, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-6", label: "Construction Lv. 1", kind: "facility", planner: { col: 666, row: 1068, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-7", label: "Construction Lv. 1", kind: "facility", planner: { col: 1068, row: 567, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-8", label: "Construction Lv. 1", kind: "facility", planner: { col: 1068, row: 1068, size: 3 }, bonus: "Construction Speed +5%", color: "#42a5f5" },
+  { id: "facility-9", label: "Construction Lv. 3", kind: "facility", planner: { col: 486, row: 327, size: 3 }, bonus: "Construction Speed +8%", color: "#42a5f5" },
+  { id: "facility-10", label: "Construction Lv. 3", kind: "facility", planner: { col: 768, row: 867, size: 3 }, bonus: "Construction Speed +8%", color: "#42a5f5" },
+  { id: "facility-11", label: "Construction Lv. 3", kind: "facility", planner: { col: 867, row: 567, size: 3 }, bonus: "Construction Speed +8%", color: "#42a5f5" },
+  { id: "facility-12", label: "Construction Lv. 3", kind: "facility", planner: { col: 327, row: 666, size: 3 }, bonus: "Construction Speed +8%", color: "#42a5f5" },
+  { id: "facility-13", label: "Defense Lv. 2", kind: "facility", planner: { col: 666, row: 138, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-14", label: "Defense Lv. 2", kind: "facility", planner: { col: 438, row: 267, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-15", label: "Defense Lv. 2", kind: "facility", planner: { col: 138, row: 537, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-16", label: "Defense Lv. 2", kind: "facility", planner: { col: 237, row: 768, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-17", label: "Defense Lv. 2", kind: "facility", planner: { col: 537, row: 1038, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-18", label: "Defense Lv. 2", kind: "facility", planner: { col: 738, row: 957, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-19", label: "Defense Lv. 2", kind: "facility", planner: { col: 1068, row: 666, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-20", label: "Defense Lv. 2", kind: "facility", planner: { col: 957, row: 438, size: 3 }, bonus: "Troop Defense +5%", color: "#26c6da" },
+  { id: "facility-21", label: "Defense Lv. 4", kind: "facility", planner: { col: 816, row: 717, size: 3 }, bonus: "Troop Defense +8%", color: "#26c6da" },
+  { id: "facility-22", label: "Defense Lv. 4", kind: "facility", planner: { col: 387, row: 717, size: 3 }, bonus: "Troop Defense +8%", color: "#26c6da" },
+  { id: "facility-23", label: "Defense Lv. 4", kind: "facility", planner: { col: 588, row: 327, size: 3 }, bonus: "Troop Defense +8%", color: "#26c6da" },
+  { id: "facility-24", label: "Tech Lv. 1", kind: "facility", planner: { col: 957, row: 237, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-25", label: "Tech Lv. 1", kind: "facility", planner: { col: 666, row: 267, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-26", label: "Tech Lv. 1", kind: "facility", planner: { col: 237, row: 237, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-27", label: "Tech Lv. 1", kind: "facility", planner: { col: 267, row: 537, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-28", label: "Tech Lv. 1", kind: "facility", planner: { col: 237, row: 957, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-29", label: "Tech Lv. 1", kind: "facility", planner: { col: 537, row: 936, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-30", label: "Tech Lv. 1", kind: "facility", planner: { col: 936, row: 537, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-31", label: "Tech Lv. 1", kind: "facility", planner: { col: 957, row: 957, size: 3 }, bonus: "Research Speed +5%", color: "#ffa726" },
+  { id: "facility-32", label: "Tech Lv. 3", kind: "facility", planner: { col: 867, row: 327, size: 3 }, bonus: "Research Speed +8%", color: "#ffa726" },
+  { id: "facility-33", label: "Tech Lv. 3", kind: "facility", planner: { col: 327, row: 327, size: 3 }, bonus: "Research Speed +8%", color: "#ffa726" },
+  { id: "facility-34", label: "Tech Lv. 3", kind: "facility", planner: { col: 327, row: 867, size: 3 }, bonus: "Research Speed +8%", color: "#ffa726" },
+  { id: "facility-35", label: "Tech Lv. 3", kind: "facility", planner: { col: 867, row: 867, size: 3 }, bonus: "Research Speed +8%", color: "#ffa726" },
+  { id: "facility-36", label: "Weapons Lv. 2", kind: "facility", planner: { col: 867, row: 138, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-37", label: "Weapons Lv. 2", kind: "facility", planner: { col: 366, row: 138, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-38", label: "Weapons Lv. 2", kind: "facility", planner: { col: 138, row: 438, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-39", label: "Weapons Lv. 2", kind: "facility", planner: { col: 138, row: 867, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-40", label: "Weapons Lv. 2", kind: "facility", planner: { col: 438, row: 1068, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-41", label: "Weapons Lv. 2", kind: "facility", planner: { col: 1068, row: 327, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-42", label: "Weapons Lv. 2", kind: "facility", planner: { col: 1068, row: 867, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-43", label: "Weapons Lv. 2", kind: "facility", planner: { col: 867, row: 1068, size: 3 }, bonus: "Troop Attack +5%", color: "#ef5350" },
+  { id: "facility-44", label: "Weapons Lv. 4", kind: "facility", planner: { col: 816, row: 486, size: 3 }, bonus: "Troop Attack +8%", color: "#ef5350" },
+  { id: "facility-45", label: "Weapons Lv. 4", kind: "facility", planner: { col: 387, row: 486, size: 3 }, bonus: "Troop Attack +8%", color: "#ef5350" },
+  { id: "facility-46", label: "Weapons Lv. 4", kind: "facility", planner: { col: 588, row: 867, size: 3 }, bonus: "Troop Attack +8%", color: "#ef5350" },
+  { id: "facility-47", label: "Gathering Lv. 1", kind: "facility", planner: { col: 957, row: 138, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-48", label: "Gathering Lv. 1", kind: "facility", planner: { col: 537, row: 87, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-49", label: "Gathering Lv. 1", kind: "facility", planner: { col: 138, row: 237, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-50", label: "Gathering Lv. 1", kind: "facility", planner: { col: 87, row: 666, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-51", label: "Gathering Lv. 1", kind: "facility", planner: { col: 267, row: 1068, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-52", label: "Gathering Lv. 1", kind: "facility", planner: { col: 636, row: 1137, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-53", label: "Gathering Lv. 1", kind: "facility", planner: { col: 1137, row: 567, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-54", label: "Gathering Lv. 1", kind: "facility", planner: { col: 1068, row: 936, size: 3 }, bonus: "Gathering Speed +5%", color: "#ab47bc" },
+  { id: "facility-55", label: "Production Lv. 1", kind: "facility", planner: { col: 1068, row: 237, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-56", label: "Production Lv. 1", kind: "facility", planner: { col: 768, row: 138, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-57", label: "Production Lv. 1", kind: "facility", planner: { col: 237, row: 138, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-58", label: "Production Lv. 1", kind: "facility", planner: { col: 138, row: 327, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-59", label: "Production Lv. 1", kind: "facility", planner: { col: 138, row: 957, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-60", label: "Production Lv. 1", kind: "facility", planner: { col: 327, row: 1038, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-61", label: "Production Lv. 1", kind: "facility", planner: { col: 1068, row: 747, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-62", label: "Production Lv. 1", kind: "facility", planner: { col: 957, row: 1068, size: 3 }, bonus: "RSS Gathering Speed +5%", color: "#66bb6a" },
+  { id: "facility-63", label: "Training Lv. 2", kind: "facility", planner: { col: 237, row: 486, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-64", label: "Training Lv. 2", kind: "facility", planner: { col: 138, row: 747, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-65", label: "Training Lv. 2", kind: "facility", planner: { col: 486, row: 957, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-66", label: "Training Lv. 2", kind: "facility", planner: { col: 768, row: 1038, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-67", label: "Training Lv. 2", kind: "facility", planner: { col: 957, row: 747, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-68", label: "Training Lv. 2", kind: "facility", planner: { col: 1068, row: 486, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-69", label: "Training Lv. 2", kind: "facility", planner: { col: 486, row: 138, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-70", label: "Training Lv. 2", kind: "facility", planner: { col: 768, row: 237, size: 3 }, bonus: "Training Speed +5%", color: "#ffee58" },
+  { id: "facility-71", label: "Expedition Lv. 3", kind: "facility", planner: { col: 768, row: 327, size: 3 }, bonus: "March Speed +15%", color: "#f48fb1" },
+  { id: "facility-72", label: "Expedition Lv. 3", kind: "facility", planner: { col: 327, row: 567, size: 3 }, bonus: "March Speed +15%", color: "#f48fb1" },
+  { id: "facility-73", label: "Expedition Lv. 3", kind: "facility", planner: { col: 486, row: 867, size: 3 }, bonus: "March Speed +15%", color: "#f48fb1" },
+  { id: "facility-74", label: "Expedition Lv. 3", kind: "facility", planner: { col: 867, row: 666, size: 3 }, bonus: "March Speed +15%", color: "#f48fb1" },
 ];
 
 const RESOURCE_BUILDING_META: Record<ResourceKind, { label: string; image: string }> = {
@@ -352,6 +431,32 @@ const renderFortress = (node: SunfireLandmark, mode: MapMode) => {
       />
       <text x={footprint.cx} y={maxY + 1} textAnchor="middle" fontSize="1" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.1" paintOrder="stroke" pointerEvents="none">
         {node.label}
+      </text>
+    </g>
+  );
+};
+
+const renderFacility = (node: SunfireLandmark, mode: MapMode) => {
+  const footprint = sunfireFootprintFor(node);
+  const { color = "#ffffff", bonus = "" } = node;
+
+  return (
+    <g key={node.id} aria-label={node.label} shapeRendering="geometricPrecision">
+      <title>{sunfireFootprintTitle(node)} - {bonus}</title>
+      <circle cx={footprint.cx} cy={footprint.cy + footprint.size * 0.2} r={footprint.size * 0.8} fill={color} opacity="0.15" />
+      <image
+        href="/vendor/krozac-wos-interactive-map/facility.png"
+        x={footprint.x}
+        y={footprint.y - footprint.size * 0.15}
+        width={footprint.size}
+        height={footprint.size * 1.3}
+        preserveAspectRatio="xMidYMid meet"
+      />
+      <text x={footprint.cx} y={footprint.maxY + 0.4} textAnchor="middle" fontSize="0.45" fontWeight="800" fill="#1f2937" stroke="rgba(248, 253, 255, 0.92)" strokeWidth="0.06" paintOrder="stroke" pointerEvents="none">
+        {node.label}
+      </text>
+      <text x={footprint.cx} y={footprint.maxY + 0.9} textAnchor="middle" fontSize="0.4" fontWeight="800" fill={color} stroke="rgba(30, 40, 50, 0.9)" strokeWidth="0.08" paintOrder="stroke" pointerEvents="none">
+        {bonus}
       </text>
     </g>
   );
@@ -819,6 +924,9 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               </g>
               <g aria-label="WoSTools Fortresses">
                 {WOS_FORTRESSES.map((node) => renderFortress(node, mode))}
+              </g>
+              <g aria-label="WoSTools Facilities">
+                {WOS_FACILITIES.map((node) => renderFacility(node, mode))}
               </g>
               {hover && (
                 <rect
