@@ -1,5 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const locales = ["hi", "es", "fr", "de", "it", "pt", "ru", "ar", "tr", "id", "vi", "th", "ja", "ko", "zh-CN", "zh-TW", "pl", "nl", "sv"];
+const defaultLocale = "en";
+
+function getLocale(request: NextRequest): string {
+  const acceptLanguage = request.headers.get("accept-language");
+  if (!acceptLanguage) return defaultLocale;
+
+  const languages = acceptLanguage
+    .split(",")
+    .map((lang) => lang.split(";")[0].trim().toLowerCase());
+
+  for (const lang of languages) {
+    if (lang === 'zh-cn') return 'zh-CN';
+    if (lang === 'zh-tw') return 'zh-TW';
+    
+    if (locales.includes(lang)) return lang;
+    
+    const baseCode = lang.split("-")[0];
+    if (locales.includes(baseCode)) return baseCode;
+  }
+
+  return defaultLocale;
+}
+
 const blockedUserAgentPatterns = [
   /curl/i,
   /go-http-client/i,
@@ -82,6 +106,28 @@ export function middleware(request: NextRequest) {
       status: 403,
       headers: blockedResponseHeaders,
     });
+  }
+
+  const pathname = request.nextUrl.pathname;
+  if (pathname === "/") {
+    let localeToUse = defaultLocale;
+    const googtrans = request.cookies.get("googtrans")?.value;
+    
+    if (googtrans) {
+      const parts = googtrans.split("/");
+      const lang = parts[parts.length - 1];
+      if (locales.includes(lang)) {
+        localeToUse = lang;
+      } else if (lang === "en") {
+        localeToUse = "en";
+      }
+    } else {
+      localeToUse = getLocale(request);
+    }
+
+    if (localeToUse !== defaultLocale && locales.includes(localeToUse)) {
+      return NextResponse.redirect(new URL(`/${localeToUse}`, request.url));
+    }
   }
 
   return NextResponse.next();
