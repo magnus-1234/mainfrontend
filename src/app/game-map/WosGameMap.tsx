@@ -552,6 +552,23 @@ const boundCamera = (camera: Coordinate, zoom: number) => {
   };
 };
 
+const LAYER_OPTIONS = [
+  { id: "castle", label: "Castle", color: "#ffc107" },
+  { id: "fortress", label: "Fortress", color: "#ff5722" },
+  { id: "stronghold", label: "Sanctuary / Stronghold", color: "#9c27b0" },
+  { id: "turret", label: "Turret", color: "#607d8b" },
+  { id: "construction", label: "Construction Outpost", color: "#42a5f5" },
+  { id: "defense", label: "Defense Outpost", color: "#26c6da" },
+  { id: "tech", label: "Research Outpost", color: "#ffa726" },
+  { id: "production", label: "Resource Production Outpost", color: "#66bb6a" },
+  { id: "expedition", label: "Frontier Lodge", color: "#f48fb1" },
+  { id: "gathering", label: "Gathering Outpost", color: "#ab47bc" },
+  { id: "weapons", label: "Attack Outpost", color: "#ef5350" },
+  { id: "training", label: "Training Outpost", color: "#ffee58" },
+  { id: "resources", label: "Resource Tiles", color: "#8d6e63" },
+  { id: "planner", label: "User Planner Items", color: "#9e9e9e" },
+];
+
 export default function WosGameMap({ embedded = false }: { embedded?: boolean }) {
   const mapShellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
@@ -572,6 +589,39 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
   const [history, setHistory] = useState<PlannerItem[][]>([]);
   const [selectedTool, setSelectedTool] = useState<PlannerTool>("select");
   const [selectedObject, setSelectedObject] = useState<PlannerItemKind>("hq");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [layersVisibility, setLayersVisibility] = useState<Record<string, boolean>>({
+    castle: true,
+    fortress: true,
+    stronghold: true,
+    turret: true,
+    construction: true,
+    defense: true,
+    tech: true,
+    weapons: true,
+    gathering: true,
+    production: true,
+    training: true,
+    expedition: true,
+    resources: true,
+    planner: true,
+  });
+
+  const handleShowAll = () => {
+    const next: Record<string, boolean> = {};
+    Object.keys(layersVisibility).forEach(k => next[k] = true);
+    setLayersVisibility(next);
+  };
+
+  const handleHideAll = () => {
+    const next: Record<string, boolean> = {};
+    Object.keys(layersVisibility).forEach(k => next[k] = false);
+    setLayersVisibility(next);
+  };
+
+  const toggleLayer = (layerId: string) => {
+    setLayersVisibility(prev => ({ ...prev, [layerId]: !prev[layerId] }));
+  };
 
   useEffect(() => {
     try {
@@ -760,19 +810,21 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
 
   return (
     <section className={`wos-game-map-page ${embedded ? "embedded" : ""}`} aria-label="Whiteout Survival game map">
-      <div className="wos-map-toolbar">
-        <div>
-          <span className="section-kicker">WOS Game Map</span>
-          <h1>1199 x 1199 Coordinate Grid</h1>
-        </div>
-        <div className="wos-map-selected" aria-live="polite">
-          <strong>X:{selected.x}</strong>
-          <strong>Y:{selected.y}</strong>
-        </div>
-      </div>
+      <div className="wos-game-map-layout">
+        <div className="wos-map-main-content">
+          <div className="wos-map-toolbar">
+            <div>
+              <span className="section-kicker">WOS Game Map</span>
+              <h1>1199 x 1199 Coordinate Grid</h1>
+            </div>
+            <div className="wos-map-selected" aria-live="polite">
+              <strong>X:{selected.x}</strong>
+              <strong>Y:{selected.y}</strong>
+            </div>
+          </div>
 
-      <div className="wos-map-workspace">
-        <div
+          <div className="wos-map-workspace">
+            <div
           className="wos-map-stage"
           ref={mapShellRef}
           onWheel={(event) => {
@@ -1023,22 +1075,36 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="#f8fdff" filter="url(#wos-snow-grain)" opacity="0.2" />
               <rect width={CANVAS_SIZE} height={CANVAS_SIZE} fill="none" stroke="rgba(255, 255, 255, 0.58)" strokeWidth="18" vectorEffect="non-scaling-stroke" />
               <g aria-label="WOSTools fixed resource buildings">
-                {WOS_RESOURCE_BUILDINGS.map((node) => renderResourceBuilding(node, mode))}
+                {layersVisibility.resources && WOS_RESOURCE_BUILDINGS.filter(n => !searchQuery || RESOURCE_BUILDING_META[n.kind].label.toLowerCase().includes(searchQuery.toLowerCase())).map((node) => renderResourceBuilding(node, mode))}
               </g>
               <g aria-label="WoSTools Sunfire Castle fixed landmarks">
-                {SUNFIRE_LANDMARKS.map((node) => renderSunfireLandmark(node, mode))}
+                {SUNFIRE_LANDMARKS.filter(n => layersVisibility[n.kind] && (!searchQuery || n.label.toLowerCase().includes(searchQuery.toLowerCase()))).map((node) => renderSunfireLandmark(node, mode))}
               </g>
               <g aria-label="WoSTools Strongholds">
-                {WOS_STRONGHOLDS.map((node) => renderStronghold(node, mode))}
+                {layersVisibility.stronghold && WOS_STRONGHOLDS.filter(n => !searchQuery || n.label.toLowerCase().includes(searchQuery.toLowerCase())).map((node) => renderStronghold(node, mode))}
               </g>
               <g aria-label="WoSTools Fortresses">
-                {WOS_FORTRESSES.map((node) => renderFortress(node, mode))}
+                {layersVisibility.fortress && WOS_FORTRESSES.filter(n => !searchQuery || n.label.toLowerCase().includes(searchQuery.toLowerCase())).map((node) => renderFortress(node, mode))}
               </g>
               <g aria-label="WoSTools Facilities">
-                {WOS_FACILITIES.map((node) => renderFacility(node, mode))}
+                {WOS_FACILITIES.filter(n => {
+                   let type = "";
+                   if (n.label.includes("Construction")) type = "construction";
+                   else if (n.label.includes("Defense")) type = "defense";
+                   else if (n.label.includes("Tech")) type = "tech";
+                   else if (n.label.includes("Weapons")) type = "weapons";
+                   else if (n.label.includes("Gathering")) type = "gathering";
+                   else if (n.label.includes("Production")) type = "production";
+                   else if (n.label.includes("Training")) type = "training";
+                   else if (n.label.includes("Expedition")) type = "expedition";
+
+                   if (type && !layersVisibility[type]) return false;
+                   if (searchQuery && !n.label.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                   return true;
+                }).map((node) => renderFacility(node, mode))}
               </g>
               <g aria-label="User Layout Planner Items">
-                {plannerItems.map((item) => renderPlannerItem(item))}
+                {layersVisibility.planner && plannerItems.map((item) => renderPlannerItem(item))}
               </g>
               {hover && (
                 <rect
@@ -1143,6 +1209,59 @@ export default function WosGameMap({ embedded = false }: { embedded?: boolean })
             </div>
           )}
         </div>
+      </div>
+      </div>
+
+      <div className="wos-map-sidebar">
+        <div className="wos-map-sidebar-panel">
+          <div className="wos-sidebar-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            <h2>Layers</h2>
+          </div>
+          
+          <div className="wos-sidebar-actions">
+            <button onClick={handleShowAll}>Show all</button>
+            <button onClick={handleHideAll}>Hide all</button>
+          </div>
+
+          <div className="wos-layer-list">
+            {LAYER_OPTIONS.map(layer => (
+              <label key={layer.id} className="wos-layer-item">
+                <div className="wos-checkbox-wrapper">
+                  <input 
+                    type="checkbox" 
+                    checked={layersVisibility[layer.id]} 
+                    onChange={() => toggleLayer(layer.id)} 
+                  />
+                  <span className="wos-checkbox-custom">
+                    {layersVisibility[layer.id] && (
+                      <svg viewBox="0 0 14 14" fill="none">
+                        <path d="M3 8L6 11L11 3.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                      </svg>
+                    )}
+                  </span>
+                </div>
+                <span className="wos-layer-color-dot" style={{ backgroundColor: layer.color }}></span>
+                <span className="wos-layer-label">{layer.label}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="wos-buildings-section">
+            <h3>BUILDINGS</h3>
+            <div className="wos-search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input 
+                type="text" 
+                placeholder="Search buildings..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       </div>
     </section>
   );
