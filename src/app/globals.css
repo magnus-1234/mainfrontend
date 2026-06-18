@@ -17340,16 +17340,24 @@ body {
 
 .redeem-card,
 .redeem-result {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(30, 30, 30, 0.6), rgba(18, 18, 18, 0.9));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.redeem-card:hover,
+.redeem-result:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 0 20px rgba(244, 129, 32, 0.1);
 }
 
 .redeem-card {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 20px;
+  padding: 24px;
 }
 
 .redeem-card-wide {
@@ -17391,14 +17399,15 @@ body {
 
 .redeem-card input,
 .redeem-card select {
-  min-height: 42px;
+  min-height: 46px;
   width: 100%;
-  border: 1px solid var(--input);
-  border-radius: 6px;
-  padding: 0 12px;
-  background: var(--background);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.25);
   color: var(--foreground);
   outline: none;
+  transition: all 0.2s ease;
 }
 
 .redeem-card select {
@@ -17408,7 +17417,8 @@ body {
 .redeem-card input:focus,
 .redeem-card select:focus {
   border-color: var(--gold-line);
-  box-shadow: 0 0 0 3px var(--gold-soft);
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 3px rgba(244, 129, 32, 0.15);
 }
 
 .redeem-code-strip {
@@ -17427,20 +17437,32 @@ body {
 
 .redeem-card button {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--gold-line);
-  border-radius: 6px;
-  background: var(--primary);
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary) 0%, #e86e10 100%);
   color: #1d1208;
   cursor: pointer;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(244, 129, 32, 0.3);
+}
+
+.redeem-card button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(244, 129, 32, 0.4);
+  background: linear-gradient(135deg, #f98b2c 0%, #ff7a10 100%);
 }
 
 .redeem-card button:disabled {
   cursor: not-allowed;
   opacity: 0.58;
+  transform: none;
+  box-shadow: none;
 }
 
 .redeem-player {
