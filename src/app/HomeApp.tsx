@@ -60,7 +60,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "fireCrystals" | "chiefCharm" | "chiefGear" | "warAcademy" | "svsPlanner" | "planner" | "gameMap" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "wikiHeroes" | "wikiBuildings" | "wikiPosters";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "fireCrystals" | "chiefCharm" | "chiefGear" | "warAcademy" | "svsPlanner" | "planner" | "gameMap" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "music" | "wikiHeroes" | "wikiBuildings" | "wikiPosters";
 type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "various" | "leaders" | "nsfw";
 type MessageTemplateAssignableCategory = Exclude<MessageTemplateCategory, "all">;
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
@@ -282,9 +282,27 @@ type AuthUser = {
   email?: string;
   displayName: string;
   avatarUrl?: string;
+  discordUserId?: string;
   providers: ("google" | "discord")[];
   playerAccounts: LinkedPlayerAccount[];
   createdAt: string;
+};
+
+type MusicPlaylistTrack = {
+  title: string;
+  author: string;
+  uri: string;
+  length: number;
+};
+
+type MusicPlaylist = {
+  guildId: string;
+  userId: string;
+  name: string;
+  trackCount: number;
+  tracks: MusicPlaylistTrack[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 const localApiHost = () => {
@@ -1563,6 +1581,7 @@ const sidebarItems: {
     { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/discord-bot", mobilePrimary: true },
+    { label: "Music", mobileLabel: "Music", icon: "music", menu: "music", href: "/music", mobilePrimary: true },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
     { label: "WOS Game Map", mobileLabel: "Map", icon: "mapPin", menu: "gameMap", href: "/game-map", beta: true },
     { label: "SvS Appointment Planner", mobileLabel: "SvS", icon: "calendar", menu: "svsPlanner", href: "/svs-appointment-planner", beta: true },
@@ -1605,6 +1624,7 @@ const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
   daybreak: { src: "/daybreak-island-tree-of-life.webp", alt: "Daybreak Island tree" },
   dreamscape: { src: "/wiki/heroes/estrella/2cfef55ef649.png", alt: "Dreamscape Memory" },
   bot: { src: "/bot-logo.gif", alt: "Discord bot" },
+  music: { src: "/showcase-music-system.png", alt: "Music playlists" },
   wikiHeroes: { src: "/wiki/heroes/molly/554d3a1795ca.png", alt: "WOS hero" },
   wikiBuildings: { src: "/wiki/buildings/furnace/1d5f9abc1441.png", alt: "WOS furnace" },
   wikiPosters: { src: "/wiki/posters/heroes/001-9d69714303ab.jpg", alt: "WOS poster" },
@@ -1623,6 +1643,7 @@ const landingToolVisuals: Partial<Record<ActiveMenu, { src: string; alt: string;
   gameMap: { src: "/vendor/krozac-wos-interactive-map/furnace.png", alt: "Whiteout Survival map furnace marker", tone: "ice" },
   planner: { src: "/foundry-team-planner-map.webp", alt: "Whiteout Survival foundry team map", tone: "blue" },
   bot: { src: "/bot-logo.gif", alt: "Whiteout Survival Discord bot", tone: "violet" },
+  music: { src: "/showcase-music-system.png", alt: "Whiteout Survival music bot", tone: "blue" },
   templates: { src: "/wiki/heroes/estrella/18d9d05440cc.png", alt: "Whiteout Survival message template icon", tone: "green" },
   vip: { src: "/svs-resources/fire-crystal.png", alt: "Whiteout Survival premium resource", tone: "ember" },
   fireCrystals: { src: "/svs-resources/fire-crystal.png", alt: "Whiteout Survival Fire Crystal", tone: "ember" },
@@ -1686,6 +1707,9 @@ const hashMenuAliases: Record<string, ActiveMenu> = {
   "#upload": "daybreak",
   "#discord-bot": "bot",
   "#bot": "bot",
+  "#music": "music",
+  "#music-bot": "music",
+  "#playlists": "music",
   "#wiki": "wikiHeroes",
   "#wiki-heroes": "wikiHeroes",
   "#wiki-buildings": "wikiBuildings",
@@ -1730,6 +1754,9 @@ const queryMenuAliases: Record<string, ActiveMenu> = {
   dreamscape: "dreamscape",
   "dreamscape-memory": "dreamscape",
   bot: "bot",
+  music: "music",
+  "music-bot": "music",
+  playlists: "music",
   wiki: "wikiHeroes",
   heroes: "wikiHeroes",
   buildings: "wikiBuildings",
@@ -1755,6 +1782,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   daybreak: "/daybreak-island",
   dreamscape: "/dreamscape-memory",
   bot: "/discord-bot",
+  music: "/music",
   wikiHeroes: "/wiki/heroes",
   wikiBuildings: "/wiki/buildings",
   wikiPosters: "/wiki/posters",
@@ -1842,6 +1870,10 @@ const resolveActiveMenu = (location: Location): ActiveMenu => {
 
   if (pathname.startsWith("/discord-bot")) {
     return "bot";
+  }
+
+  if (pathname.startsWith("/music")) {
+    return "music";
   }
 
   if (pathname.startsWith("/wiki/buildings")) {
@@ -1964,6 +1996,13 @@ function Icon({ name }: { name: string }) {
         <circle cx="15" cy="14" r="1" />
         <path d="M8 20v2" />
         <path d="M16 20v2" />
+      </>
+    ),
+    music: (
+      <>
+        <path d="M9 18V5l12-2v13" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
       </>
     ),
     external: (
@@ -2836,6 +2875,11 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     }
     return fallbackBotMetrics;
   });
+  const [musicPlaylists, setMusicPlaylists] = useState<MusicPlaylist[]>([]);
+  const [musicGuilds, setMusicGuilds] = useState<string[]>([]);
+  const [musicGuildFilter, setMusicGuildFilter] = useState("");
+  const [musicLoading, setMusicLoading] = useState(false);
+  const [musicStatus, setMusicStatus] = useState("");
   const [authStatus, setAuthStatus] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -3076,6 +3120,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     { id: "gift", message: giftCodeStatus, onDismiss: () => setGiftCodeStatus(""), tone: giftCodeStatus.match(/unavailable|longer|no active/i) ? "error" : "success" },
     { id: "state-age", message: stateAgeStatus, onDismiss: () => setStateAgeStatus(""), tone: stateAgeStatus.match(/unable|valid|error/i) ? "error" : "success" },
     { id: "state-recent", message: stateAgeRecentStatus, onDismiss: () => setStateAgeRecentStatus(""), tone: "error" },
+    { id: "music", message: musicStatus, onDismiss: () => setMusicStatus(""), tone: musicStatus.match(/unable|sign in|not configured|error/i) ? "error" : "success" },
     { id: "auth", message: authStatus, onDismiss: () => setAuthStatus(""), tone: authStatus.match(/linked|success/i) ? "success" : "error" },
     { id: "player-lookup", message: playerLookupStatus, onDismiss: () => setPlayerLookupStatus(""), tone: playerLookupStatus.match(/loaded/i) ? "success" : "error" },
   ].filter((toast) => toast.message);
@@ -3130,6 +3175,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       giftCodeStatus ||
       stateAgeStatus ||
       stateAgeRecentStatus ||
+      musicStatus ||
       authStatus ||
       playerLookupStatus;
 
@@ -3156,6 +3202,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
       if (stateAgeRecentStatus) {
         setStateAgeRecentStatus("");
       }
+      if (musicStatus) {
+        setMusicStatus("");
+      }
       if (authStatus) {
         setAuthStatus("");
       }
@@ -3170,6 +3219,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     foundryExportStatus,
     foundryStatusTone,
     giftCodeStatus,
+    musicStatus,
     playerLookupStatus,
     stateAgeRecentStatus,
     stateAgeStatus,
@@ -3294,6 +3344,71 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
 
     void loadBotMetrics();
   }, []);
+
+  useEffect(() => {
+    if (activeMenu !== "music") {
+      return;
+    }
+
+    if (!authUser) {
+      window.setTimeout(() => {
+        setMusicPlaylists([]);
+        setMusicGuilds([]);
+        setMusicStatus("Sign in with Discord to see your saved music playlists.");
+      }, 0);
+      return;
+    }
+
+    const musicUserId = authUser.discordUserId || (authUser.providers.includes("discord") ? authUser.id : "");
+    if (!musicUserId) {
+      window.setTimeout(() => {
+        setMusicPlaylists([]);
+        setMusicGuilds([]);
+        setMusicStatus("Sign in with Discord to connect saved music playlists.");
+      }, 0);
+      return;
+    }
+
+    let cancelled = false;
+    const loadMusicPlaylists = async () => {
+      setMusicLoading(true);
+      setMusicStatus("");
+      try {
+        const params = new URLSearchParams();
+        if (musicGuildFilter) {
+          params.set("guildId", musicGuildFilter);
+        }
+        const response = await fetch(`/api/music/playlists${params.toString() ? `?${params}` : ""}`, {
+          headers: { Accept: "application/json", "x-user-id": musicUserId },
+          cache: "no-store",
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(payload?.error || "Unable to load music playlists.");
+        }
+        if (!cancelled) {
+          setMusicPlaylists(payload?.playlists || []);
+          setMusicGuilds(payload?.guilds || []);
+          setMusicStatus("");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setMusicPlaylists([]);
+          setMusicStatus(error instanceof Error ? error.message : "Unable to load music playlists.");
+        }
+      } finally {
+        if (!cancelled) {
+          setMusicLoading(false);
+        }
+      }
+    };
+
+    void loadMusicPlaylists();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMenu, authUser, musicGuildFilter]);
 
   const loadGiftCodes = useCallback(async () => {
     if (giftCodeRefreshRef.current) {
@@ -8792,6 +8907,119 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <p className="sneak-peek-source">Source: <a href="https://www.whiteoutsurvival.wiki/sneak-peek/0723948en/" target="_blank" rel="noreferrer">Whiteout Survival Wiki sneak peek</a>.</p>
                 </div>
               </article>
+            </section>
+          ) : activeMenu === "music" ? (
+            <section className="home-page music-page" id="music" aria-label="Music bot dashboard">
+              <div className="music-shell">
+                <section className="music-hero">
+                  <div className="music-hero-copy">
+                    <span className="section-kicker">Music Control</span>
+                    <h1>Server playlists, queues, and bot access in one place.</h1>
+                    <p>Sign in with Discord, pick a server, and review every playlist saved by the music bot in cloud MongoDB.</p>
+                    <div className="music-action-row">
+                      {!authUser ? (
+                        <button className="bot-ad-action" type="button" onClick={() => setLoginOpen(true)}>
+                          <Icon name="user" />
+                          Sign in with Discord
+                        </button>
+                      ) : (
+                        <a className="bot-ad-action" href={botFrontendUrl} target="_blank" rel="noreferrer">
+                          Open Bot Dashboard
+                          <Icon name="external" />
+                        </a>
+                      )}
+                      <a className="bot-secondary-action" href="https://discord.com/oauth2/authorize?client_id=1399025185046134866&permissions=8&integration_type=0&scope=bot" target="_blank" rel="noreferrer">
+                        Add Music Bot
+                      </a>
+                    </div>
+                  </div>
+                  <div className="music-now-card" aria-label="Music bot status">
+                    <div className="music-album-art">
+                      <img src="/showcase-music-system.png" alt="Music system preview" />
+                    </div>
+                    <div className="music-now-body">
+                      <span>Cloud Playlist Library</span>
+                      <strong>{authUser ? `${musicPlaylists.length} playlists linked` : "Discord sign-in required"}</strong>
+                      <div className="music-wave" aria-hidden="true">
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="music-toolbar" aria-label="Music playlist controls">
+                  <div>
+                    <span>Playlists</span>
+                    <strong>{musicLoading ? "Syncing from MongoDB..." : `${musicPlaylists.reduce((total, item) => total + item.trackCount, 0)} saved tracks`}</strong>
+                  </div>
+                  <label>
+                    <span>Server</span>
+                    <select value={musicGuildFilter} onChange={(event) => setMusicGuildFilter(event.target.value)} disabled={!authUser || musicLoading}>
+                      <option value="">All servers</option>
+                      {musicGuilds.map((guildId) => (
+                        <option value={guildId} key={guildId}>Server {guildId}</option>
+                      ))}
+                    </select>
+                  </label>
+                </section>
+
+                {!authUser ? (
+                  <section className="music-empty-state">
+                    <Icon name="music" />
+                    <strong>Connect Discord to manage music.</strong>
+                    <span>Your playlists are private to your Discord account and stored in the cloud-only MongoDB collection used by the bot.</span>
+                    <button type="button" onClick={() => setLoginOpen(true)}>Sign In</button>
+                  </section>
+                ) : musicLoading ? (
+                  <section className="music-empty-state loading">
+                    <Icon name="music" />
+                    <strong>Loading playlists from MongoDB...</strong>
+                    <span>Checking saved playlists for {authUser.displayName}.</span>
+                  </section>
+                ) : musicPlaylists.length ? (
+                  <section className="music-playlist-grid" aria-label="Saved music playlists">
+                    {musicPlaylists.map((playlist) => (
+                      <article className="music-playlist-card" key={`${playlist.guildId}-${playlist.name}`}>
+                        <div className="music-playlist-head">
+                          <div>
+                            <span>Server {playlist.guildId || "N/A"}</span>
+                            <h2>{playlist.name}</h2>
+                          </div>
+                          <strong>{playlist.trackCount}</strong>
+                        </div>
+                        <div className="music-track-list">
+                          {playlist.tracks.slice(0, 5).map((track, index) => (
+                            <a className="music-track-row" href={track.uri || undefined} target={track.uri ? "_blank" : undefined} rel="noreferrer" key={`${track.uri}-${index}`}>
+                              <span>{index + 1}</span>
+                              <div>
+                                <strong>{track.title}</strong>
+                                <small>{track.author || "Unknown artist"}</small>
+                              </div>
+                              <Icon name="external" />
+                            </a>
+                          ))}
+                          {playlist.trackCount > 5 && <div className="music-track-more">+{playlist.trackCount - 5} more tracks saved in this playlist</div>}
+                        </div>
+                        <div className="music-playlist-foot">
+                          <span>Updated {playlist.updatedAt ? new Date(playlist.updatedAt).toLocaleDateString() : "recently"}</span>
+                          <a href={botFrontendUrl} target="_blank" rel="noreferrer">Manage <Icon name="external" /></a>
+                        </div>
+                      </article>
+                    ))}
+                  </section>
+                ) : (
+                  <section className="music-empty-state">
+                    <Icon name="music" />
+                    <strong>No saved playlists found.</strong>
+                    <span>Create playlists with the Discord music bot, then refresh this page after the bot saves them to MongoDB.</span>
+                    <a href={botFrontendUrl} target="_blank" rel="noreferrer">Open Bot Dashboard</a>
+                  </section>
+                )}
+              </div>
             </section>
           ) : activeMenu === "bot" ? (
             <section className="home-page bot-page" id="discord-bot" aria-label="Discord bot">
