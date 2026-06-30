@@ -1872,12 +1872,12 @@ const defaultDaybreakTags = [
   "Minimal",
 ];
 
-const stateTransferStartUtc = Date.UTC(2026, 5, 21, 0, 0, 0);
-const stateTransferEndUtc = Date.UTC(2026, 5, 28, 0, 0, 0);
+const stateTransferStartUtc = Date.UTC(2026, 6, 19, 0, 0, 0);
+const stateTransferEndUtc = Date.UTC(2026, 6, 26, 0, 0, 0);
 const stateTransferPhases = [
-  { label: "Phase 1", dates: "June 21-23 UTC", body: "Presidents set caps and Chiefs review eligible destination states." },
-  { label: "Phase 2", dates: "June 24-25 UTC", body: "Invites are reviewed and sent before transfers open wider." },
-  { label: "Phase 3", dates: "June 26-27 UTC", body: "Eligible Chiefs can move while available state slots remain." },
+  { label: "Phase 1", dates: "July 19-21 UTC", body: "Presidents set caps and Chiefs review eligible destination states." },
+  { label: "Phase 2", dates: "July 22-23 UTC", body: "Invites are reviewed and sent before transfers open wider." },
+  { label: "Phase 3", dates: "July 24-25 UTC", body: "Eligible Chiefs can move while available state slots remain." },
 ];
 
 const formatCountdownParts = (milliseconds: number) => {
@@ -2292,7 +2292,7 @@ function StateTransferCountdown() {
   const isLive = now !== null && remainingToStart <= 0 && remainingToEnd > 0;
   const hasEnded = now !== null && remainingToEnd <= 0;
   const countdown = formatCountdownParts(isLive ? remainingToEnd : remainingToStart);
-  const navStatus = hasEnded ? "June window closed" : isLive ? "Transfer live" : "Starts in";
+  const navStatus = hasEnded ? "July window closed" : isLive ? "Transfer live" : "Starts in";
 
   useEffect(() => {
     const updateNow = () => setNow(Date.now());
@@ -2362,7 +2362,7 @@ function StateTransferCountdown() {
             <div>
               <span className="section-kicker">Whiteout Survival</span>
               <h2>Next state transfer</h2>
-              <p>Starts June 21, 2026 at 00:00 UTC and runs through June 27, 2026.</p>
+              <p>Starts July 19, 2026 at 00:00 UTC and runs through July 25, 2026.</p>
             </div>
           </div>
           <div className="state-transfer-count-grid" aria-label="Countdown">
@@ -2380,7 +2380,7 @@ function StateTransferCountdown() {
           </div>
           <div className="state-transfer-status">
             <Icon name="calendar" />
-            <span>{hasEnded ? "This transfer window has ended." : isLive ? "Transfer window is live. Countdown shows time remaining." : "Countdown is locked to 00:00 UTC on June 21."}</span>
+            <span>{hasEnded ? "This transfer window has ended." : isLive ? "Transfer window is live. Countdown shows time remaining." : "Countdown is locked to 00:00 UTC on July 19."}</span>
           </div>
           <div className="state-transfer-phase-list">
             {stateTransferPhases.map((phase) => (
