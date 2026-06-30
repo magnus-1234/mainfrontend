@@ -184,7 +184,7 @@ export default function MusicPlayerPage() {
                   <span className="hero-type">PLAYLIST</span>
                   <h1 className="hero-title">{activePlaylist.name}</h1>
                   <p className="hero-meta">
-                    <strong>Server {activePlaylist.guildId}</strong> • {activePlaylist.trackCount} tracks, 
+                    <strong>Server {activePlaylist.guildId}</strong> â€¢ {activePlaylist.trackCount} tracks, 
                     last updated {new Date(activePlaylist.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
