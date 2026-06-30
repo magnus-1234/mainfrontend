@@ -8909,116 +8909,86 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               </article>
             </section>
           ) : activeMenu === "music" ? (
-            <section className="home-page music-page" id="music" aria-label="Music bot dashboard">
-              <div className="music-shell">
-                <section className="music-hero">
-                  <div className="music-hero-copy">
-                    <span className="section-kicker">Music Control</span>
-                    <h1>Server playlists, queues, and bot access in one place.</h1>
-                    <p>Sign in with Discord, pick a server, and review every playlist saved by the music bot in cloud MongoDB.</p>
-                    <div className="music-action-row">
-                      {!authUser ? (
-                        <button className="bot-ad-action" type="button" onClick={() => setLoginOpen(true)}>
-                          <Icon name="user" />
-                          Sign in with Discord
-                        </button>
-                      ) : (
-                        <a className="bot-ad-action" href={botFrontendUrl} target="_blank" rel="noreferrer">
-                          Open Bot Dashboard
-                          <Icon name="external" />
-                        </a>
-                      )}
-                      <a className="bot-secondary-action" href="https://discord.com/oauth2/authorize?client_id=1399025185046134866&permissions=8&integration_type=0&scope=bot" target="_blank" rel="noreferrer">
-                        Add Music Bot
-                      </a>
+            <section className="home-page music-page" id="music" aria-label="Music player landing">
+              <div className="music-splash-container">
+                <div className="music-splash-background">
+                  <div className="music-splash-blob blob-1" />
+                  <div className="music-splash-blob blob-2" />
+                </div>
+                
+                <div className="music-splash-content">
+                  <div className="music-splash-badge">
+                    <Icon name="music" />
+                    <span>Next-Gen Music Bot</span>
+                  </div>
+                  
+                  <h1 className="music-splash-title">
+                    The Ultimate <span className="text-gradient">Listening Experience</span> for Whiteout Survival.
+                  </h1>
+                  
+                  <p className="music-splash-subtitle">
+                    Control server playback, manage queues, and explore your cloud playlists in a beautiful, unified Spotify-grade player.
+                  </p>
+                  
+                  <div className="music-splash-actions">
+                    {!authUser ? (
+                      <button className="music-btn-primary" type="button" onClick={() => setLoginOpen(true)}>
+                        <Icon name="user" />
+                        Login with Discord
+                      </button>
+                    ) : (
+                      <Link href="/music/player" className="music-btn-primary">
+                        <Icon name="play" />
+                        Launch Web Player
+                      </Link>
+                    )}
+                    <a 
+                      className="music-btn-secondary" 
+                      href="https://discord.com/oauth2/authorize?client_id=1399025185046134866&permissions=8&integration_type=0&scope=bot" 
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      Invite Music Bot
+                    </a>
+                  </div>
+                  
+                  <div className="music-splash-features">
+                    <div className="music-feature">
+                      <strong>Cloud Playlists</strong>
+                      <span>Saved automatically to MongoDB.</span>
+                    </div>
+                    <div className="music-feature">
+                      <strong>Live Sync</strong>
+                      <span>Real-time queue management.</span>
+                    </div>
+                    <div className="music-feature">
+                      <strong>Studio Quality</strong>
+                      <span>High fidelity audio streaming.</span>
                     </div>
                   </div>
-                  <div className="music-now-card" aria-label="Music bot status">
-                    <div className="music-album-art">
-                      <img src="/showcase-music-system.png" alt="Music system preview" />
+                </div>
+                
+                <div className="music-splash-visual">
+                  <div className="music-visual-card">
+                    <div className="music-visual-art">
+                      <img src="/showcase-music-system.png" alt="Player preview" />
+                      <div className="music-visual-overlay">
+                        <button className="music-visual-play">
+                          <Icon name="play" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="music-now-body">
-                      <span>Cloud Playlist Library</span>
-                      <strong>{authUser ? `${musicPlaylists.length} playlists linked` : "Discord sign-in required"}</strong>
+                    <div className="music-visual-info">
+                      <div>
+                        <strong>{authUser ? `${musicPlaylists.length} Playlists Ready` : "Discord Login Required"}</strong>
+                        <span>Your personal music library awaits.</span>
+                      </div>
                       <div className="music-wave" aria-hidden="true">
-                        <i />
-                        <i />
-                        <i />
-                        <i />
-                        <i />
+                        <i /><i /><i /><i /><i />
                       </div>
                     </div>
                   </div>
-                </section>
-
-                <section className="music-toolbar" aria-label="Music playlist controls">
-                  <div>
-                    <span>Playlists</span>
-                    <strong>{musicLoading ? "Syncing from MongoDB..." : `${musicPlaylists.reduce((total, item) => total + item.trackCount, 0)} saved tracks`}</strong>
-                  </div>
-                  <label>
-                    <span>Server</span>
-                    <select value={musicGuildFilter} onChange={(event) => setMusicGuildFilter(event.target.value)} disabled={!authUser || musicLoading}>
-                      <option value="">All servers</option>
-                      {musicGuilds.map((guildId) => (
-                        <option value={guildId} key={guildId}>Server {guildId}</option>
-                      ))}
-                    </select>
-                  </label>
-                </section>
-
-                {!authUser ? (
-                  <section className="music-empty-state">
-                    <Icon name="music" />
-                    <strong>Connect Discord to manage music.</strong>
-                    <span>Your playlists are private to your Discord account and stored in the cloud-only MongoDB collection used by the bot.</span>
-                    <button type="button" onClick={() => setLoginOpen(true)}>Sign In</button>
-                  </section>
-                ) : musicLoading ? (
-                  <section className="music-empty-state loading">
-                    <Icon name="music" />
-                    <strong>Loading playlists from MongoDB...</strong>
-                    <span>Checking saved playlists for {authUser.displayName}.</span>
-                  </section>
-                ) : musicPlaylists.length ? (
-                  <section className="music-playlist-grid" aria-label="Saved music playlists">
-                    {musicPlaylists.map((playlist) => (
-                      <article className="music-playlist-card" key={`${playlist.guildId}-${playlist.name}`}>
-                        <div className="music-playlist-head">
-                          <div>
-                            <span>Server {playlist.guildId || "N/A"}</span>
-                            <h2>{playlist.name}</h2>
-                          </div>
-                          <strong>{playlist.trackCount}</strong>
-                        </div>
-                        <div className="music-track-list">
-                          {playlist.tracks.slice(0, 5).map((track, index) => (
-                            <a className="music-track-row" href={track.uri || undefined} target={track.uri ? "_blank" : undefined} rel="noreferrer" key={`${track.uri}-${index}`}>
-                              <span>{index + 1}</span>
-                              <div>
-                                <strong>{track.title}</strong>
-                                <small>{track.author || "Unknown artist"}</small>
-                              </div>
-                              <Icon name="external" />
-                            </a>
-                          ))}
-                          {playlist.trackCount > 5 && <div className="music-track-more">+{playlist.trackCount - 5} more tracks saved in this playlist</div>}
-                        </div>
-                        <div className="music-playlist-foot">
-                          <span>Updated {playlist.updatedAt ? new Date(playlist.updatedAt).toLocaleDateString() : "recently"}</span>
-                          <a href={botFrontendUrl} target="_blank" rel="noreferrer">Manage <Icon name="external" /></a>
-                        </div>
-                      </article>
-                    ))}
-                  </section>
-                ) : (
-                  <section className="music-empty-state">
-                    <Icon name="music" />
-                    <strong>No saved playlists found.</strong>
-                    <span>Create playlists with the Discord music bot, then refresh this page after the bot saves them to MongoDB.</span>
-                    <a href={botFrontendUrl} target="_blank" rel="noreferrer">Open Bot Dashboard</a>
-                  </section>
-                )}
+                </div>
               </div>
             </section>
           ) : activeMenu === "bot" ? (
