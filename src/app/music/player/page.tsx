@@ -140,7 +140,7 @@ export default function MusicPlayerPage() {
               playlists.map((pl, i) => (
                 <div 
                   key={i} 
-                  className={playlist-item }
+                  className={`playlist-item ${activePlaylist?.name === pl.name ? 'active' : ''}`}
                   onClick={() => setActivePlaylist(pl)}
                 >
                   {pl.name}
@@ -209,7 +209,7 @@ export default function MusicPlayerPage() {
                   {activePlaylist.tracks.map((track, idx) => (
                     <div 
                       key={idx} 
-                      className={	rack-row }
+                      className={`track-row ${activeTrack?.title === track.title ? 'playing' : ''}`}
                       onClick={() => togglePlay(track)}
                     >
                       <div className="col-id">
