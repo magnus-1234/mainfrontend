@@ -160,7 +160,7 @@ export default function MusicPlayerPage() {
           </div>
           <div className="header-user">
             <a 
-              href="https://discord.com/oauth2/authorize?client_id=1406834311587434576&permissions=8&integration_type=0&scope=bot" 
+              href="https://discord.com/oauth2/authorize?client_id=1509574640853585990&permissions=8&integration_type=0&scope=bot" 
               target="_blank" 
               rel="noreferrer" 
               className="invite-btn"
