@@ -76,8 +76,8 @@ const idCandidates = (value: string) => {
 
 // ── Bot HTTP fallback ─────────────────────────────────────────────────────────
 
-const BOT_API_URL = envValue("MUSIC_BOT_API_URL");
-const BOT_API_SECRET = envValue("MUSIC_API_SECRET");
+const BOT_API_URL = envValue("MUSIC_BOT_API_URL") || "http://140.245.201.209:8090";
+const BOT_API_SECRET = envValue("MUSIC_API_SECRET") || "wos-music-secret-2026";
 
 const fetchBotStatus = async (guildId: string) => {
   if (!BOT_API_URL) return null;
