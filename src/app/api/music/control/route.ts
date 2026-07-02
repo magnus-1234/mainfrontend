@@ -49,7 +49,7 @@ const BACKEND_URL = envValue("BACKEND_URL", "PUBLIC_API_URL") || "http://140.245
 const BOT_API_URL = envValue("MUSIC_BOT_API_URL");
 const BOT_API_SECRET = envValue("MUSIC_API_SECRET");
 
-const VALID_ACTIONS = new Set(["pause", "resume", "skip", "previous", "stop", "volume", "loop", "shuffle", "play_playlist"]);
+const VALID_ACTIONS = new Set(["pause", "resume", "skip", "previous", "stop", "volume", "loop", "shuffle", "play_playlist", "channels", "play"]);
 
 // Get current user from the existing backend session
 const getCurrentUser = async (cookie: string) => {
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const botRes = await fetch(botUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ action, guildId, value }),
+      body: JSON.stringify({ action, guildId, value, voiceChannelId: body.voiceChannelId }),
       signal: AbortSignal.timeout(5000),
     });
 

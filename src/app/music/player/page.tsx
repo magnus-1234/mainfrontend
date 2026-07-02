@@ -158,6 +158,34 @@ export default function MusicPlayerPage() {
   const [volume, setVolume] = useState(50);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Play form state
+  const [voiceChannels, setVoiceChannels] = useState<{id: string, name: string}[]>([]);
+  const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
+  const [songQuery, setSongQuery] = useState("");
+
+  const fetchChannels = useCallback(async (guildId: string) => {
+    if (!guildId) return;
+    try {
+      const res = await fetch("/api/music/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action: "channels", guildId }),
+      });
+      const data = await res.json();
+      if (data.ok && data.voiceChannels) {
+        setVoiceChannels(data.voiceChannels);
+        if (data.voiceChannels.length > 0) setSelectedVoiceChannel(data.voiceChannels[0].id);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!selectedGuildId) return;
+    fetchChannels(selectedGuildId);
+  }, [selectedGuildId, fetchChannels]);
+
+
   // ── Auth check ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const checkAuth = async () => {
@@ -190,10 +218,12 @@ export default function MusicPlayerPage() {
         if (data.playlists?.length) {
           setPlaylists(data.playlists);
           setGuilds(data.guilds || []);
-          const firstGuild = data.guilds?.[0] || data.playlists[0]?.guildId || "";
-          setSelectedGuildId(firstGuild);
-          const firstForGuild = data.playlists.find((p: Playlist) => p.guildId === firstGuild) || data.playlists[0];
-          setActivePlaylist(firstForGuild || null);
+          if (data.guilds?.length === 1) {
+            const firstGuild = data.guilds[0];
+            setSelectedGuildId(firstGuild);
+            const firstForGuild = data.playlists.find((p: Playlist) => p.guildId === firstGuild) || data.playlists[0];
+            setActivePlaylist(firstForGuild || null);
+          }
         }
       } catch {
         // silently fail
@@ -232,7 +262,7 @@ export default function MusicPlayerPage() {
 
   // ── Control bot ────────────────────────────────────────────────────────────
   const sendControl = useCallback(
-    async (action: string, value?: unknown) => {
+    async (action: string, value?: unknown, extra?: Record<string, any>) => {
       if (!selectedGuildId) {
         setControlError("Select a server first");
         return;
@@ -244,7 +274,7 @@ export default function MusicPlayerPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ action, guildId: selectedGuildId, value }),
+          body: JSON.stringify({ action, guildId: selectedGuildId, value, ...extra }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -278,6 +308,30 @@ export default function MusicPlayerPage() {
   if (!user) return <DiscordLoginScreen />;
 
   // ── Main UI ────────────────────────────────────────────────────────────────
+  if (!selectedGuildId && guilds.length > 0) {
+    return (
+      <div className="player-layout" style={{ minHeight: "100vh", padding: "40px 0" }}>
+        <div className="server-selection-view">
+          <h1 className="server-selection-title">Select a Server to Manage Music</h1>
+          <div className="servers-grid">
+            {guilds.map((g) => (
+              <div key={g} className="server-card" onClick={() => setSelectedGuildId(g)}>
+                <div className="server-banner" />
+                <div className="server-icon">
+                  <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Server" />
+                </div>
+                <div className="server-body">
+                  <div className="server-name">Server {g}</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.9em" }}>Click to manage music</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="player-layout">
       {/* ── Sidebar ── */}
@@ -452,6 +506,45 @@ export default function MusicPlayerPage() {
               <button onClick={() => setControlError(null)}>✕</button>
             </div>
           )}
+
+          {/* PLAY CONTROLS */}
+          <div className="play-controls-card">
+             <div className="play-controls-row">
+                <select 
+                  className="channel-select" 
+                  value={selectedVoiceChannel}
+                  onChange={(e) => setSelectedVoiceChannel(e.target.value)}
+                >
+                   {voiceChannels.length === 0 && <option value="">No voice channels</option>}
+                   {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
+                </select>
+                <input 
+                  type="text" 
+                  className="play-input" 
+                  placeholder="Search for a song or paste URL..." 
+                  value={songQuery}
+                  onChange={(e) => setSongQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && songQuery) {
+                      sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
+                      setSongQuery("");
+                    }
+                  }}
+                />
+                <button 
+                  className="btn-primary" 
+                  disabled={!songQuery || controlLoading}
+                  onClick={() => {
+                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
+                     setSongQuery("");
+                  }}
+                >
+                  {controlLoading ? "..." : "Play"}
+                </button>
+             </div>
+          </div>
+
+
 
           {activePlaylist ? (
             <>
