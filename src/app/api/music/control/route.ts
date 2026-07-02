@@ -127,8 +127,15 @@ export async function POST(request: NextRequest) {
     const botRes = await fetch(botUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ action, guildId, value, voiceChannelId: body.voiceChannelId }),
-      signal: AbortSignal.timeout(5000),
+      body: JSON.stringify({
+        action,
+        guildId,
+        value,
+        voiceChannelId: body.voiceChannelId,
+        textChannelId: body.textChannelId,
+        userId: body.userId || user.discordUserId || user.id,
+      }),
+      signal: AbortSignal.timeout(action === "play_playlist" ? 20000 : 5000),
     });
 
     const data = await botRes.json().catch(() => ({ ok: false }));

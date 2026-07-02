@@ -24,6 +24,16 @@ type Playlist = {
   updatedAt: string;
 };
 
+type Guild = {
+  id: string;
+  name: string;
+  iconUrl?: string | null;
+  memberCount?: number;
+  voiceChannelCount?: number;
+  textChannelCount?: number;
+  activeVoiceChannel?: { id: string; name: string } | null;
+};
+
 type NowPlaying = {
   guildId: string;
   guildName?: string;
@@ -58,6 +68,14 @@ const formatTime = (ms: number) => {
 };
 
 const DISCORD_LOGIN_URL = "/api/auth/discord-music?returnTo=/music/player";
+
+const fallbackGuildIcon = "https://cdn.discordapp.com/embed/avatars/0.png";
+
+const guildFromId = (guildId: string): Guild => ({
+  id: guildId,
+  name: `Server ${guildId}`,
+  iconUrl: fallbackGuildIcon,
+});
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────
 
@@ -142,7 +160,7 @@ export default function MusicPlayerPage() {
 
   // Data state
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [guilds, setGuilds] = useState<string[]>([]);
+  const [guilds, setGuilds] = useState<Guild[]>([]);
   const [selectedGuildId, setSelectedGuildId] = useState<string>("");
   const [playlistsLoading, setPlaylistsLoading] = useState(false);
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
@@ -160,7 +178,9 @@ export default function MusicPlayerPage() {
 
   // Play form state
   const [voiceChannels, setVoiceChannels] = useState<{id: string, name: string}[]>([]);
+  const [textChannels, setTextChannels] = useState<{id: string, name: string}[]>([]);
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
+  const [selectedTextChannel, setSelectedTextChannel] = useState<string>("");
   const [songQuery, setSongQuery] = useState("");
 
   const fetchChannels = useCallback(async (guildId: string) => {
@@ -174,15 +194,25 @@ export default function MusicPlayerPage() {
       });
       const data = await res.json();
       if (data.ok && data.voiceChannels) {
-        setVoiceChannels(data.voiceChannels);
-        if (data.voiceChannels.length > 0) setSelectedVoiceChannel(data.voiceChannels[0].id);
+        const voices = data.voiceChannels || [];
+        const texts = data.textChannels || [];
+        setVoiceChannels(voices);
+        setTextChannels(texts);
+        if (voices.length > 0) setSelectedVoiceChannel((current) => current || voices[0].id);
+        if (texts.length > 0) setSelectedTextChannel((current) => current || texts[0].id);
       }
-    } catch {}
+    } catch {
+      setVoiceChannels([]);
+      setTextChannels([]);
+    }
   }, []);
 
   useEffect(() => {
     if (!selectedGuildId) return;
-    fetchChannels(selectedGuildId);
+    const timer = setTimeout(() => {
+      void fetchChannels(selectedGuildId);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedGuildId, fetchChannels]);
 
 
@@ -210,20 +240,31 @@ export default function MusicPlayerPage() {
     const load = async () => {
       setPlaylistsLoading(true);
       try {
-        const res = await fetch(
-          `/api/music/playlists?userId=${encodeURIComponent(user.discordUserId!)}`,
-          { credentials: "include" }
-        );
-        const data = await res.json();
-        if (data.playlists?.length) {
-          setPlaylists(data.playlists);
-          setGuilds(data.guilds || []);
-          if (data.guilds?.length === 1) {
-            const firstGuild = data.guilds[0];
-            setSelectedGuildId(firstGuild);
-            const firstForGuild = data.playlists.find((p: Playlist) => p.guildId === firstGuild) || data.playlists[0];
-            setActivePlaylist(firstForGuild || null);
-          }
+        const [playlistsRes, guildsRes] = await Promise.all([
+          fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId!)}`, { credentials: "include" }),
+          fetch("/api/music/guilds", { credentials: "include" }),
+        ]);
+
+        const playlistData = await playlistsRes.json().catch(() => ({ playlists: [], guilds: [] }));
+        const guildData = await guildsRes.json().catch(() => ({ guilds: [] }));
+        const loadedPlaylists: Playlist[] = playlistData.playlists || [];
+        const botGuilds: Guild[] = Array.isArray(guildData.guilds) ? guildData.guilds : [];
+        const playlistGuilds = (playlistData.guilds || []).map((id: string) => guildFromId(id));
+        const guildMap = new Map<string, Guild>();
+
+        for (const guild of [...botGuilds, ...playlistGuilds]) {
+          if (guild?.id) guildMap.set(guild.id, guild);
+        }
+
+        const mergedGuilds = Array.from(guildMap.values());
+        setPlaylists(loadedPlaylists);
+        setGuilds(mergedGuilds);
+
+        if (mergedGuilds.length === 1) {
+          const firstGuild = mergedGuilds[0].id;
+          setSelectedGuildId(firstGuild);
+          const firstForGuild = loadedPlaylists.find((p) => p.guildId === firstGuild) || loadedPlaylists[0];
+          setActivePlaylist(firstForGuild || null);
         }
       } catch {
         // silently fail
@@ -253,16 +294,19 @@ export default function MusicPlayerPage() {
 
   useEffect(() => {
     if (!selectedGuildId || !user) return;
-    fetchNowPlaying(selectedGuildId);
-    pollIntervalRef.current = setInterval(() => fetchNowPlaying(selectedGuildId), 4000);
+    const initialTimer = setTimeout(() => {
+      void fetchNowPlaying(selectedGuildId);
+    }, 0);
+    pollIntervalRef.current = setInterval(() => void fetchNowPlaying(selectedGuildId), 4000);
     return () => {
+      clearTimeout(initialTimer);
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
   }, [selectedGuildId, user, fetchNowPlaying]);
 
   // ── Control bot ────────────────────────────────────────────────────────────
   const sendControl = useCallback(
-    async (action: string, value?: unknown, extra?: Record<string, any>) => {
+    async (action: string, value?: unknown, extra?: Record<string, unknown>) => {
       if (!selectedGuildId) {
         setControlError("Select a server first");
         return;
@@ -296,11 +340,12 @@ export default function MusicPlayerPage() {
   const filteredPlaylists = playlists.filter((p) =>
     selectedGuildId ? p.guildId === selectedGuildId : true
   );
+  const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId) || (selectedGuildId ? guildFromId(selectedGuildId) : null);
+  const guildName = (guildId: string) => guilds.find((guild) => guild.id === guildId)?.name || `Server ${guildId}`;
 
   const isLive = nowPlaying?.source === "live";
   const displayTrack = nowPlaying?.currentTrack || activeTrack;
   const isPlaying = nowPlaying?.playing ?? false;
-  const isPaused = nowPlaying?.paused ?? false;
   const loopMode = nowPlaying?.loopMode || "off";
 
   // ── Early returns ──────────────────────────────────────────────────────────
@@ -314,15 +359,26 @@ export default function MusicPlayerPage() {
         <div className="server-selection-view">
           <h1 className="server-selection-title">Select a Server to Manage Music</h1>
           <div className="servers-grid">
-            {guilds.map((g) => (
-              <div key={g} className="server-card" onClick={() => setSelectedGuildId(g)}>
+            {guilds.map((guild) => (
+              <div
+                key={guild.id}
+                className="server-card"
+                onClick={() => {
+                  setSelectedGuildId(guild.id);
+                  const first = playlists.find((p) => p.guildId === guild.id);
+                  setActivePlaylist(first || null);
+                }}
+              >
                 <div className="server-banner" />
                 <div className="server-icon">
-                  <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Server" />
+                  <img src={guild.iconUrl || fallbackGuildIcon} alt={guild.name} />
                 </div>
                 <div className="server-body">
-                  <div className="server-name">Server {g}</div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "0.9em" }}>Click to manage music</div>
+                  <div className="server-name">{guild.name}</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.9em" }}>
+                    {guild.voiceChannelCount || 0} voice channels
+                    {guild.activeVoiceChannel ? ` • live in ${guild.activeVoiceChannel.name}` : ""}
+                  </div>
                 </div>
               </div>
             ))}
@@ -358,13 +414,13 @@ export default function MusicPlayerPage() {
             <div className="user-name">{user.displayName}</div>
             <div className="user-tag">Discord</div>
           </div>
-          <a href="/api/auth/logout" className="logout-btn" title="Sign out">
+          <button className="logout-btn" title="Sign out" onClick={() => { window.location.href = "/api/auth/logout"; }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-          </a>
+          </button>
         </div>
 
         {/* Guild selector */}
@@ -376,13 +432,15 @@ export default function MusicPlayerPage() {
               value={selectedGuildId}
               onChange={(e) => {
                 setSelectedGuildId(e.target.value);
+                setSelectedVoiceChannel("");
+                setSelectedTextChannel("");
                 const first = playlists.find((p) => p.guildId === e.target.value);
                 setActivePlaylist(first || null);
               }}
             >
               {guilds.map((g) => (
-                <option key={g} value={g}>
-                  Server {g}
+                <option key={g.id} value={g.id}>
+                  {g.name}
                 </option>
               ))}
             </select>
@@ -454,6 +512,12 @@ export default function MusicPlayerPage() {
           </div>
 
           {/* Live status indicator */}
+          {selectedGuild && (
+            <div className="live-badge server-badge">
+              {selectedGuild.iconUrl && <img src={selectedGuild.iconUrl} alt="" />}
+              {selectedGuild.name}
+            </div>
+          )}
           {nowPlaying?.playing && (
             <div className="live-badge">
               <span className="live-dot" />
@@ -510,14 +574,28 @@ export default function MusicPlayerPage() {
           {/* PLAY CONTROLS */}
           <div className="play-controls-card">
              <div className="play-controls-row">
-                <select 
-                  className="channel-select" 
-                  value={selectedVoiceChannel}
-                  onChange={(e) => setSelectedVoiceChannel(e.target.value)}
-                >
-                   {voiceChannels.length === 0 && <option value="">No voice channels</option>}
-                   {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
-                </select>
+                <div className="control-select-group">
+                  <label>Voice channel</label>
+                  <select 
+                    className="channel-select" 
+                    value={selectedVoiceChannel}
+                    onChange={(e) => setSelectedVoiceChannel(e.target.value)}
+                  >
+                     {voiceChannels.length === 0 && <option value="">No voice channels</option>}
+                     {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
+                  </select>
+                </div>
+                <div className="control-select-group">
+                  <label>Music channel</label>
+                  <select 
+                    className="channel-select" 
+                    value={selectedTextChannel}
+                    onChange={(e) => setSelectedTextChannel(e.target.value)}
+                  >
+                     {textChannels.length === 0 && <option value="">No text channels</option>}
+                     {textChannels.map(tc => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+                  </select>
+                </div>
                 <input 
                   type="text" 
                   className="play-input" 
@@ -526,16 +604,16 @@ export default function MusicPlayerPage() {
                   onChange={(e) => setSongQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && songQuery) {
-                      sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
+                      sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel, textChannelId: selectedTextChannel });
                       setSongQuery("");
                     }
                   }}
                 />
                 <button 
                   className="btn-primary" 
-                  disabled={!songQuery || controlLoading}
+                  disabled={!songQuery || !selectedVoiceChannel || controlLoading}
                   onClick={() => {
-                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
+                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel, textChannelId: selectedTextChannel });
                      setSongQuery("");
                   }}
                 >
@@ -559,7 +637,7 @@ export default function MusicPlayerPage() {
                   <span className="hero-type">PLAYLIST</span>
                   <h1 className="hero-title">{activePlaylist.name}</h1>
                   <p className="hero-meta">
-                    <strong>Server {activePlaylist.guildId}</strong> &bull; {activePlaylist.trackCount} tracks &bull; last updated{" "}
+                    <strong>{guildName(activePlaylist.guildId)}</strong> &bull; {activePlaylist.trackCount} tracks &bull; last updated{" "}
                     {new Date(activePlaylist.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -569,9 +647,13 @@ export default function MusicPlayerPage() {
               <div className="playlist-actions">
                 <button
                   className={`play-all-btn ${controlLoading ? "loading" : ""}`}
-                  onClick={() => sendControl("play_playlist", activePlaylist.name)}
+                  onClick={() => sendControl("play_playlist", activePlaylist.name, {
+                    voiceChannelId: selectedVoiceChannel,
+                    textChannelId: selectedTextChannel,
+                    userId: user.discordUserId,
+                  })}
                   title={`Play ${activePlaylist.name} in Discord`}
-                  disabled={controlLoading}
+                  disabled={controlLoading || !selectedVoiceChannel}
                 >
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M5 3l14 9-14 9V3z" />
@@ -636,7 +718,18 @@ export default function MusicPlayerPage() {
                           ) : (
                             <>
                               <span className="idx-num">{idx + 1}</span>
-                              <button className="play-icon" aria-label={`Play ${track.title}`}>
+                              <button
+                                className="play-icon"
+                                aria-label={`Play ${track.title}`}
+                                disabled={controlLoading || !selectedVoiceChannel}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  sendControl("play", track.uri || track.title, {
+                                    voiceChannelId: selectedVoiceChannel,
+                                    textChannelId: selectedTextChannel,
+                                  });
+                                }}
+                              >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                   <path d="M5 3l14 9-14 9V3z" />
                                 </svg>
