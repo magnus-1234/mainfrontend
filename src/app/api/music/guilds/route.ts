@@ -40,8 +40,8 @@ const envValue = (...names: string[]) => {
   return names.map((name) => fromFile[name]).find((value) => value?.trim()) || "";
 };
 
-const BOT_API_URL = envValue("MUSIC_BOT_API_URL") || "http://140.245.201.209:8090";
-const BOT_API_SECRET = envValue("MUSIC_API_SECRET") || "wos-music-secret-2026";
+const BOT_API_URL = envValue("MUSIC_BOT_API_URL");
+const BOT_API_SECRET = envValue("MUSIC_API_SECRET");
 
 export async function GET() {
   if (!BOT_API_URL) {

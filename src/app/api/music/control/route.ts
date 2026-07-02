@@ -46,8 +46,8 @@ const envValue = (...names: string[]) => {
 
 const AUTH_COOKIE = process.env.AUTH_COOKIE_NAME || "wos_session";
 const BACKEND_URL = envValue("BACKEND_URL", "PUBLIC_API_URL") || "http://140.245.201.209:3001";
-const BOT_API_URL = envValue("MUSIC_BOT_API_URL") || "http://140.245.201.209:8090";
-const BOT_API_SECRET = envValue("MUSIC_API_SECRET") || "wos-music-secret-2026";
+const BOT_API_URL = envValue("MUSIC_BOT_API_URL");
+const BOT_API_SECRET = envValue("MUSIC_API_SECRET");
 
 const VALID_ACTIONS = new Set(["pause", "resume", "skip", "previous", "stop", "volume", "loop", "shuffle", "play_playlist", "channels", "play"]);
 
