@@ -57,7 +57,7 @@ const formatTime = (ms: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
-const DISCORD_LOGIN_URL = "/api/auth/discord?returnTo=/music/player";
+const DISCORD_LOGIN_URL = "/api/auth/discord-music?returnTo=/music/player";
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────
 
