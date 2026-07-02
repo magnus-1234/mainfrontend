@@ -162,10 +162,10 @@ export default function MusicPlayerPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/profile", { credentials: "include" });
+        const res = await fetch("/api/auth/session", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
-          setUser(data);
+          setUser(data.user || data);
         }
       } catch {
         // not authenticated

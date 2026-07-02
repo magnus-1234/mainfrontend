@@ -54,12 +54,13 @@ const VALID_ACTIONS = new Set(["pause", "resume", "skip", "previous", "stop", "v
 // Get current user from the existing backend session
 const getCurrentUser = async (cookie: string) => {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/profile`, {
+    const res = await fetch(`${BACKEND_URL}/api/auth/session`, {
       headers: { Cookie: cookie, Accept: "application/json" },
       signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) return null;
-    return res.json();
+    const data = await res.json();
+    return data.user || data;
   } catch {
     return null;
   }
