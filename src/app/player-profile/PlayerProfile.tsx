@@ -20,7 +20,7 @@ const proxiedWosAvatarUrl = (value?: string) => {
   let normalized = raw;
   if (raw.startsWith("//")) {
     normalized = `https:${raw}`;
-  } else {
+  } else if (!raw.startsWith("http:") && !raw.startsWith("https:")) {
     const cleaned = raw.replace(/^\/+/, "");
     if (/^(avatar|avatar-dev|profile|head|icon)\//i.test(cleaned) || /\.(png|jpe?g|webp)$/i.test(cleaned)) {
       normalized = `https://gof-formal-avatar.akamaized.net/${cleaned}`;
