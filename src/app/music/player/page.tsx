@@ -363,7 +363,7 @@ export default function MusicPlayerPage() {
 
   // ── Early returns ──────────────────────────────────────────────────────────
   if (authLoading) return <SkeletonLoader />;
-  if (!user || !user.providers?.includes('discord-music')) return <DiscordLoginScreen />;
+  if (!user || !user.providers?.includes('discord-music') || user.musicGuilds === undefined) return <DiscordLoginScreen />;
 
   // ── Main UI ────────────────────────────────────────────────────────────────
   if (globalError) {
