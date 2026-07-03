@@ -15,9 +15,11 @@ type Track = {
 };
 
 type Playlist = {
+  id?: string;
   guildId: string;
   userId: string;
   name: string;
+  iconUrl?: string | null;
   trackCount: number;
   tracks: Track[];
   createdAt: string;
