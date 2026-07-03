@@ -463,12 +463,12 @@ export default function MusicPlayerPage() {
   }, []);
 
   useEffect(() => {
-    if (!user?.discordUserId) return;
+    if (!(user?.discordUserId || user?.id)) return;
     const load = async () => {
       setPlaylistsLoading(true);
       try {
         const [pr, gr] = await Promise.all([
-          fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId!)}`, { credentials: "include" }),
+          fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId || user.id)}`, { credentials: "include" }),
           fetch("/api/music/guilds", { credentials: "include" }),
         ]);
         const pd = await pr.json().catch(() => ({ playlists: [], guilds: [] }));
@@ -556,8 +556,8 @@ export default function MusicPlayerPage() {
       }
       
       // Reload playlists to reflect the new favorite
-      if (user?.discordUserId) {
-        const pr = await fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId)}`, { credentials: "include" });
+      if (user?.discordUserId || user?.id) {
+        const pr = await fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId || user.id)}`, { credentials: "include" });
         const pd = await pr.json();
         const lp: Playlist[] = (pd.playlists || []).map((p: any) => ({
           ...p,
