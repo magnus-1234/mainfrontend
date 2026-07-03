@@ -1582,7 +1582,7 @@ const sidebarItems: {
     { label: "Home", mobileLabel: "Home", icon: "home", menu: "home", href: "/", mobilePrimary: true },
     { label: "Gift Codes", mobileLabel: "Codes", icon: "gift", menu: "gift", href: "/gift-codes", mobilePrimary: true },
     { label: "Discord Bot", mobileLabel: "Bot", icon: "bot", menu: "bot", href: "/discord-bot", mobilePrimary: true },
-    { label: "Music", mobileLabel: "Music", icon: "music", menu: "music", href: "/music", mobilePrimary: true },
+    { label: "Music", mobileLabel: "Music", icon: "music", menu: "music", href: "/music" },
     { label: "State Age Tracker", mobileLabel: "Age", icon: "calendar", menu: "stateAge", href: "/state-age", mobilePrimary: true },
     { label: "WOS Game Map", mobileLabel: "Map", icon: "mapPin", menu: "gameMap", href: "/game-map", beta: true },
     { label: "SvS Appointment Planner", mobileLabel: "SvS", icon: "calendar", menu: "svsPlanner", href: "/svs-appointment-planner", beta: true },
