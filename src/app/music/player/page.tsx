@@ -61,6 +61,39 @@ type User = {
   providers?: string[];
 };
 
+type SearchSong = {
+  type: "song";
+  videoId: string;
+  title: string;
+  artist: string;
+  album?: string;
+  duration?: string;
+  thumbnail?: string;
+};
+
+type SearchAlbum = {
+  type: "album";
+  browseId: string;
+  title: string;
+  artist: string;
+  year?: string;
+  thumbnail?: string;
+};
+
+type SearchArtist = {
+  type: "artist";
+  browseId: string;
+  name: string;
+  subscribers?: string;
+  thumbnail?: string;
+};
+
+type SearchResults = {
+  songs: SearchSong[];
+  albums: SearchAlbum[];
+  artists: SearchArtist[];
+};
+
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
 const formatTime = (ms: number) => {
@@ -176,8 +209,108 @@ function ProgressBar({ nowPlaying }: { nowPlaying: NowPlaying | null }) {
   );
 }
 
+// ── Search Results Panel ─────────────────────────────────────────────────────
+function SearchResultsPanel({
+  results, loading, query, onPlaySong, onPlayAlbum, onPlayArtist, onClose,
+}: {
+  results: SearchResults | null;
+  loading: boolean;
+  query: string;
+  onPlaySong: (song: SearchSong) => void;
+  onPlayAlbum: (album: SearchAlbum) => void;
+  onPlayArtist: (artist: SearchArtist) => void;
+  onClose: () => void;
+}) {
+  if (!query || query.length < 2) return null;
+
+  const hasSongs = results && results.songs.length > 0;
+  const hasAlbums = results && results.albums.length > 0;
+  const hasArtists = results && results.artists.length > 0;
+  const hasAny = hasSongs || hasAlbums || hasArtists;
+
+  return (
+    <div className="sr-panel">
+      {loading && (
+        <div className="sr-loading">
+          <div className="dz-spinner-sm" />
+          <span>Searching YouTube Music…</span>
+        </div>
+      )}
+      {!loading && !hasAny && (
+        <div className="sr-empty">No results found for &ldquo;{query}&rdquo;</div>
+      )}
+      {hasSongs && (
+        <div className="sr-section">
+          <div className="sr-section-title">Songs</div>
+          {results!.songs.map((song) => (
+            <button key={song.videoId} className="sr-song-row" onClick={() => onPlaySong(song)}>
+              <div className="sr-thumb">
+                {song.thumbnail
+                  ? <img src={song.thumbnail} alt={song.title} />
+                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                }
+                <div className="sr-thumb-play">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                </div>
+              </div>
+              <div className="sr-song-info">
+                <div className="sr-song-title">{song.title}</div>
+                <div className="sr-song-meta">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{color:"#ff0000",flexShrink:0}}><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.19a8.24 8.24 0 0 0 4.83 1.55V6.3a4.85 4.85 0 0 1-1.06-.39z"/></svg>
+                  {song.artist}{song.album ? ` · ${song.album}` : ""}
+                </div>
+              </div>
+              {song.duration && <span className="sr-song-dur">{song.duration}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      {hasAlbums && (
+        <div className="sr-section">
+          <div className="sr-section-title">Albums</div>
+          <div className="sr-album-grid">
+            {results!.albums.map((album) => (
+              <button key={album.browseId} className="sr-album-card" onClick={() => onPlayAlbum(album)}>
+                <div className="sr-album-cover">
+                  {album.thumbnail
+                    ? <img src={album.thumbnail} alt={album.title} />
+                    : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </div>
+                <div className="sr-album-name">{album.title}</div>
+                <div className="sr-album-meta">{album.artist}{album.year ? ` · ${album.year}` : ""}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {hasArtists && (
+        <div className="sr-section">
+          <div className="sr-section-title">Artists</div>
+          <div className="sr-artist-list">
+            {results!.artists.map((artist) => (
+              <button key={artist.browseId} className="sr-artist-row" onClick={() => onPlayArtist(artist)}>
+                <div className="sr-artist-avatar">
+                  {artist.thumbnail
+                    ? <img src={artist.thumbnail} alt={artist.name} />
+                    : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                  }
+                </div>
+                <div className="sr-artist-info">
+                  <div className="sr-artist-name">{artist.name}</div>
+                  {artist.subscribers && <div className="sr-artist-subs">{artist.subscribers}</div>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
-type ActiveView = "home" | "playlists" | "liked" | "artists" | "albums" | "history" | "playlist-detail";
+type ActiveView = "home" | "playlists" | "liked" | "artists" | "albums" | "history" | "playlist-detail" | "search";
 
 export default function MusicPlayerPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -195,6 +328,46 @@ export default function MusicPlayerPage() {
   const [songQuery, setSongQuery] = useState("");
   const [activeView, setActiveView] = useState<ActiveView>("playlists");
   const [voiceChannels, setVoiceChannels] = useState<{id:string;name:string}[]>([]);
+
+  // Search state
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+
+  // Debounced search
+  useEffect(() => {
+    if (!songQuery || songQuery.trim().length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/music/search?q=${encodeURIComponent(songQuery.trim())}`);
+        if (res.ok) {
+          const data: SearchResults = await res.json();
+          setSearchResults(data);
+        }
+      } catch {} finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
+  }, [songQuery]);
+
+  // Click-outside to close search
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchBarRef.current && !searchBarRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
 
   // Edit playlist state
@@ -475,7 +648,7 @@ export default function MusicPlayerPage() {
           </div>
 
           <div className="dz-topbar-center">
-            <div className="dz-search-bar">
+            <div className="dz-search-bar" ref={searchBarRef}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
@@ -485,17 +658,41 @@ export default function MusicPlayerPage() {
                 placeholder="Search songs or artists"
                 value={songQuery}
                 onChange={e => setSongQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
                 onKeyDown={e => {
                   if (e.key === "Enter" && songQuery && selectedVoiceChannel) {
                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
                     setSongQuery("");
+                    setSearchFocused(false);
                   }
                 }}
               />
               {songQuery && (
-                <button className="dz-search-clear" onClick={() => setSongQuery("")} tabIndex={-1}>
+                <button className="dz-search-clear" onClick={() => { setSongQuery(""); setSearchFocused(false); }} tabIndex={-1}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
+              )}
+
+              {/* Search Dropdown Panel */}
+              {searchFocused && songQuery.trim().length >= 2 && (
+                <SearchResultsPanel
+                  results={searchResults}
+                  loading={searchLoading}
+                  query={songQuery}
+                  onPlaySong={(song) => {
+                    sendControl("play", song.videoId, { voiceChannelId: selectedVoiceChannel });
+                    setSearchFocused(false);
+                  }}
+                  onPlayAlbum={(album) => {
+                    sendControl("play", album.title + " " + album.artist, { voiceChannelId: selectedVoiceChannel });
+                    setSearchFocused(false);
+                  }}
+                  onPlayArtist={(artist) => {
+                    sendControl("play", artist.name, { voiceChannelId: selectedVoiceChannel });
+                    setSearchFocused(false);
+                  }}
+                  onClose={() => setSearchFocused(false)}
+                />
               )}
             </div>
           </div>
