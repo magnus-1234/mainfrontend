@@ -8938,10 +8938,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   
                   <div className="music-splash-actions">
                     {!authUser ? (
-                      <button className="music-btn-primary" type="button" onClick={() => setLoginOpen(true)}>
+                      <Link href="/music/player" className="music-btn-primary">
                         <Icon name="user" />
                         Login with Discord
-                      </button>
+                      </Link>
                     ) : (
                       <Link href="/music/player" className="music-btn-primary">
                         <Icon name="play" />

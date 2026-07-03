@@ -55,6 +55,7 @@ type User = {
   displayName: string;
   avatarUrl?: string;
   discordUserId?: string;
+  musicGuilds?: { id: string; name: string; iconUrl?: string; permissions: string }[];
 };
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
@@ -250,6 +251,12 @@ export default function MusicPlayerPage() {
         const guildData = await guildsRes.json().catch(() => ({ guilds: [] }));
         const loadedPlaylists: Playlist[] = playlistData.playlists || [];
         const botGuilds: Guild[] = Array.isArray(guildData.guilds) ? guildData.guilds : [];
+        const userGuilds = user.musicGuilds || [];
+        const botGuildIds = new Set(botGuilds.map((g) => g.id));
+        const intersectedGuilds: Guild[] = userGuilds
+          .filter((g) => botGuildIds.has(g.id))
+          .map((g) => ({ id: g.id, name: g.name, iconUrl: g.iconUrl }));
+
         const playlistGuilds = (playlistData.guilds || []).map((id: string) => guildFromId(id));
         const guildMap = new Map<string, Guild>();
 
@@ -257,7 +264,7 @@ export default function MusicPlayerPage() {
           setGlobalError(guildData.error);
         }
 
-        for (const guild of [...botGuilds, ...playlistGuilds]) {
+        for (const guild of [...intersectedGuilds, ...playlistGuilds]) {
           if (guild?.id) guildMap.set(guild.id, guild);
         }
 
