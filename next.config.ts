@@ -223,6 +223,10 @@ const nextConfig: NextConfig = {
         destination: "/?menu=daybreak",
       },
       {
+        source: "/player-profile",
+        destination: "/?menu=playerDetails",
+      },
+      {
         source: "/dreamscape-memory",
         destination: "/?menu=dreamscape",
       },
@@ -274,6 +278,10 @@ const nextConfig: NextConfig = {
       {
         source: "/api/profile/:path*",
         destination: `${backendUrl}/api/profile/:path*`,
+      },
+      {
+        source: "/api/player/:path*",
+        destination: `${backendUrl}/api/player/:path*`,
       },
       {
         source: "/api/bot-status",
