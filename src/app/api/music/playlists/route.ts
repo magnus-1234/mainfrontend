@@ -16,6 +16,7 @@ type MusicPlaylistDoc = {
   guild_id?: unknown;
   user_id?: unknown;
   name?: unknown;
+  iconUrl?: unknown;
   tracks?: MusicTrackDoc[];
   created_at?: unknown;
   updated_at?: unknown;
@@ -67,7 +68,7 @@ const envValue = (...names: string[]) => {
 
 const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
 const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "discord_bot";
-const playlistCollectionName = envValue("MUSIC_PLAYLIST_COLLECTION") || "music_playlists";
+const playlistCollectionName = envValue("MUSIC_PLAYLIST_COLLECTION") || "playlists";
 
 declare global {
   var musicPlaylistMongoClient: MongoClient | undefined;
@@ -113,9 +114,11 @@ const publicTrack = (track: MusicTrackDoc) => ({
 const publicPlaylist = (playlist: MusicPlaylistDoc & Document) => {
   const tracks = Array.isArray(playlist.tracks) ? playlist.tracks : [];
   return {
+    id: playlist._id?.toString() || "",
     guildId: stringValue(playlist.guild_id),
     userId: stringValue(playlist.user_id),
     name: stringValue(playlist.name) || "Untitled playlist",
+    iconUrl: stringValue(playlist.iconUrl),
     trackCount: tracks.length,
     tracks: tracks.slice(0, 50).map(publicTrack),
     createdAt: stringValue(playlist.created_at),
@@ -153,6 +156,75 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to load music playlists", playlists: [] },
+}
+
+import { ObjectId } from "mongodb";
+
+export async function PUT(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const userId = request.headers.get("x-user-id") || url.searchParams.get("userId") || "";
+    
+    if (!userId.trim()) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, name, iconUrl, tracks } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Playlist ID required" }, { status: 400 });
+    }
+
+    const col = await collection();
+    const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
+    
+    const updateDoc: Document = { $set: { updated_at: new Date().toISOString() } };
+    if (name !== undefined) updateDoc.$set.name = name;
+    if (iconUrl !== undefined) updateDoc.$set.iconUrl = iconUrl;
+    if (tracks !== undefined) updateDoc.$set.tracks = tracks;
+
+    const result = await col.updateOne(query, updateDoc);
+    
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to update playlist" },
+      { status: 503 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const userId = request.headers.get("x-user-id") || url.searchParams.get("userId") || "";
+    const id = url.searchParams.get("id");
+    
+    if (!userId.trim()) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!id) {
+      return NextResponse.json({ error: "Playlist ID required" }, { status: 400 });
+    }
+
+    const col = await collection();
+    const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
+    
+    const result = await col.deleteOne(query);
+    
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to delete playlist" },
       { status: 503 },
     );
   }

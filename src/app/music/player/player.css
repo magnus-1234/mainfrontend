@@ -1270,3 +1270,173 @@ body {
   .col-album, .col-time { display: none; }
   .queue-panel { width: 100%; right: 0; border-radius: 0; }
 }
+
+/* ── Edit Playlist UI ──────────────────────────────────────────────────────── */
+.edit-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.edit-btn:hover {
+  background: var(--bg-hover);
+  transform: scale(1.04);
+}
+
+.edit-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated) !important;
+  color: var(--text-sub);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.edit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.edit-input-lg, .edit-input-sm {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
+  color: var(--text);
+  font-family: inherit;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  outline: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.edit-input-lg {
+  font-size: 28px;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+
+.edit-input-sm {
+  font-size: 14px;
+}
+
+.edit-input-lg:focus, .edit-input-sm:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-save {
+  background: var(--primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+  transform: scale(1.04);
+  filter: brightness(1.1);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-cancel {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Edit Tracks Grid */
+.tracks-header {
+  display: grid;
+  grid-template-columns: 48px 1fr 1fr 64px 100px;
+}
+
+.track-row {
+  grid-template-columns: 48px 1fr 1fr 64px;
+}
+
+.track-row.editing {
+  grid-template-columns: 48px 1fr 1fr 64px 100px;
+  cursor: default;
+}
+
+.col-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.track-row.editing:hover .col-actions {
+  opacity: 1;
+}
+
+.reorder-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reorder-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reorder-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.delete-btn:hover:not(:disabled) {
+  color: #ff4444;
+  background: rgba(255, 68, 68, 0.1);
+}

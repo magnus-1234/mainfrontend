@@ -254,6 +254,63 @@ export default function MusicPlayerPage() {
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
   const [songQuery, setSongQuery] = useState("");
 
+  const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
+  const [editPlaylistName, setEditPlaylistName] = useState("");
+  const [editPlaylistIconUrl, setEditPlaylistIconUrl] = useState("");
+  const [editPlaylistTracks, setEditPlaylistTracks] = useState<Track[]>([]);
+  const [isSavingPlaylist, setIsSavingPlaylist] = useState(false);
+
+  const startEditingPlaylist = () => {
+    if (!activePlaylist) return;
+    setIsEditingPlaylist(true);
+    setEditPlaylistName(activePlaylist.name);
+    setEditPlaylistIconUrl(activePlaylist.iconUrl || "");
+    setEditPlaylistTracks(activePlaylist.tracks ? [...activePlaylist.tracks] : []);
+  };
+
+  const savePlaylistEdits = async () => {
+    if (!activePlaylist?.id) return;
+    setIsSavingPlaylist(true);
+    try {
+      const res = await fetch(`/api/music/playlists`, {
+        method: "PUT", headers: {"Content-Type":"application/json"}, credentials: "include",
+        body: JSON.stringify({
+          id: activePlaylist.id,
+          name: editPlaylistName,
+          iconUrl: editPlaylistIconUrl,
+          tracks: editPlaylistTracks,
+        }),
+      });
+      if (res.ok) {
+        setIsEditingPlaylist(false);
+        // Refresh playlists locally
+        setPlaylists(prev => prev.map(p => 
+          p.id === activePlaylist.id ? { ...p, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks } : p
+        ));
+        setActivePlaylist(prev => prev ? { ...prev, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks } : null);
+      } else {
+        const data = await res.json();
+        setControlError(data.error || "Failed to save playlist");
+        setTimeout(() => setControlError(null), 3000);
+      }
+    } catch {
+      setControlError("Failed to save playlist");
+      setTimeout(() => setControlError(null), 3000);
+    } finally {
+      setIsSavingPlaylist(false);
+    }
+  };
+
+  const moveTrack = (index: number, direction: -1 | 1) => {
+    if (index + direction < 0 || index + direction >= editPlaylistTracks.length) return;
+    const newTracks = [...editPlaylistTracks];
+    const temp = newTracks[index];
+    newTracks[index] = newTracks[index + direction];
+    newTracks[index + direction] = temp;
+    setEditPlaylistTracks(newTracks);
+  };
+
+
   const fetchChannels = useCallback(async (guildId: string) => {
     if (!guildId) return;
     try {
@@ -610,20 +667,55 @@ export default function MusicPlayerPage() {
             <>
               {/* Playlist hero */}
               <div className="playlist-hero">
-                <div className="hero-art">
-                  <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                  </svg>
-                </div>
-                <div className="hero-info">
-                  <span className="hero-type">PLAYLIST</span>
-                  <h1 className="hero-title">{activePlaylist.name}</h1>
-                  <p className="hero-meta">
-                    <strong>{guildName(activePlaylist.guildId)}</strong>
-                    <span className="hero-dot">·</span>{activePlaylist.trackCount} tracks
-                    <span className="hero-dot">·</span>Updated {new Date(activePlaylist.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
+                {isEditingPlaylist ? (
+                  <>
+                    <div className="hero-art edit-art">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><line x1="15" y1="5" x2="19" y2="9"/></svg>
+                    </div>
+                    <div className="hero-info edit-info">
+                      <span className="hero-type">EDIT PLAYLIST</span>
+                      <input 
+                        type="text" 
+                        className="edit-input-lg" 
+                        value={editPlaylistName} 
+                        onChange={e => setEditPlaylistName(e.target.value)} 
+                        placeholder="Playlist Name" 
+                      />
+                      <input 
+                        type="text" 
+                        className="edit-input-sm" 
+                        value={editPlaylistIconUrl} 
+                        onChange={e => setEditPlaylistIconUrl(e.target.value)} 
+                        placeholder="Cover Image URL (optional)" 
+                      />
+                      <div className="edit-actions">
+                        <button className="btn-save" onClick={savePlaylistEdits} disabled={isSavingPlaylist}>
+                          {isSavingPlaylist ? "Saving..." : "Save Changes"}
+                        </button>
+                        <button className="btn-cancel" onClick={() => setIsEditingPlaylist(false)} disabled={isSavingPlaylist}>Cancel</button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="hero-art" style={activePlaylist.iconUrl ? { backgroundImage: `url(${activePlaylist.iconUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
+                      {!activePlaylist.iconUrl && (
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="hero-info">
+                      <span className="hero-type">PLAYLIST</span>
+                      <h1 className="hero-title">{activePlaylist.name}</h1>
+                      <p className="hero-meta">
+                        <strong>{guildName(activePlaylist.guildId)}</strong>
+                        <span className="hero-dot">·</span>{activePlaylist.trackCount} tracks
+                        <span className="hero-dot">·</span>Updated {new Date(activePlaylist.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Action row */}
@@ -658,6 +750,12 @@ export default function MusicPlayerPage() {
                 </button>
 
                 <div className="actions-right">
+                  {!isEditingPlaylist && (
+                    <button className="icon-btn edit-btn" onClick={startEditingPlaylist} disabled={controlLoading || isEditingPlaylist} title="Edit Playlist">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      <span className="btn-text">Edit</span>
+                    </button>
+                  )}
                   {nowPlaying?.playing && (
                     <div className="now-playing-badge">
                       <PlayingBars/>
@@ -676,22 +774,25 @@ export default function MusicPlayerPage() {
                   <div className="col-time">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   </div>
+                  {isEditingPlaylist && <div className="col-actions"></div>}
                 </div>
                 <div className="tracks-list">
-                  {activePlaylist.tracks.map((track, idx) => {
-                    const isNP = nowPlaying?.currentTrack?.title === track.title && nowPlaying?.currentTrack?.author === track.author;
+                  {(isEditingPlaylist ? editPlaylistTracks : activePlaylist.tracks).map((track, idx) => {
+                    const isNP = !isEditingPlaylist && nowPlaying?.currentTrack?.title === track.title && nowPlaying?.currentTrack?.author === track.author;
                     return (
-                      <div key={idx} className={`track-row ${isNP?"playing":""}`} onClick={() => setActiveTrack(track)}>
+                      <div key={idx} className={`track-row ${isNP?"playing":""} ${isEditingPlaylist?"editing":""}`} onClick={() => !isEditingPlaylist && setActiveTrack(track)}>
                         <div className="col-id">
                           {isNP && isPlaying
                             ? <PlayingBars/>
                             : <>
                                 <span className="idx-num">{idx+1}</span>
-                                <button className="play-icon" aria-label={`Play ${track.title}`}
-                                  disabled={controlLoading || !selectedVoiceChannel}
-                                  onClick={e => { e.stopPropagation(); sendControl("play", track.uri||track.title, { voiceChannelId: selectedVoiceChannel }); }}>
-                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-                                </button>
+                                {!isEditingPlaylist && (
+                                  <button className="play-icon" aria-label={`Play ${track.title}`}
+                                    disabled={controlLoading || !selectedVoiceChannel}
+                                    onClick={e => { e.stopPropagation(); sendControl("play", track.uri||track.title, { voiceChannelId: selectedVoiceChannel }); }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                                  </button>
+                                )}
                               </>
                           }
                         </div>
