@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import type { CSSProperties, ChangeEvent, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 const DreamscapeMemory = dynamic(() => import("./dreamscape-memory/DreamscapeMemory"), { ssr: false });
+const PlayerProfile = dynamic(() => import("./player-profile/PlayerProfile"), { ssr: false });
 import "./dreamscape-memory/dreamscape.css";
 const WosGameMap = dynamic(() => import("./game-map/WosGameMap"), { ssr: false });
 import "./game-map/wos-game-map.css";
@@ -60,7 +61,7 @@ type IslandComment = {
 type PlayerProfile = Island["player"];
 type DaybreakView = "gallery" | "uploads" | "favorites";
 type TemplateView = "gallery" | "uploads" | "favorites";
-type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "fireCrystals" | "chiefCharm" | "chiefGear" | "warAcademy" | "svsPlanner" | "planner" | "gameMap" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "music" | "wikiHeroes" | "wikiBuildings" | "wikiPosters";
+type ActiveMenu = "home" | "gift" | "redeem" | "stateAge" | "vip" | "fireCrystals" | "chiefCharm" | "chiefGear" | "warAcademy" | "svsPlanner" | "planner" | "gameMap" | "templates" | "sneak" | "daybreak" | "dreamscape" | "bot" | "music" | "wikiHeroes" | "wikiBuildings" | "wikiPosters" | "playerDetails";
 type MessageTemplateCategory = "all" | "state-transfer-chat" | "unicodes" | "emojis" | "funny" | "alliance-recruit" | "various" | "leaders" | "nsfw";
 type MessageTemplateAssignableCategory = Exclude<MessageTemplateCategory, "all">;
 type WosHeroFilter = "Rare" | "Epic" | `S${number}`;
@@ -1589,6 +1590,7 @@ const sidebarItems: {
     { label: "Message Templates", mobileLabel: "Texts", icon: "message", menu: "templates", href: "/message-templates" },
     { label: "Sneak Peek", mobileLabel: "Sneak", icon: "book", menu: "sneak", href: "/sneak-peek" },
     { label: "Daybreak Island", mobileLabel: "Island", icon: "island", menu: "daybreak", href: "/daybreak-island" },
+    { label: "Player Profile", mobileLabel: "Player", icon: "user", menu: "playerDetails", href: "/player-profile" },
     { label: "Dreamscape Memory", mobileLabel: "Dream", icon: "image", menu: "dreamscape", href: "/dreamscape-memory", beta: true },
   ];
 
@@ -1622,6 +1624,7 @@ const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
   templates: { src: "/wiki/heroes/estrella/18d9d05440cc.png", alt: "Message templates" },
   sneak: { src: "/sneak-peek/sneak-01.png", alt: "Sneak peek" },
   daybreak: { src: "/daybreak-island-tree-of-life.webp", alt: "Daybreak Island tree" },
+  playerDetails: { src: "/home-icons/home-house.svg", alt: "Player Profile" },
   dreamscape: { src: "/wiki/heroes/estrella/2cfef55ef649.png", alt: "Dreamscape Memory" },
   bot: { src: "/bot-logo.gif", alt: "Discord bot" },
   music: { src: "/showcase-music-system.png", alt: "Music playlists" },
@@ -6855,6 +6858,8 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <button className="primary-cta" type="button" onClick={() => navigateToMenu("bot")}>Open Discord Bot</button>
               </section>
             </section>
+          ) : activeMenu === "playerDetails" ? (
+            <PlayerProfile />
           ) : activeMenu === "dreamscape" ? (
             <DreamscapeMemory embedded />
           ) : activeMenu === "gameMap" ? (
