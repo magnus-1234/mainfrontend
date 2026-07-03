@@ -64,10 +64,14 @@ export async function GET() {
         { status: res.status },
       );
     }
-    return NextResponse.json({ guilds: data.guilds || [] });
+    return NextResponse.json({ 
+      guilds: data.guilds || [], 
+      debug_api_url: BOT_API_URL, 
+      debug_client_id: process.env.MUSIC_DISCORD_CLIENT_ID 
+    });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Music bot is unreachable", guilds: [] },
+      { error: error instanceof Error ? error.message : "Music bot is unreachable", guilds: [], debug_api_url: BOT_API_URL },
       { status: 503 },
     );
   }
