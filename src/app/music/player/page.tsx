@@ -517,9 +517,15 @@ export default function MusicPlayerPage() {
           setSelectedGuildId(mg[0].id);
           setActivePlaylist(lp.find(p => p.guildId === mg[0].id) || lp[0] || null);
         }
-        if (lp.length > 0 && !activePlaylist) {
-          setActivePlaylist(lp[0]);
-          setActiveView("playlist-detail");
+        const savedGuild = localStorage.getItem("wos_music_guild");
+        if (savedGuild && pd.guilds.includes(savedGuild) && user.musicGuilds?.some((ug: any) => ug.id === savedGuild)) {
+          setSelectedGuildId(savedGuild);
+        } else if (!selectedGuildId && pd.guilds.length > 0) {
+          const firstValid = pd.guilds.find((g: any) => user.musicGuilds?.some((ug: any) => ug.id === g));
+          if (firstValid) {
+            setSelectedGuildId(firstValid);
+            localStorage.setItem("wos_music_guild", firstValid);
+          }
         }
       } catch {} finally { setPlaylistsLoading(false); }
     };
@@ -636,7 +642,7 @@ export default function MusicPlayerPage() {
     finally { setControlLoading(false); }
   }, [selectedGuildId, selectedVoiceChannel, fetchNowPlaying]);
 
-  const filteredPlaylists = playlists.filter(p => selectedGuildId ? p.guildId === selectedGuildId : true);
+  const filteredPlaylists = playlists; // Show all playlists globally
   const isPlaying = nowPlaying?.playing ?? false;
   const loopMode = nowPlaying?.loopMode || "off";
   const displayTrack = nowPlaying?.currentTrack;
@@ -807,9 +813,11 @@ export default function MusicPlayerPage() {
             {/* Server selector if multiple */}
             {guilds.length > 1 && (
               <select className="dz-server-select" value={selectedGuildId} onChange={e => {
-                setSelectedGuildId(e.target.value);
+                const val = e.target.value;
+                setSelectedGuildId(val);
+                localStorage.setItem("wos_music_guild", val);
                 setSelectedVoiceChannel("");
-                setActivePlaylist(playlists.find(p => p.guildId === e.target.value) || null);
+                // Do not auto-switch playlist when changing server
               }}>
                 {guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
               </select>
