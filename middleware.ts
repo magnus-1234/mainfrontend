@@ -15,9 +15,11 @@ function getLocale(request: NextRequest): string {
     if (lang === 'zh-cn') return 'zh-CN';
     if (lang === 'zh-tw') return 'zh-TW';
     
+    if (lang === defaultLocale) return defaultLocale;
     if (locales.includes(lang)) return lang;
     
     const baseCode = lang.split("-")[0];
+    if (baseCode === defaultLocale) return defaultLocale;
     if (locales.includes(baseCode)) return baseCode;
   }
 
