@@ -9027,7 +9027,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <span><strong>{botMetrics.members}</strong> monitored members</span>
                     <span><strong>{botMetrics.monitors}</strong> active monitors</span>
                     <span><strong>{botMetrics.redeemServers}</strong> redeem servers</span>
-                    <span><strong>{botMetrics.giftCodes}</strong> active codes</span>
+                    <span><strong>{giftCodes.length}</strong> active codes</span>
                   </div>
                   <div className="bot-feature-list" aria-label="Core bot capabilities">
                     <span><Icon name="bot" /> AI chat</span>
