@@ -767,14 +767,14 @@ export default function MusicPlayerPage() {
 
               {/* Tracks */}
               <div className="tracks-container">
-                <div className="tracks-header">
+                <div className={`tracks-header${isEditingPlaylist ? " editing" : ""}`}>
                   <div className="col-id">#</div>
                   <div className="col-title">Title</div>
                   <div className="col-album">Artist</div>
                   <div className="col-time">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   </div>
-                  {isEditingPlaylist && <div className="col-actions"></div>}
+                  {isEditingPlaylist && <div className="col-actions">Actions</div>}
                 </div>
                 <div className="tracks-list">
                   {(isEditingPlaylist ? editPlaylistTracks : activePlaylist.tracks).map((track, idx) => {

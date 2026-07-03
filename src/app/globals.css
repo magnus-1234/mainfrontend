@@ -3374,10 +3374,11 @@ body {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1180px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(32px, 5vw, 64px);
   align-items: center;
 }
 
@@ -3518,11 +3519,20 @@ body {
 }
 
 .music-splash-features {
-  display: flex;
-  gap: 32px;
-  margin-top: 24px;
-  padding-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 28px;
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 28px;
   border-top: 1px solid var(--border);
+}
+
+.music-splash-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
 }
 
 .music-feature {
@@ -3663,18 +3673,27 @@ body {
 @media (max-width: 960px) {
   .music-splash-container {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 36px;
     text-align: center;
   }
   .music-splash-content {
     align-items: center;
   }
+  .music-splash-subtitle {
+    max-width: none;
+  }
   .music-splash-actions {
     justify-content: center;
   }
   .music-splash-features {
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: 1fr;
+    max-width: 360px;
+    margin-inline: auto;
+    text-align: left;
+  }
+  .music-visual-card {
+    transform: none;
+    width: min(100%, 420px);
   }
 }
 @keyframes simple-dot-blink {
