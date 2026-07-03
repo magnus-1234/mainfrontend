@@ -68,13 +68,16 @@ const envValue = (...names: string[]) => {
 
 const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
 const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "reminderbot";
-const playlistCollectionName = envValue("MUSIC_PLAYLIST_COLLECTION") || "playlists";
+// The Discord bot writes to 'playlists'; the web UI writes to 'music_playlists'.
+// We query both and merge, so users see all their playlists in one place.
+const BOT_COLLECTION = "playlists";
+const WEB_COLLECTION = envValue("MUSIC_PLAYLIST_COLLECTION") || "music_playlists";
 
 declare global {
   var musicPlaylistMongoClient: MongoClient | undefined;
 }
 
-const collection = async () => {
+const getDb = async () => {
   if (!mongoUri) {
     throw new Error("Music playlist storage is not configured");
   }
@@ -82,7 +85,13 @@ const collection = async () => {
     globalThis.musicPlaylistMongoClient = new MongoClient(mongoUri);
   }
   await globalThis.musicPlaylistMongoClient.connect();
-  return globalThis.musicPlaylistMongoClient.db(mongoDbName).collection<MusicPlaylistDoc>(playlistCollectionName);
+  return globalThis.musicPlaylistMongoClient.db(mongoDbName);
+};
+
+// Used for mutations (POST/PUT/DELETE) — always operates on the web collection.
+const collection = async () => {
+  const db = await getDb();
+  return db.collection<MusicPlaylistDoc>(WEB_COLLECTION);
 };
 
 const stringValue = (value: unknown) => {
@@ -141,16 +150,32 @@ export async function GET(request: NextRequest) {
       query.guild_id = { $in: idCandidates(guildId) };
     }
 
-    const col = await collection();
-    const docs = await col.find(query).sort({ updated_at: -1 }).limit(100).toArray();
-    const guilds = Array.from(new Set(docs.map((doc) => stringValue(doc.guild_id)).filter(Boolean)));
+    // Query both the bot-written collection and the web-written collection
+    const db = await getDb();
+    const [botDocs, webDocs] = await Promise.all([
+      db.collection<MusicPlaylistDoc>(BOT_COLLECTION).find(query).sort({ updated_at: -1 }).limit(100).toArray(),
+      db.collection<MusicPlaylistDoc>(WEB_COLLECTION).find(query).sort({ updated_at: -1 }).limit(100).toArray(),
+    ]);
+
+    // Merge, deduplicating by (name + guildId). Bot docs take priority.
+    const seen = new Set<string>();
+    const merged = [];
+    for (const doc of [...botDocs, ...webDocs]) {
+      const key = `${stringValue(doc.name)}::${stringValue(doc.guild_id)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(doc);
+      }
+    }
+
+    const guilds = Array.from(new Set(merged.map((doc) => stringValue(doc.guild_id)).filter(Boolean)));
 
     return NextResponse.json({
-      playlists: docs.map(publicPlaylist),
+      playlists: merged.map(publicPlaylist),
       guilds,
       storage: {
         database: mongoDbName,
-        collection: playlistCollectionName,
+        collections: [BOT_COLLECTION, WEB_COLLECTION],
       },
     });
   } catch (error) {

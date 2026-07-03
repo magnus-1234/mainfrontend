@@ -94,6 +94,19 @@ type SearchResults = {
   artists: SearchArtist[];
 };
 
+type HistoryEntry = {
+  guildId: string;
+  track: {
+    title: string;
+    author: string;
+    uri: string;
+    thumbnail?: string | null;
+  };
+  playlistName?: string | null;
+  playedAt?: string | null;
+};
+
+
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
 const formatTime = (ms: number) => {
@@ -334,6 +347,9 @@ export default function MusicPlayerPage() {
   const [songQuery, setSongQuery] = useState("");
   const [activeView, setActiveView] = useState<ActiveView>("playlists");
   const [voiceChannels, setVoiceChannels] = useState<{id:string;name:string}[]>([]);
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
 
   // Search state
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
@@ -504,6 +520,25 @@ export default function MusicPlayerPage() {
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Fetch music history when history view is opened
+  useEffect(() => {
+    if (activeView !== "history") return;
+    const fetchHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const params = selectedGuildId ? `?guildId=${encodeURIComponent(selectedGuildId)}` : "";
+        const res = await fetch(`/api/music/history${params}`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setHistoryEntries(Array.isArray(data.history) ? data.history : []);
+        }
+      } catch {}
+      finally { setHistoryLoading(false); }
+    };
+    fetchHistory();
+  }, [activeView, selectedGuildId]);
+
 
   const fetchNowPlaying = useCallback(async (guildId: string) => {
     if (!guildId) return;
@@ -1109,12 +1144,61 @@ export default function MusicPlayerPage() {
                 </div>
               )}
               {activeView === "history" && (
-                <div className="dz-empty-state">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-                  <h3>No history yet</h3>
-                  <p>Tracks you&apos;ve played will appear here.</p>
-                </div>
+                historyLoading ? (
+                  <div className="dz-empty-state">
+                    <div className="dz-spinner" />
+                    <p>Loading history…</p>
+                  </div>
+                ) : historyEntries.length === 0 ? (
+                  <div className="dz-empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                    <h3>No history yet</h3>
+                    <p>Tracks you&apos;ve played will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="dz-tracks">
+                    <div className="dz-tracks-header">
+                      <div className="dz-col-id">#</div>
+                      <div className="dz-col-title">Title</div>
+                      <div className="dz-col-artist">Artist</div>
+                      <div className="dz-col-actions-h"></div>
+                      <div className="dz-col-dur">Played</div>
+                    </div>
+                    <div className="dz-tracks-list">
+                      {historyEntries.map((entry, idx) => (
+                        <div key={idx} className="dz-track-row"
+                          onClick={() => sendControl("play", entry.track.uri || entry.track.title, { voiceChannelId: selectedVoiceChannel })}>
+                          <div className="dz-col-id">
+                            <span className="dz-track-idx">{idx + 1}</span>
+                            <button className="dz-track-play-btn" aria-label={`Play ${entry.track.title}`}
+                              disabled={controlLoading || !selectedVoiceChannel}
+                              onClick={e => { e.stopPropagation(); sendControl("play", entry.track.uri || entry.track.title, { voiceChannelId: selectedVoiceChannel }); }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                            </button>
+                          </div>
+                          <div className="dz-col-title">
+                            <div className="dz-track-thumb">
+                              {entry.track.thumbnail
+                                ? <img src={entry.track.thumbnail} alt="" />
+                                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                              }
+                            </div>
+                            <span className="dz-track-name">{entry.track.title}</span>
+                          </div>
+                          <div className="dz-col-artist">{entry.track.author}</div>
+                          <div className="dz-col-actions-h">
+                            {entry.playlistName && <span style={{fontSize:"11px",opacity:0.55,whiteSpace:"nowrap"}}>{entry.playlistName}</span>}
+                          </div>
+                          <div className="dz-col-dur" style={{fontSize:"11px"}}>
+                            {entry.playedAt ? new Date(entry.playedAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "—"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
               )}
+
             </div>
           )}
         </main>
