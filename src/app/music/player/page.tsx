@@ -387,17 +387,15 @@ export default function MusicPlayerPage() {
   // ── Main UI ────────────────────────────────────────────────────────────────
   if (globalError) {
     return (
-      <div className="fullscreen-centered">
-        <div className="server-selection-view">
-          <h1 className="server-selection-title">Connection Error</h1>
-          <div className="playlists-empty" style={{ maxWidth: 400, margin: "40px auto", textAlign: "center", color: "var(--text-muted)" }}>
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 20 }}>
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            <p>{globalError}</p>
-            <p style={{ marginTop: 10, fontSize: "0.9em" }}>The music bot might be offline or undergoing maintenance.</p>
-            <button className="btn-primary" style={{ marginTop: 20 }} onClick={() => window.location.reload()}>Retry</button>
-          </div>
+      <div style={{ minHeight: "100vh", width: "100%", background: "#0a0a0a", color: "#fff", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 40px", boxSizing: "border-box" }}>
+        <div style={{ width: "100%", maxWidth: 600, textAlign: "center" }}>
+          <h1 style={{ fontSize: "2em", fontWeight: 800, marginBottom: 32 }}>Connection Error</h1>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 20, opacity: 0.6 }}>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <p style={{ color: "#a0a0b8", marginBottom: 8 }}>{globalError}</p>
+          <p style={{ color: "#6b6b7f", fontSize: "0.9em", marginBottom: 20 }}>The music bot might be offline or undergoing maintenance.</p>
+          <button className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
         </div>
       </div>
     );
@@ -405,10 +403,9 @@ export default function MusicPlayerPage() {
 
   if (!selectedGuildId && guilds.length > 0) {
     return (
-      <div className="fullscreen-centered">
-        <div className="server-selection-view">
-          <h1 className="server-selection-title">Select a Server to Manage Music</h1>
-          <div className="servers-grid">
+      <div style={{ minHeight: "100vh", width: "100%", background: "#0a0a0a", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "60px 40px", boxSizing: "border-box", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+        <h1 style={{ fontSize: "clamp(1.5em, 3vw, 2.2em)", fontWeight: 800, marginBottom: 40, textAlign: "center", letterSpacing: "-0.02em" }}>Select a Server to Manage Music</h1>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20, width: "100%", maxWidth: 1000 }}>
             {guilds.map((guild) => (
               <div
                 key={guild.id}
@@ -433,7 +430,6 @@ export default function MusicPlayerPage() {
               </div>
             ))}
           </div>
-        </div>
       </div>
     );
   }
