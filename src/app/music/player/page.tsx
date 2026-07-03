@@ -71,6 +71,14 @@ const formatTime = (ms: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
+const formatDuration = (ms: number) => {
+  const totalSecs = Math.floor(ms / 1000);
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  if (h > 0) return `${h} hr ${m} min`;
+  return `${m} min`;
+};
+
 const DISCORD_LOGIN_URL = "/api/auth/discord-music?returnTo=/music/player";
 const fallbackGuildIcon = "https://cdn.discordapp.com/embed/avatars/0.png";
 
@@ -80,50 +88,38 @@ const guildFromId = (guildId: string): Guild => ({
   iconUrl: fallbackGuildIcon,
 });
 
-const SEARCH_SUGGESTIONS = [
-  "lofi hip hop", "phonk", "trending", "chill vibes", "workout",
-  "bollywood hits", "K-pop", "EDM", "jazz", "classical",
+const PLAYLIST_COLORS = [
+  "#e13300", "#e91e63", "#9c27b0", "#673ab7",
+  "#3f51b5", "#2196f3", "#00bcd4", "#009688",
+  "#4caf50", "#8bc34a", "#ff9800", "#ff5722",
 ];
+
+const getPlaylistColor = (name: string) =>
+  PLAYLIST_COLORS[name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % PLAYLIST_COLORS.length];
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────
 
 function DiscordLoginScreen() {
   return (
-    <div className="login-screen">
-      <div className="login-glow" />
-      <div className="login-card">
-        <div className="login-icon">
+    <div className="dz-login-screen">
+      <div className="dz-login-card">
+        <div className="dz-login-icon">
           <svg viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
             <path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a40 40 0 0 0-1.8 3.7 54 54 0 0 0-16.4 0A38 38 0 0 0 25.4.4 58.4 58.4 0 0 0 10.9 5C1.6 18.8-1 32.3.3 45.6a59 59 0 0 0 18 9.1 44 44 0 0 0 3.8-6.2 38.4 38.4 0 0 1-6-2.9l1.5-1.1a42.2 42.2 0 0 0 36 0l1.5 1.1a38.5 38.5 0 0 1-6 2.9 43.8 43.8 0 0 0 3.8 6.2 58.8 58.8 0 0 0 18-9.1C72.3 30.2 68.2 16.8 60.1 4.9ZM23.7 37.8c-3.6 0-6.5-3.3-6.5-7.3s2.9-7.3 6.5-7.3c3.6 0 6.6 3.3 6.5 7.3 0 4-2.9 7.3-6.5 7.3Zm23.6 0c-3.6 0-6.5-3.3-6.5-7.3s2.9-7.3 6.5-7.3c3.6 0 6.6 3.3 6.5 7.3 0 4-2.9 7.3-6.5 7.3Z" />
           </svg>
         </div>
-        <h1 className="login-title">Music Bot Controller</h1>
-        <p className="login-subtitle">
-          Login with Discord to view your playlists, see what&apos;s playing in your server, and control the bot directly from here.
+        <h1 className="dz-login-title">Music Bot Controller</h1>
+        <p className="dz-login-subtitle">
+          Login with Discord to view your playlists, control playback, and manage your queue.
         </p>
-        <a href={DISCORD_LOGIN_URL} className="login-btn" id="discord-login-btn">
-          <svg viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+        <a href={DISCORD_LOGIN_URL} className="dz-login-btn" id="discord-login-btn">
+          <svg viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
             <path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a40 40 0 0 0-1.8 3.7 54 54 0 0 0-16.4 0A38 38 0 0 0 25.4.4 58.4 58.4 0 0 0 10.9 5C1.6 18.8-1 32.3.3 45.6a59 59 0 0 0 18 9.1 44 44 0 0 0 3.8-6.2 38.4 38.4 0 0 1-6-2.9l1.5-1.1a42.2 42.2 0 0 0 36 0l1.5 1.1a38.5 38.5 0 0 1-6 2.9 43.8 43.8 0 0 0 3.8 6.2 58.8 58.8 0 0 0 18-9.1C72.3 30.2 68.2 16.8 60.1 4.9ZM23.7 37.8c-3.6 0-6.5-3.3-6.5-7.3s2.9-7.3 6.5-7.3c3.6 0 6.6 3.3 6.5 7.3 0 4-2.9 7.3-6.5 7.3Zm23.6 0c-3.6 0-6.5-3.3-6.5-7.3s2.9-7.3 6.5-7.3c3.6 0 6.6 3.3 6.5 7.3 0 4-2.9 7.3-6.5 7.3Z" />
           </svg>
           Login with Discord
         </a>
-        <p className="login-note">We only request the <code>identify</code> scope — no messages or guild management access.</p>
-        <div className="login-features">
-          <div className="login-feature"><span className="feature-icon">🎵</span><span>View &amp; browse playlists</span></div>
-          <div className="login-feature"><span className="feature-icon">▶️</span><span>Play, pause, skip tracks</span></div>
-          <div className="login-feature"><span className="feature-icon">🎚️</span><span>Control volume &amp; loop</span></div>
-          <div className="login-feature"><span className="feature-icon">📡</span><span>Live queue &amp; now playing</span></div>
-        </div>
+        <p className="dz-login-note">We only request the <code>identify</code> scope — no messages or guild management access.</p>
       </div>
-    </div>
-  );
-}
-
-function SkeletonLoader() {
-  return (
-    <div className="skeleton-layout">
-      <div className="skeleton-sidebar">{[1,2,3,4,5].map(i=><div key={i} className="skeleton-item" style={{width:`${60+i*8}%`}}/>)}</div>
-      <div className="skeleton-main"><div className="skeleton-hero"/>{[1,2,3,4,5].map(i=><div key={i} className="skeleton-row"/>)}</div>
     </div>
   );
 }
@@ -180,62 +176,9 @@ function ProgressBar({ nowPlaying }: { nowPlaying: NowPlaying | null }) {
   );
 }
 
-// ── Search Bar ────────────────────────────────────────────────────────────────
-function SearchBar({
-  songQuery, setSongQuery, onSearch, disabled,
-}: {
-  songQuery: string; setSongQuery: (v: string) => void;
-  onSearch: () => void; disabled: boolean;
-}) {
-  const [focused, setFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <div className={`search-wrapper ${focused ? "focused" : ""}`}>
-      <div className="search-bar">
-        <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input
-          ref={inputRef}
-          type="text"
-          className="search-input"
-          placeholder="Search songs, artists, or paste a URL…"
-          value={songQuery}
-          onChange={e => setSongQuery(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 150)}
-          onKeyDown={e => { if (e.key === "Enter" && songQuery && !disabled) onSearch(); }}
-        />
-        {songQuery && (
-          <button className="search-clear" onClick={() => setSongQuery("")} tabIndex={-1}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        )}
-        <button className="search-submit-btn" disabled={!songQuery || disabled} onClick={onSearch}>
-          {disabled ? <div className="spinner-sm"/> : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-          )}
-          Play
-        </button>
-      </div>
-      {(focused || !songQuery) && (
-        <div className="search-suggestions">
-          {SEARCH_SUGGESTIONS.map(s => (
-            <button key={s} className={`suggestion-chip ${songQuery===s?"active":""}`}
-              onMouseDown={() => { setSongQuery(s); inputRef.current?.focus(); }}>
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Main Component ────────────────────────────────────────────────────────────
+type ActiveView = "home" | "playlists" | "liked" | "artists" | "albums" | "history" | "playlist-detail";
+
 export default function MusicPlayerPage() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -244,23 +187,24 @@ export default function MusicPlayerPage() {
   const [selectedGuildId, setSelectedGuildId] = useState<string>("");
   const [playlistsLoading, setPlaylistsLoading] = useState(false);
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
-  const [activeTrack, setActiveTrack] = useState<Track | null>(null);
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null);
   const [controlLoading, setControlLoading] = useState(false);
   const [controlError, setControlError] = useState<string | null>(null);
-  const [globalError, setGlobalError] = useState<string | null>(null);
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(50);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [songQuery, setSongQuery] = useState("");
+  const [activeView, setActiveView] = useState<ActiveView>("playlists");
   const [voiceChannels, setVoiceChannels] = useState<{id:string;name:string}[]>([]);
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
-  const [songQuery, setSongQuery] = useState("");
 
+  // Edit playlist state
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
   const [editPlaylistName, setEditPlaylistName] = useState("");
   const [editPlaylistIconUrl, setEditPlaylistIconUrl] = useState("");
   const [editPlaylistTracks, setEditPlaylistTracks] = useState<Track[]>([]);
   const [isSavingPlaylist, setIsSavingPlaylist] = useState(false);
+
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startEditingPlaylist = () => {
     if (!activePlaylist) return;
@@ -276,20 +220,14 @@ export default function MusicPlayerPage() {
     try {
       const res = await fetch(`/api/music/playlists`, {
         method: "PUT", headers: {"Content-Type":"application/json"}, credentials: "include",
-        body: JSON.stringify({
-          id: activePlaylist.id,
-          name: editPlaylistName,
-          iconUrl: editPlaylistIconUrl,
-          tracks: editPlaylistTracks,
-        }),
+        body: JSON.stringify({ id: activePlaylist.id, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks }),
       });
       if (res.ok) {
         setIsEditingPlaylist(false);
-        // Refresh playlists locally
-        setPlaylists(prev => prev.map(p => 
-          p.id === activePlaylist.id ? { ...p, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks } : p
+        setPlaylists(prev => prev.map(p =>
+          p.id === activePlaylist.id ? { ...p, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks, trackCount: editPlaylistTracks.length } : p
         ));
-        setActivePlaylist(prev => prev ? { ...prev, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks } : null);
+        setActivePlaylist(prev => prev ? { ...prev, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks, trackCount: editPlaylistTracks.length } : null);
       } else {
         const data = await res.json();
         setControlError(data.error || "Failed to save playlist");
@@ -311,7 +249,6 @@ export default function MusicPlayerPage() {
     newTracks[index + direction] = temp;
     setEditPlaylistTracks(newTracks);
   };
-
 
   const fetchChannels = useCallback(async (guildId: string) => {
     if (!guildId) return;
@@ -373,16 +310,20 @@ export default function MusicPlayerPage() {
           createdAt: p.createdAt || (p as unknown as {created_at?:string}).created_at || '',
           updatedAt: p.updatedAt || (p as unknown as {updated_at?:string}).updated_at || '',
         }));
-        if (gd.error) setGlobalError(gd.error);
         const mg = Array.from(gMap.values());
         setPlaylists(lp); setGuilds(mg);
         if (mg.length === 1) {
           setSelectedGuildId(mg[0].id);
           setActivePlaylist(lp.find(p => p.guildId === mg[0].id) || lp[0] || null);
         }
+        if (lp.length > 0 && !activePlaylist) {
+          setActivePlaylist(lp[0]);
+          setActiveView("playlist-detail");
+        }
       } catch {} finally { setPlaylistsLoading(false); }
     };
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchNowPlaying = useCallback(async (guildId: string) => {
@@ -421,490 +362,593 @@ export default function MusicPlayerPage() {
   }, [selectedGuildId, selectedVoiceChannel, fetchNowPlaying]);
 
   const filteredPlaylists = playlists.filter(p => selectedGuildId ? p.guildId === selectedGuildId : true);
-  const selectedGuild = guilds.find(g => g.id === selectedGuildId) || (selectedGuildId ? guildFromId(selectedGuildId) : null);
-  const guildName = (guildId: string) => guilds.find(g => g.id === guildId)?.name || `Server ${guildId}`;
-  const isLive = nowPlaying?.source === "live";
-  const displayTrack = nowPlaying?.currentTrack || activeTrack;
   const isPlaying = nowPlaying?.playing ?? false;
   const loopMode = nowPlaying?.loopMode || "off";
+  const displayTrack = nowPlaying?.currentTrack;
+  const isLive = nowPlaying?.source === "live";
 
-  if (authLoading) return <SkeletonLoader/>;
-  if (!user || !user.providers?.includes('discord-music') || user.musicGuilds === undefined) return <DiscordLoginScreen/>;
+  const openPlaylist = (pl: Playlist) => {
+    setActivePlaylist(pl);
+    setActiveView("playlist-detail");
+    setIsEditingPlaylist(false);
+  };
 
-  if (globalError) {
+  if (authLoading) {
     return (
-      <div className="error-screen">
-        <div className="error-card">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <h2>Connection Error</h2>
-          <p>{globalError}</p>
-          <p className="error-sub">The music bot might be offline or undergoing maintenance.</p>
-          <button className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
+      <div className="dz-root">
+        <div className="dz-loading">
+          <div className="dz-spinner" />
         </div>
       </div>
     );
   }
 
-  if (!selectedGuildId && guilds.length > 0) {
-    return (
-      <div className="server-select-screen">
-        <div className="server-select-inner">
-          <div className="server-select-header">
-            <Link href="/music" className="back-link-plain">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-              Back
-            </Link>
-          </div>
-          <h1 className="server-select-title">Choose a Server</h1>
-          <p className="server-select-sub">Select the server where you want to control music</p>
-          <div className="servers-grid">
-            {guilds.map(guild => (
-              <div key={guild.id} className="server-card" onClick={() => {
-                setSelectedGuildId(guild.id);
-                setActivePlaylist(playlists.find(p => p.guildId === guild.id) || null);
-              }}>
-                <div className="server-banner"/>
-                <div className="server-icon"><img src={guild.iconUrl || fallbackGuildIcon} alt={guild.name}/></div>
-                <div className="server-body">
-                  <div className="server-name">{guild.name}</div>
-                  <div className="server-meta">
-                    {guild.voiceChannelCount || 0} voice channels
-                    {guild.activeVoiceChannel ? ` · 🔴 ${guild.activeVoiceChannel.name}` : ""}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+  if (!user || !user.providers?.includes('discord-music') || user.musicGuilds === undefined) {
+    return <DiscordLoginScreen />;
   }
 
-  // ── MAIN LAYOUT ────────────────────────────────────────────────────────────
+  const totalTracks = filteredPlaylists.reduce((s, p) => s + p.trackCount, 0);
+  const totalDurationMs = filteredPlaylists.reduce((s, p) => s + p.tracks.reduce((a, t) => a + t.length, 0), 0);
+
   return (
-    <div className="player-layout">
+    <div className="dz-root">
 
-      {/* ════════════════════════ SIDEBAR ════════════════════════ */}
-      <aside className="player-sidebar">
+      {/* ════════════ SIDEBAR ════════════ */}
+      <aside className="dz-sidebar">
 
-        {/* Top: logo / back */}
-        <div className="sidebar-top">
-          <Link href="/music" className="back-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            Back
-          </Link>
+        {/* Logo */}
+        <div className="dz-logo">
+          <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="8" width="4" height="16" rx="2" fill="white" opacity="0.3"/>
+            <rect x="7" y="4" width="4" height="20" rx="2" fill="white" opacity="0.6"/>
+            <rect x="14" y="0" width="4" height="24" rx="2" fill="white"/>
+            <rect x="21" y="4" width="4" height="20" rx="2" fill="white" opacity="0.6"/>
+            <rect x="28" y="8" width="4" height="16" rx="2" fill="white" opacity="0.3"/>
+          </svg>
         </div>
 
-        {/* User chip */}
-        <div className="sidebar-user">
-          {user.avatarUrl
-            ? <img src={user.avatarUrl} alt={user.displayName} className="user-avatar-img"/>
-            : <div className="user-avatar-placeholder">{user.displayName.charAt(0).toUpperCase()}</div>
-          }
-          <div className="user-info">
-            <div className="user-name">{user.displayName}</div>
-            <div className="user-tag">Discord</div>
-          </div>
-          <button className="logout-btn" title="Sign out" onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
-            window.location.reload();
-          }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
+        {/* Nav */}
+        <nav className="dz-nav">
+          <button className={`dz-nav-item ${activeView === "home" ? "active" : ""}`} onClick={() => setActiveView("home")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Home</span>
           </button>
-        </div>
+          <button className={`dz-nav-item ${activeView === "history" ? "active" : ""}`} onClick={() => setActiveView("history")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+            <span>History</span>
+          </button>
+          <button className={`dz-nav-item`} onClick={() => setActiveView("playlists")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <span>Library</span>
+          </button>
+          <button className={`dz-nav-item ${activeView === "liked" ? "active" : ""}`} onClick={() => setActiveView("liked")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span>Liked Songs</span>
+          </button>
+          <button className={`dz-nav-item ${activeView === "artists" ? "active" : ""}`} onClick={() => setActiveView("artists")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+            <span>Artists</span>
+          </button>
+          <button className={`dz-nav-item ${activeView === "albums" ? "active" : ""}`} onClick={() => setActiveView("albums")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Albums</span>
+          </button>
+          <button className={`dz-nav-item ${activeView === "playlists" ? "active" : ""}`} onClick={() => setActiveView("playlists")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>Playlists</span>
+          </button>
+        </nav>
 
-        {/* Server selector (multi-server) */}
-        {guilds.length > 1 && (
-          <div className="sidebar-section">
-            <span className="section-label">SERVER</span>
-            <select className="guild-select" value={selectedGuildId} onChange={e => {
-              setSelectedGuildId(e.target.value);
-              setSelectedVoiceChannel("");
-              setActivePlaylist(playlists.find(p => p.guildId === e.target.value) || null);
-            }}>
-              {guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
-          </div>
-        )}
-
-        {/* Voice channel inline */}
-        {voiceChannels.length > 0 && (
-          <div className="sidebar-section">
-            <span className="section-label">VOICE CHANNEL</span>
-            <select className="guild-select" value={selectedVoiceChannel} onChange={e => setSelectedVoiceChannel(e.target.value)}>
-              {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
-            </select>
-          </div>
-        )}
-
-        {/* Queue nav item */}
-        <div className="sidebar-section">
-          <span className="section-label">NAVIGATION</span>
-          <nav className="sidebar-nav">
-            <div className={`nav-item ${showQueue ? "active" : ""}`} onClick={() => setShowQueue(!showQueue)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-              </svg>
-              Queue
-              {(nowPlaying?.queueSize ?? 0) > 0 && (
-                <span className="queue-badge">{nowPlaying!.queueSize}</span>
-              )}
-            </div>
-          </nav>
-        </div>
-
-        {/* Playlists */}
-        <div className="sidebar-playlists">
-          <div className="playlists-header">
-            <span className="section-label" style={{margin:0}}>PLAYLISTS</span>
-            <span className="playlist-count">{filteredPlaylists.length}</span>
-          </div>
-          <div className="playlists-list">
-            {playlistsLoading
-              ? [1,2,3].map(i => <div key={i} className="skeleton-item" style={{height:40,borderRadius:8}}/>)
-              : filteredPlaylists.length === 0
-                ? <div className="playlists-empty">No playlists yet.<br/>Use <code>/playlist save</code> in Discord.</div>
-                : filteredPlaylists.map((pl,i) => (
-                    <div key={i} className={`playlist-item ${activePlaylist?.name===pl.name?"active":""}`} onClick={() => setActivePlaylist(pl)}>
-                      <div className="playlist-item-icon">♪</div>
-                      <div className="playlist-item-text">
-                        <div className="playlist-item-name">{pl.name}</div>
-                        <div className="playlist-item-meta">{pl.trackCount} tracks</div>
-                      </div>
-                    </div>
-                  ))
-            }
-          </div>
+        {/* Sidebar playlist list */}
+        <div className="dz-sidebar-playlists">
+          {playlistsLoading
+            ? [1,2,3].map(i => <div key={i} className="dz-pl-skeleton" />)
+            : filteredPlaylists.map((pl, i) => (
+                <button key={i} className={`dz-sidebar-pl ${activePlaylist?.id === pl.id && activeView === "playlist-detail" ? "active" : ""}`}
+                  onClick={() => openPlaylist(pl)}>
+                  <div className="dz-sidebar-pl-icon" style={{ background: pl.iconUrl ? `url(${pl.iconUrl}) center/cover` : getPlaylistColor(pl.name) }}>
+                    {!pl.iconUrl && <span>{pl.name.charAt(0).toUpperCase()}</span>}
+                  </div>
+                  <div className="dz-sidebar-pl-info">
+                    <div className="dz-sidebar-pl-name">{pl.name}</div>
+                    <div className="dz-sidebar-pl-meta">Playlist · {pl.trackCount} songs</div>
+                  </div>
+                </button>
+              ))
+          }
         </div>
 
       </aside>
 
-      {/* ════════════════════════ MAIN ════════════════════════ */}
-      <main className="player-main">
+      {/* ════════════ CONTENT ════════════ */}
+      <div className="dz-content-wrapper">
 
-        {/* Sticky header — minimal */}
-        <header className="main-header">
-          <div className="header-left">
-            <button className="nav-btn" onClick={() => history.back()} aria-label="Go back">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        {/* Top bar */}
+        <header className="dz-topbar">
+          <div className="dz-topbar-left">
+            <button className="dz-nav-btn" onClick={() => history.back()} aria-label="Back">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            {selectedGuild && (
-              <div className="header-server-chip">
-                {selectedGuild.iconUrl && <img src={selectedGuild.iconUrl} alt=""/>}
-                <span>{selectedGuild.name}</span>
-              </div>
-            )}
+            <button className="dz-nav-btn" onClick={() => history.forward()} aria-label="Forward">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
           </div>
 
-          <div className="header-center">
-            {nowPlaying?.playing && (
-              <div className="header-live-pill">
-                <span className="live-dot"/>
-                <span>Live · #{nowPlaying.voiceChannel?.name || "voice"}</span>
-              </div>
-            )}
+          <div className="dz-topbar-center">
+            <div className="dz-search-bar">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text"
+                className="dz-search-input"
+                placeholder="Search songs or artists"
+                value={songQuery}
+                onChange={e => setSongQuery(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && songQuery && selectedVoiceChannel) {
+                    sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
+                    setSongQuery("");
+                  }
+                }}
+              />
+              {songQuery && (
+                <button className="dz-search-clear" onClick={() => setSongQuery("")} tabIndex={-1}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="header-right">
-            {/* intentionally empty — no add bot button */}
+          <div className="dz-topbar-right">
+            {/* Server selector if multiple */}
+            {guilds.length > 1 && (
+              <select className="dz-server-select" value={selectedGuildId} onChange={e => {
+                setSelectedGuildId(e.target.value);
+                setSelectedVoiceChannel("");
+                setActivePlaylist(playlists.find(p => p.guildId === e.target.value) || null);
+              }}>
+                {guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+            )}
+            {/* Voice channel selector */}
+            {voiceChannels.length > 0 && (
+              <select className="dz-vc-select" value={selectedVoiceChannel} onChange={e => setSelectedVoiceChannel(e.target.value)}>
+                {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>#{vc.name}</option>)}
+              </select>
+            )}
+            {/* User avatar */}
+            <button className="dz-user-btn" title={`Signed in as ${user.displayName}`} onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              window.location.reload();
+            }}>
+              {user.avatarUrl
+                ? <img src={user.avatarUrl} alt={user.displayName} className="dz-avatar-img" />
+                : <div className="dz-avatar-placeholder">{user.displayName.charAt(0).toUpperCase()}</div>
+              }
+            </button>
           </div>
         </header>
 
-        {/* Queue slide-down */}
+        {/* Error toast */}
+        {controlError && (
+          <div className="dz-error-toast">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {controlError}
+            <button onClick={() => setControlError(null)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        )}
+
+        {/* ── Queue panel ── */}
         {showQueue && nowPlaying?.queue && nowPlaying.queue.length > 0 && (
-          <div className="queue-panel">
-            <div className="queue-header">
+          <div className="dz-queue-panel">
+            <div className="dz-queue-header">
               <span>Up Next · {nowPlaying.queue.length} tracks</span>
-              <button className="icon-btn sm" onClick={() => setShowQueue(false)}>
+              <button className="dz-icon-btn" onClick={() => setShowQueue(false)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
-            <div className="queue-list">
-              {nowPlaying.queue.map((t,i) => (
-                <div key={i} className="queue-item">
-                  <span className="queue-num">{i+1}</span>
-                  <div className="queue-track-info">
-                    <div className="queue-track-title">{t.title}</div>
-                    <div className="queue-track-author">{t.author}</div>
+            <div className="dz-queue-list">
+              {nowPlaying.queue.map((t, i) => (
+                <div key={i} className="dz-queue-item">
+                  <span className="dz-queue-num">{i + 1}</span>
+                  <div className="dz-queue-info">
+                    <div className="dz-queue-title">{t.title}</div>
+                    <div className="dz-queue-author">{t.author}</div>
                   </div>
-                  <span className="queue-duration">{formatTime(t.length)}</span>
+                  <span className="dz-queue-dur">{formatTime(t.length)}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* ── Content area ── */}
-        <div className="playlist-view">
+        {/* ── Main scrollable content ── */}
+        <main className="dz-main">
 
-          {controlError && (
-            <div className="control-error">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {controlError}
-              <button onClick={() => setControlError(null)}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          )}
-
-          {/* Search card — full width, compact */}
-          <div className="search-card">
-            <SearchBar
-              songQuery={songQuery}
-              setSongQuery={setSongQuery}
-              disabled={!selectedVoiceChannel || controlLoading}
-              onSearch={() => {
-                if (songQuery) { sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel }); setSongQuery(""); }
-              }}
-            />
-          </div>
-
-          {activePlaylist ? (
-            <>
-              {/* Playlist hero */}
-              <div className="playlist-hero">
-                {isEditingPlaylist ? (
-                  <>
-                    <div className="hero-art edit-art">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><line x1="15" y1="5" x2="19" y2="9"/></svg>
-                    </div>
-                    <div className="hero-info edit-info">
-                      <span className="hero-type">EDIT PLAYLIST</span>
-                      <input 
-                        type="text" 
-                        className="edit-input-lg" 
-                        value={editPlaylistName} 
-                        onChange={e => setEditPlaylistName(e.target.value)} 
-                        placeholder="Playlist Name" 
-                      />
-                      <input 
-                        type="text" 
-                        className="edit-input-sm" 
-                        value={editPlaylistIconUrl} 
-                        onChange={e => setEditPlaylistIconUrl(e.target.value)} 
-                        placeholder="Cover Image URL (optional)" 
-                      />
-                      <div className="edit-actions">
-                        <button className="btn-save" onClick={savePlaylistEdits} disabled={isSavingPlaylist}>
-                          {isSavingPlaylist ? "Saving..." : "Save Changes"}
-                        </button>
-                        <button className="btn-cancel" onClick={() => setIsEditingPlaylist(false)} disabled={isSavingPlaylist}>Cancel</button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="hero-art" style={activePlaylist.iconUrl ? { backgroundImage: `url(${activePlaylist.iconUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
-                      {!activePlaylist.iconUrl && (
-                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                        </svg>
-                      )}
-                    </div>
-                    <div className="hero-info">
-                      <span className="hero-type">PLAYLIST</span>
-                      <h1 className="hero-title">{activePlaylist.name}</h1>
-                      <p className="hero-meta">
-                        <strong>{guildName(activePlaylist.guildId)}</strong>
-                        <span className="hero-dot">·</span>{activePlaylist.trackCount} tracks
-                        <span className="hero-dot">·</span>Updated {new Date(activePlaylist.updatedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Action row */}
-              <div className="playlist-actions">
-                <button
-                  className="play-all-btn"
-                  onClick={() => sendControl("play_playlist", activePlaylist.name, { voiceChannelId: selectedVoiceChannel, userId: user.discordUserId })}
-                  disabled={controlLoading || !selectedVoiceChannel}
-                  title={`Play ${activePlaylist.name}`}
+          {/* PLAYLIST DETAIL VIEW */}
+          {activeView === "playlist-detail" && activePlaylist ? (
+            <div className="dz-playlist-view">
+              {/* Hero */}
+              <div className="dz-playlist-hero">
+                <div className="dz-playlist-cover"
+                  style={activePlaylist.iconUrl
+                    ? { backgroundImage: `url(${activePlaylist.iconUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+                    : { background: `linear-gradient(135deg, ${getPlaylistColor(activePlaylist.name)}, rgba(0,0,0,0.5))` }
+                  }
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-                </button>
-
-                <button className="icon-btn" onClick={() => sendControl("shuffle")} disabled={controlLoading} title="Shuffle">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-                    <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-                    <line x1="4" y1="4" x2="9" y2="9"/>
-                  </svg>
-                </button>
-
-                <button
-                  className={`icon-btn loop-btn ${loopMode !== "off" ? "active" : ""}`}
-                  onClick={() => { const n = loopMode==="off"?"queue":loopMode==="queue"?"track":"off"; sendControl("loop",n); }}
-                  disabled={controlLoading} title={`Loop: ${loopMode}`}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                    <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                  </svg>
-                  {loopMode !== "off" && <span className="loop-label">{loopMode==="track"?"1":"∞"}</span>}
-                </button>
-
-                <div className="actions-right">
-                  {!isEditingPlaylist && (
-                    <button className="icon-btn edit-btn" onClick={startEditingPlaylist} disabled={controlLoading || isEditingPlaylist} title="Edit Playlist">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                      <span className="btn-text">Edit</span>
-                    </button>
+                  {!activePlaylist.iconUrl && (
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                    </svg>
                   )}
-                  {nowPlaying?.playing && (
-                    <div className="now-playing-badge">
-                      <PlayingBars/>
-                      <span>Playing in #{nowPlaying.voiceChannel?.name}</span>
-                    </div>
+                </div>
+                <div className="dz-playlist-hero-info">
+                  {isEditingPlaylist ? (
+                    <>
+                      <span className="dz-hero-label">EDIT PLAYLIST</span>
+                      <input type="text" className="dz-edit-name" value={editPlaylistName} onChange={e => setEditPlaylistName(e.target.value)} placeholder="Playlist name" />
+                      <input type="text" className="dz-edit-icon" value={editPlaylistIconUrl} onChange={e => setEditPlaylistIconUrl(e.target.value)} placeholder="Cover image URL (optional)" />
+                      <div className="dz-edit-btns">
+                        <button className="dz-btn-save" onClick={savePlaylistEdits} disabled={isSavingPlaylist}>{isSavingPlaylist ? "Saving…" : "Save"}</button>
+                        <button className="dz-btn-cancel" onClick={() => setIsEditingPlaylist(false)} disabled={isSavingPlaylist}>Cancel</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span className="dz-hero-label">PLAYLIST</span>
+                      <h1 className="dz-playlist-title">{activePlaylist.name}</h1>
+                      <div className="dz-playlist-meta">
+                        <span className="dz-meta-author">
+                          <div className="dz-meta-avatar">
+                            {user.avatarUrl ? <img src={user.avatarUrl} alt={user.displayName} /> : user.displayName.charAt(0)}
+                          </div>
+                          {user.displayName}
+                        </span>
+                        <span className="dz-meta-sep">·</span>
+                        <span>{activePlaylist.trackCount} songs</span>
+                        {totalDurationMs > 0 && activePlaylist.tracks.length > 0 && (
+                          <>
+                            <span className="dz-meta-sep">·</span>
+                            <span>{formatDuration(activePlaylist.tracks.reduce((a, t) => a + t.length, 0))}</span>
+                          </>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
 
-              {/* Tracks */}
-              <div className="tracks-container">
-                <div className={`tracks-header${isEditingPlaylist ? " editing" : ""}`}>
-                  <div className="col-id">#</div>
-                  <div className="col-title">Title</div>
-                  <div className="col-album">Artist</div>
-                  <div className="col-time">
+              {/* Playlist action row */}
+              {!isEditingPlaylist && (
+                <div className="dz-playlist-actions">
+                  <button className="dz-play-btn"
+                    onClick={() => sendControl("play_playlist", activePlaylist.name, { voiceChannelId: selectedVoiceChannel, userId: user.discordUserId })}
+                    disabled={controlLoading || !selectedVoiceChannel}
+                    title={`Play ${activePlaylist.name}`}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                    Play
+                  </button>
+
+                  <button className="dz-action-icon-btn" onClick={() => sendControl("shuffle")} disabled={controlLoading} title="Shuffle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+                      <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+                      <line x1="4" y1="4" x2="9" y2="9"/>
+                    </svg>
+                  </button>
+
+                  <button className={`dz-action-icon-btn ${loopMode !== "off" ? "active" : ""}`}
+                    onClick={() => { const n = loopMode==="off"?"queue":loopMode==="queue"?"track":"off"; sendControl("loop",n); }}
+                    disabled={controlLoading} title={`Loop: ${loopMode}`}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                      <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                  </button>
+
+                  <button className="dz-action-icon-btn" onClick={startEditingPlaylist} title="Edit Playlist">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+
+                  <button className="dz-action-icon-btn" onClick={() => sendControl("stop")} disabled={controlLoading} title="Stop">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                  </button>
+
+                  <div className="dz-actions-right">
+                    {nowPlaying?.playing && (
+                      <div className="dz-live-badge">
+                        <PlayingBars/>
+                        <span>#{nowPlaying.voiceChannel?.name || "voice"}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Track list */}
+              <div className="dz-tracks">
+                <div className={`dz-tracks-header ${isEditingPlaylist ? "editing" : ""}`}>
+                  <div className="dz-col-id">#</div>
+                  <div className="dz-col-title">Title</div>
+                  <div className="dz-col-artist">Artist</div>
+                  <div className="dz-col-actions-h">
+                    {/* heart */}
+                  </div>
+                  <div className="dz-col-dur">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   </div>
-                  {isEditingPlaylist && <div className="col-actions">Actions</div>}
+                  {isEditingPlaylist && <div className="dz-col-reorder"></div>}
                 </div>
-                <div className="tracks-list">
+                <div className="dz-tracks-list">
                   {(isEditingPlaylist ? editPlaylistTracks : activePlaylist.tracks).map((track, idx) => {
                     const isNP = !isEditingPlaylist && nowPlaying?.currentTrack?.title === track.title && nowPlaying?.currentTrack?.author === track.author;
+                    const isNpPlaying = isNP && isPlaying;
                     return (
-                      <div key={idx} className={`track-row ${isNP?"playing":""} ${isEditingPlaylist?"editing":""}`} onClick={() => !isEditingPlaylist && setActiveTrack(track)}>
-                        <div className="col-id">
-                          {isNP && isPlaying
-                            ? <PlayingBars/>
-                            : <>
-                                <span className="idx-num">{idx+1}</span>
-                                {!isEditingPlaylist && (
-                                  <button className="play-icon" aria-label={`Play ${track.title}`}
-                                    disabled={controlLoading || !selectedVoiceChannel}
-                                    onClick={e => { e.stopPropagation(); sendControl("play", track.uri||track.title, { voiceChannelId: selectedVoiceChannel }); }}>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-                                  </button>
-                                )}
-                              </>
-                          }
+                      <div key={idx} className={`dz-track-row ${isNP ? "playing" : ""} ${isEditingPlaylist ? "editing" : ""}`}
+                        onClick={() => !isEditingPlaylist && sendControl("play", track.uri || track.title, { voiceChannelId: selectedVoiceChannel })}>
+
+                        <div className="dz-col-id">
+                          {isNpPlaying ? <PlayingBars /> : (
+                            <>
+                              <span className="dz-track-idx">{idx + 1}</span>
+                              {!isEditingPlaylist && (
+                                <button className="dz-track-play-btn" aria-label={`Play ${track.title}`}
+                                  disabled={controlLoading || !selectedVoiceChannel}
+                                  onClick={e => { e.stopPropagation(); sendControl("play", track.uri || track.title, { voiceChannelId: selectedVoiceChannel }); }}>
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                                </button>
+                              )}
+                            </>
+                          )}
                         </div>
-                        <div className="col-title"><span className="track-name">{track.title}</span></div>
-                        <div className="col-album">{track.author}</div>
-                        <div className="col-time">{formatTime(track.length)}</div>
+
+                        <div className="dz-col-title">
+                          <div className="dz-track-thumb">
+                            {track.artwork
+                              ? <img src={track.artwork} alt="" />
+                              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                            }
+                          </div>
+                          <span className="dz-track-name">{track.title}</span>
+                        </div>
+
+                        <div className="dz-col-artist">{track.author}</div>
+
+                        <div className="dz-col-actions-h">
+                          {/* Row menu / like placeholder */}
+                          <button className="dz-track-action-btn" onClick={e => e.stopPropagation()}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                          </button>
+                          <button className="dz-track-heart-btn" onClick={e => e.stopPropagation()}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          </button>
+                        </div>
+
+                        <div className="dz-col-dur">{formatTime(track.length)}</div>
+
+                        {isEditingPlaylist && (
+                          <div className="dz-col-reorder">
+                            <button className="dz-reorder-btn" disabled={idx === 0} onClick={e => { e.stopPropagation(); moveTrack(idx, -1); }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>
+                            </button>
+                            <button className="dz-reorder-btn" disabled={idx === editPlaylistTracks.length - 1} onClick={e => { e.stopPropagation(); moveTrack(idx, 1); }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <button className="dz-reorder-btn dz-delete-btn" onClick={e => { e.stopPropagation(); setEditPlaylistTracks(prev => prev.filter((_, i) => i !== idx)); }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                            {isEditingPlaylist && idx === editPlaylistTracks.length - 1 && (
+                              <button className="dz-btn-save dz-save-inline" onClick={savePlaylistEdits} disabled={isSavingPlaylist}>
+                                {isSavingPlaylist ? "…" : "Save"}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-            </>
+            </div>
+          ) : activeView === "playlists" ? (
+            /* PLAYLISTS GRID VIEW */
+            <div className="dz-view">
+              <h2 className="dz-view-title">Your Playlists</h2>
+              {playlistsLoading ? (
+                <div className="dz-playlists-grid">
+                  {[1,2,3,4].map(i => <div key={i} className="dz-pl-card-skeleton" />)}
+                </div>
+              ) : filteredPlaylists.length === 0 ? (
+                <div className="dz-empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <h3>No playlists yet</h3>
+                  <p>Save a playlist with <code>/playlist save &lt;name&gt;</code> in Discord.</p>
+                </div>
+              ) : (
+                <div className="dz-playlists-grid">
+                  {filteredPlaylists.map((pl, i) => (
+                    <button key={i} className="dz-pl-card" onClick={() => openPlaylist(pl)}>
+                      <div className="dz-pl-card-cover"
+                        style={pl.iconUrl
+                          ? { backgroundImage: `url(${pl.iconUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+                          : { background: `linear-gradient(135deg, ${getPlaylistColor(pl.name)}, rgba(0,0,0,0.5))` }
+                        }
+                      >
+                        {!pl.iconUrl && (
+                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="dz-pl-card-info">
+                        <div className="dz-pl-card-name">{pl.name}</div>
+                        <div className="dz-pl-card-meta">{pl.trackCount} songs · {formatDuration(pl.tracks.reduce((a, t) => a + t.length, 0))}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ) : (
-            <div className="playlist-empty">
-              <div className="empty-icon">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                </svg>
-              </div>
-              <h2>No playlists found</h2>
-              <p>Save a playlist with <code>/playlist save &lt;name&gt;</code> in your Discord server, then return here to control it.</p>
+            /* OTHER VIEWS (Home / Liked / Artists / Albums / History) */
+            <div className="dz-view">
+              {activeView === "home" && (
+                <>
+                  {filteredPlaylists.length > 0 && (
+                    <div className="dz-section">
+                      <div className="dz-section-header">
+                        <h2 className="dz-section-title">Playlists</h2>
+                        <button className="dz-show-all" onClick={() => setActiveView("playlists")}>Show All</button>
+                      </div>
+                      <div className="dz-home-pl-list">
+                        {filteredPlaylists.slice(0, 4).map((pl, i) => (
+                          <button key={i} className="dz-home-pl-item" onClick={() => openPlaylist(pl)}>
+                            <div className="dz-home-pl-cover"
+                              style={pl.iconUrl
+                                ? { backgroundImage: `url(${pl.iconUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+                                : { background: `linear-gradient(135deg, ${getPlaylistColor(pl.name)}, rgba(0,0,0,0.5))` }
+                              }
+                            />
+                            <span className="dz-home-pl-name">{pl.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+              {activeView === "liked" && (
+                <div className="dz-empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <h3>No liked songs yet</h3>
+                  <p>Songs you like will appear here.</p>
+                </div>
+              )}
+              {activeView === "artists" && (
+                <div className="dz-empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                  <h3>No liked artists yet</h3>
+                  <p>Artists you like will appear here.</p>
+                </div>
+              )}
+              {activeView === "albums" && (
+                <div className="dz-empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                  <h3>No liked albums yet</h3>
+                  <p>Albums you like will appear here.</p>
+                </div>
+              )}
+              {activeView === "history" && (
+                <div className="dz-empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                  <h3>No history yet</h3>
+                  <p>Tracks you&apos;ve played will appear here.</p>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      </main>
+        </main>
 
-      {/* ════════════════════════ NOW PLAYING BAR ════════════════════════ */}
-      <footer className="now-playing-bar">
+        {/* ════════════ NOW PLAYING BAR ════════════ */}
+        <footer className="dz-now-playing">
 
-        {/* Left — track info */}
-        <div className="np-track-info">
-          <div className={`np-art ${isPlaying ? "playing" : ""}`}>
-            {displayTrack?.artwork
-              ? <img src={displayTrack.artwork} alt={displayTrack.title} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6}}/>
-              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-            }
-            {isPlaying && <div className="np-art-pulse"/>}
-          </div>
-          {displayTrack ? (
-            <div className="np-text">
-              <div className="np-title">{displayTrack.title}</div>
-              <div className="np-author">{displayTrack.author}</div>
-            </div>
-          ) : (
-            <div className="np-empty">{nowPlaying?.playing ? "Loading…" : "Nothing playing"}</div>
-          )}
-          {isLive && <div className="live-pill"><span className="live-dot"/><span>LIVE</span></div>}
-        </div>
-
-        {/* Center — controls + progress */}
-        <div className="np-controls">
-          <div className="np-buttons">
-            <button className={`icon-btn ${loopMode!=="off"?"active":""}`}
-              onClick={() => { const n=loopMode==="off"?"queue":loopMode==="queue"?"track":"off"; sendControl("loop",n); }}
-              disabled={controlLoading} title={`Loop: ${loopMode}`} style={{position:"relative"}}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-              </svg>
-              {loopMode==="track" && <span className="loop-label">1</span>}
-            </button>
-
-            <button className="play-pause-btn" onClick={() => sendControl(isPlaying?"pause":"resume")} disabled={controlLoading} title={isPlaying?"Pause":"Play"}>
-              {controlLoading
-                ? <div className="spinner"/>
-                : isPlaying
-                  ? <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                  : <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+          {/* Left - track info */}
+          <div className="dz-np-track">
+            <div className={`dz-np-art ${isPlaying ? "playing" : ""}`}>
+              {displayTrack?.artwork
+                ? <img src={displayTrack.artwork} alt={displayTrack.title} />
+                : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
               }
-            </button>
-
-            <button className="icon-btn" onClick={() => sendControl("skip")} disabled={controlLoading} title="Skip">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2"/></svg>
-            </button>
-
-            <button className="icon-btn" onClick={() => sendControl("stop")} disabled={controlLoading} title="Stop">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-            </button>
+              {isPlaying && <div className="dz-np-art-glow" />}
+            </div>
+            {displayTrack ? (
+              <div className="dz-np-text">
+                <div className="dz-np-title">{displayTrack.title}</div>
+                <div className="dz-np-author">{displayTrack.author}</div>
+              </div>
+            ) : (
+              <div className="dz-np-empty">Nothing playing</div>
+            )}
+            {isLive && <div className="dz-live-pill"><span className="dz-live-dot"/><span>LIVE</span></div>}
           </div>
 
-          <ProgressBar nowPlaying={nowPlaying}/>
-        </div>
+          {/* Center - controls */}
+          <div className="dz-np-center">
+            <div className="dz-np-btns">
+              <button className={`dz-np-icon-btn ${loopMode !== "off" ? "active" : ""}`}
+                onClick={() => { const n = loopMode==="off"?"queue":loopMode==="queue"?"track":"off"; sendControl("loop",n); }}
+                disabled={controlLoading} title={`Loop: ${loopMode}`}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                  <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                </svg>
+                {loopMode === "track" && <span className="dz-loop-label">1</span>}
+              </button>
 
-        {/* Right — volume + queue */}
-        <div className="np-extra">
-          <button className={`icon-btn ${showQueue?"active":""}`} onClick={() => setShowQueue(!showQueue)} title="Queue">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-            {(nowPlaying?.queueSize ?? 0) > 0 && <span className="queue-badge sm">{nowPlaying!.queueSize}</span>}
-          </button>
+              <button className="dz-np-icon-btn" onClick={() => sendControl("previous")} disabled={controlLoading} title="Previous">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2"/></svg>
+              </button>
 
-          <div className="volume-group">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:"var(--text-muted)",flexShrink:0}}>
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              {volume > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
-              {volume > 80 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
-            </svg>
-            <input type="range" className="volume-slider" min={0} max={200} value={volume}
-              onChange={e => setVolume(Number(e.target.value))}
-              onMouseUp={e => sendControl("volume", Number((e.target as HTMLInputElement).value))}
-              onTouchEnd={e => sendControl("volume", Number((e.target as HTMLInputElement).value))}
-              title={`Volume: ${volume}%`} aria-label="Volume"
-            />
-            <span className="volume-label">{volume}%</span>
+              <button className="dz-play-pause-btn" onClick={() => sendControl(isPlaying ? "pause" : "resume")} disabled={controlLoading} title={isPlaying ? "Pause" : "Play"}>
+                {controlLoading
+                  ? <div className="dz-spinner-sm" />
+                  : isPlaying
+                    ? <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    : <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                }
+              </button>
+
+              <button className="dz-np-icon-btn" onClick={() => sendControl("skip")} disabled={controlLoading} title="Skip">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2"/></svg>
+              </button>
+
+              <button className="dz-np-icon-btn" onClick={() => sendControl("shuffle")} disabled={controlLoading} title="Shuffle">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+                  <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+                  <line x1="4" y1="4" x2="9" y2="9"/>
+                </svg>
+              </button>
+            </div>
+            <ProgressBar nowPlaying={nowPlaying} />
           </div>
-        </div>
 
-      </footer>
+          {/* Right - volume + queue */}
+          <div className="dz-np-right">
+            <button className={`dz-np-icon-btn ${showQueue ? "active" : ""}`} onClick={() => setShowQueue(!showQueue)} title="Queue">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              {(nowPlaying?.queueSize ?? 0) > 0 && <span className="dz-q-badge">{nowPlaying!.queueSize}</span>}
+            </button>
+
+            <div className="dz-volume-group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:"var(--text-muted)",flexShrink:0}}>
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                {volume > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>}
+                {volume > 80 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>}
+              </svg>
+              <input type="range" className="dz-volume-slider" min={0} max={200} value={volume}
+                onChange={e => setVolume(Number(e.target.value))}
+                onMouseUp={e => sendControl("volume", Number((e.target as HTMLInputElement).value))}
+                onTouchEnd={e => sendControl("volume", Number((e.target as HTMLInputElement).value))}
+                title={`Volume: ${volume}%`} aria-label="Volume"
+              />
+              <span className="dz-volume-label">{volume}%</span>
+            </div>
+          </div>
+
+        </footer>
+      </div>
     </div>
   );
 }
