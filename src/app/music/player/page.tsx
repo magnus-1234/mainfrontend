@@ -387,7 +387,7 @@ export default function MusicPlayerPage() {
   // ── Main UI ────────────────────────────────────────────────────────────────
   if (globalError) {
     return (
-      <div className="player-layout" style={{ minHeight: "100vh", padding: "40px 0" }}>
+      <div className="fullscreen-centered">
         <div className="server-selection-view">
           <h1 className="server-selection-title">Connection Error</h1>
           <div className="playlists-empty" style={{ maxWidth: 400, margin: "40px auto", textAlign: "center", color: "var(--text-muted)" }}>
@@ -405,7 +405,7 @@ export default function MusicPlayerPage() {
 
   if (!selectedGuildId && guilds.length > 0) {
     return (
-      <div className="player-layout" style={{ minHeight: "100vh", padding: "40px 0" }}>
+      <div className="fullscreen-centered">
         <div className="server-selection-view">
           <h1 className="server-selection-title">Select a Server to Manage Music</h1>
           <div className="servers-grid">
