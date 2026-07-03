@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     headers: {
       "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
       "Content-Type": response.headers.get("content-type") || "image/png",
+      "Access-Control-Allow-Origin": "*",
     },
   });
 }

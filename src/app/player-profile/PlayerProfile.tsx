@@ -68,9 +68,9 @@ export default function PlayerProfile() {
   const handleDownload = async () => {
     if (!player?.avatarImage) return;
     
+    const imageUrl = proxiedWosAvatarUrl(player.avatarImage);
     try {
       // Use the proxy to avoid CORS when downloading the blob
-      const imageUrl = proxiedWosAvatarUrl(player.avatarImage);
       const response = await fetch(imageUrl);
       if (!response.ok) throw new Error("Failed to download image");
       
@@ -85,10 +85,11 @@ export default function PlayerProfile() {
       document.body.removeChild(link);
       
       // Clean up object URL
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (err) {
       console.error("Error downloading image:", err);
-      alert("Failed to download the profile picture.");
+      // Fallback if fetch fails (e.g. browser security blocking blob creation)
+      window.open(imageUrl, '_blank');
     }
   };
 
