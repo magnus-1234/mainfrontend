@@ -1566,11 +1566,40 @@
   text-overflow: ellipsis;
 }
 
+.sr-song-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.sr-save-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.sr-song-row:hover .sr-save-btn {
+  opacity: 1;
+}
+
+.sr-save-btn:hover {
+  color: var(--green);
+  background: rgba(30, 215, 96, 0.1);
+}
+
 .sr-song-dur {
   font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
 }
 
 .sr-album-grid {

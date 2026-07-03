@@ -67,7 +67,7 @@ const envValue = (...names: string[]) => {
 };
 
 const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
-const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "discord_bot";
+const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "reminderbot";
 const playlistCollectionName = envValue("MUSIC_PLAYLIST_COLLECTION") || "playlists";
 
 declare global {
@@ -156,6 +156,56 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to load music playlists", playlists: [] },
+      { status: 503 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const userId = request.headers.get("x-user-id") || url.searchParams.get("userId") || "";
+
+    if (!userId.trim()) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { name, guildId, iconUrl, tracks } = body;
+
+    if (!name || !guildId) {
+      return NextResponse.json({ error: "Playlist name and guildId required" }, { status: 400 });
+    }
+
+    const col = await collection();
+    
+    // Check if playlist already exists for this user in this guild
+    const existing = await col.findOne({
+      name: name.trim(),
+      guild_id: { $in: idCandidates(guildId) },
+      user_id: { $in: idCandidates(userId) }
+    });
+    
+    if (existing) {
+      return NextResponse.json({ error: "Playlist with this name already exists" }, { status: 400 });
+    }
+
+    const newPlaylist: MusicPlaylistDoc = {
+      user_id: Long.isLong(userId) ? userId : (/^\d+$/.test(userId) ? Long.fromString(userId) : userId),
+      guild_id: Long.isLong(guildId) ? guildId : (/^\d+$/.test(guildId) ? Long.fromString(guildId) : guildId),
+      name: name.trim(),
+      iconUrl: iconUrl || "",
+      tracks: tracks || [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const result = await col.insertOne(newPlaylist);
+
+    return NextResponse.json({ success: true, id: result.insertedId.toString() });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to create playlist" },
       { status: 503 },
     );
   }

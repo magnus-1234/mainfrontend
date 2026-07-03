@@ -211,7 +211,7 @@ function ProgressBar({ nowPlaying }: { nowPlaying: NowPlaying | null }) {
 
 // ── Search Results Panel ─────────────────────────────────────────────────────
 function SearchResultsPanel({
-  results, loading, query, onPlaySong, onPlayAlbum, onPlayArtist, onClose,
+  results, loading, query, onPlaySong, onPlayAlbum, onPlayArtist, onSaveSong, onClose,
 }: {
   results: SearchResults | null;
   loading: boolean;
@@ -219,6 +219,7 @@ function SearchResultsPanel({
   onPlaySong: (song: SearchSong) => void;
   onPlayAlbum: (album: SearchAlbum) => void;
   onPlayArtist: (artist: SearchArtist) => void;
+  onSaveSong: (song: SearchSong) => void;
   onClose: () => void;
 }) {
   if (!query || query.length < 2) return null;
@@ -243,8 +244,8 @@ function SearchResultsPanel({
         <div className="sr-section">
           <div className="sr-section-title">Songs</div>
           {results!.songs.map((song) => (
-            <button key={song.videoId} className="sr-song-row" onClick={() => onPlaySong(song)}>
-              <div className="sr-thumb">
+            <div key={song.videoId} className="sr-song-row">
+              <button className="sr-thumb" onClick={() => onPlaySong(song)}>
                 {song.thumbnail
                   ? <img src={song.thumbnail} alt={song.title} />
                   : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -252,16 +253,21 @@ function SearchResultsPanel({
                 <div className="sr-thumb-play">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
                 </div>
-              </div>
-              <div className="sr-song-info">
+              </button>
+              <div className="sr-song-info" onClick={() => onPlaySong(song)} style={{cursor:"pointer"}}>
                 <div className="sr-song-title">{song.title}</div>
                 <div className="sr-song-meta">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{color:"#ff0000",flexShrink:0}}><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.19a8.24 8.24 0 0 0 4.83 1.55V6.3a4.85 4.85 0 0 1-1.06-.39z"/></svg>
                   {song.artist}{song.album ? ` · ${song.album}` : ""}
                 </div>
               </div>
-              {song.duration && <span className="sr-song-dur">{song.duration}</span>}
-            </button>
+              <div className="sr-song-actions">
+                <button className="sr-save-btn" onClick={(e) => { e.stopPropagation(); onSaveSong(song); }} title="Save to Favorites">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </button>
+                {song.duration && <span className="sr-song-dur">{song.duration}</span>}
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -512,6 +518,61 @@ export default function MusicPlayerPage() {
     } catch {}
   }, []);
 
+  const saveToFavorites = async (song: SearchSong) => {
+    if (!selectedGuildId) { setControlError("Select a server first"); return; }
+    
+    // Find "Favorites" or "Liked Songs" playlist
+    let target = playlists.find(p => p.guildId === selectedGuildId && (p.name.toLowerCase() === "favorites" || p.name.toLowerCase() === "liked songs"));
+    
+    const track = {
+      title: song.title,
+      author: song.artist,
+      uri: `https://www.youtube.com/watch?v=${song.videoId}`,
+      length: song.duration ? song.duration.split(":").reduce((acc, time) => (60 * acc) + +time, 0) * 1000 : 0
+    };
+
+    setControlLoading(true);
+    try {
+      if (target) {
+        // Add to existing playlist
+        const res = await fetch("/api/music/playlists", {
+          method: "PUT", headers: {"Content-Type":"application/json"}, credentials: "include",
+          body: JSON.stringify({ id: target.id, tracks: [...target.tracks, track] })
+        });
+        if (res.ok) {
+          setControlError("Saved to Favorites!");
+          setTimeout(() => setControlError(null), 3000);
+        }
+      } else {
+        // Create "Favorites" playlist
+        const res = await fetch("/api/music/playlists", {
+          method: "POST", headers: {"Content-Type":"application/json"}, credentials: "include",
+          body: JSON.stringify({ name: "Favorites", guildId: selectedGuildId, tracks: [track] })
+        });
+        if (res.ok) {
+          setControlError("Saved to Favorites!");
+          setTimeout(() => setControlError(null), 3000);
+        }
+      }
+      
+      // Reload playlists to reflect the new favorite
+      if (user?.discordUserId) {
+        const pr = await fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId)}`, { credentials: "include" });
+        const pd = await pr.json();
+        const lp: Playlist[] = (pd.playlists || []).map((p: any) => ({
+          ...p,
+          createdAt: p.createdAt || p.created_at || '',
+          updatedAt: p.updatedAt || p.updated_at || '',
+        }));
+        setPlaylists(lp);
+      }
+    } catch {
+      setControlError("Failed to save favorite");
+    } finally {
+      setControlLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!selectedGuildId || !user) return;
     const t = setTimeout(() => void fetchNowPlaying(selectedGuildId), 0);
@@ -689,6 +750,10 @@ export default function MusicPlayerPage() {
                   }}
                   onPlayArtist={(artist) => {
                     sendControl("play", artist.name, { voiceChannelId: selectedVoiceChannel });
+                    setSearchFocused(false);
+                  }}
+                  onSaveSong={(song) => {
+                    saveToFavorites(song);
                     setSearchFocused(false);
                   }}
                   onClose={() => setSearchFocused(false)}
