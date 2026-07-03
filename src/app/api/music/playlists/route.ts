@@ -1,4 +1,4 @@
-import { Long, MongoClient, type Document } from "mongodb";
+import { Long, MongoClient, ObjectId, type Document } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
@@ -156,15 +156,16 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to load music playlists", playlists: [] },
+      { status: 503 },
+    );
+  }
 }
-
-import { ObjectId } from "mongodb";
 
 export async function PUT(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const userId = request.headers.get("x-user-id") || url.searchParams.get("userId") || "";
-    
+
     if (!userId.trim()) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -178,14 +179,14 @@ export async function PUT(request: NextRequest) {
 
     const col = await collection();
     const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
-    
-    const updateDoc: Document = { $set: { updated_at: new Date().toISOString() } };
-    if (name !== undefined) updateDoc.$set.name = name;
-    if (iconUrl !== undefined) updateDoc.$set.iconUrl = iconUrl;
-    if (tracks !== undefined) updateDoc.$set.tracks = tracks;
 
-    const result = await col.updateOne(query, updateDoc);
-    
+    const setFields: Document = { updated_at: new Date().toISOString() };
+    if (name !== undefined) setFields.name = name;
+    if (iconUrl !== undefined) setFields.iconUrl = iconUrl;
+    if (tracks !== undefined) setFields.tracks = tracks;
+
+    const result = await col.updateOne(query, { $set: setFields });
+
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
     }
@@ -204,7 +205,7 @@ export async function DELETE(request: NextRequest) {
     const url = new URL(request.url);
     const userId = request.headers.get("x-user-id") || url.searchParams.get("userId") || "";
     const id = url.searchParams.get("id");
-    
+
     if (!userId.trim()) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -214,9 +215,9 @@ export async function DELETE(request: NextRequest) {
 
     const col = await collection();
     const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
-    
+
     const result = await col.deleteOne(query);
-    
+
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
     }
