@@ -4693,11 +4693,6 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     window.location.href = `${apiBase}/api/auth/${provider}?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
-  const signInWithMusicDiscord = () => {
-    const returnTo = "/music/player";
-    window.location.href = `${apiBase}/api/auth/discord-music?returnTo=${encodeURIComponent(returnTo)}`;
-  };
-
   const signOut = async () => {
     await fetch(`${apiBase}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => null);
     setAuthUser(null);
@@ -8936,26 +8931,26 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   </p>
                   
                   <div className="music-splash-actions">
-              {!(authUser?.discordUserId || authUser?.providers.includes("discord")) ? (
-                <button className="music-btn-primary" type="button" onClick={signInWithMusicDiscord}>
-                  <Icon name="user" />
-                  Login with Discord
-                </button>
-              ) : (
-                <Link href="/music/player" className="music-btn-primary">
-                  <Icon name="play" />
-                  Launch Web Player
-                </Link>
-              )}
-              <a 
-                className="music-btn-secondary" 
-                href="https://discord.com/oauth2/authorize?client_id=1509574640853585990&permissions=8&integration_type=0&scope=bot" 
-                target="_blank" 
-                rel="noreferrer"
-              >
-                Invite Music Bot
-              </a>
-            </div>
+                    {!authUser ? (
+                      <button className="music-btn-primary" type="button" onClick={() => setLoginOpen(true)}>
+                        <Icon name="user" />
+                        Login with Discord
+                      </button>
+                    ) : (
+                      <Link href="/music/player" className="music-btn-primary">
+                        <Icon name="play" />
+                        Launch Web Player
+                      </Link>
+                    )}
+                    <a 
+                      className="music-btn-secondary" 
+                      href="https://discord.com/oauth2/authorize?client_id=1509574640853585990&permissions=8&integration_type=0&scope=bot" 
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      Invite Music Bot
+                    </a>
+                  </div>
                   
                   <div className="music-splash-features">
                     <div className="music-feature">
