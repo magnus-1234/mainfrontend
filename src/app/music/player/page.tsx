@@ -278,6 +278,12 @@ function SearchResultsPanel({
                 <button className="sr-save-btn" onClick={(e) => { e.stopPropagation(); onSaveSong(song); }} title="Save to Favorites">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 </button>
+                <button className="sr-queue-btn" onClick={(e) => { e.stopPropagation(); onPlaySong(song); }} title="Add to Queue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
                 {song.duration && <span className="sr-song-dur">{song.duration}</span>}
               </div>
             </div>
@@ -1123,11 +1129,63 @@ export default function MusicPlayerPage() {
                 </>
               )}
               {activeView === "liked" && (
-                <div className="dz-empty-state">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                  <h3>No liked songs yet</h3>
-                  <p>Songs you like will appear here.</p>
-                </div>
+                (() => {
+                  const likedPl = playlists.find(p => p.guildId === selectedGuildId && (p.name.toLowerCase() === "favorites" || p.name.toLowerCase() === "liked songs"));
+                  if (!likedPl || !likedPl.tracks || likedPl.tracks.length === 0) {
+                    return (
+                      <div className="dz-empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <h3>No liked songs yet</h3>
+                        <p>Songs you like will appear here.</p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="dz-tracks">
+                      <div className="dz-tracks-header">
+                        <div className="dz-col-id">#</div>
+                        <div className="dz-col-title">Title</div>
+                        <div className="dz-col-artist">Artist</div>
+                        <div className="dz-col-actions-h"></div>
+                        <div className="dz-col-dur">Duration</div>
+                      </div>
+                      <div className="dz-tracks-list">
+                        {likedPl.tracks.map((track, idx) => (
+                          <div key={idx} className="dz-track-row"
+                            onClick={() => sendControl("play", track.uri || track.title, { voiceChannelId: selectedVoiceChannel })}>
+                            <div className="dz-col-id">
+                              <span className="dz-track-idx">{idx + 1}</span>
+                              <button className="dz-track-play-btn" aria-label={`Play ${track.title}`}
+                                disabled={controlLoading || !selectedVoiceChannel}
+                                onClick={e => { e.stopPropagation(); sendControl("play", track.uri || track.title, { voiceChannelId: selectedVoiceChannel }); }}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                              </button>
+                            </div>
+                            <div className="dz-col-title">
+                              <div className="dz-track-thumb">
+                                {track.artwork
+                                  ? <img src={track.artwork} alt="" />
+                                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                                }
+                              </div>
+                              <span className="dz-track-name">{track.title}</span>
+                            </div>
+                            <div className="dz-col-artist">{track.author}</div>
+                            <div className="dz-col-actions-h">
+                              <button className="dz-track-heart-btn" onClick={e => {
+                                e.stopPropagation();
+                                // future: unlike functionality
+                              }} style={{color: "var(--brand)"}}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                              </button>
+                            </div>
+                            <div className="dz-col-dur">{formatTime(track.length)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()
               )}
               {activeView === "artists" && (
                 <div className="dz-empty-state">

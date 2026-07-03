@@ -1573,7 +1573,7 @@
   flex-shrink: 0;
 }
 
-.sr-save-btn {
+.sr-save-btn, .sr-queue-btn {
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -1587,13 +1587,19 @@
   opacity: 0;
 }
 
-.sr-song-row:hover .sr-save-btn {
+.sr-song-row:hover .sr-save-btn,
+.sr-song-row:hover .sr-queue-btn {
   opacity: 1;
 }
 
 .sr-save-btn:hover {
   color: var(--green);
   background: rgba(30, 215, 96, 0.1);
+}
+
+.sr-queue-btn:hover {
+  color: var(--brand);
+  background: rgba(var(--brand-rgb, 255, 255, 255), 0.1);
 }
 
 .sr-song-dur {
