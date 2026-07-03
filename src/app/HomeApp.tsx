@@ -1783,6 +1783,7 @@ const menuUrls: Record<ActiveMenu, string> = {
   templates: "/message-templates",
   sneak: "/sneak-peek",
   daybreak: "/daybreak-island",
+  playerDetails: "/player-profile",
   dreamscape: "/dreamscape-memory",
   bot: "/discord-bot",
   music: "/music",
