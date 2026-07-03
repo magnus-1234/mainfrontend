@@ -1,1 +1,0 @@
-import { NextResponse } from "next/server";`n`nexport async function GET() {`n  return NextResponse.json({`n    MUSIC_BOT_API_URL: process.env.MUSIC_BOT_API_URL,`n    BOT_API_SECRET: process.env.MUSIC_API_SECRET,`n    DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,`n    MUSIC_DISCORD_CLIENT_ID: process.env.MUSIC_DISCORD_CLIENT_ID`n  });`n}
