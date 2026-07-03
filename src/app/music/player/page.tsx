@@ -70,7 +70,6 @@ const formatTime = (ms: number) => {
 };
 
 const DISCORD_LOGIN_URL = "/api/auth/discord-music?returnTo=/music/player";
-
 const fallbackGuildIcon = "https://cdn.discordapp.com/embed/avatars/0.png";
 
 const guildFromId = (guildId: string): Guild => ({
@@ -78,6 +77,20 @@ const guildFromId = (guildId: string): Guild => ({
   name: `Server ${guildId}`,
   iconUrl: fallbackGuildIcon,
 });
+
+// Search suggestion chips (YT Music style)
+const SEARCH_SUGGESTIONS = [
+  "lofi hip hop",
+  "phonk",
+  "trending",
+  "chill vibes",
+  "workout",
+  "bollywood hits",
+  "K-pop",
+  "EDM",
+  "jazz",
+  "classical",
+];
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────
 
@@ -107,7 +120,7 @@ function DiscordLoginScreen() {
         <div className="login-features">
           <div className="login-feature">
             <span className="feature-icon">🎵</span>
-            <span>View & browse playlists</span>
+            <span>View &amp; browse playlists</span>
           </div>
           <div className="login-feature">
             <span className="feature-icon">▶️</span>
@@ -115,11 +128,11 @@ function DiscordLoginScreen() {
           </div>
           <div className="login-feature">
             <span className="feature-icon">🎚️</span>
-            <span>Control volume & loop</span>
+            <span>Control volume &amp; loop</span>
           </div>
           <div className="login-feature">
             <span className="feature-icon">📡</span>
-            <span>Live queue & now playing</span>
+            <span>Live queue &amp; now playing</span>
           </div>
         </div>
       </div>
@@ -149,6 +162,138 @@ function PlayingBars() {
   return (
     <div className="playing-bars">
       <i /><i /><i />
+    </div>
+  );
+}
+
+// ── Real-time Progress Bar ────────────────────────────────────────────────────
+function ProgressBar({
+  nowPlaying,
+}: {
+  nowPlaying: NowPlaying | null;
+}) {
+  const [localPosition, setLocalPosition] = useState(0);
+  const startRef = useRef<{ position: number; ts: number } | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const track = nowPlaying?.currentTrack;
+  const isPlaying = nowPlaying?.playing && !nowPlaying?.paused;
+  const duration = track?.length ?? 0;
+  const serverPosition = track?.position ?? 0;
+  const updatedAt = nowPlaying?.updatedAt ?? Date.now();
+
+  // Sync local position whenever server reports new data
+  useEffect(() => {
+    if (!track) { setLocalPosition(0); return; }
+    const pos = serverPosition + (isPlaying ? Date.now() - updatedAt : 0);
+    startRef.current = { position: pos, ts: Date.now() };
+    setLocalPosition(Math.min(pos, duration));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track?.title, serverPosition, updatedAt, isPlaying]);
+
+  // Tick forward when playing
+  useEffect(() => {
+    if (!isPlaying || !duration) return;
+    const tick = () => {
+      if (!startRef.current) return;
+      const elapsed = Date.now() - startRef.current.ts;
+      const pos = startRef.current.position + elapsed;
+      setLocalPosition(Math.min(pos, duration));
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [isPlaying, duration, track?.title]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const percent = duration > 0 ? Math.min((localPosition / duration) * 100, 100) : 0;
+
+  return (
+    <div className="np-progress">
+      <span className="time">{formatTime(localPosition)}</span>
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: `${percent}%` }} />
+        <div className="progress-thumb" style={{ left: `calc(${percent}% - 6px)` }} />
+      </div>
+      <span className="time">{duration > 0 ? formatTime(duration) : "Live"}</span>
+    </div>
+  );
+}
+
+// ── YT-Music style Search Bar ─────────────────────────────────────────────────
+function SearchBar({
+  songQuery,
+  setSongQuery,
+  onSearch,
+  disabled,
+}: {
+  songQuery: string;
+  setSongQuery: (v: string) => void;
+  onSearch: () => void;
+  disabled: boolean;
+}) {
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleChip = (chip: string) => {
+    setSongQuery(chip);
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className={`search-wrapper ${focused ? "focused" : ""}`}>
+      <div className="search-bar">
+        <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          className="search-input"
+          placeholder="Search songs, artists, URLs…"
+          value={songQuery}
+          onChange={(e) => setSongQuery(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && songQuery && !disabled) onSearch();
+          }}
+        />
+        {songQuery && (
+          <button className="search-clear" onClick={() => setSongQuery("")} tabIndex={-1}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
+        <button
+          className="search-submit-btn"
+          disabled={!songQuery || disabled}
+          onClick={onSearch}
+        >
+          {disabled ? (
+            <div className="spinner-sm" />
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 3l14 9-14 9V3z" />
+            </svg>
+          )}
+          Play
+        </button>
+      </div>
+      {/* Suggestion chips */}
+      {(focused || !songQuery) && (
+        <div className="search-suggestions">
+          {SEARCH_SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              className={`suggestion-chip ${songQuery === s ? "active" : ""}`}
+              onMouseDown={() => handleChip(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -246,14 +391,10 @@ export default function MusicPlayerPage() {
         const playlistData = await playlistsRes.json().catch(() => ({ playlists: [], guilds: [] }));
         const guildData = await guildsRes.json().catch(() => ({ guilds: [] }));
 
-        // Bot guilds (servers the bot is in)
         const botGuilds: Guild[] = Array.isArray(guildData.guilds) ? guildData.guilds : [];
-
-        // User guilds from session
         const userGuilds = user.musicGuilds || [];
         const botGuildIds = new Set(botGuilds.map((g) => g.id));
 
-        // Only show guilds where BOTH user is a member AND bot is present
         const intersectedGuilds: Guild[] = userGuilds
           .filter((g) => botGuildIds.has(g.id))
           .map((g) => {
@@ -268,7 +409,6 @@ export default function MusicPlayerPage() {
             };
           });
 
-        // Also include guilds that have playlists (fallback)
         const playlistGuildIds: string[] = playlistData.guilds || [];
         const guildMap = new Map<string, Guild>();
         for (const guild of intersectedGuilds) {
@@ -317,6 +457,8 @@ export default function MusicPlayerPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        // stamp client-side updatedAt for progress interpolation
+        data.updatedAt = Date.now();
         setNowPlaying(data);
         if (data.volume != null) setVolume(data.volume);
       }
@@ -495,14 +637,8 @@ export default function MusicPlayerPage() {
           </div>
         )}
 
-        {/* Sidebar nav */}
+        {/* Sidebar nav — Queue only (Library removed) */}
         <nav className="sidebar-nav">
-          <div className="nav-item active">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-            </svg>
-            Library
-          </div>
           <div
             className={`nav-item ${showQueue ? "active" : ""}`}
             onClick={() => setShowQueue(!showQueue)}
@@ -619,47 +755,33 @@ export default function MusicPlayerPage() {
             </div>
           )}
 
-          {/* PLAY CONTROLS */}
+          {/* ── SEARCH & PLAY CARD ── */}
           <div className="play-controls-card">
-             <div className="play-controls-row">
-                <div className="control-select-group">
-                  <label>Voice channel</label>
-                  <select 
-                    className="channel-select" 
-                    value={selectedVoiceChannel}
-                    onChange={(e) => setSelectedVoiceChannel(e.target.value)}
-                  >
-                     {voiceChannels.length === 0 && <option value="">No voice channels</option>}
-                     {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
-                  </select>
-                </div>
-                <input 
-                  type="text" 
-                  className="play-input" 
-                  placeholder="Search for a song or paste URL..." 
-                  value={songQuery}
-                  onChange={(e) => setSongQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && songQuery) {
-                      sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
-                      setSongQuery("");
-                    }
-                  }}
-                />
-                <button 
-                  className="btn-primary" 
-                  disabled={!songQuery || !selectedVoiceChannel || controlLoading}
-                  onClick={() => {
-                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
-                     setSongQuery("");
-                  }}
+            <div className="play-controls-top">
+              <div className="control-select-group">
+                <label>Voice channel</label>
+                <select
+                  className="channel-select"
+                  value={selectedVoiceChannel}
+                  onChange={(e) => setSelectedVoiceChannel(e.target.value)}
                 >
-                  {controlLoading ? "..." : "Play"}
-                </button>
-             </div>
+                  {voiceChannels.length === 0 && <option value="">No voice channels</option>}
+                  {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <SearchBar
+              songQuery={songQuery}
+              setSongQuery={setSongQuery}
+              disabled={!selectedVoiceChannel || controlLoading}
+              onSearch={() => {
+                if (songQuery) {
+                  sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
+                  setSongQuery("");
+                }
+              }}
+            />
           </div>
-
-
 
           {activePlaylist ? (
             <>
@@ -806,20 +928,21 @@ export default function MusicPlayerPage() {
         </div>
       </main>
 
-      {/* ── Now Playing Bar ── */}
+      {/* ── Now Playing Bar (Premium Redesign) ── */}
       <footer className="now-playing-bar">
-        {/* Track info */}
+        {/* Track info with artwork */}
         <div className="np-track-info">
           {displayTrack ? (
             <>
               <div className="np-art">
                 {displayTrack.artwork ? (
-                  <img src={displayTrack.artwork} alt={displayTrack.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }} />
+                  <img src={displayTrack.artwork} alt={displayTrack.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 6 }} />
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
                   </svg>
                 )}
+                {isPlaying && <div className="np-art-overlay"><PlayingBars /></div>}
               </div>
               <div className="np-text">
                 <div className="np-title">{displayTrack.title}</div>
@@ -839,9 +962,26 @@ export default function MusicPlayerPage() {
           )}
         </div>
 
-        {/* Playback controls */}
+        {/* Playback controls + real-time progress */}
         <div className="np-controls">
           <div className="np-buttons">
+            <button
+              className="icon-btn"
+              onClick={() => {
+                const next = loopMode === "off" ? "queue" : loopMode === "queue" ? "track" : "off";
+                sendControl("loop", next);
+              }}
+              title={`Loop: ${loopMode}`}
+              disabled={controlLoading}
+              style={{ color: loopMode !== "off" ? "#1db954" : undefined }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" />
+              </svg>
+              {loopMode === "track" && <span className="loop-label">1</span>}
+            </button>
+
             <button
               className="play-pause-btn"
               onClick={() => sendControl(isPlaying ? "pause" : "resume")}
@@ -860,11 +1000,13 @@ export default function MusicPlayerPage() {
                 </svg>
               )}
             </button>
+
             <button className="icon-btn" onClick={() => sendControl("skip")} disabled={controlLoading} title="Skip">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 4 15 12 5 20 5 4" /><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" />
               </svg>
             </button>
+
             <button className="icon-btn" onClick={() => sendControl("stop")} disabled={controlLoading} title="Stop">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -872,10 +1014,11 @@ export default function MusicPlayerPage() {
             </button>
           </div>
 
-          {/* No progress bar — seek not supported */}
+          {/* Real-time progress bar */}
+          <ProgressBar nowPlaying={nowPlaying} />
         </div>
 
-        {/* Volume + extras */}
+        {/* Volume + queue */}
         <div className="np-extra">
           <button
             className={`icon-btn queue-toggle ${showQueue ? "active" : ""}`}
