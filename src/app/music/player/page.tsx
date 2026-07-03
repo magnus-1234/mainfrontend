@@ -762,7 +762,6 @@ export default function MusicPlayerPage() {
                                   event.stopPropagation();
                                   sendControl("play", track.uri || track.title, {
                                     voiceChannelId: selectedVoiceChannel,
-                                    textChannelId: selectedTextChannel,
                                   });
                                 }}
                               >
