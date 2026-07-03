@@ -181,9 +181,7 @@ export default function MusicPlayerPage() {
 
   // Play form state
   const [voiceChannels, setVoiceChannels] = useState<{id: string, name: string}[]>([]);
-  const [textChannels, setTextChannels] = useState<{id: string, name: string}[]>([]);
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
-  const [selectedTextChannel, setSelectedTextChannel] = useState<string>("");
   const [songQuery, setSongQuery] = useState("");
 
   const fetchChannels = useCallback(async (guildId: string) => {
@@ -198,20 +196,17 @@ export default function MusicPlayerPage() {
       const data = await res.json();
       if (data.ok && data.voiceChannels) {
         const voices = data.voiceChannels || [];
-        const texts = data.textChannels || [];
         setVoiceChannels(voices);
-        setTextChannels(texts);
         if (voices.length > 0) setSelectedVoiceChannel((current) => current || voices[0].id);
-        if (texts.length > 0) setSelectedTextChannel((current) => current || texts[0].id);
       }
     } catch {
       setVoiceChannels([]);
-      setTextChannels([]);
     }
   }, []);
 
   useEffect(() => {
     if (!selectedGuildId) return;
+    setSelectedVoiceChannel("");
     const timer = setTimeout(() => {
       void fetchChannels(selectedGuildId);
     }, 0);
@@ -250,24 +245,49 @@ export default function MusicPlayerPage() {
 
         const playlistData = await playlistsRes.json().catch(() => ({ playlists: [], guilds: [] }));
         const guildData = await guildsRes.json().catch(() => ({ guilds: [] }));
-        const loadedPlaylists: Playlist[] = playlistData.playlists || [];
+
+        // Bot guilds (servers the bot is in)
         const botGuilds: Guild[] = Array.isArray(guildData.guilds) ? guildData.guilds : [];
+
+        // User guilds from session
         const userGuilds = user.musicGuilds || [];
         const botGuildIds = new Set(botGuilds.map((g) => g.id));
+
+        // Only show guilds where BOTH user is a member AND bot is present
         const intersectedGuilds: Guild[] = userGuilds
           .filter((g) => botGuildIds.has(g.id))
-          .map((g) => ({ id: g.id, name: g.name, iconUrl: g.iconUrl }));
+          .map((g) => {
+            const botGuild = botGuilds.find((bg) => bg.id === g.id);
+            return {
+              id: g.id,
+              name: g.name,
+              iconUrl: g.iconUrl || botGuild?.iconUrl,
+              memberCount: botGuild?.memberCount,
+              voiceChannelCount: botGuild?.voiceChannelCount,
+              activeVoiceChannel: botGuild?.activeVoiceChannel,
+            };
+          });
 
-        const playlistGuilds = (playlistData.guilds || []).map((id: string) => guildFromId(id));
+        // Also include guilds that have playlists (fallback)
+        const playlistGuildIds: string[] = playlistData.guilds || [];
         const guildMap = new Map<string, Guild>();
-
-        if (guildData.error) {
-          setGlobalError(guildData.error);
-        }
-
-        for (const guild of [...intersectedGuilds, ...playlistGuilds]) {
+        for (const guild of intersectedGuilds) {
           if (guild?.id) guildMap.set(guild.id, guild);
         }
+        for (const gId of playlistGuildIds) {
+          if (!guildMap.has(gId)) {
+            const fromBot = botGuilds.find((g) => g.id === gId);
+            guildMap.set(gId, fromBot || guildFromId(gId));
+          }
+        }
+
+        const loadedPlaylists: Playlist[] = (playlistData.playlists || []).map((p: Playlist) => ({
+          ...p,
+          createdAt: p.createdAt || (p as unknown as {created_at?: string}).created_at || '',
+          updatedAt: p.updatedAt || (p as unknown as {updated_at?: string}).updated_at || '',
+        }));
+
+        if (guildData.error) setGlobalError(guildData.error);
 
         const mergedGuilds = Array.from(guildMap.values());
         setPlaylists(loadedPlaylists);
@@ -331,13 +351,12 @@ export default function MusicPlayerPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ action, guildId: selectedGuildId, value, ...extra }),
+          body: JSON.stringify({ action, guildId: selectedGuildId, value, voiceChannelId: selectedVoiceChannel, ...extra }),
         });
         const data = await res.json();
         if (!res.ok) {
           setControlError(data.error || "Command failed");
         } else {
-          // Refresh status after short delay
           setTimeout(() => fetchNowPlaying(selectedGuildId), 600);
         }
       } catch {
@@ -346,7 +365,7 @@ export default function MusicPlayerPage() {
         setControlLoading(false);
       }
     },
-    [selectedGuildId, fetchNowPlaying]
+    [selectedGuildId, selectedVoiceChannel, fetchNowPlaying]
   );
 
   // ── Derived state ──────────────────────────────────────────────────────────
@@ -467,7 +486,6 @@ export default function MusicPlayerPage() {
               onChange={(e) => {
                 setSelectedGuildId(e.target.value);
                 setSelectedVoiceChannel("");
-                setSelectedTextChannel("");
                 const first = playlists.find((p) => p.guildId === e.target.value);
                 setActivePlaylist(first || null);
               }}
@@ -619,17 +637,6 @@ export default function MusicPlayerPage() {
                      {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>{vc.name}</option>)}
                   </select>
                 </div>
-                <div className="control-select-group">
-                  <label>Music channel</label>
-                  <select 
-                    className="channel-select" 
-                    value={selectedTextChannel}
-                    onChange={(e) => setSelectedTextChannel(e.target.value)}
-                  >
-                     {textChannels.length === 0 && <option value="">No text channels</option>}
-                     {textChannels.map(tc => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
-                  </select>
-                </div>
                 <input 
                   type="text" 
                   className="play-input" 
@@ -638,7 +645,7 @@ export default function MusicPlayerPage() {
                   onChange={(e) => setSongQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && songQuery) {
-                      sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel, textChannelId: selectedTextChannel });
+                      sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
                       setSongQuery("");
                     }
                   }}
@@ -647,7 +654,7 @@ export default function MusicPlayerPage() {
                   className="btn-primary" 
                   disabled={!songQuery || !selectedVoiceChannel || controlLoading}
                   onClick={() => {
-                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel, textChannelId: selectedTextChannel });
+                     sendControl("play", songQuery, { voiceChannelId: selectedVoiceChannel });
                      setSongQuery("");
                   }}
                 >
@@ -683,7 +690,6 @@ export default function MusicPlayerPage() {
                   className={`play-all-btn ${controlLoading ? "loading" : ""}`}
                   onClick={() => sendControl("play_playlist", activePlaylist.name, {
                     voiceChannelId: selectedVoiceChannel,
-                    textChannelId: selectedTextChannel,
                     userId: user.discordUserId,
                   })}
                   title={`Play ${activePlaylist.name} in Discord`}
@@ -841,11 +847,6 @@ export default function MusicPlayerPage() {
         {/* Playback controls */}
         <div className="np-controls">
           <div className="np-buttons">
-            <button className="icon-btn" onClick={() => sendControl("previous")} disabled={controlLoading} title="Previous">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="19 20 9 12 19 4 19 20" /><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
             <button
               className="play-pause-btn"
               onClick={() => sendControl(isPlaying ? "pause" : "resume")}
@@ -876,23 +877,7 @@ export default function MusicPlayerPage() {
             </button>
           </div>
 
-          {/* Progress bar */}
-          <div className="np-progress">
-            <span className="time">
-              {displayTrack?.position ? formatTime(displayTrack.position) : "0:00"}
-            </span>
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{
-                  width: displayTrack?.length && displayTrack?.position
-                    ? `${Math.min(100, (displayTrack.position / displayTrack.length) * 100)}%`
-                    : "0%",
-                }}
-              />
-            </div>
-            <span className="time">{displayTrack ? formatTime(displayTrack.length) : "0:00"}</span>
-          </div>
+          {/* No progress bar — seek not supported */}
         </div>
 
         {/* Volume + extras */}
