@@ -56,6 +56,7 @@ type User = {
   avatarUrl?: string;
   discordUserId?: string;
   musicGuilds?: { id: string; name: string; iconUrl?: string; permissions: string }[];
+  providers?: string[];
 };
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
@@ -362,7 +363,7 @@ export default function MusicPlayerPage() {
 
   // ── Early returns ──────────────────────────────────────────────────────────
   if (authLoading) return <SkeletonLoader />;
-  if (!user) return <DiscordLoginScreen />;
+  if (!user || !user.providers?.includes('discord-music')) return <DiscordLoginScreen />;
 
   // ── Main UI ────────────────────────────────────────────────────────────────
   if (globalError) {
