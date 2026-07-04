@@ -8981,8 +8981,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     </div>
                     <div className="music-visual-info">
                       <div>
-                        <strong>{authUser ? `${musicPlaylists.length} Playlists Ready` : "Discord Login Required"}</strong>
-                        <span>Your personal music library awaits.</span>
+                        <strong>WOS Music Bot</strong>
                       </div>
                       <div className="music-wave" aria-hidden="true">
                         <i /><i /><i /><i /><i />
