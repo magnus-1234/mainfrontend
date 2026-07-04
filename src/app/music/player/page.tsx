@@ -1386,19 +1386,30 @@ export default function MusicPlayerPage() {
                   <h2 className="dz-view-title">Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"} 👋</h2>
 
                   {/* Genre Grid */}
-                  <div className="dz-section">
-                    <h2 className="dz-section-title">Choose a Genre</h2>
+                  <div className="dz-genre-container">
+                    <div className="dz-genre-header">
+                      <h2 className="dz-genre-title">Choose a genre to get started</h2>
+                      <p className="dz-genre-subtitle">Your playlist will evolve based on what you like or skip.</p>
+                    </div>
                     {discoverLoading && genres.length === 0 ? (
-                      <div className="dz-genre-grid">
+                      <div className="dz-genre-scroll">
                         {[1,2,3,4,5,6].map(i => <div key={i} className="dz-genre-skeleton" />)}
                       </div>
                     ) : (
-                      <div className="dz-genre-grid">
-                        {genres.map(g => (
-                          <button key={g.id} className="dz-genre-tile" style={{ background: g.color }} onClick={() => openGenre(g)}>
-                            <span className="dz-genre-name">{g.name}</span>
-                          </button>
-                        ))}
+                      <div className="dz-genre-scroll">
+                        {genres.map(g => {
+                          // Support multiple possible image keys if backend varies
+                          const imgUrl = g.thumb || (g as any).thumbnail || (g as any).image;
+                          return (
+                            <button key={g.id} className="dz-genre-card" onClick={() => openGenre(g)}>
+                              <div className="dz-genre-card-bg" style={{ background: g.color || '#333' }}></div>
+                              <div className="dz-genre-card-img">
+                                {imgUrl ? <img src={imgUrl} alt={g.name} /> : <div className="dz-genre-placeholder"></div>}
+                              </div>
+                              <span className="dz-genre-name">{g.name}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
