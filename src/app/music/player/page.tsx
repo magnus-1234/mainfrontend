@@ -400,10 +400,17 @@ export default function MusicPlayerPage() {
   
   const [serverDropdownOpen, setServerDropdownOpen] = useState(false);
   const serverDropdownRef = useRef<HTMLDivElement>(null);
+  
+  const [vcDropdownOpen, setVcDropdownOpen] = useState(false);
+  const vcDropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (serverDropdownRef.current && !serverDropdownRef.current.contains(e.target as Node)) {
         setServerDropdownOpen(false);
+      }
+      if (vcDropdownRef.current && !vcDropdownRef.current.contains(e.target as Node)) {
+        setVcDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -862,9 +869,36 @@ export default function MusicPlayerPage() {
             )}
             {/* Voice channel selector */}
             {voiceChannels.length > 0 && (
-              <select className="dz-vc-select" value={selectedVoiceChannel} onChange={e => setSelectedVoiceChannel(e.target.value)}>
-                {voiceChannels.map(vc => <option key={vc.id} value={vc.id}>#{vc.name}</option>)}
-              </select>
+              <div className="dz-server-dropdown-container" ref={vcDropdownRef}>
+                <button className="dz-server-dropdown-btn" onClick={() => setVcDropdownOpen(!vcDropdownOpen)}>
+                  {(() => {
+                    const activeVc = voiceChannels.find(vc => vc.id === selectedVoiceChannel);
+                    return activeVc ? (
+                      <div className="dz-server-dropdown-active">
+                        <span className="dz-server-dropdown-name" style={{ paddingLeft: "8px" }}>#{activeVc.name}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    ) : (
+                      <div className="dz-server-dropdown-active">
+                        <span className="dz-server-dropdown-name" style={{ paddingLeft: "8px" }}>Select Voice</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    );
+                  })()}
+                </button>
+                {vcDropdownOpen && (
+                  <div className="dz-server-dropdown-menu">
+                    {voiceChannels.map(vc => (
+                      <button key={vc.id} className={`dz-server-dropdown-item ${vc.id === selectedVoiceChannel ? "active" : ""}`} onClick={() => {
+                        setSelectedVoiceChannel(vc.id);
+                        setVcDropdownOpen(false);
+                      }}>
+                        <span className="dz-server-dropdown-name">#{vc.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             {/* User avatar */}
             <button className="dz-user-btn" title={`Signed in as ${user.displayName}`} onClick={async () => {
