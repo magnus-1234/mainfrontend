@@ -506,6 +506,9 @@ export default function MusicPlayerPage() {
   const [vcDropdownOpen, setVcDropdownOpen] = useState(false);
   const vcDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (serverDropdownRef.current && !serverDropdownRef.current.contains(e.target as Node)) {
@@ -513,6 +516,9 @@ export default function MusicPlayerPage() {
       }
       if (vcDropdownRef.current && !vcDropdownRef.current.contains(e.target as Node)) {
         setVcDropdownOpen(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
       }
       if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
         setContextMenu(null);
@@ -854,7 +860,11 @@ export default function MusicPlayerPage() {
   }
 
   if (!user || !user.providers?.includes('discord-music') || user.musicGuilds === undefined) {
-    return <DiscordLoginScreen />;
+    return (
+      <div className="dz-root">
+        <DiscordLoginScreen />
+      </div>
+    );
   }
 
   const totalTracks = filteredPlaylists.reduce((s, p) => s + p.trackCount, 0);
@@ -1076,15 +1086,28 @@ export default function MusicPlayerPage() {
               </div>
             )}
             {/* User avatar */}
-            <button className="dz-user-btn" title={`Signed in as ${user.displayName}`} onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              window.location.reload();
-            }}>
-              {user.avatarUrl
-                ? <img src={user.avatarUrl} alt={user.displayName} className="dz-avatar-img" />
-                : <div className="dz-avatar-placeholder">{user.displayName.charAt(0).toUpperCase()}</div>
-              }
-            </button>
+            <div className="dz-server-dropdown-container" ref={userDropdownRef}>
+              <button className="dz-user-btn" title={`Signed in as ${user.displayName}`} onClick={() => setUserDropdownOpen(!userDropdownOpen)}>
+                {user.avatarUrl
+                  ? <img src={user.avatarUrl} alt={user.displayName} className="dz-avatar-img" />
+                  : <div className="dz-avatar-placeholder">{user.displayName.charAt(0).toUpperCase()}</div>
+                }
+              </button>
+              {userDropdownOpen && (
+                <div className="dz-server-dropdown-menu" style={{ right: 0, left: "auto", top: "calc(100% + 8px)" }}>
+                  <div className="dz-server-dropdown-item" style={{ borderBottom: "1px solid var(--border)", pointerEvents: "none", opacity: 0.7 }}>
+                    <span className="dz-server-dropdown-name">{user.displayName}</span>
+                  </div>
+                  <button className="dz-server-dropdown-item" onClick={async () => {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    window.location.reload();
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span className="dz-server-dropdown-name" style={{ marginLeft: "8px" }}>Log out</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
