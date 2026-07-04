@@ -106,6 +106,64 @@ type HistoryEntry = {
   playedAt?: string | null;
 };
 
+type DiscoverSong = {
+  videoId: string;
+  title: string;
+  artist: string;
+  artistId?: string;
+  album?: string;
+  albumId?: string;
+  thumbnail?: string;
+  duration?: number;
+};
+
+type DiscoverAlbum = {
+  id: string;
+  playlistId?: string;
+  name: string;
+  artist: string;
+  artistId?: string;
+  year?: string | null;
+  thumbnail?: string;
+  type?: string;
+};
+
+type GenreItem = {
+  id: string;
+  name: string;
+  query: string;
+  color: string;
+  thumb?: string;
+};
+
+type ArtistData = {
+  id: string;
+  name: string;
+  description?: string;
+  subscribers?: string;
+  thumbnail?: string;
+  songs: DiscoverSong[];
+  albums: DiscoverAlbum[];
+};
+
+type AlbumData = {
+  id: string;
+  name: string;
+  artist: string;
+  artistId?: string;
+  year?: string | null;
+  description?: string;
+  thumbnail?: string;
+  trackCount: number;
+  tracks: DiscoverSong[];
+};
+
+type ContextMenuState = {
+  x: number;
+  y: number;
+  song: DiscoverSong;
+} | null;
+
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
@@ -335,7 +393,7 @@ function SearchResultsPanel({
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-type ActiveView = "home" | "playlists" | "liked" | "artists" | "albums" | "history" | "playlist-detail" | "search";
+type ActiveView = "home" | "playlists" | "liked" | "artists" | "albums" | "history" | "playlist-detail" | "search" | "artist-detail" | "album-detail" | "genre-detail";
 
 export default function MusicPlayerPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -351,11 +409,24 @@ export default function MusicPlayerPage() {
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(50);
   const [songQuery, setSongQuery] = useState("");
-  const [activeView, setActiveView] = useState<ActiveView>("playlists");
+  const [activeView, setActiveView] = useState<ActiveView>("home");
   const [voiceChannels, setVoiceChannels] = useState<{id:string;name:string}[]>([]);
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Discovery state
+  const [discoverNewReleases, setDiscoverNewReleases] = useState<DiscoverAlbum[]>([]);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
+  const [genres, setGenres] = useState<GenreItem[]>([]);
+  const [artistData, setArtistData] = useState<ArtistData | null>(null);
+  const [artistLoading, setArtistLoading] = useState(false);
+  const [albumData, setAlbumData] = useState<AlbumData | null>(null);
+  const [albumLoading, setAlbumLoading] = useState(false);
+  const [genreSongs, setGenreSongs] = useState<DiscoverSong[]>([]);
+  const [currentGenre, setCurrentGenre] = useState<GenreItem | null>(null);
+  const [genreLoading, setGenreLoading] = useState(false);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Search state
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
@@ -411,6 +482,9 @@ export default function MusicPlayerPage() {
       }
       if (vcDropdownRef.current && !vcDropdownRef.current.contains(e.target as Node)) {
         setVcDropdownOpen(false);
+      }
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -566,6 +640,74 @@ export default function MusicPlayerPage() {
     fetchHistory();
   }, [activeView, selectedGuildId]);
 
+
+  // Fetch Discover home data when home view is opened
+  useEffect(() => {
+    if (activeView !== "home") return;
+    if (discoverNewReleases.length > 0 && genres.length > 0) return;
+    const fetchDiscover = async () => {
+      setDiscoverLoading(true);
+      try {
+        const [homeRes, genresRes] = await Promise.all([
+          fetch("/api/music/home"),
+          fetch("/api/music/genres"),
+        ]);
+        if (homeRes.ok) {
+          const data = await homeRes.json();
+          setDiscoverNewReleases(data.newReleases ?? []);
+        }
+        if (genresRes.ok) {
+          const data = await genresRes.json();
+          setGenres(data.genres ?? []);
+        }
+      } catch {} finally { setDiscoverLoading(false); }
+    };
+    fetchDiscover();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView]);
+
+  const openArtist = async (artistId: string) => {
+    if (!artistId) return;
+    setActiveView("artist-detail");
+    setArtistData(null);
+    setArtistLoading(true);
+    try {
+      const res = await fetch(`/api/music/artist?id=${encodeURIComponent(artistId)}`);
+      if (res.ok) setArtistData(await res.json());
+    } catch {} finally { setArtistLoading(false); }
+  };
+
+  const openAlbum = async (albumId: string) => {
+    if (!albumId) return;
+    setActiveView("album-detail");
+    setAlbumData(null);
+    setAlbumLoading(true);
+    try {
+      const res = await fetch(`/api/music/album?id=${encodeURIComponent(albumId)}`);
+      if (res.ok) setAlbumData(await res.json());
+    } catch {} finally { setAlbumLoading(false); }
+  };
+
+  const openGenre = async (genre: GenreItem) => {
+    setCurrentGenre(genre);
+    setActiveView("genre-detail");
+    setGenreSongs([]);
+    setGenreLoading(true);
+    try {
+      const res = await fetch(`/api/music/genres?genre=${encodeURIComponent(genre.id)}`);
+      if (res.ok) { const data = await res.json(); setGenreSongs(data.tracks ?? []); }
+    } catch {} finally { setGenreLoading(false); }
+  };
+
+  const openContextMenu = (e: React.MouseEvent, song: DiscoverSong) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, song });
+  };
+
+  const playDiscoverSong = (song: DiscoverSong) => {
+    sendControl("play", `https://www.youtube.com/watch?v=${song.videoId}`, { voiceChannelId: selectedVoiceChannel });
+  };
 
   const fetchNowPlaying = useCallback(async (guildId: string) => {
     if (!guildId) return;
@@ -1185,10 +1327,51 @@ export default function MusicPlayerPage() {
             <div className="dz-view">
               {activeView === "home" && (
                 <>
+                  <h2 className="dz-view-title">Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"} 👋</h2>
+
+                  {/* Genre Grid */}
+                  <div className="dz-section">
+                    <h2 className="dz-section-title">Choose a Genre</h2>
+                    {discoverLoading && genres.length === 0 ? (
+                      <div className="dz-genre-grid">
+                        {[1,2,3,4,5,6].map(i => <div key={i} className="dz-genre-skeleton" />)}
+                      </div>
+                    ) : (
+                      <div className="dz-genre-grid">
+                        {genres.map(g => (
+                          <button key={g.id} className="dz-genre-tile" style={{ background: g.color }} onClick={() => openGenre(g)}>
+                            <span className="dz-genre-name">{g.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* New Releases */}
+                  {(discoverNewReleases.length > 0 || discoverLoading) && (
+                    <div className="dz-section">
+                      <h2 className="dz-section-title">New Releases</h2>
+                      <div className="dz-card-row">
+                        {discoverLoading && discoverNewReleases.length === 0
+                          ? [1,2,3,4,5].map(i => <div key={i} className="dz-music-card-skeleton" />)
+                          : discoverNewReleases.map((album, i) => (
+                          <button key={i} className="dz-music-card" onClick={() => openAlbum(album.id)}>
+                            {album.thumbnail
+                              ? <img src={album.thumbnail} alt={album.name} className="dz-music-card-thumb" />
+                              : <div className="dz-music-card-thumb" style={{ background: "var(--bg-elevated)" }} />}
+                            <div className="dz-music-card-name">{album.name}</div>
+                            <div className="dz-music-card-sub">{album.artist}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Your Playlists */}
                   {filteredPlaylists.length > 0 && (
                     <div className="dz-section">
                       <div className="dz-section-header">
-                        <h2 className="dz-section-title">Playlists</h2>
+                        <h2 className="dz-section-title">Your Playlists</h2>
                         <button className="dz-show-all" onClick={() => setActiveView("playlists")}>Show All</button>
                       </div>
                       <div className="dz-home-pl-list">
@@ -1266,6 +1449,139 @@ export default function MusicPlayerPage() {
                     </div>
                   );
                 })()
+              )}
+              {activeView === "artist-detail" && (
+                artistLoading || !artistData ? (
+                  <div className="dz-empty-state"><div className="dz-spinner" /><p>Loading artist…</p></div>
+                ) : (
+                  <div className="dz-discover-view">
+                    <div className="dz-artist-hero">
+                      {artistData.thumbnail
+                        ? <img src={artistData.thumbnail} alt={artistData.name} className="dz-artist-hero-img" />
+                        : <div className="dz-artist-hero-placeholder"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>
+                      }
+                      <div className="dz-artist-hero-info">
+                        <span className="dz-hero-label">ARTIST</span>
+                        <h1 className="dz-playlist-title">{artistData.name}</h1>
+                        {artistData.subscribers && <p className="dz-artist-subs">{artistData.subscribers}</p>}
+                      </div>
+                    </div>
+                    {artistData.songs.length > 0 && (
+                      <div className="dz-section">
+                        <h2 className="dz-section-title">Popular</h2>
+                        <div className="dz-tracks-list">
+                          {artistData.songs.map((s, i) => (
+                            <div key={i} className="dz-track-row" onClick={() => playDiscoverSong(s)} onContextMenu={e => openContextMenu(e, s)}>
+                              <div className="dz-col-id"><span className="dz-track-idx">{i+1}</span>
+                                <button className="dz-track-play-btn" onClick={e => { e.stopPropagation(); playDiscoverSong(s); }} disabled={controlLoading || !selectedVoiceChannel}><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></button>
+                              </div>
+                              <div className="dz-col-title">
+                                <div className="dz-track-thumb">{s.thumbnail ? <img src={s.thumbnail} alt="" /> : null}</div>
+                                <span className="dz-track-name">{s.title}</span>
+                              </div>
+                              <div className="dz-col-artist" style={{cursor:s.albumId?"pointer":undefined}} onClick={e => { e.stopPropagation(); if(s.albumId) openAlbum(s.albumId); }}>{s.album}</div>
+                              <div className="dz-col-dur">{s.duration ? formatTime(s.duration) : ""}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {artistData.albums.length > 0 && (
+                      <div className="dz-section">
+                        <h2 className="dz-section-title">Discography</h2>
+                        <div className="dz-card-row">
+                          {artistData.albums.map((a, i) => (
+                            <button key={i} className="dz-music-card" onClick={() => openAlbum(a.id)}>
+                              {a.thumbnail ? <img src={a.thumbnail} alt={a.name} className="dz-music-card-thumb" /> : <div className="dz-music-card-thumb" style={{background:"var(--bg-elevated)"}} />}
+                              <div className="dz-music-card-name">{a.name}</div>
+                              <div className="dz-music-card-sub">{a.year ?? a.type ?? "Album"}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+              {activeView === "album-detail" && (
+                albumLoading || !albumData ? (
+                  <div className="dz-empty-state"><div className="dz-spinner" /><p>Loading album…</p></div>
+                ) : (
+                  <div className="dz-discover-view">
+                    <div className="dz-playlist-hero">
+                      <div className="dz-playlist-cover" style={albumData.thumbnail ? { backgroundImage: `url(${albumData.thumbnail})`, backgroundSize:"cover", backgroundPosition:"center" } : { background:"var(--bg-elevated)" }}>
+                        {!albumData.thumbnail && <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>}
+                      </div>
+                      <div className="dz-playlist-hero-info">
+                        <span className="dz-hero-label">ALBUM</span>
+                        <h1 className="dz-playlist-title">{albumData.name}</h1>
+                        <div className="dz-playlist-meta">
+                          <span className="dz-meta-author" style={{cursor:albumData.artistId?"pointer":undefined}} onClick={() => { if(albumData.artistId) openArtist(albumData.artistId); }}>{albumData.artist}</span>
+                          {albumData.year && <><span className="dz-meta-sep">·</span><span>{albumData.year}</span></>}
+                          <span className="dz-meta-sep">·</span><span>{albumData.trackCount} songs</span>
+                        </div>
+                        <div style={{display:"flex",gap:"12px",marginTop:"16px"}}>
+                          <button className="dz-play-btn" onClick={() => { if(albumData.tracks[0]) playDiscoverSong(albumData.tracks[0]); }} disabled={controlLoading || !selectedVoiceChannel}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                            Play
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="dz-tracks">
+                      <div className="dz-tracks-header">
+                        <div className="dz-col-id">#</div><div className="dz-col-title">Title</div><div className="dz-col-artist">Artist</div><div className="dz-col-dur">Duration</div>
+                      </div>
+                      <div className="dz-tracks-list">
+                        {albumData.tracks.map((t, i) => (
+                          <div key={i} className="dz-track-row" onClick={() => playDiscoverSong(t)} onContextMenu={e => openContextMenu(e, t)}>
+                            <div className="dz-col-id"><span className="dz-track-idx">{i+1}</span>
+                              <button className="dz-track-play-btn" onClick={e => { e.stopPropagation(); playDiscoverSong(t); }} disabled={controlLoading || !selectedVoiceChannel}><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></button>
+                            </div>
+                            <div className="dz-col-title">
+                              <div className="dz-track-thumb">{t.thumbnail ? <img src={t.thumbnail} alt="" /> : null}</div>
+                              <span className="dz-track-name">{t.title}</span>
+                            </div>
+                            <div className="dz-col-artist">{t.artist}</div>
+                            <div className="dz-col-dur">{t.duration ? formatTime(t.duration) : ""}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+              {activeView === "genre-detail" && currentGenre && (
+                <div className="dz-discover-view">
+                  <div className="dz-genre-hero" style={{ background: currentGenre.color }}>
+                    <h1 className="dz-playlist-title">{currentGenre.name}</h1>
+                    <p style={{color:"rgba(255,255,255,0.8)",marginTop:"8px"}}>Top tracks in {currentGenre.name}</p>
+                  </div>
+                  {genreLoading ? (
+                    <div className="dz-empty-state"><div className="dz-spinner" /><p>Loading tracks…</p></div>
+                  ) : (
+                    <div className="dz-tracks">
+                      <div className="dz-tracks-header">
+                        <div className="dz-col-id">#</div><div className="dz-col-title">Title</div><div className="dz-col-artist">Artist</div><div className="dz-col-dur">Duration</div>
+                      </div>
+                      <div className="dz-tracks-list">
+                        {genreSongs.map((s, i) => (
+                          <div key={i} className="dz-track-row" onClick={() => playDiscoverSong(s)} onContextMenu={e => openContextMenu(e, s)}>
+                            <div className="dz-col-id"><span className="dz-track-idx">{i+1}</span>
+                              <button className="dz-track-play-btn" onClick={e => { e.stopPropagation(); playDiscoverSong(s); }} disabled={controlLoading || !selectedVoiceChannel}><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></button>
+                            </div>
+                            <div className="dz-col-title">
+                              <div className="dz-track-thumb">{s.thumbnail ? <img src={s.thumbnail} alt="" /> : null}</div>
+                              <span className="dz-track-name">{s.title}</span>
+                            </div>
+                            <div className="dz-col-artist" style={{cursor:s.artistId?"pointer":undefined}} onClick={e => { e.stopPropagation(); if(s.artistId) openArtist(s.artistId); }}>{s.artist}</div>
+                            <div className="dz-col-dur">{s.duration ? formatTime(s.duration) : ""}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
               {activeView === "artists" && (
                 <div className="dz-empty-state">
@@ -1422,9 +1738,59 @@ export default function MusicPlayerPage() {
               <span className="dz-volume-label">{volume}%</span>
             </div>
           </div>
-
         </footer>
       </div>
+
+      {/* ── Context Menu ── */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="dz-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          {/* Song header */}
+          <div className="dz-ctx-header">
+            {contextMenu.song.thumbnail && <img src={contextMenu.song.thumbnail} alt="" className="dz-ctx-thumb" />}
+            <div className="dz-ctx-song-info">
+              <div className="dz-ctx-song-title">{contextMenu.song.title}</div>
+              <div className="dz-ctx-song-artist">{contextMenu.song.artist}</div>
+            </div>
+          </div>
+          <div className="dz-ctx-divider" />
+          <button className="dz-ctx-item" onClick={() => { playDiscoverSong(contextMenu.song); setContextMenu(null); }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+            Play Now
+          </button>
+          <button className="dz-ctx-item" onClick={() => { sendControl("play", `https://www.youtube.com/watch?v=${contextMenu.song.videoId}`, {}); setContextMenu(null); }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Add to Queue
+          </button>
+          <button className="dz-ctx-item" onClick={() => { navigator.clipboard?.writeText(`https://www.youtube.com/watch?v=${contextMenu.song.videoId}`); setContextMenu(null); }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Track Link
+          </button>
+          {contextMenu.song.albumId && (
+            <>
+              <div className="dz-ctx-divider" />
+              <div className="dz-ctx-label">ALBUM</div>
+              <button className="dz-ctx-item" onClick={() => { if(contextMenu.song.albumId) openAlbum(contextMenu.song.albumId); setContextMenu(null); }}>
+                {contextMenu.song.thumbnail && <img src={contextMenu.song.thumbnail} alt="" className="dz-ctx-item-thumb" />}
+                <span>{contextMenu.song.album || "View Album"}</span>
+              </button>
+            </>
+          )}
+          {contextMenu.song.artistId && (
+            <>
+              <div className="dz-ctx-divider" />
+              <div className="dz-ctx-label">ARTIST</div>
+              <button className="dz-ctx-item" onClick={() => { if(contextMenu.song.artistId) openArtist(contextMenu.song.artistId); setContextMenu(null); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                <span>{contextMenu.song.artist}</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
