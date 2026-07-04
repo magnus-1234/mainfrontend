@@ -282,16 +282,17 @@ function ProgressBar({ nowPlaying }: { nowPlaying: NowPlaying | null }) {
 
 // ── Search Results Panel ─────────────────────────────────────────────────────
 function SearchResultsPanel({
-  results, loading, query, onPlaySong, onPlayAlbum, onPlayArtist, onSaveSong, onClose,
+  results, loading, query, onPlaySong, onPlayAlbum, onPlayArtist, onSaveSong, onClose, onContextMenu,
 }: {
   results: SearchResults | null;
   loading: boolean;
   query: string;
-  onPlaySong: (song: SearchSong) => void;
+  onPlaySong: (song: SearchSong, action?: "play" | "play_now") => void;
   onPlayAlbum: (album: SearchAlbum) => void;
   onPlayArtist: (artist: SearchArtist) => void;
   onSaveSong: (song: SearchSong) => void;
   onClose: () => void;
+  onContextMenu?: (e: React.MouseEvent, song: SearchSong) => void;
 }) {
   if (!query || query.length < 2) return null;
 
@@ -315,8 +316,8 @@ function SearchResultsPanel({
         <div className="sr-section">
           <div className="sr-section-title">Songs</div>
           {results!.songs.map((song) => (
-            <div key={song.videoId} className="sr-song-row">
-              <button className="sr-thumb" onClick={() => onPlaySong(song)}>
+            <div key={song.videoId} className="sr-song-row" onContextMenu={e => onContextMenu?.(e, song)}>
+              <button className="sr-thumb" onClick={() => onPlaySong(song, "play_now")}>
                 {song.thumbnail
                   ? <img src={song.thumbnail} alt={song.title} />
                   : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -325,7 +326,7 @@ function SearchResultsPanel({
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
                 </div>
               </button>
-              <div className="sr-song-info" onClick={() => onPlaySong(song)} style={{cursor:"pointer"}}>
+              <div className="sr-song-info" onClick={() => onPlaySong(song, "play_now")} style={{cursor:"pointer"}}>
                 <div className="sr-song-title">{song.title}</div>
                 <div className="sr-song-meta">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{color:"#ff0000",flexShrink:0}}><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.19a8.24 8.24 0 0 0 4.83 1.55V6.3a4.85 4.85 0 0 1-1.06-.39z"/></svg>
@@ -336,11 +337,14 @@ function SearchResultsPanel({
                 <button className="sr-save-btn" onClick={(e) => { e.stopPropagation(); onSaveSong(song); }} title="Save to Favorites">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 </button>
-                <button className="sr-queue-btn" onClick={(e) => { e.stopPropagation(); onPlaySong(song); }} title="Add to Queue">
+                <button className="sr-queue-btn" onClick={(e) => { e.stopPropagation(); onPlaySong(song, "play"); }} title="Add to Queue">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
+                </button>
+                <button className="sr-queue-btn" style={{marginLeft:"8px"}} onClick={(e) => { e.stopPropagation(); onPlaySong(song, "play_now"); }} title="Play Now">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
                 </button>
                 {song.duration && <span className="sr-song-dur">{song.duration}</span>}
               </div>
@@ -699,14 +703,15 @@ export default function MusicPlayerPage() {
     } catch {} finally { setGenreLoading(false); }
   };
 
-  const openContextMenu = (e: React.MouseEvent, song: DiscoverSong) => {
+  const openContextMenu = (e: React.MouseEvent, song: DiscoverSong | SearchSong) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, song });
+    // Use type assertion, duration types differ but for context menu it's okay
+    setContextMenu({ x: e.clientX, y: e.clientY, song: song as DiscoverSong });
   };
 
-  const playDiscoverSong = (song: DiscoverSong) => {
-    sendControl("play", `https://www.youtube.com/watch?v=${song.videoId}`, { voiceChannelId: selectedVoiceChannel });
+  const playDiscoverSong = (song: DiscoverSong | SearchSong, action: "play" | "play_now" = "play_now") => {
+    sendControl(action, `https://www.youtube.com/watch?v=${song.videoId}`, { voiceChannelId: selectedVoiceChannel });
   };
 
   const fetchNowPlaying = useCallback(async (guildId: string) => {
@@ -944,8 +949,8 @@ export default function MusicPlayerPage() {
                   results={searchResults}
                   loading={searchLoading}
                   query={songQuery}
-                  onPlaySong={(song) => {
-                    sendControl("play", song.videoId, { voiceChannelId: selectedVoiceChannel });
+                  onPlaySong={(song, action = "play_now") => {
+                    playDiscoverSong(song, action);
                     setSearchFocused(false);
                   }}
                   onPlayAlbum={(album) => {
@@ -961,6 +966,7 @@ export default function MusicPlayerPage() {
                     setSearchFocused(false);
                   }}
                   onClose={() => setSearchFocused(false)}
+                  onContextMenu={openContextMenu}
                 />
               )}
             </div>
