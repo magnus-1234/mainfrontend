@@ -686,8 +686,8 @@ export default function MusicPlayerPage() {
       setDiscoverLoading(true);
       try {
         const [homeRes, genresRes] = await Promise.all([
-          fetch("/api/music/home"),
-          fetch("/api/music/genres"),
+          fetch("/api/music/home?v=2"),
+          fetch("/api/music/genres?v=2"),
         ]);
         if (homeRes.ok) {
           const data = await homeRes.json();
