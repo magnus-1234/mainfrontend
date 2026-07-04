@@ -1795,3 +1795,98 @@
   display: flex;
   align-items: center;
 }
+
+/* ── CUSTOM SERVER DROPDOWN ──────────────────────────────────── */
+.dz-server-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dz-server-dropdown-btn {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px 12px 4px 4px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+  height: 36px;
+}
+
+.dz-server-dropdown-btn:hover {
+  background: var(--bg-hover);
+}
+
+.dz-server-dropdown-active {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dz-server-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dz-server-icon-fallback {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.dz-server-dropdown-name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dz-server-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: #282828;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 220px;
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dz-server-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
+}
+
+.dz-server-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dz-server-dropdown-item.active {
+  background: rgba(255, 255, 255, 0.05);
+}

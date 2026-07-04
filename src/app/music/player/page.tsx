@@ -397,7 +397,18 @@ export default function MusicPlayerPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
-
+  
+  const [serverDropdownOpen, setServerDropdownOpen] = useState(false);
+  const serverDropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (serverDropdownRef.current && !serverDropdownRef.current.contains(e.target as Node)) {
+        setServerDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   // Edit playlist state
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
   const [editPlaylistName, setEditPlaylistName] = useState("");
@@ -518,14 +529,11 @@ export default function MusicPlayerPage() {
           setActivePlaylist(lp.find(p => p.guildId === mg[0].id) || lp[0] || null);
         }
         const savedGuild = localStorage.getItem("wos_music_guild");
-        if (savedGuild && pd.guilds.includes(savedGuild) && user.musicGuilds?.some((ug: any) => ug.id === savedGuild)) {
+        if (savedGuild && mg.some((g: any) => g.id === savedGuild)) {
           setSelectedGuildId(savedGuild);
-        } else if (!selectedGuildId && pd.guilds.length > 0) {
-          const firstValid = pd.guilds.find((g: any) => user.musicGuilds?.some((ug: any) => ug.id === g));
-          if (firstValid) {
-            setSelectedGuildId(firstValid);
-            localStorage.setItem("wos_music_guild", firstValid);
-          }
+        } else if (!selectedGuildId && mg.length > 0) {
+          setSelectedGuildId(mg[0].id);
+          localStorage.setItem("wos_music_guild", mg[0].id);
         }
       } catch {} finally { setPlaylistsLoading(false); }
     };
@@ -812,15 +820,45 @@ export default function MusicPlayerPage() {
           <div className="dz-topbar-right">
             {/* Server selector if multiple */}
             {guilds.length > 1 && (
-              <select className="dz-server-select" value={selectedGuildId} onChange={e => {
-                const val = e.target.value;
-                setSelectedGuildId(val);
-                localStorage.setItem("wos_music_guild", val);
-                setSelectedVoiceChannel("");
-                // Do not auto-switch playlist when changing server
-              }}>
-                {guilds.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
+              <div className="dz-server-dropdown-container" ref={serverDropdownRef}>
+                <button className="dz-server-dropdown-btn" onClick={() => setServerDropdownOpen(!serverDropdownOpen)}>
+                  {(() => {
+                    const activeGuild = guilds.find(g => g.id === selectedGuildId);
+                    return activeGuild ? (
+                      <div className="dz-server-dropdown-active">
+                        {activeGuild.iconUrl ? (
+                          <img src={activeGuild.iconUrl} alt="" className="dz-server-icon" />
+                        ) : (
+                          <div className="dz-server-icon-fallback">{activeGuild.name.charAt(0).toUpperCase()}</div>
+                        )}
+                        <span className="dz-server-dropdown-name">{activeGuild.name}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    ) : (
+                      "Select Server"
+                    );
+                  })()}
+                </button>
+                {serverDropdownOpen && (
+                  <div className="dz-server-dropdown-menu">
+                    {guilds.map(g => (
+                      <button key={g.id} className={`dz-server-dropdown-item ${g.id === selectedGuildId ? "active" : ""}`} onClick={() => {
+                        setSelectedGuildId(g.id);
+                        localStorage.setItem("wos_music_guild", g.id);
+                        setSelectedVoiceChannel("");
+                        setServerDropdownOpen(false);
+                      }}>
+                        {g.iconUrl ? (
+                          <img src={g.iconUrl} alt="" className="dz-server-icon" />
+                        ) : (
+                          <div className="dz-server-icon-fallback">{g.name.charAt(0).toUpperCase()}</div>
+                        )}
+                        <span className="dz-server-dropdown-name">{g.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             {/* Voice channel selector */}
             {voiceChannels.length > 0 && (
