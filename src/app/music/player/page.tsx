@@ -313,43 +313,70 @@ function SearchResultsPanel({
         <div className="sr-empty">No results found for &ldquo;{query}&rdquo;</div>
       )}
       {hasSongs && (
-        <div className="sr-section">
-          <div className="sr-section-title">Songs</div>
-          {results!.songs.map((song) => (
-            <div key={song.videoId} className="sr-song-row" onContextMenu={e => onContextMenu?.(e, song)}>
-              <button className="sr-thumb" onClick={() => onPlaySong(song, "play_now")}>
-                {song.thumbnail
-                  ? <img src={song.thumbnail} alt={song.title} />
-                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                }
-                <div className="sr-thumb-play">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+        <div className="sr-top-container">
+          <div className="sr-top-result">
+            <div className="sr-section-title">Top Result</div>
+            {(() => {
+              const topSong = results!.songs[0];
+              return (
+                <div className="sr-top-card" onClick={() => onPlaySong(topSong, "play_now")}>
+                  <div className="sr-top-cover">
+                    {topSong.thumbnail
+                      ? <img src={topSong.thumbnail} alt={topSong.title} />
+                      : <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    }
+                    <div className="sr-thumb-play">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                    </div>
+                  </div>
+                  <div className="sr-top-info">
+                    <div className="sr-top-title">{topSong.title}</div>
+                    <div className="sr-top-meta">
+                      <span className="sr-top-badge">Track</span>
+                      <span className="sr-top-artist">{topSong.artist}</span>
+                    </div>
+                  </div>
                 </div>
-              </button>
-              <div className="sr-song-info" onClick={() => onPlaySong(song, "play_now")} style={{cursor:"pointer"}}>
-                <div className="sr-song-title">{song.title}</div>
-                <div className="sr-song-meta">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{color:"#ff0000",flexShrink:0}}><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.19a8.24 8.24 0 0 0 4.83 1.55V6.3a4.85 4.85 0 0 1-1.06-.39z"/></svg>
-                  {song.artist}{song.album ? ` · ${song.album}` : ""}
-                </div>
-              </div>
-              <div className="sr-song-actions">
-                <button className="sr-save-btn" onClick={(e) => { e.stopPropagation(); onSaveSong(song); }} title="Save to Favorites">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                </button>
-                <button className="sr-queue-btn" onClick={(e) => { e.stopPropagation(); onPlaySong(song, "play"); }} title="Add to Queue">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
-                <button className="sr-queue-btn" style={{marginLeft:"8px"}} onClick={(e) => { e.stopPropagation(); onPlaySong(song, "play_now"); }} title="Play Now">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-                </button>
-                {song.duration && <span className="sr-song-dur">{song.duration}</span>}
-              </div>
+              );
+            })()}
+          </div>
+          <div className="sr-songs-list-container">
+            <div className="sr-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Songs
+              {results!.songs.length > 4 && <span className="sr-show-all">Show All</span>}
             </div>
-          ))}
+            <div className="sr-songs-list">
+              {results!.songs.slice(0, 4).map((song) => (
+                <div key={song.videoId} className="sr-song-row" onContextMenu={e => onContextMenu?.(e, song)}>
+                  <button className="sr-thumb" onClick={() => onPlaySong(song, "play_now")}>
+                    {song.thumbnail
+                      ? <img src={song.thumbnail} alt={song.title} />
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    }
+                    <div className="sr-thumb-play">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                    </div>
+                  </button>
+                  <div className="sr-song-info" onClick={() => onPlaySong(song, "play_now")} style={{cursor:"pointer"}}>
+                    <div className="sr-song-title">{song.title}</div>
+                    <div className="sr-song-meta">
+                      <span className="sr-explicit-badge">E</span>
+                      {song.artist}{song.album ? ` · ${song.album}` : ""}
+                    </div>
+                  </div>
+                  <div className="sr-song-actions">
+                    <button className="sr-queue-btn sr-more-btn" onClick={(e) => { e.stopPropagation(); onPlaySong(song, "play"); }} title="Add to Queue">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                    <button className="sr-save-btn" onClick={(e) => { e.stopPropagation(); onSaveSong(song); }} title="Save to Favorites">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                    {song.duration && <span className="sr-song-dur">{song.duration}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
       {hasAlbums && (

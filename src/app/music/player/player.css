@@ -1456,7 +1456,8 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  right: 0;
+  width: 750px;
+  max-width: calc(100vw - 32px);
   background: var(--bg-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
@@ -2143,3 +2144,117 @@
   object-fit: cover;
 }
 
+.sr-top-container {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.5fr);
+  gap: 24px;
+}
+
+.sr-top-result, .sr-songs-list-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-top-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex: 1;
+}
+
+.sr-top-card:hover {
+  background: var(--bg-elevated);
+}
+
+.sr-top-cover {
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.sr-top-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sr-top-card:hover .sr-thumb-play {
+  opacity: 1;
+}
+
+.sr-top-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.sr-top-title {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sr-top-badge {
+  background: rgba(0,0,0,0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sr-top-artist {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sr-explicit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.6);
+  color: #000;
+  font-size: 9px;
+  font-weight: 800;
+  margin-right: 6px;
+}
+
+.sr-show-all {
+  font-size: 13px;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sr-show-all:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.sr-songs-list {
+  display: flex;
+  flex-direction: column;
+}
