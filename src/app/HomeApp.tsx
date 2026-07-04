@@ -8945,7 +8945,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     ) : (
                       <Link href="/music/player" className="music-btn-primary">
                         <Icon name="play" />
-                        Launch Web Player
+                        Open Web Player
                       </Link>
                     )}
                     <a 
@@ -8961,7 +8961,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <div className="music-splash-features">
                     <div className="music-feature">
                       <strong>Cloud Playlists</strong>
-                      <span>Saved automatically to MongoDB.</span>
+                      <span>Saved automatically to a secure cloud database.</span>
                     </div>
                     <div className="music-feature">
                       <strong>Live Sync</strong>
@@ -8977,12 +8977,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <div className="music-splash-visual">
                   <div className="music-visual-card">
                     <div className="music-visual-art">
-                      <img src="/showcase-music-system.png" alt="Player preview" />
-                      <div className="music-visual-overlay">
-                        <button className="music-visual-play">
-                          <Icon name="play" />
-                        </button>
-                      </div>
+                      <img src="/bot-logo.gif" alt="Music Bot character" style={{ objectPosition: 'center' }} />
                     </div>
                     <div className="music-visual-info">
                       <div>
