@@ -1222,45 +1222,37 @@ export default function MusicPlayerPage() {
                     <p>Tracks you&apos;ve played will appear here.</p>
                   </div>
                 ) : (
-                  <div className="dz-tracks">
-                    <div className="dz-tracks-header">
-                      <div className="dz-col-id">#</div>
-                      <div className="dz-col-title">Title</div>
-                      <div className="dz-col-artist">Artist</div>
-                      <div className="dz-col-actions-h"></div>
-                      <div className="dz-col-dur">Played</div>
-                    </div>
-                    <div className="dz-tracks-list">
-                      {historyEntries.map((entry, idx) => (
-                        <div key={idx} className="dz-track-row"
+                  <div className="dz-history-list">
+                    {historyEntries.map((entry, idx) => {
+                      const dateObj = new Date(entry.playedAt || Date.now());
+                      const formattedDate = dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + dateObj.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                      return (
+                        <div key={idx} className="dz-history-row"
                           onClick={() => sendControl("play", entry.track.uri || entry.track.title, { voiceChannelId: selectedVoiceChannel })}>
-                          <div className="dz-col-id">
-                            <span className="dz-track-idx">{idx + 1}</span>
-                            <button className="dz-track-play-btn" aria-label={`Play ${entry.track.title}`}
-                              disabled={controlLoading || !selectedVoiceChannel}
-                              onClick={e => { e.stopPropagation(); sendControl("play", entry.track.uri || entry.track.title, { voiceChannelId: selectedVoiceChannel }); }}>
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-                            </button>
+                          
+                          <div className="dz-history-thumb">
+                            {entry.track.thumbnail
+                              ? <img src={entry.track.thumbnail} alt="" />
+                              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                            }
                           </div>
-                          <div className="dz-col-title">
-                            <div className="dz-track-thumb">
-                              {entry.track.thumbnail
-                                ? <img src={entry.track.thumbnail} alt="" />
-                                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                              }
-                            </div>
-                            <span className="dz-track-name">{entry.track.title}</span>
+
+                          <div className="dz-history-info">
+                            <div className="dz-history-date">{formattedDate}</div>
+                            <div className="dz-history-sub">Bot</div>
                           </div>
-                          <div className="dz-col-artist">{entry.track.author}</div>
-                          <div className="dz-col-actions-h">
-                            {entry.playlistName && <span style={{fontSize:"11px",opacity:0.55,whiteSpace:"nowrap"}}>{entry.playlistName}</span>}
+
+                          <div className="dz-history-avatars">
+                            <img src={user.avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png"} className="dz-history-avatar" alt="User" />
+                            <img src="https://cdn.discordapp.com/embed/avatars/1.png" className="dz-history-avatar fake-avatar" alt="Bot" />
                           </div>
-                          <div className="dz-col-dur" style={{fontSize:"11px"}}>
-                            {entry.playedAt ? new Date(entry.playedAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "—"}
+
+                          <div className="dz-history-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 )
               )}

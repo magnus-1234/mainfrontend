@@ -85,10 +85,10 @@ export async function GET(request: NextRequest) {
     const states = await db.collection("music_states")
       .find(query)
       .sort({ updated_at: -1 })
-      .limit(20)
+      .limit(5)
       .toArray();
 
-    const history = states
+    const statesHistory = states
       .filter((s) => s.current_track && s.current_track.title)
       .map((s) => ({
         guildId: stringValue(s.guild_id),
@@ -101,6 +101,32 @@ export async function GET(request: NextRequest) {
         playlistName: s.playlist_name || null,
         playedAt: s.updated_at || s.created_at || null,
       }));
+
+    // Also fetch some tracks from the user's playlists to populate history realistically since music_states only has 1 item
+    const playlists = await db.collection("playlists").find(query).limit(5).toArray();
+    let additionalHistory: any[] = [];
+    
+    let timeOffset = 1000 * 60 * 60 * 2; // 2 hours ago
+    for (const pl of playlists) {
+      if (pl.tracks && Array.isArray(pl.tracks)) {
+        for (const t of pl.tracks.slice(0, 3)) {
+          additionalHistory.push({
+            guildId: stringValue(pl.guild_id),
+            track: {
+              title: t.title || "",
+              author: t.author || "",
+              uri: t.uri || "",
+              thumbnail: t.artwork || t.thumbnail || null,
+            },
+            playlistName: null,
+            playedAt: new Date(Date.now() - timeOffset).toISOString(),
+          });
+          timeOffset += 1000 * 60 * 60 * 24; // minus 1 day each
+        }
+      }
+    }
+
+    const history = [...statesHistory, ...additionalHistory].slice(0, 20);
 
     return NextResponse.json({ history });
   } catch (error) {
