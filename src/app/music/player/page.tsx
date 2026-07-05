@@ -834,15 +834,16 @@ export default function MusicPlayerPage() {
       if (!res.ok) {
         let errorMsg = data.error || "Command failed";
         if (errorMsg.includes("status=404") || errorMsg.includes("reason=Not Found")) {
-          // Send disconnect to clear the stale session on the discord bot
+          // Send disconnect and leave to try to clear it
           fetch("/api/music/control", {
             method: "POST", headers: {"Content-Type":"application/json"}, credentials: "include",
             body: JSON.stringify({ action: "disconnect", guildId: selectedGuildId, voiceChannelId: selectedVoiceChannel, ...extra })
           }).catch(() => {});
-          errorMsg = "Music session expired. Resetting player... Please click play again.";
+          
+          errorMsg = "Session expired! Please Right-Click the Bot in Discord and select 'Disconnect', then play a song here.";
         }
         setControlError(errorMsg);
-        setTimeout(() => setControlError(null), 5000);
+        setTimeout(() => setControlError(null), 8000); // give them more time to read it
       }
       else setTimeout(() => fetchNowPlaying(selectedGuildId), 600);
     } catch { setControlError("Could not reach the music bot"); }
