@@ -124,24 +124,9 @@ export async function POST(request: NextRequest) {
     };
     if (BOT_API_SECRET) headers["Authorization"] = `Bearer ${BOT_API_SECRET}`;
 
-    if (action === "play_now") {
-      // The backend bot doesn't support play_now natively.
-      // We will simulate it by sending a "stop" (which clears queue) followed by a "play".
-      await fetch(botUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          action: "stop",
-          guildId,
-          voiceChannelId: body.voiceChannelId,
-          textChannelId: body.textChannelId,
-          userId: body.userId || user.discordUserId || user.id,
-        }),
-      }).catch(() => {});
-      
-      // Give the bot a tiny moment to process the stop before we send play
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    // The backend bot doesn't support play_now natively, so we just fallback to play.
+    // We used to simulate it by sending a "stop", but that causes a race condition 
+    // where the bot's auto-disconnect logic fires right as the new song starts playing.
 
     const botRes = await fetch(botUrl, {
       method: "POST",
