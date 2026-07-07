@@ -1706,8 +1706,9 @@ export default function MusicPlayerPage() {
                           </div>
 
                           <div className="dz-history-info">
-                            <div className="dz-history-date">{formattedDate}</div>
-                            <div className="dz-history-sub">Bot</div>
+                            <div className="dz-history-title" style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '4px', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{entry.track.title || "Unknown Track"}</div>
+                            <div className="dz-history-date" style={{ fontSize: '13px', fontWeight: 400, color: '#a0a0a0', marginBottom: '2px' }}>{formattedDate}</div>
+                            <div className="dz-history-sub" style={{ fontSize: '12px' }}>Bot</div>
                           </div>
 
                           <div className="dz-history-avatars">
