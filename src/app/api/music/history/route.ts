@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
         $or: [
           { guild_id: guildId },
           { guild_id: Long.fromString(guildId) },
+          { guild_id: Number(guildId) }
         ]
       };
     }
