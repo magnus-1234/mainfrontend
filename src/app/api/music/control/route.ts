@@ -126,13 +126,11 @@ export async function POST(request: NextRequest) {
 
     // The backend bot doesn't support play_now natively, so we just fallback to play.
     // We used to simulate it by sending a "stop", but that causes a race condition 
-    // where the bot's auto-disconnect logic fires right as the new song starts playing.
-
     const botRes = await fetch(botUrl, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        action: action === "play_now" ? "play" : action,
+        action: action,
         guildId,
         value,
         voiceChannelId: body.voiceChannelId,
