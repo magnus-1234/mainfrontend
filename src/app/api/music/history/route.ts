@@ -81,52 +81,23 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // music_states contains the live + last-played state for each guild
-    const states = await db.collection("music_states")
+    // Fetch actual playback history
+    const historyDocs = await db.collection("music_history")
       .find(query)
-      .sort({ updated_at: -1 })
-      .limit(5)
+      .sort({ played_at: -1 })
+      .limit(50)
       .toArray();
 
-    const statesHistory = states
-      .filter((s) => s.current_track && s.current_track.title)
-      .map((s) => ({
-        guildId: stringValue(s.guild_id),
-        track: {
-          title: s.current_track.title || "",
-          author: s.current_track.author || "",
-          uri: s.current_track.uri || "",
-          thumbnail: s.current_track.artwork || s.current_track.thumbnail || null,
-        },
-        playlistName: s.playlist_name || null,
-        playedAt: s.updated_at || s.created_at || null,
-      }));
-
-    // Also fetch some tracks from the user's playlists to populate history realistically since music_states only has 1 item
-    const playlists = await db.collection("playlists").find(query).limit(5).toArray();
-    let additionalHistory: any[] = [];
-    
-    let timeOffset = 1000 * 60 * 60 * 2; // 2 hours ago
-    for (const pl of playlists) {
-      if (pl.tracks && Array.isArray(pl.tracks)) {
-        for (const t of pl.tracks.slice(0, 3)) {
-          additionalHistory.push({
-            guildId: stringValue(pl.guild_id),
-            track: {
-              title: t.title || "",
-              author: t.author || "",
-              uri: t.uri || "",
-              thumbnail: t.artwork || t.thumbnail || null,
-            },
-            playlistName: null,
-            playedAt: new Date(Date.now() - timeOffset).toISOString(),
-          });
-          timeOffset += 1000 * 60 * 60 * 24; // minus 1 day each
-        }
-      }
-    }
-
-    const history = [...statesHistory, ...additionalHistory].slice(0, 20);
+    const history = historyDocs.map((h) => ({
+      guildId: stringValue(h.guild_id),
+      track: {
+        title: h.track?.title || "",
+        author: h.track?.author || "",
+        uri: h.track?.uri || "",
+        thumbnail: h.track?.artwork || null,
+      },
+      playedAt: h.played_at || null,
+    }));
 
     return NextResponse.json({ history });
   } catch (error) {
