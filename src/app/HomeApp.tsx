@@ -246,7 +246,7 @@ type WosWikiPoster = {
 };
 
 type SneakPeekItem = { type: string; content: string; tag?: string };
-type SneakPeekData = { title: string; sourceUrl: string; giftCode?: string; items: SneakPeekItem[] };
+type SneakPeekData = { title: string; sourceUrl: string; giftCode?: string; htmlContent: string };
 
 type WosWikiPostersData = {
   categories: { id: string; label: string }[];
@@ -8786,32 +8786,22 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   </button>
                 </header>
                 <div className="sneak-peek-content">
+                  <style>{`
+                    .sneak-peek-raw-html img {
+                      max-width: 100%;
+                      height: auto;
+                      border-radius: 8px;
+                      margin-bottom: 1rem;
+                    }
+                    .sneak-peek-raw-html p, .sneak-peek-raw-html div {
+                      margin-bottom: 1rem;
+                      line-height: 1.6;
+                    }
+                  `}</style>
                   {loadingSneakPeek ? (
                      <div className="sneak-peek-loading" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>Loading latest sneak peek...</div>
                   ) : sneakPeekData ? (
-                    <>
-                      {sneakPeekData.items.map((item, idx) => {
-                        if (item.type === "image") {
-                          return <figure key={idx} className="sneak-peek-wide"><img src={item.content} alt="" /></figure>;
-                        }
-                        if (item.type === "text") {
-                          if (item.tag === "h2") return <h2 key={idx}>{item.content}</h2>;
-                          if (item.tag === "h3") return <h3 key={idx}>{item.content}</h3>;
-                          if (item.tag === "h4") return <h4 key={idx}>{item.content}</h4>;
-                          return <p key={idx}>{item.content}</p>;
-                        }
-                        return null;
-                      })}
-                      {sneakPeekData.giftCode && (
-                        <section className="sneak-peek-section sneak-peek-gift-code">
-                          <h3>Gift Code</h3>
-                          <p className="sneak-peek-code">{sneakPeekData.giftCode}</p>
-                          <p>Gift Code Center: <a href="https://wos-giftcode.centurygame.com/" target="_blank" rel="noreferrer">https://wos-giftcode.centurygame.com/</a></p>
-                        </section>
-                      )}
-                      <p className="sneak-peek-note">Some events and features require specific conditions to be met by the server for the first time, and they will not be enabled simultaneously across all servers.</p>
-                      <p className="sneak-peek-source">Source: <a href={sneakPeekData.sourceUrl} target="_blank" rel="noreferrer">Whiteout Survival Wiki sneak peek</a>.</p>
-                    </>
+                    <div className="sneak-peek-raw-html" dangerouslySetInnerHTML={{ __html: sneakPeekData.htmlContent }} />
                   ) : (
                     <div className="sneak-peek-error" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>Failed to load sneak peek data.</div>
                   )}

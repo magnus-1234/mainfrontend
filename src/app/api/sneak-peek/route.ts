@@ -50,57 +50,55 @@ export async function GET() {
     // Better container fallback for the WOS Wiki elementor template
     const container = root.querySelector(".description") || root.querySelector(".col-lg-8") || root;
     
-    const extractedData: { type: string, content: string, tag?: string }[] = [];
-    let giftCode = "";
-
-    function walk(node: any) {
-      if (node.nodeType === 3) {
-        const text = node.textContent.trim();
-        // Ignore very short strings, raw functions, and boilerplate footer strings
-        if (text.length > 2 && !text.includes("function(") && !text.includes("Century Games") && !text.includes("Whiteout Survival Wiki")) {
-          extractedData.push({ type: "text", content: text, tag: "p" });
-          
-          // Try to detect a gift code
-          const codeMatch = text.match(/Gift Code:\s*([A-Za-z0-9]+)/i) || text.match(/Code:\s*([A-Za-z0-9]+)/i);
-          if (codeMatch && codeMatch[1].length <= 10) {
-            giftCode = codeMatch[1];
-          }
-        }
-        return;
-      }
-      
-      if (node.nodeType === 1) {
-        // Skip navs, headers, footers and scripts
-        if (["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "HEADER", "FOOTER"].includes(node.tagName)) {
-          return;
-        }
-        if (node.tagName === "IMG") {
-          let src = node.getAttribute("src") || node.getAttribute("data-src") || "";
-          if (src && !src.includes("logo") && !src.includes("icon") && !src.includes("avatar")) {
-            if (src.startsWith("/")) {
-              src = `https://www.whiteoutsurvival.wiki${src}`;
-            }
-            extractedData.push({ type: "image", content: src });
-          }
-          return;
-        }
-        // Recurse into children
-        node.childNodes.forEach(walk);
-      }
+    // Remove unwanted script, style, header, footer nodes
+    const unwantedTags = ["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "HEADER", "FOOTER"];
+    for (const tag of unwantedTags) {
+      container.querySelectorAll(tag).forEach(node => {
+        node.remove();
+      });
     }
 
-    walk(container);
+    // Fix relative image links and strip out logos
+    container.querySelectorAll("img").forEach(img => {
+      let src = img.getAttribute("src") || img.getAttribute("data-src") || "";
+      if (src && (src.includes("logo") || src.includes("icon") || src.includes("avatar"))) {
+        img.remove();
+      } else if (src.startsWith("/")) {
+        img.setAttribute("src", `https://www.whiteoutsurvival.wiki${src}`);
+      }
+    });
 
-    // Deduplicate consecutive identical texts or images just in case
-    const deduplicated = extractedData.filter((item, index, self) => 
-      index === 0 || item.content !== self[index - 1].content
-    );
+    let htmlContent = container.innerHTML || "";
+    
+    // Strip out boilerplate text completely
+    const boilerplates = [
+      "Whiteout Survival - Official Wiki | Century Games © 2026",
+      "Whiteout Survival - Official Wiki | Century Games",
+      "Whiteout Survival Wiki sneak peek"
+    ];
+    for (const bp of boilerplates) {
+      // Regex replace to handle potential line breaks or tags between text
+      const regex = new RegExp(bp.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+      htmlContent = htmlContent.replace(regex, "");
+    }
+
+    // Attempt to extract gift code for the header if it exists
+    let giftCode = "";
+    const textContent = container.textContent || "";
+    const codeMatch = textContent.match(/Gift Code:\s*([A-Za-z0-9]+)/i) || textContent.match(/Code:\s*([A-Za-z0-9]+)/i);
+    if (codeMatch && codeMatch[1].length <= 10) {
+      giftCode = codeMatch[1];
+    }
+
+    // Also strip out any <p> or <div> that are now empty or just contain "Source: ."
+    htmlContent = htmlContent.replace(/<p[^>]*>\s*Source:\s*<a[^>]*>\s*<\/a>\.\s*<\/p>/gi, "");
+    htmlContent = htmlContent.replace(/Source:\s*<a[^>]*>\s*<\/a>\./gi, "");
 
     return NextResponse.json({
       title: latestTitle,
       sourceUrl: latestLink,
       giftCode,
-      items: deduplicated
+      htmlContent
     });
 
   } catch (error: any) {
