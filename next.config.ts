@@ -7,7 +7,7 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com`,
   "style-src 'self' 'unsafe-inline' https://translate.googleapis.com https://fonts.googleapis.com https://www.gstatic.com",
-  "img-src 'self' data: blob: https://api.qrserver.com https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev https://*.googleusercontent.com https://cdn.discordapp.com https://media.discordapp.net https://translate.googleapis.com https://www.gstatic.com https://fonts.gstatic.com http://translate.google.com https://www.google.com https://images.unsplash.com https://i.ytimg.com",
+  "img-src 'self' data: blob: https://api.qrserver.com https://pub-6db6c60bc8b84abdb260b11065d4da41.r2.dev https://*.googleusercontent.com https://cdn.discordapp.com https://media.discordapp.net https://translate.googleapis.com https://www.gstatic.com https://fonts.gstatic.com http://translate.google.com https://www.google.com https://images.unsplash.com https://i.ytimg.com https://*.amazonaws.com https://www.whiteoutsurvival.wiki",
   "font-src 'self' data: https://fonts.gstatic.com",
   [
     "connect-src 'self'",
