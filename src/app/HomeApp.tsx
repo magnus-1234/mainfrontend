@@ -245,6 +245,9 @@ type WosWikiPoster = {
   bytes?: number;
 };
 
+type SneakPeekItem = { type: string; content: string; tag?: string };
+type SneakPeekData = { title: string; sourceUrl: string; giftCode?: string; items: SneakPeekItem[] };
+
 type WosWikiPostersData = {
   categories: { id: string; label: string }[];
   posters: WosWikiPoster[];
@@ -2868,6 +2871,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [loginOpen, setLoginOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [sneakPeekData, setSneakPeekData] = useState<SneakPeekData | null>(null);
+  const [loadingSneakPeek, setLoadingSneakPeek] = useState(false);
+
+
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [botMetrics, setBotMetrics] = useState<BotMetrics>(() => {
@@ -2920,6 +2927,21 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
     if (typeof window !== "undefined") window.localStorage.setItem("wosLikedIslands", JSON.stringify(likedIslands));
   }, [likedIslands]);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(initialMenu);
+
+  useEffect(() => {
+    if (activeMenu === "sneak" && !sneakPeekData && !loadingSneakPeek) {
+      setLoadingSneakPeek(true);
+      fetch("/api/sneak-peek")
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) {
+            setSneakPeekData(data);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoadingSneakPeek(false));
+    }
+  }, [activeMenu, sneakPeekData, loadingSneakPeek]);
   const [activeWikiSlug, setActiveWikiSlug] = useState("");
   const [sidebarWikiOpen, setSidebarWikiOpen] = useState(
     initialMenu === "wikiHeroes" || initialMenu === "wikiBuildings" || initialMenu === "wikiPosters"
@@ -8752,165 +8774,47 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               <section className="sneak-peek-hero">
                 <span className="section-kicker">Chief Concierge</span>
                 <h1>Whiteout Survival Sneak Peek News</h1>
-                <p>Childhood Memory Festival details, event schedule, Penguin Bounce rewards, skins, packs, and gift code information from the official sneak peek.</p>
+                <p>Latest event details, rewards, skins, packs, and gift code information from the official sneak peek.</p>
               </section>
 
               <article className="sneak-peek-frame">
                 <header className="sneak-peek-frame-title">
-                  <h2>Chief Concierge: Sneak Peek</h2>
+                  <h2>{sneakPeekData ? sneakPeekData.title : "Chief Concierge: Sneak Peek"}</h2>
                   <button className="sneak-peek-share-button" type="button" onClick={() => setShareSneakPeekOpen(true)} aria-label="Share sneak peek">
                     <Icon name="share" />
                     <span>Share</span>
                   </button>
                 </header>
                 <div className="sneak-peek-content">
-                  <figure className="sneak-peek-main-image">
-                    <img src="/sneak-peek/sneak-01.png" alt="Childhood Memory Festival preview with penguins, toys, balloons, and a Whiteout Survival child character" />
-                  </figure>
-                  <figure className="sneak-peek-ornament">
-                    <img src="/sneak-peek/sneak-02.png" alt="" />
-                  </figure>
-
-                  <div className="sneak-peek-copy">
-                    <p>Dear Chief,</p>
-                    <p>The gates to Penguin Playground are about to open! The penguins, carrying their sparkling Ice Orbs, invite you to join the [Childhood Memory Festival] event!</p>
-                    <p><strong>Event Schedule:</strong> <mark>UTC 06/01/2026 00:00:00 to 06/07/2026 23:59:59</mark></p>
-                    <p>During the event, Chiefs can use the event item &quot;Ice Orbs&quot; to participate in &quot;Penguin Bounce&quot;. Tap one of the three penguins above the field, and the Ice Orb will drop into the playground, bouncing between obstacles before finally landing in one of the seven exits below to earn &quot;Penguin Coins&quot; as rewards. You can then head to the &quot;Penguin Shop&quot; and spend &quot;Penguin Coins&quot; to exchange for valuable rewards, including exquisite skins.</p>
-                    <p><strong>Events:</strong> &quot;Penguin Bounce&quot;, &quot;Ice Bomb Frenzy&quot;, &quot;Party Expert&quot;, &quot;Fantasia Symphony&quot;, &quot;Top-up Benefits&quot;, &quot;Colorful Greetings&quot;, &quot;Penguin Shop&quot;, &quot;Lost Loot&quot;.</p>
-                    <p><strong>Reminder:</strong> &quot;Penguin Shop&quot; will be available from <mark>UTC 06/01/2026 00:00:00 to 06/08/2026 23:59:59</mark>, please remember to use the event items before it ends.</p>
-                    <p>The &quot;Lost Loot&quot; will be available from <mark>UTC 06/02/2026 at 00:00:00 to 06/04/2025 at 23:59:59</mark>, don&apos;t miss it!</p>
-                    <p>May every bounce of the Ice orbs bring you a pleasant surprise, and may you find even more fun in Penguin Playground!</p>
-                    <p>If you have any questions or suggestions, please feel free to contact us.</p>
-                    <p>Happy gaming!<br />Whiteout Survival Team</p>
-                  </div>
-
-                  <section className="sneak-peek-section">
-                    <h3>Penguin Bounce</h3>
-                    <div className="sneak-peek-two-column">
-                      <figure><img src="/sneak-peek/sneak-03.png" alt="Penguin Bounce event screen" /></figure>
-                      <div className="sneak-peek-copy">
-                        <p>Happy penguins of the Penguin Park have invited you to join in their icy fun!</p>
-                        <h4>Ice Orb</h4>
-                        <img className="sneak-peek-item-icon" src="/sneak-peek/sneak-04.png" alt="Ice Orb item" />
-                        <p>A clear ball of ice that can be used in the Penguin Bounce event. It will be converted into a 10K Secured Resource Supply Chest at the end of the event.</p>
-                        <h4>Penguin Coin</h4>
-                        <img className="sneak-peek-item-icon" src="/sneak-peek/sneak-05.png" alt="Penguin Coin item" />
-                        <p>A glittering auroral coin exchanged for exquisite rewards in the Penguin Shop. It will be converted into a 1K Meat (Secured) upon expiration.</p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Penguin Shop</h3>
-                    <p>Exchange Penguin Coins for exquisite rewards in this shop.</p>
-                    <p className="sneak-peek-note">Each unused Penguin Coin will be converted into a 1K Meat (Secured) at the end of the event, so be sure to exchange them in time.</p>
-                    <div className="sneak-peek-media-grid">
-                      <figure><img src="/sneak-peek/sneak-06.png" alt="Penguin Shop screen" /></figure>
-                      <figure><img src="/sneak-peek/sneak-07.gif" alt="Penguin Shop animated reward preview" /></figure>
-                      <figure><img src="/sneak-peek/sneak-08.png" alt="Penguin Shop reward list" /></figure>
-                      <figure><img src="/sneak-peek/sneak-09.gif" alt="Penguin Shop animated item preview" /></figure>
-                    </div>
-                    <p className="sneak-peek-note">Certain items may be different based on server progress.</p>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Ice Bomb Frenzy</h3>
-                    <div className="sneak-peek-two-column">
-                      <figure><img src="/sneak-peek/sneak-10.png" alt="Ice Bomb Frenzy event screen" /></figure>
-                      <div className="sneak-peek-copy">
-                        <p>The penguins have brought fun in an icy round form to the festival!</p>
-                        <ol>
-                          <li>During the event, collect Magic Points through [Daily Missions] and claim rewards in [Ice Bomb Frenzy] when you have enough points.</li>
-                          <li>[Daily Missions] reset daily at 00:00 UTC.</li>
-                          <li>Purchase Dance of Dreams to unlock Epic rewards of the season and start claiming double Daily Mission rewards.</li>
-                        </ol>
-                      </div>
-                    </div>
-                    <figure className="sneak-peek-wide"><img src="/sneak-peek/sneak-11.png" alt="Ice Bomb Frenzy mission and rewards screen" /></figure>
-                    <p className="sneak-peek-note">Certain items may be different based on server progress.</p>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Fantasia Symphony</h3>
-                    <div className="sneak-peek-two-column">
-                      <figure><img src="/sneak-peek/sneak-12.gif" alt="Fantasia Symphony animated preview" /></figure>
-                      <div className="sneak-peek-copy">
-                        <ol>
-                          <li>Complete designated missions during the event to earn rewards.</li>
-                          <li>Complete all missions on a vertical/horizontal axis to earn stage chest.</li>
-                          <li>Complete all missions to obtain the [Treasure of Dreams].</li>
-                          <li>Unclaimed rewards will be mailed at the end of the event.</li>
-                        </ol>
-                        <p className="sneak-peek-note">Certain items may be different based on server progress.</p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Party Expert</h3>
-                    <div className="sneak-peek-two-column">
-                      <figure><img src="/sneak-peek/sneak-13.png" alt="Party Expert event screen" /></figure>
-                      <div className="sneak-peek-copy">
-                        <p>A festival for all Chiefs to embrace a youthful spirit, enjoy the celebration to the fullest, and contend to be the brightest star at the party.</p>
-                        <ol>
-                          <li>The event is divided into 7 stages: Power Boost, Beast Slay, Hero Development, Troop Training, Hero Gear, Gather Resources, and Chief Gear. Each stage will last for 1 day.</li>
-                          <li>Chiefs may obtain points in every stage by meeting the designated requirements and claim rewards when enough points are collected.</li>
-                          <li>At the end of every stage, Stage Ranking Rewards will be issued based on the stage ranking.</li>
-                          <li>When the event is over, Total Ranking Rewards will be issued based on the total ranking.</li>
-                        </ol>
-                        <p>Chiefs with the same points will be ranked by the order of completion time. The actual rank is determined by the leaderboard.</p>
-                      </div>
-                    </div>
-                    <figure className="sneak-peek-wide"><img src="/sneak-peek/sneak-14.png" alt="Party Expert rewards screen" /></figure>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Top-up Benefits</h3>
-                    <div className="sneak-peek-media-grid">
-                      <figure><img src="/sneak-peek/sneak-15.png" alt="Top-up Benefits banner" /></figure>
-                      <figure><img src="/sneak-peek/sneak-16.png" alt="Top-up Benefits screen" /></figure>
-                      <figure><img src="/sneak-peek/sneak-17.gif" alt="Woodland Jubilee Decoration Pack animated preview" /></figure>
-                      <figure><img src="/sneak-peek/sneak-18.png" alt="Woodland Jubilee Decoration Pack" /></figure>
-                    </div>
-                    <h4>Woodland Jubilee Decoration Pack</h4>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Lost Loot</h3>
-                    <div className="sneak-peek-two-column">
-                      <figure><img src="/sneak-peek/sneak-19.gif" alt="Lost Loot animated preview" /></figure>
-                      <p>Gina has found Joe&apos;s treasure stash! It&apos;s where her lackeys buried the treasures they looted from survivors. The raiders have been driven away, and now it&apos;s time to return these items to their rightful owners! Follow the list of lost items to dig up the hidden treasures.</p>
-                    </div>
-                  </section>
-
-                  <section className="sneak-peek-section">
-                    <h3>Colorful Greetings</h3>
-                    <div className="sneak-peek-two-column">
-                      <figure><img src="/sneak-peek/sneak-20.png" alt="Colorful Greetings event screen" /></figure>
-                      <div className="sneak-peek-copy">
-                        <p>Embrace a youthful spirit and enjoy the festival like a kid!</p>
-                        <ol>
-                          <li>Sign in daily during the event to claim Greeting Rewards.</li>
-                          <li>More rewards are available with a [Childhood Wish] purchase.</li>
-                          <li>Unclaimed rewards will be mailed after the event.</li>
-                        </ol>
-                      </div>
-                    </div>
-                    <figure className="sneak-peek-wide"><img src="/sneak-peek/sneak-21.png" alt="Colorful Greetings reward screen" /></figure>
-                  </section>
-
-                  <section className="sneak-peek-section sneak-peek-gift-code">
-                    <figure className="sneak-peek-ornament gold"><img src="/sneak-peek/sneak-22.png" alt="" /></figure>
-                    <h3>Gift Code</h3>
-                    <p className="sneak-peek-code">A7K9Q2</p>
-                    <img src="/sneak-peek/sneak-23.png" alt="Gift code reward preview" />
-                    <p>Valid Until: 2026-06-01 23:59:00 (UTC)</p>
-                    <p>Requirement: Furnace Level &ge; 9</p>
-                    <p>Gift Code Center: <a href="https://wos-giftcode.centurygame.com/" target="_blank" rel="noreferrer">https://wos-giftcode.centurygame.com/</a></p>
-                  </section>
-
-                  <p className="sneak-peek-note">Some events and features require specific conditions to be met by the server for the first time, and they will not be enabled simultaneously across all servers.</p>
-                  <p className="sneak-peek-source">Source: <a href="https://www.whiteoutsurvival.wiki/sneak-peek/0723948en/" target="_blank" rel="noreferrer">Whiteout Survival Wiki sneak peek</a>.</p>
+                  {loadingSneakPeek ? (
+                     <div className="sneak-peek-loading" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>Loading latest sneak peek...</div>
+                  ) : sneakPeekData ? (
+                    <>
+                      {sneakPeekData.items.map((item, idx) => {
+                        if (item.type === "image") {
+                          return <figure key={idx} className="sneak-peek-wide"><img src={item.content} alt="" /></figure>;
+                        }
+                        if (item.type === "text") {
+                          if (item.tag === "h2") return <h2 key={idx}>{item.content}</h2>;
+                          if (item.tag === "h3") return <h3 key={idx}>{item.content}</h3>;
+                          if (item.tag === "h4") return <h4 key={idx}>{item.content}</h4>;
+                          return <p key={idx}>{item.content}</p>;
+                        }
+                        return null;
+                      })}
+                      {sneakPeekData.giftCode && (
+                        <section className="sneak-peek-section sneak-peek-gift-code">
+                          <h3>Gift Code</h3>
+                          <p className="sneak-peek-code">{sneakPeekData.giftCode}</p>
+                          <p>Gift Code Center: <a href="https://wos-giftcode.centurygame.com/" target="_blank" rel="noreferrer">https://wos-giftcode.centurygame.com/</a></p>
+                        </section>
+                      )}
+                      <p className="sneak-peek-note">Some events and features require specific conditions to be met by the server for the first time, and they will not be enabled simultaneously across all servers.</p>
+                      <p className="sneak-peek-source">Source: <a href={sneakPeekData.sourceUrl} target="_blank" rel="noreferrer">Whiteout Survival Wiki sneak peek</a>.</p>
+                    </>
+                  ) : (
+                    <div className="sneak-peek-error" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>Failed to load sneak peek data.</div>
+                  )}
                 </div>
               </article>
             </section>
