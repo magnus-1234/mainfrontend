@@ -47,28 +47,18 @@ export async function GET() {
     const html = await articleResponse.text();
     const root = parse(html);
 
-    // Filter to a likely main container if available, otherwise root
-    const container = root.querySelector("article") || root.querySelector("main") || root;
-
-    const elements = container.querySelectorAll("p, img, h2, h3, h4, h5");
+    // Better container fallback for the WOS Wiki elementor template
+    const container = root.querySelector(".description") || root.querySelector(".col-lg-8") || root;
     
-    const extractedData = [];
+    const extractedData: { type: string, content: string, tag?: string }[] = [];
     let giftCode = "";
 
-    for (const el of elements) {
-      if (el.tagName === "IMG") {
-        let src = el.getAttribute("src") || el.getAttribute("data-src") || "";
-        if (src && !src.includes("logo") && !src.includes("icon") && !src.includes("avatar")) {
-          // ensure absolute url
-          if (src.startsWith("/")) {
-            src = `https://www.whiteoutsurvival.wiki${src}`;
-          }
-          extractedData.push({ type: "image", content: src });
-        }
-      } else {
-        const text = el.textContent?.trim() || "";
-        if (text && text.length > 2) {
-          extractedData.push({ type: "text", content: text, tag: el.tagName.toLowerCase() });
+    function walk(node: any) {
+      if (node.nodeType === 3) {
+        const text = node.textContent.trim();
+        // Ignore very short strings, raw functions, and boilerplate footer strings
+        if (text.length > 2 && !text.includes("function(") && !text.includes("Century Games") && !text.includes("Whiteout Survival Wiki")) {
+          extractedData.push({ type: "text", content: text, tag: "p" });
           
           // Try to detect a gift code
           const codeMatch = text.match(/Gift Code:\s*([A-Za-z0-9]+)/i) || text.match(/Code:\s*([A-Za-z0-9]+)/i);
@@ -76,8 +66,30 @@ export async function GET() {
             giftCode = codeMatch[1];
           }
         }
+        return;
+      }
+      
+      if (node.nodeType === 1) {
+        // Skip navs, headers, footers and scripts
+        if (["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "HEADER", "FOOTER"].includes(node.tagName)) {
+          return;
+        }
+        if (node.tagName === "IMG") {
+          let src = node.getAttribute("src") || node.getAttribute("data-src") || "";
+          if (src && !src.includes("logo") && !src.includes("icon") && !src.includes("avatar")) {
+            if (src.startsWith("/")) {
+              src = `https://www.whiteoutsurvival.wiki${src}`;
+            }
+            extractedData.push({ type: "image", content: src });
+          }
+          return;
+        }
+        // Recurse into children
+        node.childNodes.forEach(walk);
       }
     }
+
+    walk(container);
 
     // Deduplicate consecutive identical texts or images just in case
     const deduplicated = extractedData.filter((item, index, self) => 
