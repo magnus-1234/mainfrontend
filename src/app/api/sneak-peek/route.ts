@@ -61,7 +61,8 @@ export async function GET() {
     // Fix relative image links and strip out logos
     container.querySelectorAll("img").forEach(img => {
       let src = img.getAttribute("src") || img.getAttribute("data-src") || "";
-      if (src && (src.includes("logo") || src.includes("icon") || src.includes("avatar"))) {
+      // Only remove the site logos, not everything hosted on the "gom-s3-user-avatar" bucket
+      if (src && (src.includes("cropped-logo") || src.includes("logo_white"))) {
         img.remove();
       } else if (src.startsWith("/")) {
         img.setAttribute("src", `https://www.whiteoutsurvival.wiki${src}`);
