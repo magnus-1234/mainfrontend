@@ -563,7 +563,8 @@ export default function MusicPlayerPage() {
   const [editPlaylistIconUrl, setEditPlaylistIconUrl] = useState("");
   const [editPlaylistTracks, setEditPlaylistTracks] = useState<Track[]>([]);
   const [isSavingPlaylist, setIsSavingPlaylist] = useState(false);
-
+  const [dragTrackIndex, setDragTrackIndex] = useState<number | null>(null);
+  const [dragOverTrackIndex, setDragOverTrackIndex] = useState<number | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startEditingPlaylist = () => {
@@ -578,7 +579,8 @@ export default function MusicPlayerPage() {
     if (!activePlaylist?.id) return;
     setIsSavingPlaylist(true);
     try {
-      const res = await fetch(`/api/music/playlists`, {
+      const userId = user?.discordUserId || user?.id || "";
+      const res = await fetch(`/api/music/playlists?userId=${encodeURIComponent(userId)}`, {
         method: "PUT", headers: {"Content-Type":"application/json"}, credentials: "include",
         body: JSON.stringify({ id: activePlaylist.id, name: editPlaylistName, iconUrl: editPlaylistIconUrl, tracks: editPlaylistTracks }),
       });
@@ -608,6 +610,28 @@ export default function MusicPlayerPage() {
     newTracks[index] = newTracks[index + direction];
     newTracks[index + direction] = temp;
     setEditPlaylistTracks(newTracks);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDragTrackIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  
+  const handleDragEnter = (e: React.DragEvent, index: number) => {
+    if (dragTrackIndex === null) return;
+    setDragOverTrackIndex(index);
+  };
+  
+  const handleDragEnd = () => {
+    if (dragTrackIndex !== null && dragOverTrackIndex !== null && dragTrackIndex !== dragOverTrackIndex) {
+      const newTracks = [...editPlaylistTracks];
+      const draggedTrack = newTracks[dragTrackIndex];
+      newTracks.splice(dragTrackIndex, 1);
+      newTracks.splice(dragOverTrackIndex, 0, draggedTrack);
+      setEditPlaylistTracks(newTracks);
+    }
+    setDragTrackIndex(null);
+    setDragOverTrackIndex(null);
   };
 
   const fetchChannels = useCallback(async (guildId: string) => {
@@ -866,7 +890,8 @@ export default function MusicPlayerPage() {
 
     setControlLoading(true);
     try {
-      const res = await fetch("/api/music/playlists", {
+      const userId = user?.discordUserId || user?.id || "";
+      const res = await fetch(`/api/music/playlists?userId=${encodeURIComponent(userId)}`, {
         method: "PUT", headers: {"Content-Type":"application/json"}, credentials: "include",
         body: JSON.stringify({ id: playlist.id, tracks: [...playlist.tracks, track] })
       });
@@ -1372,7 +1397,14 @@ export default function MusicPlayerPage() {
                     const isNP = !isEditingPlaylist && nowPlaying?.currentTrack?.title === track.title && nowPlaying?.currentTrack?.author === track.author;
                     const isNpPlaying = isNP && isPlaying;
                     return (
-                      <div key={idx} className={`dz-track-row ${isNP ? "playing" : ""} ${isEditingPlaylist ? "editing" : ""}`}
+                      <div key={idx} 
+                        className={`dz-track-row ${isNP ? "playing" : ""} ${isEditingPlaylist ? "editing" : ""} ${dragTrackIndex === idx ? "dragging" : ""} ${dragOverTrackIndex === idx ? "drag-over" : ""}`}
+                        draggable={isEditingPlaylist}
+                        onDragStart={(e) => isEditingPlaylist && handleDragStart(e, idx)}
+                        onDragEnter={(e) => isEditingPlaylist && handleDragEnter(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => isEditingPlaylist && e.preventDefault()}
+                        style={isEditingPlaylist ? { cursor: dragTrackIndex !== null ? "grabbing" : "grab" } : {}}
                         onClick={() => !isEditingPlaylist && sendControl("play", track.uri || track.title, { voiceChannelId: selectedVoiceChannel })}>
 
                         <div className="dz-col-id">
@@ -1416,12 +1448,9 @@ export default function MusicPlayerPage() {
 
                         {isEditingPlaylist && (
                           <div className="dz-col-reorder">
-                            <button className="dz-reorder-btn" disabled={idx === 0} onClick={e => { e.stopPropagation(); moveTrack(idx, -1); }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>
-                            </button>
-                            <button className="dz-reorder-btn" disabled={idx === editPlaylistTracks.length - 1} onClick={e => { e.stopPropagation(); moveTrack(idx, 1); }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-                            </button>
+                            <div className="dz-reorder-grip" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", marginRight: "8px", pointerEvents: "none" }}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                            </div>
                             <button className="dz-reorder-btn dz-delete-btn" onClick={e => { e.stopPropagation(); setEditPlaylistTracks(prev => prev.filter((_, i) => i !== idx)); }}>
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
