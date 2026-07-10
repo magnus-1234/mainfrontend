@@ -6978,6 +6978,25 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   </button>
                 </article>
               </section>
+
+              <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+                
+                <article style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What are the latest Whiteout Survival gift codes?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The latest active gift codes for Whiteout Survival can be found and redeemed directly on our live tracker above. We constantly monitor social channels and update this list the moment new codes are released.</p>
+                </article>
+
+                <article style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I redeem Whiteout Survival codes in-game?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>To redeem codes inside the Whiteout Survival app, tap your Chief avatar in the top left, tap 'Settings', and choose 'Gift Code'. For a faster method, use our automatic redeem tool on this page by simply entering your Player ID.</p>
+                </article>
+
+                <article>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Why is my Whiteout Survival gift code not working?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Gift codes usually expire after a few days or have a maximum usage limit set by the developers. Ensure there are no spaces in the code. If it still fails, check our tracker above to confirm if the code is still active.</p>
+                </article>
+              </section>
             </section>
           ) : activeMenu === "redeem" ? (
             <section className="home-page giftcodes-page redeem-page" id="redeem" aria-label="Whiteout Survival gift code redeem">
