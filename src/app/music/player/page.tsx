@@ -2020,21 +2020,21 @@ export default function MusicPlayerPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 Copy Track Link
               </button>
-          {contextMenu.song.albumId && (
+          {'albumId' in contextMenu.song && contextMenu.song.albumId && (
             <>
               <div className="dz-ctx-divider" />
               <div className="dz-ctx-label">ALBUM</div>
-              <button className="dz-ctx-item" onClick={() => { if(contextMenu.song.albumId) openAlbum(contextMenu.song.albumId); setContextMenu(null); }}>
+              <button className="dz-ctx-item" onClick={() => { if('albumId' in contextMenu.song && contextMenu.song.albumId) openAlbum(contextMenu.song.albumId); setContextMenu(null); }}>
                 {contextMenu.song.thumbnail && <img src={contextMenu.song.thumbnail} alt="" className="dz-ctx-item-thumb" />}
-                <span>{contextMenu.song.album || "View Album"}</span>
+                <span>{('album' in contextMenu.song && contextMenu.song.album) ? contextMenu.song.album : "View Album"}</span>
               </button>
             </>
           )}
-          {contextMenu.song.artistId && (
+          {'artistId' in contextMenu.song && contextMenu.song.artistId && (
             <>
               <div className="dz-ctx-divider" />
               <div className="dz-ctx-label">ARTIST</div>
-              <button className="dz-ctx-item" onClick={() => { if(contextMenu.song.artistId) openArtist(contextMenu.song.artistId); setContextMenu(null); }}>
+              <button className="dz-ctx-item" onClick={() => { if('artistId' in contextMenu.song && contextMenu.song.artistId) openArtist(contextMenu.song.artistId); setContextMenu(null); }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
                 <span>{contextMenu.song.artist}</span>
               </button>
