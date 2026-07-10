@@ -70,7 +70,6 @@ const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK") || "
 const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "reminderbot";
 // The Discord bot writes to 'playlists'; the web UI writes to 'music_playlists'.
 // We query both and merge, so users see all their playlists in one place.
-const BOT_COLLECTION = "playlists";
 const WEB_COLLECTION = envValue("MUSIC_PLAYLIST_COLLECTION") || "music_playlists";
 
 declare global {
@@ -150,28 +149,18 @@ export async function GET(request: NextRequest) {
       query.guild_id = { $in: idCandidates(guildId) };
     }
 
-    // Query both the bot-written collection and the web-written collection
+    // Query the web-written collection
     const db = await getDb();
-    const [botDocs, webDocs] = await Promise.all([
-      db.collection<MusicPlaylistDoc>(BOT_COLLECTION).find(query).sort({ updated_at: -1 }).limit(100).toArray(),
-      db.collection<MusicPlaylistDoc>(WEB_COLLECTION).find(query).sort({ updated_at: -1 }).limit(100).toArray(),
-    ]);
+    const docs = await db.collection<MusicPlaylistDoc>(WEB_COLLECTION)
+      .find(query)
+      .sort({ updated_at: -1 })
+      .limit(100)
+      .toArray();
 
-    // Merge, deduplicating by (name + guildId). Bot docs take priority.
-    const seen = new Set<string>();
-    const merged = [];
-    for (const doc of [...botDocs, ...webDocs]) {
-      const key = `${stringValue(doc.name)}::${stringValue(doc.guild_id)}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        merged.push(doc);
-      }
-    }
-
-    const guilds = Array.from(new Set(merged.map((doc) => stringValue(doc.guild_id)).filter(Boolean)));
+    const guilds = Array.from(new Set(docs.map((doc) => stringValue(doc.guild_id)).filter(Boolean)));
 
     return NextResponse.json({
-      playlists: merged.map(publicPlaylist),
+      playlists: docs.map(publicPlaylist),
       guilds,
       storage: {
         database: mongoDbName,
@@ -260,12 +249,9 @@ export async function PUT(request: NextRequest) {
     if (iconUrl !== undefined) setFields.iconUrl = iconUrl;
     if (tracks !== undefined) setFields.tracks = tracks;
 
-    const [botRes, webRes] = await Promise.all([
-      db.collection(BOT_COLLECTION).updateOne(query, { $set: setFields }),
-      db.collection(WEB_COLLECTION).updateOne(query, { $set: setFields })
-    ]);
+    const result = await db.collection(WEB_COLLECTION).updateOne(query, { $set: setFields });
 
-    if (botRes.matchedCount === 0 && webRes.matchedCount === 0) {
+    if (result.matchedCount === 0) {
       return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
     }
 
@@ -294,12 +280,9 @@ export async function DELETE(request: NextRequest) {
     const db = await getDb();
     const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
 
-    const [botRes, webRes] = await Promise.all([
-      db.collection(BOT_COLLECTION).deleteOne(query),
-      db.collection(WEB_COLLECTION).deleteOne(query)
-    ]);
+    const result = await db.collection(WEB_COLLECTION).deleteOne(query);
 
-    if (botRes.deletedCount === 0 && webRes.deletedCount === 0) {
+    if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
     }
 

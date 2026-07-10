@@ -961,7 +961,7 @@ export default function MusicPlayerPage() {
     finally { setControlLoading(false); }
   }, [selectedGuildId, selectedVoiceChannel, fetchNowPlaying]);
 
-  const filteredPlaylists = playlists; // Show all playlists globally
+  const filteredPlaylists = playlists.filter(p => !selectedGuildId || p.guildId === selectedGuildId);
   const isPlaying = nowPlaying?.playing ?? false;
   const loopMode = nowPlaying?.loopMode || "off";
   const displayTrack = nowPlaying?.currentTrack;
@@ -2014,7 +2014,7 @@ export default function MusicPlayerPage() {
               <div className="dz-ctx-divider" />
               <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 {playlists.length === 0 && <div style={{padding:"8px",color:"#999",fontSize:"13px"}}>No playlists found</div>}
-                {playlists.map(pl => (
+                {filteredPlaylists.map(pl => (
                   <button key={pl.id} className="dz-ctx-item" onClick={() => { addToPlaylist(contextMenu.song, pl); setContextMenu(null); }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pl.name}</span>
