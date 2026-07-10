@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb();
 
-    let query = {};
+    let query: any = {};
     if (guildId.trim() && /^\d+$/.test(guildId.trim())) {
       query = {
         $or: [
@@ -97,11 +97,14 @@ export async function GET(request: NextRequest) {
         uri: h.track?.uri || "",
         thumbnail: h.track?.artwork || null,
       },
-      playedAt: h.played_at || null,
+      playedAt: h.played_at ? (h.played_at.endsWith("Z") ? h.played_at : h.played_at + "Z") : null,
     }));
+
+    console.log(`[Music History] Fetched ${history.length} docs for guild ${guildId}`);
 
     return NextResponse.json({ history });
   } catch (error) {
+    console.error(`[Music History] Error:`, error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to load music history", history: [] },
       { status: 503 }
