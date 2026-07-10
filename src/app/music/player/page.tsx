@@ -165,6 +165,16 @@ type ContextMenuState = {
   mode?: "default" | "playlist_select";
 } | null;
 
+type ResolvedTrack = {
+  type: "song";
+  videoId: string;
+  title: string;
+  artist: string;
+  album?: string;
+  duration?: string;
+  thumbnail?: string;
+};
+
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
@@ -576,6 +586,209 @@ export default function MusicPlayerPage() {
   const [dragTrackIndex, setDragTrackIndex] = useState<number | null>(null);
   const [dragOverTrackIndex, setDragOverTrackIndex] = useState<number | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Create Playlist modal state ──
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
+  const [createPlName, setCreatePlName] = useState("");
+  const [createPlIconUrl, setCreatePlIconUrl] = useState("");
+  const [createPlTracks, setCreatePlTracks] = useState<Track[]>([]);
+  const [createPlSearchQuery, setCreatePlSearchQuery] = useState("");
+  const [createPlSearchResults, setCreatePlSearchResults] = useState<SearchSong[]>([]);
+  const [createPlSearchLoading, setCreatePlSearchLoading] = useState(false);
+  const createPlSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [createPlLinkInput, setCreatePlLinkInput] = useState("");
+  const [createPlLinkLoading, setCreatePlLinkLoading] = useState(false);
+  const [createPlSaving, setCreatePlSaving] = useState(false);
+
+  // ── YouTube URL paste state for edit mode ──
+  const [editPlLinkInput, setEditPlLinkInput] = useState("");
+  const [editPlLinkLoading, setEditPlLinkLoading] = useState(false);
+
+  // ── Toast state ──
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMsg(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastMsg(null), 3000);
+  }, []);
+
+  // YouTube URL detection helper
+  const isYouTubeUrl = (text: string) =>
+    /(?:youtube\.com|youtu\.be|music\.youtube\.com)/.test(text) ||
+    /^[a-zA-Z0-9_-]{11}$/.test(text.trim());
+
+  // Resolve a YouTube URL via the backend
+  const resolveYouTubeUrl = useCallback(async (url: string): Promise<ResolvedTrack | null> => {
+    try {
+      const res = await fetch(`/api/music/resolve?url=${encodeURIComponent(url.trim())}`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Convert a resolved track to a Track object
+  const resolvedToTrack = (r: ResolvedTrack): Track => {
+    let length = 0;
+    if (r.duration) {
+      length = r.duration.split(":").reduce((acc, t) => (60 * acc) + +t, 0) * 1000;
+    }
+    return {
+      title: r.title,
+      author: r.artist,
+      uri: `https://www.youtube.com/watch?v=${r.videoId}`,
+      length,
+      artwork: r.thumbnail || null,
+    };
+  };
+
+  // ── Create Playlist search debounce ──
+  useEffect(() => {
+    if (!createPlSearchQuery || createPlSearchQuery.trim().length < 2) {
+      setCreatePlSearchResults([]);
+      return;
+    }
+    // Auto-detect YouTube URL in the search box
+    if (isYouTubeUrl(createPlSearchQuery)) {
+      setCreatePlSearchResults([]);
+      return;
+    }
+    if (createPlSearchDebounceRef.current) clearTimeout(createPlSearchDebounceRef.current);
+    createPlSearchDebounceRef.current = setTimeout(async () => {
+      setCreatePlSearchLoading(true);
+      try {
+        const res = await fetch(`/api/music/search?q=${encodeURIComponent(createPlSearchQuery.trim())}`);
+        if (res.ok) {
+          const data: SearchResults = await res.json();
+          setCreatePlSearchResults(data.songs || []);
+        }
+      } catch {} finally {
+        setCreatePlSearchLoading(false);
+      }
+    }, 400);
+    return () => { if (createPlSearchDebounceRef.current) clearTimeout(createPlSearchDebounceRef.current); };
+  }, [createPlSearchQuery]);
+
+  // Handle pasting a YouTube link in create-playlist modal
+  const handleCreatePlResolveLink = async () => {
+    if (!createPlLinkInput.trim()) return;
+    setCreatePlLinkLoading(true);
+    try {
+      const resolved = await resolveYouTubeUrl(createPlLinkInput);
+      if (resolved) {
+        setCreatePlTracks(prev => [...prev, resolvedToTrack(resolved)]);
+        setCreatePlLinkInput("");
+        showToast(`Added "${resolved.title}"`);
+      } else {
+        showToast("Could not resolve the YouTube link");
+      }
+    } catch {
+      showToast("Failed to resolve link");
+    } finally {
+      setCreatePlLinkLoading(false);
+    }
+  };
+
+  // Handle pasting a YouTube link in edit-playlist mode
+  const handleEditPlResolveLink = async () => {
+    if (!editPlLinkInput.trim()) return;
+    setEditPlLinkLoading(true);
+    try {
+      const resolved = await resolveYouTubeUrl(editPlLinkInput);
+      if (resolved) {
+        setEditPlaylistTracks(prev => [...prev, resolvedToTrack(resolved)]);
+        setEditPlLinkInput("");
+        showToast(`Added "${resolved.title}"`);
+      } else {
+        showToast("Could not resolve the YouTube link");
+      }
+    } catch {
+      showToast("Failed to resolve link");
+    } finally {
+      setEditPlLinkLoading(false);
+    }
+  };
+
+  // Auto-detect + resolve if search input contains a YouTube URL
+  const handleCreatePlSearchSubmit = async () => {
+    if (isYouTubeUrl(createPlSearchQuery)) {
+      setCreatePlLinkInput(createPlSearchQuery);
+      setCreatePlSearchQuery("");
+      const resolved = await resolveYouTubeUrl(createPlSearchQuery);
+      if (resolved) {
+        setCreatePlTracks(prev => [...prev, resolvedToTrack(resolved)]);
+        setCreatePlLinkInput("");
+        showToast(`Added "${resolved.title}"`);
+      } else {
+        showToast("Could not resolve the YouTube link");
+      }
+    }
+  };
+
+  // Create a new playlist
+  const createPlaylist = async () => {
+    if (!createPlName.trim() || !selectedGuildId) return;
+    setCreatePlSaving(true);
+    try {
+      const userId = user?.discordUserId || user?.id || "";
+      const res = await fetch(`/api/music/playlists?userId=${encodeURIComponent(userId)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: createPlName.trim(),
+          guildId: selectedGuildId,
+          iconUrl: createPlIconUrl.trim() || undefined,
+          tracks: createPlTracks,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(`Playlist "${createPlName.trim()}" created!`);
+        // Reset modal
+        setShowCreatePlaylist(false);
+        setCreatePlName("");
+        setCreatePlIconUrl("");
+        setCreatePlTracks([]);
+        setCreatePlSearchQuery("");
+        setCreatePlSearchResults([]);
+        setCreatePlLinkInput("");
+        // Reload playlists
+        if (user?.discordUserId || user?.id) {
+          const pr = await fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId || user.id)}`, { credentials: "include" });
+          const pd = await pr.json();
+          const lp: Playlist[] = (pd.playlists || []).map((p: any) => ({
+            ...p,
+            createdAt: p.createdAt || p.created_at || '',
+            updatedAt: p.updatedAt || p.updated_at || '',
+          }));
+          setPlaylists(lp);
+          // Navigate to the new playlist
+          const newPl = lp.find(p => p.id === data.id);
+          if (newPl) {
+            setActivePlaylist(newPl);
+            setActiveView("playlist-detail");
+          }
+        }
+      } else {
+        const errData = await res.json();
+        showToast(errData.error || "Failed to create playlist");
+      }
+    } catch {
+      showToast("Failed to create playlist");
+    } finally {
+      setCreatePlSaving(false);
+    }
+  };
+
+  // Quick add-to-queue inline action
+  const addToQueueInline = (song: DiscoverSong | SearchSong) => {
+    sendControl("play", `https://www.youtube.com/watch?v=${song.videoId}`, {});
+    showToast(`Queued "${song.title}"`);
+  };
 
   const startEditingPlaylist = () => {
     if (!activePlaylist) return;
@@ -1098,6 +1311,15 @@ export default function MusicPlayerPage() {
 
         {/* Sidebar playlist list */}
         <div className="dz-sidebar-playlists">
+          {/* + New Playlist button */}
+          <button className="dz-sidebar-pl dz-sidebar-new-pl" onClick={() => setShowCreatePlaylist(true)}>
+            <div className="dz-sidebar-pl-icon dz-sidebar-new-pl-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div className="dz-sidebar-pl-info">
+              <div className="dz-sidebar-pl-name">New Playlist</div>
+            </div>
+          </button>
           {playlistsLoading
             ? [1,2,3].map(i => <div key={i} className="dz-pl-skeleton" />)
             : filteredPlaylists.map((pl, i) => (
@@ -1334,6 +1556,17 @@ export default function MusicPlayerPage() {
           </div>
         )}
 
+        {/* Success toast */}
+        {toastMsg && (
+          <div className="dz-success-toast">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            {toastMsg}
+            <button onClick={() => setToastMsg(null)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        )}
+
         {/* ── Queue panel ── */}
         {showQueue && nowPlaying?.queue && nowPlaying.queue.length > 0 && (
           <div className="dz-queue-panel">
@@ -1559,6 +1792,26 @@ export default function MusicPlayerPage() {
                     <div className="dz-add-songs-header" style={{marginBottom:"16px"}}>
                       <h3 style={{fontSize:"16px", color:"#fff"}}>Add songs to playlist</h3>
                     </div>
+                    {/* YouTube link paste */}
+                    <div className="dz-edit-link-paste" style={{marginBottom:"16px"}}>
+                      <label style={{fontSize:"13px", color:"var(--text-muted)", marginBottom:"6px", display:"flex", alignItems:"center", gap:"6px"}}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        Paste YouTube Link (works with unlisted videos)
+                      </label>
+                      <div style={{display:"flex", gap:"8px"}}>
+                        <input type="text" className="dz-search-input" value={editPlLinkInput}
+                          onChange={e => setEditPlLinkInput(e.target.value)}
+                          placeholder="https://youtube.com/watch?v=... or https://youtu.be/..."
+                          onKeyDown={e => { if (e.key === 'Enter') handleEditPlResolveLink(); }}
+                          style={{flex:1, background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"6px", padding:"8px 12px", color:"#fff"}}
+                        />
+                        <button className="dz-btn-save" onClick={handleEditPlResolveLink}
+                          disabled={editPlLinkLoading || !editPlLinkInput.trim()}
+                          style={{minWidth:"60px"}}>
+                          {editPlLinkLoading ? <div className="dz-spinner-sm" /> : 'Add'}
+                        </button>
+                      </div>
+                    </div>
                     <div className="dz-add-songs-search">
                       <div className="dz-search-bar" style={{ width: "100%", maxWidth: "400px", margin: 0 }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1615,19 +1868,31 @@ export default function MusicPlayerPage() {
           ) : activeView === "playlists" ? (
             /* PLAYLISTS GRID VIEW */
             <div className="dz-view">
-              <h2 className="dz-view-title">Your Playlists</h2>
+              <div className="dz-view-header">
+                <h2 className="dz-view-title">Your Playlists</h2>
+                <button className="dz-create-pl-btn" onClick={() => setShowCreatePlaylist(true)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                  Create Playlist
+                </button>
+              </div>
               {playlistsLoading ? (
                 <div className="dz-playlists-grid">
                   {[1,2,3,4].map(i => <div key={i} className="dz-pl-card-skeleton" />)}
                 </div>
-              ) : filteredPlaylists.length === 0 ? (
-                <div className="dz-empty-state">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  <h3>No playlists yet</h3>
-                  <p>Save a playlist with <code>/playlist save &lt;name&gt;</code> in Discord.</p>
-                </div>
               ) : (
                 <div className="dz-playlists-grid">
+                  {/* + Create Playlist card */}
+                  <button className="dz-pl-card dz-pl-card-create" onClick={() => setShowCreatePlaylist(true)}>
+                    <div className="dz-pl-card-cover dz-pl-card-create-cover">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                    </div>
+                    <div className="dz-pl-card-info">
+                      <div className="dz-pl-card-name">Create Playlist</div>
+                      <div className="dz-pl-card-meta">Add songs from search or YouTube links</div>
+                    </div>
+                  </button>
                   {filteredPlaylists.map((pl, i) => (
                     <button key={i} className="dz-pl-card" onClick={() => openPlaylist(pl)}>
                       <div className="dz-pl-card-cover"
@@ -1820,6 +2085,11 @@ export default function MusicPlayerPage() {
                                 <span className="dz-track-name">{s.title}</span>
                               </div>
                               <div className="dz-col-artist" style={{cursor:s.albumId?"pointer":undefined}} onClick={e => { e.stopPropagation(); if(s.albumId) openAlbum(s.albumId); }}>{s.album}</div>
+                              <div className="dz-track-inline-actions">
+                                <button className="dz-inline-btn" title="Add to Queue" onClick={e => { e.stopPropagation(); addToQueueInline(s); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+                                <button className="dz-inline-btn" title="Add to Playlist" onClick={e => { e.stopPropagation(); openContextMenu(e, s); setContextMenu(prev => prev ? {...prev, mode: 'playlist_select'} : null); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+                                <button className="dz-inline-btn" title="More" onClick={e => { e.stopPropagation(); openContextMenu(e, s); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
+                              </div>
                               <div className="dz-col-dur">{s.duration ? formatTime(s.duration) : ""}</div>
                             </div>
                           ))}
@@ -1883,6 +2153,11 @@ export default function MusicPlayerPage() {
                               <span className="dz-track-name">{t.title}</span>
                             </div>
                             <div className="dz-col-artist">{t.artist}</div>
+                            <div className="dz-track-inline-actions">
+                              <button className="dz-inline-btn" title="Add to Queue" onClick={e => { e.stopPropagation(); addToQueueInline(t); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+                              <button className="dz-inline-btn" title="Add to Playlist" onClick={e => { e.stopPropagation(); openContextMenu(e, t); setContextMenu(prev => prev ? {...prev, mode: 'playlist_select'} : null); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+                              <button className="dz-inline-btn" title="More" onClick={e => { e.stopPropagation(); openContextMenu(e, t); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
+                            </div>
                             <div className="dz-col-dur">{t.duration ? formatTime(t.duration) : ""}</div>
                           </div>
                         ))}
@@ -1915,6 +2190,11 @@ export default function MusicPlayerPage() {
                               <span className="dz-track-name">{s.title}</span>
                             </div>
                             <div className="dz-col-artist" style={{cursor:s.artistId?"pointer":undefined}} onClick={e => { e.stopPropagation(); if(s.artistId) openArtist(s.artistId); }}>{s.artist}</div>
+                            <div className="dz-track-inline-actions">
+                              <button className="dz-inline-btn" title="Add to Queue" onClick={e => { e.stopPropagation(); addToQueueInline(s); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+                              <button className="dz-inline-btn" title="Add to Playlist" onClick={e => { e.stopPropagation(); openContextMenu(e, s); setContextMenu(prev => prev ? {...prev, mode: 'playlist_select'} : null); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+                              <button className="dz-inline-btn" title="More" onClick={e => { e.stopPropagation(); openContextMenu(e, s); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
+                            </div>
                             <div className="dz-col-dur">{s.duration ? formatTime(s.duration) : ""}</div>
                           </div>
                         ))}
@@ -2164,6 +2444,129 @@ export default function MusicPlayerPage() {
           )}
             </>
           )}
+        </div>
+      )}
+
+      {/* ── Create Playlist Modal ── */}
+      {showCreatePlaylist && (
+        <div className="dz-modal-overlay" onClick={() => setShowCreatePlaylist(false)}>
+          <div className="dz-modal" onClick={e => e.stopPropagation()}>
+            <div className="dz-modal-header">
+              <h2>Create Playlist</h2>
+              <button className="dz-modal-close" onClick={() => setShowCreatePlaylist(false)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <div className="dz-modal-body">
+              {/* Name & cover */}
+              <div className="dz-modal-field">
+                <label>Playlist Name</label>
+                <input type="text" value={createPlName} onChange={e => setCreatePlName(e.target.value)} placeholder="My awesome playlist" autoFocus />
+              </div>
+              <div className="dz-modal-field">
+                <label>Cover Image URL <span style={{opacity:0.5}}>(optional)</span></label>
+                <input type="text" value={createPlIconUrl} onChange={e => setCreatePlIconUrl(e.target.value)} placeholder="https://example.com/cover.jpg" />
+              </div>
+
+              <div className="dz-modal-divider" />
+
+              {/* Paste YouTube link */}
+              <div className="dz-modal-field">
+                <label>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign: 'middle', marginRight: '6px'}}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Paste YouTube Link
+                </label>
+                <div className="dz-link-input-row">
+                  <input type="text" value={createPlLinkInput} onChange={e => setCreatePlLinkInput(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=... or https://youtu.be/..."
+                    onKeyDown={e => { if (e.key === 'Enter') handleCreatePlResolveLink(); }}
+                  />
+                  <button className="dz-btn-resolve" onClick={handleCreatePlResolveLink} disabled={createPlLinkLoading || !createPlLinkInput.trim()}>
+                    {createPlLinkLoading ? <div className="dz-spinner-sm" /> : 'Add'}
+                  </button>
+                </div>
+                <p className="dz-field-hint">Works with unlisted videos, shorts, and YouTube Music links</p>
+              </div>
+
+              {/* Search songs */}
+              <div className="dz-modal-field">
+                <label>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign: 'middle', marginRight: '6px'}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  Search Songs
+                </label>
+                <input type="text" value={createPlSearchQuery} onChange={e => setCreatePlSearchQuery(e.target.value)}
+                  placeholder="Search by song name or artist"
+                  onKeyDown={e => { if (e.key === 'Enter') handleCreatePlSearchSubmit(); }}
+                />
+              </div>
+              {createPlSearchLoading && <div className="dz-spinner-sm" style={{margin: '8px auto'}} />}
+              {createPlSearchResults.length > 0 && (
+                <div className="dz-modal-search-results">
+                  {createPlSearchResults.map(song => (
+                    <div key={song.videoId} className="dz-modal-song-row">
+                      <div className="dz-modal-song-thumb">{song.thumbnail ? <img src={song.thumbnail} alt="" /> : null}</div>
+                      <div className="dz-modal-song-info">
+                        <div className="dz-modal-song-title">{song.title}</div>
+                        <div className="dz-modal-song-artist">{song.artist}</div>
+                      </div>
+                      <span className="dz-modal-song-dur">{song.duration}</span>
+                      <button className="dz-btn-add-song" onClick={() => {
+                        let length = 0;
+                        if (typeof song.duration === 'string') {
+                          length = song.duration.split(':').reduce((acc, t) => (60 * acc) + +t, 0) * 1000;
+                        }
+                        setCreatePlTracks(prev => [...prev, {
+                          title: song.title,
+                          author: song.artist,
+                          uri: `https://www.youtube.com/watch?v=${song.videoId}`,
+                          length,
+                          artwork: song.thumbnail || null,
+                        }]);
+                        showToast(`Added "${song.title}"`);
+                      }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                        Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Added tracks preview */}
+              {createPlTracks.length > 0 && (
+                <>
+                  <div className="dz-modal-divider" />
+                  <div className="dz-modal-tracks-header">
+                    <span>{createPlTracks.length} song{createPlTracks.length !== 1 ? 's' : ''} added</span>
+                  </div>
+                  <div className="dz-modal-tracks-list">
+                    {createPlTracks.map((track, idx) => (
+                      <div key={idx} className="dz-modal-song-row">
+                        <span className="dz-modal-track-num">{idx + 1}</span>
+                        <div className="dz-modal-song-thumb">{track.artwork ? <img src={track.artwork} alt="" /> : null}</div>
+                        <div className="dz-modal-song-info">
+                          <div className="dz-modal-song-title">{track.title}</div>
+                          <div className="dz-modal-song-artist">{track.author}</div>
+                        </div>
+                        <span className="dz-modal-song-dur">{formatTime(track.length)}</span>
+                        <button className="dz-btn-remove-song" onClick={() => setCreatePlTracks(prev => prev.filter((_, i) => i !== idx))}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="dz-modal-footer">
+              <button className="dz-btn-cancel" onClick={() => setShowCreatePlaylist(false)}>Cancel</button>
+              <button className="dz-btn-save" onClick={createPlaylist} disabled={createPlSaving || !createPlName.trim() || !selectedGuildId}>
+                {createPlSaving ? 'Creating…' : 'Create Playlist'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

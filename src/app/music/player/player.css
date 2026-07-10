@@ -2747,3 +2747,427 @@
   background: #282828;
   animation: pulse 1.5s infinite;
 }
+
+/* ── Success Toast ────────────────────────────────────────────────────────── */
+.dz-success-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: rgba(30, 215, 96, 0.95);
+  color: #000;
+  border-radius: 8px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(30, 215, 96, 0.4);
+  animation: toastSlideIn 0.3s ease-out;
+  backdrop-filter: blur(12px);
+}
+.dz-success-toast button {
+  background: none;
+  border: none;
+  color: #000;
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0;
+  display: flex;
+}
+.dz-success-toast button:hover { opacity: 1; }
+
+@keyframes toastSlideIn {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* ── View Header (with Create Playlist button) ──────────────────────────── */
+.dz-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dz-view-header .dz-view-title { margin-bottom: 0; }
+
+.dz-create-pl-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand, #1db954);
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dz-create-pl-btn:hover {
+  transform: scale(1.03);
+  filter: brightness(1.1);
+}
+
+/* ── Create Playlist Card in Grid ────────────────────────────────────────── */
+.dz-pl-card-create .dz-pl-card-create-cover {
+  border: 2px dashed rgba(255,255,255,0.2);
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.4);
+  transition: all 0.3s;
+}
+.dz-pl-card-create:hover .dz-pl-card-create-cover {
+  border-color: var(--brand, #1db954);
+  color: var(--brand, #1db954);
+  background: rgba(30, 215, 96, 0.05) !important;
+}
+
+/* ── Sidebar New Playlist Button ─────────────────────────────────────────── */
+.dz-sidebar-new-pl {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.dz-sidebar-new-pl:hover { opacity: 1; }
+.dz-sidebar-new-pl-icon {
+  background: transparent !important;
+  border: 1.5px dashed rgba(255,255,255,0.3) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.5);
+}
+.dz-sidebar-new-pl:hover .dz-sidebar-new-pl-icon {
+  border-color: var(--brand, #1db954) !important;
+  color: var(--brand, #1db954);
+}
+
+/* ── Inline Track Action Buttons ─────────────────────────────────────────── */
+.dz-track-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.dz-track-row:hover .dz-track-inline-actions {
+  opacity: 1;
+}
+.dz-inline-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #a7a7a7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.dz-inline-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+/* Mobile: always show inline actions */
+@media (max-width: 768px) {
+  .dz-track-inline-actions {
+    opacity: 1;
+  }
+}
+
+/* ── Create Playlist Modal ───────────────────────────────────────────────── */
+.dz-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.dz-modal {
+  width: min(560px, 94vw);
+  max-height: 85vh;
+  background: #1a1a2e;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: modalSlideIn 0.25s ease-out;
+  overflow: hidden;
+}
+@keyframes modalSlideIn {
+  from { transform: scale(0.95) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.dz-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.dz-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+.dz-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted, #a7a7a7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  transition: all 0.15s;
+}
+.dz-modal-close:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+.dz-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+.dz-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.dz-modal-footer .dz-btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-muted, #a7a7a7);
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dz-modal-footer .dz-btn-cancel:hover {
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+}
+.dz-modal-footer .dz-btn-save {
+  background: var(--brand, #1db954);
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dz-modal-footer .dz-btn-save:hover:not(:disabled) {
+  transform: scale(1.03);
+  filter: brightness(1.1);
+}
+.dz-modal-footer .dz-btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dz-modal-field {
+  margin-bottom: 16px;
+}
+.dz-modal-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #a7a7a7);
+  margin-bottom: 6px;
+}
+.dz-modal-field input {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.dz-modal-field input:focus {
+  border-color: var(--brand, #1db954);
+}
+.dz-modal-field input::placeholder {
+  color: rgba(255,255,255,0.25);
+}
+.dz-modal-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 20px 0;
+}
+
+.dz-link-input-row {
+  display: flex;
+  gap: 8px;
+}
+.dz-link-input-row input {
+  flex: 1;
+}
+.dz-btn-resolve {
+  background: var(--brand, #1db954);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dz-btn-resolve:hover:not(:disabled) { filter: brightness(1.1); }
+.dz-btn-resolve:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.dz-field-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+/* Modal search results */
+.dz-modal-search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.dz-modal-song-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.dz-modal-song-row:last-child { border-bottom: none; }
+.dz-modal-song-row:hover { background: rgba(255,255,255,0.04); }
+.dz-modal-song-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.05);
+}
+.dz-modal-song-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.dz-modal-song-info {
+  flex: 1;
+  min-width: 0;
+}
+.dz-modal-song-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dz-modal-song-artist {
+  font-size: 12px;
+  color: var(--text-muted, #a7a7a7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dz-modal-song-dur {
+  font-size: 12px;
+  color: var(--text-muted, #a7a7a7);
+  flex-shrink: 0;
+}
+.dz-modal-track-num {
+  font-size: 12px;
+  color: var(--text-muted, #a7a7a7);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.dz-btn-add-song {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(30, 215, 96, 0.15);
+  color: var(--brand, #1db954);
+  border: 1px solid rgba(30, 215, 96, 0.2);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.dz-btn-add-song:hover {
+  background: rgba(30, 215, 96, 0.25);
+  border-color: rgba(30, 215, 96, 0.4);
+}
+.dz-btn-remove-song {
+  background: none;
+  border: none;
+  color: var(--text-muted, #a7a7a7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.dz-btn-remove-song:hover {
+  color: #e53e3e;
+  background: rgba(229, 62, 62, 0.1);
+}
+
+.dz-modal-tracks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dz-modal-tracks-header span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand, #1db954);
+}
+.dz-modal-tracks-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+}
