@@ -161,7 +161,8 @@ type AlbumData = {
 type ContextMenuState = {
   x: number;
   y: number;
-  song: DiscoverSong;
+  song: DiscoverSong | SearchSong;
+  mode?: "default" | "playlist_select";
 } | null;
 
 
@@ -466,6 +467,35 @@ export default function MusicPlayerPage() {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchBarRef = useRef<HTMLDivElement>(null);
 
+  // Playlist search state
+  const [playlistSearchQuery, setPlaylistSearchQuery] = useState("");
+  const [playlistSearchResults, setPlaylistSearchResults] = useState<SearchSong[]>([]);
+  const [playlistSearchLoading, setPlaylistSearchLoading] = useState(false);
+  const playlistSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced playlist search
+  useEffect(() => {
+    if (!playlistSearchQuery || playlistSearchQuery.trim().length < 2) {
+      setPlaylistSearchResults([]);
+      return;
+    }
+    if (playlistSearchDebounceRef.current) clearTimeout(playlistSearchDebounceRef.current);
+    playlistSearchDebounceRef.current = setTimeout(async () => {
+      setPlaylistSearchLoading(true);
+      try {
+        const res = await fetch(`/api/music/search?q=${encodeURIComponent(playlistSearchQuery.trim())}`);
+        if (res.ok) {
+          const data: SearchResults = await res.json();
+          setPlaylistSearchResults(data.songs || []);
+        }
+      } catch {} finally {
+        setPlaylistSearchLoading(false);
+      }
+    }, 400);
+    return () => { if (playlistSearchDebounceRef.current) clearTimeout(playlistSearchDebounceRef.current); };
+  }, [playlistSearchQuery]);
+
+
   // Debounced search
   useEffect(() => {
     if (!songQuery || songQuery.trim().length < 2) {
@@ -739,8 +769,7 @@ export default function MusicPlayerPage() {
   const openContextMenu = (e: React.MouseEvent, song: DiscoverSong | SearchSong) => {
     e.preventDefault();
     e.stopPropagation();
-    // Use type assertion, duration types differ but for context menu it's okay
-    setContextMenu({ x: e.clientX, y: e.clientY, song: song as DiscoverSong });
+    setContextMenu({ x: e.clientX, y: e.clientY, song, mode: "default" });
   };
 
   const playDiscoverSong = (song: DiscoverSong | SearchSong, action: "play" | "play_now" = "play_now") => {
@@ -814,6 +843,63 @@ export default function MusicPlayerPage() {
       setControlLoading(false);
     }
   };
+
+  const addToPlaylist = async (song: DiscoverSong | SearchSong, playlist: Playlist) => {
+    if (!selectedGuildId) { setControlError("Select a server first"); return; }
+    
+    let length = 0;
+    if ('duration' in song && song.duration) {
+      if (typeof song.duration === 'string') {
+        length = song.duration.split(":").reduce((acc, time) => (60 * acc) + +time, 0) * 1000;
+      } else if (typeof song.duration === 'number') {
+        length = song.duration;
+      }
+    }
+
+    const track = {
+      title: song.title,
+      author: 'artist' in song ? song.artist : '',
+      uri: `https://www.youtube.com/watch?v=${song.videoId}`,
+      length,
+      artwork: song.thumbnail || null
+    };
+
+    setControlLoading(true);
+    try {
+      const res = await fetch("/api/music/playlists", {
+        method: "PUT", headers: {"Content-Type":"application/json"}, credentials: "include",
+        body: JSON.stringify({ id: playlist.id, tracks: [...playlist.tracks, track] })
+      });
+      if (res.ok) {
+        setControlError(`Added to ${playlist.name}!`);
+        setTimeout(() => setControlError(null), 3000);
+        
+        if (user?.discordUserId || user?.id) {
+          const pr = await fetch(`/api/music/playlists?userId=${encodeURIComponent(user.discordUserId || user.id)}`, { credentials: "include" });
+          const pd = await pr.json();
+          const lp: Playlist[] = (pd.playlists || []).map((p: any) => ({
+            ...p,
+            createdAt: p.createdAt || p.created_at || '',
+            updatedAt: p.updatedAt || p.updated_at || '',
+          }));
+          setPlaylists(lp);
+          if (activePlaylist && activePlaylist.id === playlist.id) {
+            setActivePlaylist(lp.find(p => p.id === playlist.id) || null);
+          }
+        }
+      } else {
+         const data = await res.json();
+         setControlError(data.error || "Failed to add to playlist");
+         setTimeout(() => setControlError(null), 3000);
+      }
+    } catch {
+      setControlError("Failed to add to playlist");
+      setTimeout(() => setControlError(null), 3000);
+    } finally {
+      setControlLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     if (!selectedGuildId || !user) return;
@@ -1350,6 +1436,63 @@ export default function MusicPlayerPage() {
                     );
                   })}
                 </div>
+                
+                {isEditingPlaylist && (
+                  <div className="dz-playlist-add-songs" style={{marginTop:"24px", paddingTop:"24px", borderTop:"1px solid var(--border)"}}>
+                    <div className="dz-add-songs-header" style={{marginBottom:"16px"}}>
+                      <h3 style={{fontSize:"16px", color:"#fff"}}>Add songs to playlist</h3>
+                    </div>
+                    <div className="dz-add-songs-search">
+                      <div className="dz-search-bar" style={{ width: "100%", maxWidth: "400px", margin: 0 }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input
+                          type="text"
+                          className="dz-search-input"
+                          placeholder="Search for songs"
+                          value={playlistSearchQuery}
+                          onChange={e => setPlaylistSearchQuery(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    {playlistSearchLoading && <div className="dz-spinner-sm" style={{marginTop:"16px"}} />}
+                    {!playlistSearchLoading && playlistSearchResults.length > 0 && (
+                      <div className="dz-add-songs-results" style={{marginTop:"16px"}}>
+                        {playlistSearchResults.map(song => (
+                          <div key={song.videoId} className="dz-track-row">
+                            <div className="dz-col-title">
+                              <div className="dz-track-thumb">
+                                {song.thumbnail ? <img src={song.thumbnail} alt="" /> : null}
+                              </div>
+                              <span className="dz-track-name">{song.title}</span>
+                            </div>
+                            <div className="dz-col-artist">{song.artist}</div>
+                            <div className="dz-col-dur">{song.duration}</div>
+                            <div className="dz-col-reorder" style={{width:"80px", justifyContent:"flex-end"}}>
+                              <button className="dz-btn-save" onClick={() => {
+                                let length = 0;
+                                if (typeof song.duration === 'string') {
+                                  length = song.duration.split(":").reduce((acc, time) => (60 * acc) + +time, 0) * 1000;
+                                }
+                                const track = {
+                                  title: song.title,
+                                  author: song.artist,
+                                  uri: `https://www.youtube.com/watch?v=${song.videoId}`,
+                                  length,
+                                  artwork: song.thumbnail || null
+                                };
+                                setEditPlaylistTracks(prev => [...prev, track]);
+                                setPlaylistSearchQuery("");
+                                setPlaylistSearchResults([]);
+                              }}>Add</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : activeView === "playlists" ? (
@@ -1829,27 +1972,54 @@ export default function MusicPlayerPage() {
           className="dz-context-menu"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
-          {/* Song header */}
-          <div className="dz-ctx-header">
-            {contextMenu.song.thumbnail && <img src={contextMenu.song.thumbnail} alt="" className="dz-ctx-thumb" />}
-            <div className="dz-ctx-song-info">
-              <div className="dz-ctx-song-title">{contextMenu.song.title}</div>
-              <div className="dz-ctx-song-artist">{contextMenu.song.artist}</div>
-            </div>
-          </div>
-          <div className="dz-ctx-divider" />
-          <button className="dz-ctx-item" onClick={() => { playDiscoverSong(contextMenu.song); setContextMenu(null); }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
-            Play Now
-          </button>
-          <button className="dz-ctx-item" onClick={() => { sendControl("play", `https://www.youtube.com/watch?v=${contextMenu.song.videoId}`, {}); setContextMenu(null); }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-            Add to Queue
-          </button>
-          <button className="dz-ctx-item" onClick={() => { navigator.clipboard?.writeText(`https://www.youtube.com/watch?v=${contextMenu.song.videoId}`); setContextMenu(null); }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy Track Link
-          </button>
+          {contextMenu.mode === "playlist_select" ? (
+            <>
+              <div className="dz-ctx-header">
+                <button className="dz-ctx-back" onClick={() => setContextMenu({...contextMenu, mode: "default"})} style={{background:"none",border:"none",color:"#fff",cursor:"pointer",marginRight:"8px",display:"flex",alignItems:"center"}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <div className="dz-ctx-song-info">
+                  <div className="dz-ctx-song-title">Add to Playlist</div>
+                </div>
+              </div>
+              <div className="dz-ctx-divider" />
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                {playlists.length === 0 && <div style={{padding:"8px",color:"#999",fontSize:"13px"}}>No playlists found</div>}
+                {playlists.map(pl => (
+                  <button key={pl.id} className="dz-ctx-item" onClick={() => { addToPlaylist(contextMenu.song, pl); setContextMenu(null); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pl.name}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Song header */}
+              <div className="dz-ctx-header">
+                {contextMenu.song.thumbnail && <img src={contextMenu.song.thumbnail} alt="" className="dz-ctx-thumb" />}
+                <div className="dz-ctx-song-info">
+                  <div className="dz-ctx-song-title">{contextMenu.song.title}</div>
+                  <div className="dz-ctx-song-artist">{contextMenu.song.artist}</div>
+                </div>
+              </div>
+              <div className="dz-ctx-divider" />
+              <button className="dz-ctx-item" onClick={() => { playDiscoverSong(contextMenu.song); setContextMenu(null); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+                Play Now
+              </button>
+              <button className="dz-ctx-item" onClick={() => { sendControl("play", `https://www.youtube.com/watch?v=${contextMenu.song.videoId}`, {}); setContextMenu(null); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Add to Queue
+              </button>
+              <button className="dz-ctx-item" onClick={() => setContextMenu({ ...contextMenu, mode: "playlist_select" })}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                Add to Playlist
+              </button>
+              <button className="dz-ctx-item" onClick={() => { navigator.clipboard?.writeText(`https://www.youtube.com/watch?v=${contextMenu.song.videoId}`); setContextMenu(null); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Track Link
+              </button>
           {contextMenu.song.albumId && (
             <>
               <div className="dz-ctx-divider" />
@@ -1868,6 +2038,8 @@ export default function MusicPlayerPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
                 <span>{contextMenu.song.artist}</span>
               </button>
+            </>
+          )}
             </>
           )}
         </div>
