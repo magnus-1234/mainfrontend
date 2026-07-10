@@ -2848,23 +2848,38 @@ function FireCrystalsCalculator() {
         <a href="https://wiki.wosforge.org/wiki/Fire_Crystal" target="_blank" rel="noreferrer">WOSForge Wiki <Icon name="external" /></a>
       </section>
       
-      <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
-        <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+      <section className="faq-premium-container" aria-label="Frequently Asked Questions">
+        <h2>Frequently Asked Questions</h2>
         
-        <article style={{ marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I unlock Fire Crystals?</h3>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The Fire Crystal system unlocks on your server around Day 60. To use them, your Furnace, Embassy, and Research Center must all be upgraded to Level 30.</p>
-        </article>
+        <details className="faq-item">
+          <summary className="faq-question">
+            How do I unlock Fire Crystals?
+            <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div className="faq-answer">
+            <p>The Fire Crystal system unlocks on your server around Day 60. To use them, your Furnace, Embassy, and Research Center must all be upgraded to Level 30.</p>
+          </div>
+        </details>
 
-        <article style={{ marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I get more Fire Crystals?</h3>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The best F2P methods for obtaining Fire Crystals are completing your Daily Missions, Intel Missions, and participating in major events like State vs. State (SvS) and Flame and Fangs.</p>
-        </article>
+        <details className="faq-item">
+          <summary className="faq-question">
+            How do I get more Fire Crystals?
+            <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div className="faq-answer">
+            <p>The best F2P methods for obtaining Fire Crystals are completing your Daily Missions, Intel Missions, and participating in major events like State vs. State (SvS) and Flame and Fangs.</p>
+          </div>
+        </details>
 
-        <article>
-          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What are Refined Fire Crystals?</h3>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Refined Fire Crystals are an advanced material needed for upgrades starting at Furnace FC6. You can obtain them by converting standard Fire Crystals and other resources in the Crystal Laboratory building.</p>
-        </article>
+        <details className="faq-item">
+          <summary className="faq-question">
+            What are Refined Fire Crystals?
+            <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div className="faq-answer">
+            <p>Refined Fire Crystals are an advanced material needed for upgrades starting at Furnace FC6. You can obtain them by converting standard Fire Crystals and other resources in the Crystal Laboratory building.</p>
+          </div>
+        </details>
       </section>
     </section>
   );
@@ -6998,23 +7013,38 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </article>
               </section>
 
-              <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+              <section className="faq-premium-container" aria-label="Frequently Asked Questions">
+                <h2>Frequently Asked Questions</h2>
                 
-                <article style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What are the latest Whiteout Survival gift codes?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The latest active gift codes for Whiteout Survival can be found and redeemed directly on our live tracker above. We constantly monitor social channels and update this list the moment new codes are released.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    What are the latest Whiteout Survival gift codes?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>The latest active gift codes for Whiteout Survival can be found and redeemed directly on our live tracker above. We constantly monitor social channels and update this list the moment new codes are released.</p>
+                  </div>
+                </details>
 
-                <article style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I redeem Whiteout Survival codes in-game?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>To redeem codes inside the Whiteout Survival app, tap your Chief avatar in the top left, tap 'Settings', and choose 'Gift Code'. For a faster method, use our automatic redeem tool on this page by simply entering your Player ID.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    How do I redeem Whiteout Survival codes in-game?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>To redeem codes inside the Whiteout Survival app, tap your Chief avatar in the top left, tap 'Settings', and choose 'Gift Code'. For a faster method, use our automatic redeem tool on this page by simply entering your Player ID.</p>
+                  </div>
+                </details>
 
-                <article>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Why is my Whiteout Survival gift code not working?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Gift codes usually expire after a few days or have a maximum usage limit set by the developers. Ensure there are no spaces in the code. If it still fails, check our tracker above to confirm if the code is still active.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    Why is my Whiteout Survival gift code not working?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Gift codes usually expire after a few days or have a maximum usage limit set by the developers. Ensure there are no spaces in the code. If it still fails, check our tracker above to confirm if the code is still active.</p>
+                  </div>
+                </details>
               </section>
             </section>
           ) : activeMenu === "redeem" ? (
@@ -7447,23 +7477,38 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 <p className="vip-source-note">Uses the current 2026 community table with 70,000 XP for VIP 6 to VIP 7. Some older sources show 60,000, which makes the VIP 12 total 4,800,000 instead of 4,810,000.</p>
               </section>
 
-              <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+              <section className="faq-premium-container" aria-label="Frequently Asked Questions">
+                <h2>Frequently Asked Questions</h2>
                 
-                <article style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I get VIP points as a F2P player?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The most reliable F2P method is logging in every day. Your daily login reward increases consecutively up to a maximum of 500 VIP points per day. You can also occasionally buy them in the Alliance Shop or earn them in events.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    How do I get VIP points as a F2P player?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>The most reliable F2P method is logging in every day. Your daily login reward increases consecutively up to a maximum of 500 VIP points per day. You can also occasionally buy them in the Alliance Shop or earn them in events.</p>
+                  </div>
+                </details>
 
-                <article style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What is the difference between VIP Level and VIP Status?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Your VIP Level is permanent and increases as you earn VIP XP. However, the buffs associated with your level are dormant unless your VIP Status is "active". You can activate your status for 30 days using 10,000 Gems.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    What is the difference between VIP Level and VIP Status?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Your VIP Level is permanent and increases as you earn VIP XP. However, the buffs associated with your level are dormant unless your VIP Status is "active". You can activate your status for 30 days using 10,000 Gems.</p>
+                  </div>
+                </details>
 
-                <article>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What is the best VIP level to aim for?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>For most players, reaching VIP 7 is the first major milestone because it unlocks daily Mythic General Hero Shards. Beyond that, VIP 9 is highly recommended as it unlocks weekly Frontier Supplies in the VIP shop.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    What is the best VIP level to aim for?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>For most players, reaching VIP 7 is the first major milestone because it unlocks daily Mythic General Hero Shards. Beyond that, VIP 9 is highly recommended as it unlocks weekly Frontier Supplies in the VIP shop.</p>
+                  </div>
+                </details>
               </section>
             </section>
           ) : activeMenu === "chiefGear" ? (
@@ -7706,23 +7751,38 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </div>
               </section>
 
-              <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+              <section className="faq-premium-container" aria-label="Frequently Asked Questions">
+                <h2>Frequently Asked Questions</h2>
                 
-                <article style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I unlock Chief Gear?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Chief Gear becomes available once your Furnace reaches Level 22. It provides permanent Attack and Defense buffs to all your troop marches.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    How do I unlock Chief Gear?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Chief Gear becomes available once your Furnace reaches Level 22. It provides permanent Attack and Defense buffs to all your troop marches.</p>
+                  </div>
+                </details>
 
-                <article style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Which Chief Gear should I upgrade first?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>It is highly recommended to prioritize your Infantry gear first because they act as your frontline tanks in battle. Marksman gear should be your secondary focus for damage, with Lancers being upgraded last.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    Which Chief Gear should I upgrade first?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>It is highly recommended to prioritize your Infantry gear first because they act as your frontline tanks in battle. Marksman gear should be your secondary focus for damage, with Lancers being upgraded last.</p>
+                  </div>
+                </details>
 
-                <article>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Where do I get Hardened Alloy and Design Plans?</h3>
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Hardened Alloy drops from Level 3+ Polar Terror rallies and Level 22+ Beasts. Design Plans can be purchased in the Alliance Championship Shop, Foundry Shop, and earned during events like Crazy Joe.</p>
-                </article>
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    Where do I get Hardened Alloy and Design Plans?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Hardened Alloy drops from Level 3+ Polar Terror rallies and Level 22+ Beasts. Design Plans can be purchased in the Alliance Championship Shop, Foundry Shop, and earned during events like Crazy Joe.</p>
+                  </div>
+                </details>
               </section>
             </section>
           ) : activeMenu === "chiefCharm" ? (
@@ -7989,6 +8049,39 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </div>
               </section>
 
+              <section className="faq-premium-container" aria-label="Frequently Asked Questions">
+                <h2>Frequently Asked Questions</h2>
+                
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    How do I unlock Chief Charms?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Chief Charms unlock when your Furnace reaches Level 25. Unlike Chief Gear which provides Attack and Defense, Charms provide essential Lethality and Health stats to your troops.</p>
+                  </div>
+                </details>
+
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    Which Chief Charms should I prioritize?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Always prioritize Marksman charms first. They boost Lethality, which is crucial for maximizing your damage output in events like the Bear Trap. Infantry charms are the second priority for F2P players.</p>
+                  </div>
+                </details>
+
+                <details className="faq-item">
+                  <summary className="faq-question">
+                    How do I unlock the Charm Material Exchange?
+                    <svg className="faq-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                  </summary>
+                  <div className="faq-answer">
+                    <p>Once you upgrade at least one Chief Charm to Level 11, the Chief Charm Material Exchange unlocks. This F2P-friendly feature allows you to trade common materials for rarer ones like Charm Guides.</p>
+                  </div>
+                </details>
+              </section>
             </section>
           ) : activeMenu === "wikiHeroes" ? (
             <section className="home-page wiki-page" id="wiki-heroes" aria-label="Whiteout Survival wiki heroes">
