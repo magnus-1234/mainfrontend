@@ -66,7 +66,7 @@ const envValue = (...names: string[]) => {
   return names.map((name) => fromFile[name]).find((value) => value && value.trim()) || "";
 };
 
-const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
+const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK") || "mongodb+srv://iammagnusx1_db_user:zYFHUOjjXhfGLpMs@reminder.hlx5aem.mongodb.net/?appName=REMINDER";
 const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "reminderbot";
 // The Discord bot writes to 'playlists'; the web UI writes to 'music_playlists'.
 // We query both and merge, so users see all their playlists in one place.

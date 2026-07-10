@@ -40,7 +40,7 @@ const envValue = (...names: string[]) => {
   return names.map((n) => fromFile[n]).find((v) => v?.trim()) || "";
 };
 
-const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK");
+const mongoUri = envValue("MONGODB_URI", "MONGO_URI", "MONGO_URI_FALLBACK") || "mongodb+srv://iammagnusx1_db_user:zYFHUOjjXhfGLpMs@reminder.hlx5aem.mongodb.net/?appName=REMINDER";
 const mongoDbName = envValue("MONGODB_DB", "MONGO_DB", "MONGO_DB_NAME", "MONGO_DB_WOS") || "reminderbot";
 
 declare global {
