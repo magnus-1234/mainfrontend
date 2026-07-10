@@ -128,7 +128,7 @@ const publicPlaylist = (playlist: MusicPlaylistDoc & Document) => {
     name: stringValue(playlist.name) || "Untitled playlist",
     iconUrl: stringValue(playlist.iconUrl),
     trackCount: tracks.length,
-    tracks: tracks.slice(0, 50).map(publicTrack),
+    tracks: tracks.map(publicTrack),
     createdAt: stringValue(playlist.created_at),
     updatedAt: stringValue(playlist.updated_at),
   };
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       guilds,
       storage: {
         database: mongoDbName,
-        collections: [BOT_COLLECTION, WEB_COLLECTION],
+        collections: [WEB_COLLECTION],
       },
     });
   } catch (error) {
@@ -205,8 +205,8 @@ export async function POST(request: NextRequest) {
     }
 
     const newPlaylist: MusicPlaylistDoc = {
-      user_id: Long.isLong(userId) ? userId : (/^\d+$/.test(userId) ? Long.fromString(userId) : userId),
-      guild_id: Long.isLong(guildId) ? guildId : (/^\d+$/.test(guildId) ? Long.fromString(guildId) : guildId),
+      user_id: String(userId),
+      guild_id: String(guildId),
       name: name.trim(),
       iconUrl: iconUrl || "",
       tracks: tracks || [],
