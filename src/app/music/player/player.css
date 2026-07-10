@@ -98,6 +98,13 @@
 .dz-nav-item.active { color: var(--text); }
 .dz-nav-item svg { flex-shrink: 0; }
 
+.dz-mobile-nav-show {
+  display: none !important;
+}
+.dz-nav-more-container {
+  display: none !important;
+}
+
 /* ── Sidebar playlist list ───────────────────────────────────── */
 .dz-sidebar-playlists {
   flex: 1;
@@ -1489,41 +1496,106 @@
   .dz-nav-item.active span { opacity: 1; color: var(--green); }
   .dz-nav-item svg { width: 20px; height: 20px; }
 
+  /* Navigation hiding / more menu styling */
+  .dz-mobile-nav-hide {
+    display: none !important;
+  }
+  .dz-mobile-nav-show {
+    display: flex !important;
+  }
+  .dz-nav-more-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+  }
+  .dz-nav-more-dropdown {
+    position: absolute;
+    bottom: 60px;
+    right: 4px;
+    background: #181818;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    padding: 6px 0;
+    min-width: 145px;
+    z-index: 350;
+    display: flex;
+    flex-direction: column;
+  }
+  .dz-nav-more-dropdown button {
+    background: transparent;
+    border: none;
+    padding: 10px 16px;
+    color: var(--text-sub);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .dz-nav-more-dropdown button:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+  }
+
   /* === CONTENT WRAPPER: account for bottom nav + now-playing === */
   .dz-content-wrapper {
     padding-bottom: 170px; /* bottom nav (56) + now playing (~114) */
   }
 
-  /* === TOP BAR === */
+  /* === TOP BAR: simple flex column to align selectors on row 1, search on row 2 === */
   .dz-topbar {
-    grid-template-columns: 1fr auto;
-    padding: 6px 12px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px 6px;
     height: auto;
-    min-height: 44px;
-    gap: 6px;
+    min-height: auto;
+    gap: 8px;
   }
   .dz-topbar-left { display: none; } /* hide back/forward on mobile */
   .dz-topbar-center {
-    grid-column: 1 / -1;
+    width: 100%;
     order: 2;
   }
   .dz-topbar-right {
-    gap: 6px;
-    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+    order: 1;
   }
   .dz-search-bar {
     max-width: 100%;
-    height: 34px;
+    height: 36px;
   }
-  /* Show only icons in dropdowns on mobile */
+  /* Selector dropdown alignment and text visibility */
   .dz-server-dropdown-btn {
-    padding: 4px 8px 4px 4px;
-    height: 32px;
+    padding: 6px 12px;
+    height: 34px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  .dz-server-dropdown-name { max-width: 80px; font-size: 11px; }
+  .dz-server-dropdown-name {
+    display: block !important;
+    max-width: 80px;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .dz-server-dropdown-menu { min-width: 180px; }
   .dz-server-dropdown-menu .dz-server-dropdown-name { max-width: none; }
-  .dz-user-btn { width: 30px; height: 30px; }
+  .dz-user-btn { width: 34px; height: 34px; }
 
   /* === MAIN CONTENT === */
   .dz-view { padding: 16px 14px 24px; }
