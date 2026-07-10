@@ -529,12 +529,17 @@ export default function MusicPlayerPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
   const [selectedVoiceChannel, setSelectedVoiceChannel] = useState<string>("");
+  const [textChannels, setTextChannels] = useState<{id:string;name:string}[]>([]);
+  const [selectedTextChannel, setSelectedTextChannel] = useState<string>("");
   
   const [serverDropdownOpen, setServerDropdownOpen] = useState(false);
   const serverDropdownRef = useRef<HTMLDivElement>(null);
   
   const [vcDropdownOpen, setVcDropdownOpen] = useState(false);
   const vcDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [tcDropdownOpen, setTcDropdownOpen] = useState(false);
+  const tcDropdownRef = useRef<HTMLDivElement>(null);
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
@@ -546,6 +551,9 @@ export default function MusicPlayerPage() {
       }
       if (vcDropdownRef.current && !vcDropdownRef.current.contains(e.target as Node)) {
         setVcDropdownOpen(false);
+      }
+      if (tcDropdownRef.current && !tcDropdownRef.current.contains(e.target as Node)) {
+        setTcDropdownOpen(false);
       }
       if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
         setUserDropdownOpen(false);
@@ -645,14 +653,23 @@ export default function MusicPlayerPage() {
       if (data.ok && data.voiceChannels) {
         const voices = data.voiceChannels || [];
         setVoiceChannels(voices);
-        if (voices.length > 0) setSelectedVoiceChannel(cur => cur || voices[0].id);
+        const savedVc = localStorage.getItem("wos_music_vc");
+        if (savedVc && voices.find((v: any) => v.id === savedVc)) setSelectedVoiceChannel(savedVc);
+        else if (voices.length > 0) setSelectedVoiceChannel((cur: string) => cur || voices[0].id);
+
+        const texts = data.textChannels || [];
+        setTextChannels(texts);
+        const savedTc = localStorage.getItem("wos_music_tc");
+        if (savedTc && texts.find((t: any) => t.id === savedTc)) setSelectedTextChannel(savedTc);
+        else if (texts.length > 0) setSelectedTextChannel((cur: string) => cur || texts[0].id);
       }
-    } catch { setVoiceChannels([]); }
+    } catch { setVoiceChannels([]); setTextChannels([]); }
   }, []);
 
   useEffect(() => {
     if (!selectedGuildId) return;
     setSelectedVoiceChannel("");
+    setSelectedTextChannel("");
     const t = setTimeout(() => void fetchChannels(selectedGuildId), 0);
     return () => clearTimeout(t);
   }, [selectedGuildId, fetchChannels]);
@@ -939,7 +956,7 @@ export default function MusicPlayerPage() {
     try {
       const res = await fetch("/api/music/control", {
         method: "POST", headers: {"Content-Type":"application/json"}, credentials: "include",
-        body: JSON.stringify({ action, guildId: selectedGuildId, value, voiceChannelId: selectedVoiceChannel, ...extra }),
+        body: JSON.stringify({ action, guildId: selectedGuildId, value, voiceChannelId: selectedVoiceChannel, textChannelId: selectedTextChannel, ...extra }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -948,7 +965,7 @@ export default function MusicPlayerPage() {
           // Send disconnect and leave to try to clear it
           fetch("/api/music/control", {
             method: "POST", headers: {"Content-Type":"application/json"}, credentials: "include",
-            body: JSON.stringify({ action: "disconnect", guildId: selectedGuildId, voiceChannelId: selectedVoiceChannel, ...extra })
+            body: JSON.stringify({ action: "disconnect", guildId: selectedGuildId, voiceChannelId: selectedVoiceChannel, textChannelId: selectedTextChannel, ...extra })
           }).catch(() => {});
           
           errorMsg = "Session expired! Please Right-Click the Bot in Discord and select 'Disconnect', then play a song here.";
@@ -959,7 +976,7 @@ export default function MusicPlayerPage() {
       else setTimeout(() => fetchNowPlaying(selectedGuildId), 600);
     } catch { setControlError("Could not reach the music bot"); }
     finally { setControlLoading(false); }
-  }, [selectedGuildId, selectedVoiceChannel, fetchNowPlaying]);
+  }, [selectedGuildId, selectedVoiceChannel, selectedTextChannel, fetchNowPlaying]);
 
   const filteredPlaylists = playlists.filter(p => !selectedGuildId || p.guildId === selectedGuildId);
   const isPlaying = nowPlaying?.playing ?? false;
@@ -1200,9 +1217,44 @@ export default function MusicPlayerPage() {
                     {voiceChannels.map(vc => (
                       <button key={vc.id} className={`dz-server-dropdown-item ${vc.id === selectedVoiceChannel ? "active" : ""}`} onClick={() => {
                         setSelectedVoiceChannel(vc.id);
+                        localStorage.setItem("wos_music_vc", vc.id);
                         setVcDropdownOpen(false);
                       }}>
                         <span className="dz-server-dropdown-name">#{vc.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Text channel selector */}
+            {textChannels.length > 0 && (
+              <div className="dz-server-dropdown-container" ref={tcDropdownRef}>
+                <button className="dz-server-dropdown-btn" onClick={() => setTcDropdownOpen(!tcDropdownOpen)}>
+                  {(() => {
+                    const activeTc = textChannels.find(tc => tc.id === selectedTextChannel);
+                    return activeTc ? (
+                      <div className="dz-server-dropdown-active">
+                        <span className="dz-server-dropdown-name" style={{ paddingLeft: "8px" }}>#{activeTc.name}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    ) : (
+                      <div className="dz-server-dropdown-active">
+                        <span className="dz-server-dropdown-name" style={{ paddingLeft: "8px" }}>Select Text</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    );
+                  })()}
+                </button>
+                {tcDropdownOpen && (
+                  <div className="dz-server-dropdown-menu">
+                    {textChannels.map(tc => (
+                      <button key={tc.id} className={`dz-server-dropdown-item ${tc.id === selectedTextChannel ? "active" : ""}`} onClick={() => {
+                        setSelectedTextChannel(tc.id);
+                        localStorage.setItem("wos_music_tc", tc.id);
+                        setTcDropdownOpen(false);
+                      }}>
+                        <span className="dz-server-dropdown-name">#{tc.name}</span>
                       </button>
                     ))}
                   </div>
