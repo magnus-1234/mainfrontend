@@ -252,7 +252,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Playlist ID required" }, { status: 400 });
     }
 
-    const col = await collection();
+    const db = await getDb();
     const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
 
     const setFields: Document = { updated_at: new Date().toISOString() };
@@ -260,9 +260,12 @@ export async function PUT(request: NextRequest) {
     if (iconUrl !== undefined) setFields.iconUrl = iconUrl;
     if (tracks !== undefined) setFields.tracks = tracks;
 
-    const result = await col.updateOne(query, { $set: setFields });
+    const [botRes, webRes] = await Promise.all([
+      db.collection(BOT_COLLECTION).updateOne(query, { $set: setFields }),
+      db.collection(WEB_COLLECTION).updateOne(query, { $set: setFields })
+    ]);
 
-    if (result.matchedCount === 0) {
+    if (botRes.matchedCount === 0 && webRes.matchedCount === 0) {
       return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
     }
 
@@ -288,12 +291,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Playlist ID required" }, { status: 400 });
     }
 
-    const col = await collection();
+    const db = await getDb();
     const query: Document = { _id: new ObjectId(id), user_id: { $in: idCandidates(userId) } };
 
-    const result = await col.deleteOne(query);
+    const [botRes, webRes] = await Promise.all([
+      db.collection(BOT_COLLECTION).deleteOne(query),
+      db.collection(WEB_COLLECTION).deleteOne(query)
+    ]);
 
-    if (result.deletedCount === 0) {
+    if (botRes.deletedCount === 0 && webRes.deletedCount === 0) {
       return NextResponse.json({ error: "Playlist not found or access denied" }, { status: 404 });
     }
 
