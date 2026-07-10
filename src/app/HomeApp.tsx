@@ -1629,7 +1629,7 @@ const navVisuals: Partial<Record<ActiveMenu, NavVisual>> = {
   daybreak: { src: "/daybreak-island-tree-of-life.webp", alt: "Daybreak Island tree" },
   playerDetails: { src: "/home-icons/home-house.svg", alt: "Player Profile" },
   dreamscape: { src: "/wiki/heroes/estrella/2cfef55ef649.png", alt: "Dreamscape Memory" },
-  bot: { src: "/bot-logo.gif", alt: "Discord bot" },
+  bot: { src: "/wos-bot-logo.gif", alt: "Discord bot" },
   music: { src: "/showcase-music-system.png", alt: "Music playlists" },
   wikiHeroes: { src: "/wiki/heroes/molly/554d3a1795ca.png", alt: "WOS hero" },
   wikiBuildings: { src: "/wiki/buildings/furnace/1d5f9abc1441.png", alt: "WOS furnace" },
@@ -1648,7 +1648,7 @@ const landingToolVisuals: Partial<Record<ActiveMenu, { src: string; alt: string;
   svsPlanner: { src: "/wiki/heroes/natalia/32b1c504e8ae.png", alt: "Whiteout Survival appointment resource", tone: "ember" },
   gameMap: { src: "/vendor/krozac-wos-interactive-map/furnace.png", alt: "Whiteout Survival map furnace marker", tone: "ice" },
   planner: { src: "/foundry-team-planner-map.webp", alt: "Whiteout Survival foundry team map", tone: "blue" },
-  bot: { src: "/bot-logo.gif", alt: "Whiteout Survival Discord bot", tone: "violet" },
+  bot: { src: "/wos-bot-logo.gif", alt: "Whiteout Survival Discord bot", tone: "violet" },
   music: { src: "/showcase-music-system.png", alt: "Whiteout Survival music bot", tone: "blue" },
   templates: { src: "/wiki/heroes/estrella/18d9d05440cc.png", alt: "Whiteout Survival message template icon", tone: "green" },
   vip: { src: "/svs-resources/fire-crystal.png", alt: "Whiteout Survival premium resource", tone: "ember" },
@@ -9064,7 +9064,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <span className="bot-title-highlight warm">Discord Bot</span> for WOS
                   </h1>
                   <div className="bot-brand-row">
-                    <img className="bot-brand-logo" src="/bot-logo.gif" alt="Whiteout Survival bot logo" width={58} height={58} />
+                    <img className="bot-brand-logo" src="/wos-bot-logo.gif" alt="Whiteout Survival bot logo" width={58} height={58} />
                     <span className="bot-brand-name">Whiteout <span>Survival</span></span>
                   </div>
                   <p>
@@ -9098,7 +9098,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <div className="bot-dashboard-preview" aria-label="Live bot operations preview">
                     <div className="bot-preview-sidebar">
                       <div className="bot-preview-title">
-                        <img src="/bot-logo.gif" alt="" width={34} height={34} />
+                        <img src="/wos-bot-logo.gif" alt="" width={34} height={34} />
                         <span>Whiteout Survival</span>
                       </div>
                       {["Overview", "Alliance Monitor", "Gift Codes", "Records", "Reminders"].map((item, index) => (
