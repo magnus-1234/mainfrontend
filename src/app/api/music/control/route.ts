@@ -49,7 +49,7 @@ const BACKEND_URL = envValue("BACKEND_URL", "PUBLIC_API_URL") || "http://140.245
 const BOT_API_URL = envValue("MUSIC_BOT_API_URL");
 const BOT_API_SECRET = envValue("MUSIC_API_SECRET");
 
-const VALID_ACTIONS = new Set(["pause", "resume", "skip", "previous", "stop", "disconnect", "volume", "loop", "shuffle", "play_playlist", "channels", "play", "play_now", "now_playing"]);
+const VALID_ACTIONS = new Set(["pause", "resume", "skip", "previous", "stop", "disconnect", "volume", "loop", "shuffle", "play_playlist", "channels", "play", "play_now", "now_playing", "remove_queue"]);
 
 // Get current user from the existing backend session
 const getCurrentUser = async (cookie: string) => {

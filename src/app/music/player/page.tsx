@@ -1577,16 +1577,48 @@ export default function MusicPlayerPage() {
               </button>
             </div>
             <div className="dz-queue-list">
-              {nowPlaying.queue.map((t, i) => (
-                <div key={i} className="dz-queue-item">
-                  <span className="dz-queue-num">{i + 1}</span>
-                  <div className="dz-queue-info">
-                    <div className="dz-queue-title">{t.title}</div>
-                    <div className="dz-queue-author">{t.author}</div>
+              {nowPlaying.queue.map((t, i) => {
+                const songObj: SearchSong = {
+                  type: "song",
+                  videoId: t.uri.includes('=') ? t.uri.split('=').pop() || '' : t.uri,
+                  title: t.title,
+                  artist: t.author,
+                  duration: formatTime(t.length),
+                  thumbnail: t.artwork || undefined
+                };
+                return (
+                  <div key={i} className="dz-track-row dz-queue-item-row" style={{ padding: "4px 8px", minHeight: "48px", borderBottom: "1px solid rgba(255,255,255,0.02)" }} onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setContextMenu({ x: e.clientX, y: e.clientY, song: songObj, mode: "default" });
+                  }}>
+                    <span className="dz-track-idx" style={{width: "24px", fontSize: "12px", textAlign: "center"}}>{i + 1}</span>
+                    <div className="dz-col-title" style={{gap: "10px"}}>
+                      <div className="dz-track-thumb" style={{width: "36px", height: "36px"}}>
+                        {t.artwork ? <img src={t.artwork} alt="" /> : (
+                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                        )}
+                      </div>
+                      <div style={{display: "flex", flexDirection: "column", overflow: "hidden"}}>
+                        <span className="dz-track-name" style={{fontSize: "13px"}}>{t.title}</span>
+                        <span className="dz-col-artist" style={{fontSize: "12px", display: "block"}}>{t.author}</span>
+                      </div>
+                    </div>
+                    <div className="dz-track-inline-actions">
+                      <button className="dz-inline-btn" title="Add to Playlist" onClick={(e) => { e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY, song: songObj, mode: "default" }); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                      </button>
+                      <button className="dz-inline-btn" title="Save to Favorites" onClick={(e) => { e.stopPropagation(); saveToFavorites(songObj as any); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                      </button>
+                      <button className="dz-inline-btn" title="Remove from Queue" onClick={(e) => { e.stopPropagation(); sendControl("remove_queue", i.toString()); }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                    </div>
+                    <div className="dz-col-dur" style={{width: "40px", fontSize: "12px", textAlign: "right"}}>{formatTime(t.length)}</div>
                   </div>
-                  <span className="dz-queue-dur">{formatTime(t.length)}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
