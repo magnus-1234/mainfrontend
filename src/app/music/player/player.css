@@ -2365,3 +2365,107 @@
   background: #282828;
   animation: pulse 1.5s infinite;
 }
+
+/* ── Mobile Responsiveness ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .dz-root {
+    flex-direction: column;
+  }
+  .dz-sidebar {
+    width: 100%;
+    padding: 8px 0;
+    flex-direction: row;
+    height: 60px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    z-index: 50;
+  }
+  .dz-logo {
+    display: none;
+  }
+  .dz-nav {
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    padding: 0 12px;
+    gap: 16px;
+    width: 100%;
+  }
+  .dz-nav-item {
+    width: auto;
+    padding: 8px;
+    justify-content: center;
+  }
+  .dz-nav-item span {
+    display: none;
+  }
+  .dz-sidebar-playlists {
+    display: none;
+  }
+  .dz-topbar {
+    grid-template-columns: auto 1fr auto;
+    padding: 8px 10px;
+    height: auto;
+    min-height: var(--topbar-h);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dz-topbar-center {
+    order: 3;
+    width: 100%;
+  }
+  .dz-search-bar {
+    max-width: 100%;
+  }
+  .dz-server-dropdown-name {
+    display: none;
+  }
+  .dz-server-select, .dz-vc-select {
+    max-width: 100px;
+  }
+  .dz-playlist-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .dz-playlist-cover {
+    width: 160px;
+    height: 160px;
+  }
+  .dz-playlist-title {
+    font-size: 28px;
+  }
+  .dz-playlist-actions {
+    justify-content: center;
+  }
+  .dz-tracks-header .dz-col-artist,
+  .dz-track-row .dz-col-artist,
+  .dz-tracks-header .dz-col-dur,
+  .dz-track-row .dz-col-dur {
+    display: none;
+  }
+  .dz-col-actions-h {
+    display: none;
+  }
+  .dz-home-pl-list {
+    grid-template-columns: 1fr;
+  }
+  .dz-playlists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+  .sr-top-container {
+    flex-direction: column;
+  }
+  .dz-artist-hero, .dz-album-hero {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  .dz-artist-title, .dz-album-title {
+    font-size: 28px;
+  }
+  .dz-queue-panel {
+    width: calc(100% - 16px);
+    right: 8px;
+  }
+}

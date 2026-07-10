@@ -3696,6 +3696,15 @@ body {
     width: min(100%, 420px);
   }
 }
+
+@media (max-width: 600px) {
+  .music-splash-title {
+    font-size: clamp(32px, 8vw, 42px);
+  }
+  .music-btn-primary, .music-btn-secondary {
+    width: 100%;
+  }
+}
 @keyframes simple-dot-blink {
   0%,
   100% {
