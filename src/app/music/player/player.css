@@ -98,13 +98,6 @@
 .dz-nav-item.active { color: var(--text); }
 .dz-nav-item svg { flex-shrink: 0; }
 
-.dz-mobile-nav-show {
-  display: none !important;
-}
-.dz-nav-more-container {
-  display: none !important;
-}
-
 /* ── Sidebar playlist list ───────────────────────────────────── */
 .dz-sidebar-playlists {
   flex: 1;
@@ -1430,6 +1423,75 @@
   50% { opacity: 1; }
 }
 
+/* ── MORE BUTTON (hidden on desktop) ────────────────────────── */
+.dz-nav-more-btn { display: none; }
+
+/* ── MOBILE MORE SHEET (hidden on desktop) ──────────────────── */
+.dz-mobile-more-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 250;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.dz-mobile-more-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: #1a1a1a;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.dz-mobile-more-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 4px auto 12px;
+}
+
+.dz-mobile-more-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dz-mobile-more-item:hover,
+.dz-mobile-more-item:active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.dz-mobile-more-item.active {
+  color: var(--green);
+}
+
+.dz-mobile-more-item svg {
+  flex-shrink: 0;
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
 
 /* Tablet: hide volume, shrink now-playing */
@@ -1455,7 +1517,7 @@
     height: 56px;
     flex-direction: row;
     padding: 0;
-    order: 99; /* push to bottom */
+    order: 99;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1476,6 +1538,13 @@
     width: 100%;
     height: 100%;
   }
+
+  /* Hide secondary nav items on mobile (they live in the More sheet) */
+  .dz-nav-item.dz-nav-secondary { display: none; }
+
+  /* Show the More button on mobile */
+  .dz-nav-more-btn { display: flex !important; }
+
   .dz-nav-item {
     flex-direction: column;
     align-items: center;
@@ -1496,106 +1565,65 @@
   .dz-nav-item.active span { opacity: 1; color: var(--green); }
   .dz-nav-item svg { width: 20px; height: 20px; }
 
-  /* Navigation hiding / more menu styling */
-  .dz-mobile-nav-hide {
-    display: none !important;
-  }
-  .dz-mobile-nav-show {
-    display: flex !important;
-  }
-  .dz-nav-more-container {
-    position: relative;
+  /* === MOBILE MORE SHEET === */
+  .dz-mobile-more-overlay {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    height: 100%;
-  }
-  .dz-nav-more-dropdown {
-    position: absolute;
-    bottom: 60px;
-    right: 4px;
-    background: #181818;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow);
-    padding: 6px 0;
-    min-width: 145px;
-    z-index: 350;
-    display: flex;
-    flex-direction: column;
-  }
-  .dz-nav-more-dropdown button {
-    background: transparent;
-    border: none;
-    padding: 10px 16px;
-    color: var(--text-sub);
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .dz-nav-more-dropdown button:hover {
-    background: var(--bg-hover);
-    color: var(--text);
   }
 
   /* === CONTENT WRAPPER: account for bottom nav + now-playing === */
   .dz-content-wrapper {
-    padding-bottom: 170px; /* bottom nav (56) + now playing (~114) */
+    padding-bottom: 170px;
   }
 
-  /* === TOP BAR: simple flex column to align selectors on row 1, search on row 2 === */
+  /* === TOP BAR === */
   .dz-topbar {
     display: flex;
-    flex-direction: column;
-    padding: 8px 12px 6px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
     height: auto;
-    min-height: auto;
+    min-height: 44px;
     gap: 8px;
+    align-items: center;
   }
-  .dz-topbar-left { display: none; } /* hide back/forward on mobile */
+  .dz-topbar-left { display: none; }
   .dz-topbar-center {
-    width: 100%;
     order: 2;
+    width: 100%;
+    flex-basis: 100%;
   }
   .dz-topbar-right {
+    order: 1;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
-    justify-content: space-between;
-    order: 1;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
   }
+  .dz-topbar-right::-webkit-scrollbar { display: none; }
   .dz-search-bar {
     max-width: 100%;
     height: 36px;
   }
-  /* Selector dropdown alignment and text visibility */
+  .dz-server-dropdown-container { flex-shrink: 0; }
   .dz-server-dropdown-btn {
-    padding: 6px 12px;
-    height: 34px;
-    border-radius: var(--radius-pill);
-    background: var(--bg-elevated);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  .dz-server-dropdown-name {
-    display: block !important;
-    max-width: 80px;
-    font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 4px 10px 4px 4px;
+    height: 32px;
     white-space: nowrap;
   }
-  .dz-server-dropdown-menu { min-width: 180px; }
+  .dz-server-dropdown-name {
+    max-width: 100px;
+    font-size: 12px;
+    display: inline;
+  }
+  .dz-server-dropdown-menu {
+    min-width: 200px;
+    z-index: 300;
+  }
   .dz-server-dropdown-menu .dz-server-dropdown-name { max-width: none; }
-  .dz-user-btn { width: 34px; height: 34px; }
+  .dz-user-btn { width: 30px; height: 30px; flex-shrink: 0; }
 
   /* === MAIN CONTENT === */
   .dz-view { padding: 16px 14px 24px; }

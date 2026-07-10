@@ -446,9 +446,6 @@ export default function MusicPlayerPage() {
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
-
   // Discovery state
   const [discoverNewReleases, setDiscoverNewReleases] = useState<DiscoverAlbum[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
@@ -547,6 +544,8 @@ export default function MusicPlayerPage() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (serverDropdownRef.current && !serverDropdownRef.current.contains(e.target as Node)) {
@@ -563,9 +562,6 @@ export default function MusicPlayerPage() {
       }
       if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
         setContextMenu(null);
-      }
-      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
-        setMoreMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -1036,59 +1032,69 @@ export default function MusicPlayerPage() {
 
         {/* Nav */}
         <nav className="dz-nav">
-          <button className={`dz-nav-item ${activeView === "home" ? "active" : ""}`} onClick={() => setActiveView("home")}>
+          {/* Primary tabs — always visible on mobile bottom bar */}
+          <button className={`dz-nav-item dz-nav-primary ${activeView === "home" ? "active" : ""}`} onClick={() => { setActiveView("home"); setMobileMoreOpen(false); }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             <span>Home</span>
           </button>
-          <button className={`dz-nav-item dz-mobile-nav-hide ${activeView === "history" ? "active" : ""}`} onClick={() => setActiveView("history")}>
+          <button className={`dz-nav-item dz-nav-primary ${activeView === "history" ? "active" : ""}`} onClick={() => { setActiveView("history"); setMobileMoreOpen(false); }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
             <span>History</span>
           </button>
-          <button className={`dz-nav-item ${activeView === "playlists" ? "active" : ""}`} onClick={() => setActiveView("playlists")}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-            <span>Library</span>
-          </button>
-          <button className={`dz-nav-item ${activeView === "liked" ? "active" : ""}`} onClick={() => setActiveView("liked")}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            <span>Liked Songs</span>
-          </button>
-          <button className={`dz-nav-item dz-mobile-nav-hide ${activeView === "artists" ? "active" : ""}`} onClick={() => setActiveView("artists")}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-            <span>Artists</span>
-          </button>
-          <button className={`dz-nav-item dz-mobile-nav-hide ${activeView === "albums" ? "active" : ""}`} onClick={() => setActiveView("albums")}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-            <span>Albums</span>
-          </button>
-          <button className={`dz-nav-item dz-mobile-nav-hide`} onClick={() => setActiveView("playlists")}>
+          <button className={`dz-nav-item dz-nav-primary ${activeView === "playlists" ? "active" : ""}`} onClick={() => { setActiveView("playlists"); setMobileMoreOpen(false); }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             <span>Playlists</span>
           </button>
 
-          {/* More menu for Mobile */}
-          <div className="dz-nav-more-container" ref={moreMenuRef}>
-            <button className={`dz-nav-item dz-mobile-nav-show ${moreMenuOpen ? "active" : ""}`} onClick={() => setMoreMenuOpen(!moreMenuOpen)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-              <span>More</span>
-            </button>
-            {moreMenuOpen && (
-              <div className="dz-nav-more-dropdown">
-                <button onClick={() => { setActiveView("history"); setMoreMenuOpen(false); }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-                  <span>History</span>
-                </button>
-                <button onClick={() => { setActiveView("artists"); setMoreMenuOpen(false); }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                  <span>Artists</span>
-                </button>
-                <button onClick={() => { setActiveView("albums"); setMoreMenuOpen(false); }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-                  <span>Albums</span>
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Secondary tabs — shown on desktop sidebar, hidden on mobile (inside More sheet) */}
+          <button className={`dz-nav-item dz-nav-secondary`} onClick={() => setActiveView("playlists")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <span>Library</span>
+          </button>
+          <button className={`dz-nav-item dz-nav-secondary ${activeView === "liked" ? "active" : ""}`} onClick={() => setActiveView("liked")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span>Liked Songs</span>
+          </button>
+          <button className={`dz-nav-item dz-nav-secondary ${activeView === "artists" ? "active" : ""}`} onClick={() => setActiveView("artists")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+            <span>Artists</span>
+          </button>
+          <button className={`dz-nav-item dz-nav-secondary ${activeView === "albums" ? "active" : ""}`} onClick={() => setActiveView("albums")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Albums</span>
+          </button>
+
+          {/* More button — only visible on mobile */}
+          <button className={`dz-nav-item dz-nav-more-btn ${mobileMoreOpen ? "active" : ""}`} onClick={() => setMobileMoreOpen(!mobileMoreOpen)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            <span>More</span>
+          </button>
         </nav>
+
+        {/* Mobile "More" sheet */}
+        {mobileMoreOpen && (
+          <div className="dz-mobile-more-overlay" onClick={() => setMobileMoreOpen(false)}>
+            <div className="dz-mobile-more-sheet" onClick={e => e.stopPropagation()}>
+              <div className="dz-mobile-more-handle" />
+              <button className={`dz-mobile-more-item ${activeView === "liked" ? "active" : ""}`} onClick={() => { setActiveView("liked"); setMobileMoreOpen(false); }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>Liked Songs</span>
+              </button>
+              <button className={`dz-mobile-more-item ${activeView === "artists" ? "active" : ""}`} onClick={() => { setActiveView("artists"); setMobileMoreOpen(false); }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                <span>Artists</span>
+              </button>
+              <button className={`dz-mobile-more-item ${activeView === "albums" ? "active" : ""}`} onClick={() => { setActiveView("albums"); setMobileMoreOpen(false); }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Albums</span>
+              </button>
+              <button className={`dz-mobile-more-item`} onClick={() => { setActiveView("playlists"); setMobileMoreOpen(false); }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                <span>Library</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Sidebar playlist list */}
         <div className="dz-sidebar-playlists">
