@@ -239,6 +239,25 @@ export default function WarAcademyCalculator() {
           <span>Research rows were scraped from the official Whiteout Survival Wiki on June 4, 2026. Patch changes can happen, so the in-game preview is still the final authority.</span>
         </article>
       </section>
+
+      <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+        <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+        
+        <article style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>When does the War Academy unlock?</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The War Academy building unlocks roughly 220 days after your server starts, requiring your Furnace to reach FC5 (Fire Crystal Level 5).</p>
+        </article>
+
+        <article style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Which T11 troops should I research first?</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Most top players recommend rushing Infantry Helios first, as they are your frontline defenders and absorb the bulk of damage. Marksman should be your secondary focus.</p>
+        </article>
+
+        <article>
+          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I get Fire Crystal Shards?</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Fire Crystal Shards are exchanged daily for Steel (5,000 Steel = 1 Shard) or Fire Crystals (10 Crystals = 13 Shards) inside the War Academy. It's crucial to manage your shards carefully.</p>
+        </article>
+      </section>
     </main>
   );
 }

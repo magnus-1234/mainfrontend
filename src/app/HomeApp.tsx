@@ -2847,6 +2847,25 @@ function FireCrystalsCalculator() {
         <a href="https://whiteoutsurvivalhandbook.com/guides/whiteoutsurvival-fire-crystal-furnace-guide-fc1-fc10" target="_blank" rel="noreferrer">2026 Handbook <Icon name="external" /></a>
         <a href="https://wiki.wosforge.org/wiki/Fire_Crystal" target="_blank" rel="noreferrer">WOSForge Wiki <Icon name="external" /></a>
       </section>
+      
+      <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+        <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+        
+        <article style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I unlock Fire Crystals?</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The Fire Crystal system unlocks on your server around Day 60. To use them, your Furnace, Embassy, and Research Center must all be upgraded to Level 30.</p>
+        </article>
+
+        <article style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I get more Fire Crystals?</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The best F2P methods for obtaining Fire Crystals are completing your Daily Missions, Intel Missions, and participating in major events like State vs. State (SvS) and Flame and Fangs.</p>
+        </article>
+
+        <article>
+          <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What are Refined Fire Crystals?</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Refined Fire Crystals are an advanced material needed for upgrades starting at Furnace FC6. You can obtain them by converting standard Fire Crystals and other resources in the Crystal Laboratory building.</p>
+        </article>
+      </section>
     </section>
   );
 }
@@ -7427,6 +7446,25 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                 </div>
                 <p className="vip-source-note">Uses the current 2026 community table with 70,000 XP for VIP 6 to VIP 7. Some older sources show 60,000, which makes the VIP 12 total 4,800,000 instead of 4,810,000.</p>
               </section>
+
+              <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+                
+                <article style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I get VIP points as a F2P player?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>The most reliable F2P method is logging in every day. Your daily login reward increases consecutively up to a maximum of 500 VIP points per day. You can also occasionally buy them in the Alliance Shop or earn them in events.</p>
+                </article>
+
+                <article style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What is the difference between VIP Level and VIP Status?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Your VIP Level is permanent and increases as you earn VIP XP. However, the buffs associated with your level are dormant unless your VIP Status is "active". You can activate your status for 30 days using 10,000 Gems.</p>
+                </article>
+
+                <article>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>What is the best VIP level to aim for?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>For most players, reaching VIP 7 is the first major milestone because it unlocks daily Mythic General Hero Shards. Beyond that, VIP 9 is highly recommended as it unlocks weekly Frontier Supplies in the VIP shop.</p>
+                </article>
+              </section>
             </section>
           ) : activeMenu === "chiefGear" ? (
             <section className="home-page chief-gear-page" id="chief-gear-calculator" aria-label="Whiteout Survival Chief Gear calculator">
@@ -7666,6 +7704,25 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     </tbody>
                   </table>
                 </div>
+              </section>
+
+              <section className="giftcodes-seo-faq" aria-label="Frequently Asked Questions" style={{ marginTop: "40px", padding: "24px", background: "rgba(0,0,0,0.2)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <h2 style={{ marginBottom: "20px", fontSize: "1.25rem", fontWeight: "600" }}>Frequently Asked Questions</h2>
+                
+                <article style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>How do I unlock Chief Gear?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Chief Gear becomes available once your Furnace reaches Level 22. It provides permanent Attack and Defense buffs to all your troop marches.</p>
+                </article>
+
+                <article style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Which Chief Gear should I upgrade first?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>It is highly recommended to prioritize your Infantry gear first because they act as your frontline tanks in battle. Marksman gear should be your secondary focus for damage, with Lancers being upgraded last.</p>
+                </article>
+
+                <article>
+                  <h3 style={{ fontSize: "1.05rem", marginBottom: "8px", color: "var(--text-primary, #fff)" }}>Where do I get Hardened Alloy and Design Plans?</h3>
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-secondary, #aaa)", lineHeight: "1.5" }}>Hardened Alloy drops from Level 3+ Polar Terror rallies and Level 22+ Beasts. Design Plans can be purchased in the Alliance Championship Shop, Foundry Shop, and earned during events like Crazy Joe.</p>
+                </article>
               </section>
             </section>
           ) : activeMenu === "chiefCharm" ? (
