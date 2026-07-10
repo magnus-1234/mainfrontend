@@ -1587,7 +1587,7 @@ export default function MusicPlayerPage() {
                   thumbnail: t.artwork || undefined
                 };
                 return (
-                  <div key={i} className="dz-track-row dz-queue-item-row" style={{ padding: "4px 8px", minHeight: "48px", borderBottom: "1px solid rgba(255,255,255,0.02)" }} onContextMenu={(e) => {
+                  <div key={i} className="dz-track-row dz-queue-item-row" style={{ display: "grid", gridTemplateColumns: "24px minmax(0, 1fr) auto 40px", alignItems: "center", gap: "8px", padding: "4px 8px", minHeight: "48px", borderBottom: "1px solid rgba(255,255,255,0.02)" }} onContextMenu={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setContextMenu({ x: e.clientX, y: e.clientY, song: songObj, mode: "default" });
