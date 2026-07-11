@@ -1955,7 +1955,8 @@
     align-items: center;
     gap: 6px;
     width: 100%;
-    flex-wrap: nowrap;
+    flex-wrap: wrap; /* allow wrapping for multiple selectors */
+    position: relative; /* Context for full-width dropdown menus */
   }
 
   /* Row 2: search bar full width */
@@ -1972,8 +1973,17 @@
 
   /* Channel dropdowns: share space evenly and show text clearly */
   .dz-server-dropdown-container { 
-    flex: 1; 
-    min-width: 0; 
+    flex: 1 1 calc(50% - 6px); 
+    min-width: 120px; 
+    position: static; /* Let dropdown menu position relative to dz-topbar-right */
+  }
+
+  /* User avatar doesn't need to grow */
+  .dz-server-dropdown-container:last-child {
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: auto;
+    position: relative; /* Keep avatar menu relative to avatar */
   }
 
   .dz-server-dropdown-btn {
@@ -1983,6 +1993,11 @@
     width: 100%;
     max-width: none;
     justify-content: flex-start;
+  }
+
+  .dz-server-dropdown-active {
+    flex: 1;
+    min-width: 0;
   }
 
   .dz-server-dropdown-name {
@@ -1995,14 +2010,20 @@
   }
 
   .dz-server-dropdown-menu {
-    min-width: 180px;
+    min-width: 0;
+    width: 100%;
     z-index: 310;
     left: 0;
-    right: auto;
+    right: 0;
+    top: calc(100% + 4px); /* display below the wrapped topbar-right */
   }
+
   .dz-server-dropdown-container:last-child .dz-server-dropdown-menu {
     left: auto;
     right: 0;
+    width: auto;
+    min-width: 180px;
+    top: calc(100% + 4px);
   }
   .dz-server-dropdown-menu .dz-server-dropdown-name { max-width: none; }
   .dz-user-btn { width: 28px; height: 28px; flex-shrink: 0; }
