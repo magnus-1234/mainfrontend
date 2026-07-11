@@ -528,13 +528,14 @@ export default function MusicPlayerPage() {
                 type: "song",
                 videoId: resolved.videoId || songQuery,
                 title: resolved.title || "Play YouTube Link",
+                artist: resolved.artist || "YouTube",
                 thumbnail: resolved.thumbnail || ""
               }],
               albums: [], artists: []
             });
           } else {
             setSearchResults({
-              songs: [{ type: "song", videoId: songQuery, title: "Play YouTube Link", thumbnail: "" }],
+              songs: [{ type: "song", videoId: songQuery, title: "Play YouTube Link", artist: "YouTube", thumbnail: "" }],
               albums: [], artists: []
             });
           }
