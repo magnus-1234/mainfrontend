@@ -1927,7 +1927,6 @@
     gap: 6px;
     width: 100%;
     flex-wrap: nowrap;
-    overflow: hidden;
   }
 
   /* Row 2: search bar full width */
