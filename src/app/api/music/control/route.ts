@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         textChannelId: body.textChannelId,
         userId: body.userId || user.discordUserId || user.id,
       }),
-      signal: AbortSignal.timeout(action === "play_playlist" ? 20000 : 5000),
+      signal: AbortSignal.timeout(action === "play_playlist" ? 30000 : 30000),
     });
 
     const data = await botRes.json().catch(() => ({ ok: false }));
