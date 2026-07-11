@@ -512,16 +512,47 @@ export default function MusicPlayerPage() {
       setSearchResults(null);
       return;
     }
+
+    const isYt = /(?:youtube\.com|youtu\.be|music\.youtube\.com)/.test(songQuery) || /^[a-zA-Z0-9_-]{11}$/.test(songQuery.trim());
+    
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     searchDebounceRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const res = await fetch(`/api/music/search?q=${encodeURIComponent(songQuery.trim())}`);
-        if (res.ok) {
-          const data: SearchResults = await res.json();
-          setSearchResults(data);
+        if (isYt) {
+          const res = await fetch(`/api/music/resolve?url=${encodeURIComponent(songQuery.trim())}`);
+          if (res.ok) {
+            const resolved = await res.json();
+            setSearchResults({
+              songs: [{
+                type: "song",
+                videoId: resolved.videoId || songQuery,
+                title: resolved.title || "Play YouTube Link",
+                thumbnail: resolved.thumbnail || ""
+              }],
+              albums: [], artists: []
+            });
+          } else {
+            setSearchResults({
+              songs: [{ type: "song", videoId: songQuery, title: "Play YouTube Link", thumbnail: "" }],
+              albums: [], artists: []
+            });
+          }
+        } else {
+          const res = await fetch(`/api/music/search?q=${encodeURIComponent(songQuery.trim())}`);
+          if (res.ok) {
+            const data: SearchResults = await res.json();
+            setSearchResults(data);
+          }
         }
-      } catch {} finally {
+      } catch {
+        if (isYt) {
+          setSearchResults({
+            songs: [{ type: "song", videoId: songQuery, title: "Play YouTube Link", thumbnail: "" }],
+            albums: [], artists: []
+          });
+        }
+      } finally {
         setSearchLoading(false);
       }
     }, 400);
