@@ -8996,7 +8996,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   </h1>
                   
                   <p className="music-splash-subtitle">
-                    Control server playback, manage queues, and explore your cloud playlists in a beautiful, unified Spotify-grade player.
+                    Control server playback, manage queues, and explore your cloud playlists in a beautiful, unified premium web player.
                   </p>
                   
                   <div className="music-splash-actions">
@@ -9023,16 +9023,25 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   
                   <div className="music-splash-features">
                     <div className="music-feature">
-                      <strong>Cloud Playlists</strong>
-                      <span>Saved automatically to a secure cloud database.</span>
+                      <div className="music-feature-icon"><Icon name="database" /></div>
+                      <div>
+                        <strong>Cloud Playlists</strong>
+                        <span>Saved automatically to a secure cloud database.</span>
+                      </div>
                     </div>
                     <div className="music-feature">
-                      <strong>Live Sync</strong>
-                      <span>Real-time queue management.</span>
+                      <div className="music-feature-icon"><Icon name="refresh" /></div>
+                      <div>
+                        <strong>Live Sync</strong>
+                        <span>Real-time queue management across servers.</span>
+                      </div>
                     </div>
                     <div className="music-feature">
-                      <strong>Studio Quality</strong>
-                      <span>High fidelity audio streaming.</span>
+                      <div className="music-feature-icon"><Icon name="music" /></div>
+                      <div>
+                        <strong>Studio Quality</strong>
+                        <span>High fidelity audio streaming without drops.</span>
+                      </div>
                     </div>
                   </div>
                 </div>
