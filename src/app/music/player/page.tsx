@@ -549,7 +549,7 @@ export default function MusicPlayerPage() {
       } catch {
         if (isYt) {
           setSearchResults({
-            songs: [{ type: "song", videoId: songQuery, title: "Play YouTube Link", thumbnail: "" }],
+            songs: [{ type: "song", videoId: songQuery, title: "Play YouTube Link", artist: "YouTube", thumbnail: "" }],
             albums: [], artists: []
           });
         }
