@@ -233,6 +233,9 @@ function DiscordLoginScreen() {
           </svg>
           Login with Discord
         </a>
+        <a href="/" className="dz-login-back-btn" id="website-back-btn">
+          Return to Website
+        </a>
         <p className="dz-login-note">We only request the <code>identify</code> scope — no messages or guild management access.</p>
       </div>
     </div>

@@ -1742,6 +1742,30 @@
 
 .dz-login-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
+.dz-login-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 30px;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-sub);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.dz-login-back-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
 .dz-login-note {
   margin: 16px 0 0;
   font-size: 12px;
