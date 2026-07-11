@@ -3516,12 +3516,12 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   }, [giftCodes.length]);
 
   useEffect(() => {
-    if ((activeMenu === "gift" || activeMenu === "redeem") && !giftCodes.length && !giftCodeLoading && !giftCodeAttempted.current) {
+    if ((activeMenu === "gift" || activeMenu === "redeem") && !giftCodeLoading && !giftCodeAttempted.current) {
       giftCodeAttempted.current = true;
       const timer = window.setTimeout(() => void loadGiftCodes(), 0);
       return () => window.clearTimeout(timer);
     }
-  }, [activeMenu, giftCodes.length, giftCodeLoading, loadGiftCodes]);
+  }, [activeMenu, giftCodeLoading, loadGiftCodes]);
 
   useEffect(() => {
     if (activeMenu !== "gift" && activeMenu !== "redeem") {
