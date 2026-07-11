@@ -1962,7 +1962,16 @@
     text-overflow: ellipsis;
   }
 
-  .dz-server-dropdown-menu { min-width: 180px; z-index: 310; }
+  .dz-server-dropdown-menu {
+    min-width: 180px;
+    z-index: 310;
+    left: 0;
+    right: auto;
+  }
+  .dz-server-dropdown-container:last-child .dz-server-dropdown-menu {
+    left: auto;
+    right: 0;
+  }
   .dz-server-dropdown-menu .dz-server-dropdown-name { max-width: none; }
   .dz-user-btn { width: 28px; height: 28px; flex-shrink: 0; }
 
