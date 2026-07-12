@@ -146,8 +146,9 @@ export async function POST(request: NextRequest) {
     const data = await botRes.json().catch(() => ({ ok: false }));
 
     if (!botRes.ok) {
+      console.error("[Music Control] Bot API Error:", botRes.status, data);
       return NextResponse.json(
-        { error: data.error || "Bot control command failed" },
+        { error: data.error || "Bot control command failed", details: data },
         { status: botRes.status }
       );
     }
@@ -155,6 +156,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, ...data });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Music bot is unreachable";
+    console.error("[Music Control] Fetch Error:", msg);
     // If bot is offline, return a helpful message
     return NextResponse.json(
       { error: `Music bot is offline or unreachable: ${msg}` },

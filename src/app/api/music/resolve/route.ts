@@ -242,7 +242,7 @@ export async function GET(request: NextRequest) {
           
           return {
             type: "song",
-            videoId: vid.videoId,
+            videoId: `https://www.youtube.com/watch?v=${vid.videoId}`,
             title: vid.name || "Unknown Track",
             artist: vid.artist?.name || "Unknown Artist",
             duration: durationStr,
