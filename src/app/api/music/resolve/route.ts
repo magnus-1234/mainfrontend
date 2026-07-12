@@ -152,6 +152,50 @@ async function resolveViaOEmbed(videoId: string): Promise<ResolvedTrack | null> 
   }
 }
 
+// ── Fallback: YouTube Web Scraper ──────────────────────────────────────────────
+
+async function resolveViaScraping(videoId: string): Promise<ResolvedTrack | null> {
+  try {
+    const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      cache: "no-store"
+    });
+    
+    if (!res.ok) return null;
+    const html = await res.text();
+    
+    const titleMatch = html.match(/<meta\s+name="title"\s+content="([^"]+)"/i) || html.match(/<title>([^<]+)<\/title>/i);
+    let title = titleMatch ? titleMatch[1] : "Unknown Title";
+    title = title.replace(" - YouTube", "");
+
+    const authorMatch = html.match(/<link\s+itemprop="name"\s+content="([^"]+)"/i);
+    const artist = authorMatch ? authorMatch[1] : "Unknown Artist";
+    
+    const durationMatch = html.match(/"lengthSeconds":"(\d+)"/);
+    let duration: string | undefined = undefined;
+    if (durationMatch) {
+      const durationSecs = parseInt(durationMatch[1], 10);
+      const mins = Math.floor(durationSecs / 60);
+      const secs = durationSecs % 60;
+      duration = `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
+
+    return {
+      type: "song",
+      videoId,
+      title,
+      artist,
+      duration,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Route Handler ─────────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
@@ -180,6 +224,11 @@ export async function GET(request: NextRequest) {
   // Fallback to oEmbed if the player API fails
   if (!track) {
     track = await resolveViaOEmbed(videoId);
+  }
+  
+  // Fallback to scraping for unlisted/restricted videos
+  if (!track) {
+    track = await resolveViaScraping(videoId);
   }
 
   if (!track) {
