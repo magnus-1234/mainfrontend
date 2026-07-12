@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HomeApp } from "../HomeApp";
-import { DiscordBotSeoContent } from "./DiscordBotSeoContent";
+import { DiscordBotSeoWrapper } from "./DiscordBotSeoWrapper";
 
 const title = "Whiteout Survival Discord Bot | WhiteoutSurvival.dev";
 const description =
@@ -210,7 +210,7 @@ export default function DiscordBotPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
       <HomeApp initialMenu="bot" />
-      <DiscordBotSeoContent />
+      <DiscordBotSeoWrapper />
     </>
   );
 }
