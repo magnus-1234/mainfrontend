@@ -5,6 +5,7 @@ import { AdminVisitTracker } from "./admin/AdminVisitTracker";
 import "./globals.css";
 import { SecurityDeterrents } from "./security-deterrents";
 import { CookieConsent } from "@/components/CookieConsent";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -173,6 +174,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1888612264852389"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteIdentityJsonLd) }}
