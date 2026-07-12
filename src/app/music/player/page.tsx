@@ -671,11 +671,10 @@ export default function MusicPlayerPage() {
     if (r.duration) {
       length = r.duration.split(":").reduce((acc, t) => (60 * acc) + +t, 0) * 1000;
     }
-    const isUrl = r.videoId.startsWith("http://") || r.videoId.startsWith("https://");
     return {
       title: r.title,
       author: r.artist,
-      uri: isUrl ? r.videoId : `https://www.youtube.com/watch?v=${r.videoId}`,
+      uri: `https://www.youtube.com/watch?v=${r.videoId}`,
       length,
       artwork: r.thumbnail || null,
     };
