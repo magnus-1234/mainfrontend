@@ -35,34 +35,75 @@ export default function PlayerProfile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [player, setPlayer] = useState<PlayerProfileData | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!playerId.trim()) return;
+  React.useEffect(() => {
+    return () => clearTimer();
+  }, []);
 
-    setLoading(true);
-    setError("");
-    setPlayer(null);
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setCountdown(null);
+  };
 
+  const executeSearch = async (idToSearch: string) => {
     try {
       const response = await fetch("/api/player/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId: playerId.trim() }),
+        body: JSON.stringify({ playerId: idToSearch }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429 && data.error?.includes("wait")) {
+          const match = data.error.match(/wait ([\d.]+)s/);
+          if (match) {
+            const waitTime = Math.ceil(parseFloat(match[1]));
+            startCountdown(waitTime, idToSearch);
+            return;
+          }
+        }
         throw new Error(data.error || "Failed to fetch player profile.");
       }
 
       setPlayer(data.player);
+      setLoading(false);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
-    } finally {
       setLoading(false);
     }
+  };
+
+  const startCountdown = (seconds: number, idToSearch: string) => {
+    setCountdown(seconds);
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearTimer();
+          executeSearch(idToSearch);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!playerId.trim()) return;
+
+    clearTimer();
+    setLoading(true);
+    setError("");
+    setPlayer(null);
+
+    await executeSearch(playerId.trim());
   };
 
   const handleDownload = async () => {
@@ -108,8 +149,16 @@ export default function PlayerProfile() {
           onChange={(e) => setPlayerId(e.target.value)}
           disabled={loading}
         />
-        <button type="submit" disabled={loading || !playerId.trim()}>
-          {loading ? (
+        <button type="submit" disabled={loading || !playerId.trim() || countdown !== null}>
+          {countdown !== null ? (
+            <>
+              <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+              </svg>
+              Retrying in {countdown}s...
+            </>
+          ) : loading ? (
             <>
               <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
