@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { apiAttribution } from "../../attribution";
 
 const backendCandidates = [
+  "https://bot.whiteoutsurvival.dev",
   process.env.BACKEND_URL,
   process.env.NEXT_PUBLIC_API_BASE_URL,
-  "http://localhost:3001",
-  "http://140.245.201.209:3001",
+  "http://localhost:8080",
 ].filter(Boolean) as string[];
 
 export async function POST(request: Request) {
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   for (const backendUrl of backendCandidates) {
     try {
-      const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/gift-codes/player-info`, {
+      const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/giftcodes/player-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body,
