@@ -62,7 +62,7 @@ const faqSchema = {
       name: "How do I add the Whiteout Survival bot to my Discord server?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Click 'Add to Discord' on whiteoutsurvival.dev/discord-bot and authorize the bot for your server. You need Manage Server permissions. Once added, run /start in any channel to open the main menu, then /settings for full server configuration.",
+        text: "Click 'Add to Discord' on whiteoutsurvival.dev/discord-bot and authorize the bot for your server. You need Manage Server permissions. Once added, run /manage in any channel to register your alliance server with the bot and access all management operations.",
       },
     },
     {
@@ -86,7 +86,7 @@ const faqSchema = {
       name: "What commands does the WOS Discord bot have?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Key slash commands include /start (main menu), /settings (admin configuration), /manage (management tools), /alliancemonitor (alliance tracking dashboard), /autotranslatecreate (set up DeepL translation), /autotranslatelist, /autotranslatedelete, /autotranslatetoggle, /autotranslateedit (translation management), /welcome (welcome messages), /event (WOS event info), /server_age (state age check), /ministerappointment, /websearch (AI web search), /tts (text-to-speech), and /tictactoe. Alliance members are managed with prefix commands !Add and !Remove by FID.",
+        text: "Key slash commands include /manage (register alliance server + manage all operations), /start (main menu), /settings (admin settings), /alliancemonitor (alliance tracking dashboard), /autotranslatecreate (set up DeepL translation), /autotranslatelist, /autotranslatedelete, /autotranslatetoggle, /autotranslateedit (translation management), /welcome (welcome messages), /event (WOS event info), /server_age (state age check), /ministerappointment, /websearch (AI web search), /tts (text-to-speech), and /tictactoe. Alliance members are managed with prefix commands !Add and !Remove by FID.",
       },
     },
     {

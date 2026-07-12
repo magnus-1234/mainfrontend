@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DiscordBotSeoContent
  *
  * Server-rendered SEO content for the /discord-bot page.
@@ -57,9 +57,9 @@ export function DiscordBotSeoContent() {
             <code>/welcome</code>.
           </li>
           <li>
-            <strong>Admin &amp; Management Tools</strong> — Full server management via{' '}
-            <code>/settings</code> and <code>/manage</code>, plus alliance member management with
-            prefix commands.
+            <strong>Server Registration &amp; Management</strong> — Register your alliance server
+            and manage all ongoing operations with <code>/manage</code>, the central command for
+            setting up and running your WOS bot server.
           </li>
         </ul>
       </div>
@@ -95,8 +95,8 @@ export function DiscordBotSeoContent() {
               </tr>
               <tr>
                 <td><code>/manage</code></td>
-                <td>Admin</td>
-                <td>Quick access to management operations for your server</td>
+                <td>Setup &amp; Admin</td>
+                <td>Register your alliance server with the bot and manage all ongoing server operations — the primary setup command</td>
               </tr>
               <tr>
                 <td><code>/alliancemonitor</code></td>
@@ -204,12 +204,9 @@ export function DiscordBotSeoContent() {
             <strong>Authorize the bot</strong> for your Discord server and confirm the permissions.
           </li>
           <li>
-            <strong>Run <code>/start</code></strong> — This opens the main bot menu. From here you
-            can access all bot features with a simple button interface.
-          </li>
-          <li>
-            <strong>Run <code>/settings</code></strong> — Opens the full admin configuration panel
-            to set up gift code auto-redeem, alliance monitoring, and all other server features.
+            <strong>Run <code>/manage</code></strong> — This is the primary command to{' '}
+            <strong>register your alliance server</strong> with the bot and access all management
+            operations going forward. Start here after adding the bot.
           </li>
           <li>
             <strong>Configure auto-translation</strong> — Use <code>/autotranslatecreate</code> to
