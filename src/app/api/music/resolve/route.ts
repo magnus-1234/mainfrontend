@@ -25,7 +25,23 @@ type ResolvedTrack = {
   thumbnail?: string;
 };
 
+import YTMusic from "ytmusic-api";
+
 // ── Extract video ID from various YouTube URL formats ─────────────────────────
+
+function extractPlaylistId(input: string): string | null {
+  const trimmed = input.trim();
+  try {
+    const url = new URL(trimmed);
+    if (url.searchParams.has("list")) {
+      return url.searchParams.get("list");
+    }
+  } catch {
+    const match = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    if (match) return match[1];
+  }
+  return null;
+}
 
 function extractVideoId(input: string): string | null {
   const trimmed = input.trim();
@@ -207,6 +223,36 @@ export async function GET(request: NextRequest) {
       { error: "Missing 'url' query parameter" },
       { status: 400 }
     );
+  }
+  
+  // 1. Check if it's a playlist URL
+  const playlistId = extractPlaylistId(inputUrl);
+  if (playlistId) {
+    try {
+      const ytmusic = new YTMusic();
+      await ytmusic.initialize();
+      const pl = await ytmusic.getPlaylist(playlistId);
+      if (pl) {
+        return NextResponse.json({
+          type: "song",
+          videoId: `https://youtube.com/playlist?list=${playlistId}`,
+          title: pl.name || "YouTube Playlist",
+          artist: "YouTube Playlist",
+          thumbnail: pl.thumbnails?.[0]?.url || `https://img.youtube.com/vi/${playlistId}/hqdefault.jpg`
+        }, {
+          headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate=600" },
+        });
+      }
+    } catch {
+      // Fallback if ytmusic-api fails for the playlist
+      return NextResponse.json({
+        type: "song",
+        videoId: `https://youtube.com/playlist?list=${playlistId}`,
+        title: "YouTube Playlist",
+        artist: "YouTube",
+        thumbnail: `https://img.youtube.com/vi/${playlistId}/hqdefault.jpg`
+      });
+    }
   }
 
   const videoId = extractVideoId(inputUrl);
