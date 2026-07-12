@@ -89,11 +89,6 @@ export function DiscordBotSeoContent() {
                 <td>Show the main bot menu — your starting point for all features</td>
               </tr>
               <tr>
-                <td><code>/settings</code></td>
-                <td>Admin</td>
-                <td>Open the full admin settings menu for server configuration</td>
-              </tr>
-              <tr>
                 <td><code>/manage</code></td>
                 <td>Setup &amp; Admin</td>
                 <td>Register your alliance server with the bot and manage all ongoing server operations — the primary setup command</td>

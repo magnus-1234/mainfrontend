@@ -86,7 +86,7 @@ const faqSchema = {
       name: "What commands does the WOS Discord bot have?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Key slash commands include /manage (register alliance server + manage all operations), /start (main menu), /settings (admin settings), /alliancemonitor (alliance tracking dashboard), /autotranslatecreate (set up DeepL translation), /autotranslatelist, /autotranslatedelete, /autotranslatetoggle, /autotranslateedit (translation management), /welcome (welcome messages), /event (WOS event info), /server_age (state age check), /ministerappointment, /websearch (AI web search), /tts (text-to-speech), and /tictactoe. Alliance members are managed with prefix commands !Add and !Remove by FID.",
+        text: "Key slash commands include /manage (register alliance server + manage all operations), /start (main menu), /alliancemonitor (alliance tracking dashboard), /autotranslatecreate (set up DeepL translation), /autotranslatelist, /autotranslatedelete, /autotranslatetoggle, /autotranslateedit (translation management), /welcome (welcome messages), /event (WOS event info), /server_age (state age check), /ministerappointment, /websearch (AI web search), /tts (text-to-speech), and /tictactoe. Alliance members are managed with prefix commands !Add and !Remove by FID.",
       },
     },
     {
