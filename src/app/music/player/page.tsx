@@ -1291,7 +1291,7 @@ export default function MusicPlayerPage() {
             <rect x="21" y="4" width="4" height="20" rx="2" fill="#1ed760" opacity="0.7"/>
             <rect x="28" y="8" width="4" height="16" rx="2" fill="#1ed760" opacity="0.4"/>
           </svg>
-          <span className="dz-logo-text">Music</span>
+          <span className="dz-logo-text">WOS Music</span>
         </div>
 
         {/* Nav */}
