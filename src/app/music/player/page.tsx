@@ -655,7 +655,7 @@ export default function MusicPlayerPage() {
     /^[a-zA-Z0-9_-]{11}$/.test(text.trim());
 
   // Resolve a YouTube URL via the backend
-  const resolveYouTubeUrl = useCallback(async (url: string): Promise<ResolvedTrack | null> => {
+  const resolveYouTubeUrl = useCallback(async (url: string): Promise<ResolvedTrack | ResolvedTrack[] | null> => {
     try {
       const res = await fetch(`/api/music/resolve?url=${encodeURIComponent(url.trim())}`);
       if (!res.ok) return null;
@@ -714,9 +714,14 @@ export default function MusicPlayerPage() {
     try {
       const resolved = await resolveYouTubeUrl(createPlLinkInput);
       if (resolved) {
-        setCreatePlTracks(prev => [...prev, resolvedToTrack(resolved)]);
+        if (Array.isArray(resolved)) {
+          setCreatePlTracks(prev => [...prev, ...resolved.map(resolvedToTrack)]);
+          showToast(`Added ${resolved.length} tracks`);
+        } else {
+          setCreatePlTracks(prev => [...prev, resolvedToTrack(resolved)]);
+          showToast(`Added "${resolved.title}"`);
+        }
         setCreatePlLinkInput("");
-        showToast(`Added "${resolved.title}"`);
       } else {
         showToast("Could not resolve the YouTube link");
       }
@@ -734,9 +739,14 @@ export default function MusicPlayerPage() {
     try {
       const resolved = await resolveYouTubeUrl(editPlLinkInput);
       if (resolved) {
-        setEditPlaylistTracks(prev => [...prev, resolvedToTrack(resolved)]);
+        if (Array.isArray(resolved)) {
+          setEditPlaylistTracks(prev => [...prev, ...resolved.map(resolvedToTrack)]);
+          showToast(`Added ${resolved.length} tracks`);
+        } else {
+          setEditPlaylistTracks(prev => [...prev, resolvedToTrack(resolved)]);
+          showToast(`Added "${resolved.title}"`);
+        }
         setEditPlLinkInput("");
-        showToast(`Added "${resolved.title}"`);
       } else {
         showToast("Could not resolve the YouTube link");
       }
@@ -754,9 +764,14 @@ export default function MusicPlayerPage() {
       setCreatePlSearchQuery("");
       const resolved = await resolveYouTubeUrl(createPlSearchQuery);
       if (resolved) {
-        setCreatePlTracks(prev => [...prev, resolvedToTrack(resolved)]);
+        if (Array.isArray(resolved)) {
+          setCreatePlTracks(prev => [...prev, ...resolved.map(resolvedToTrack)]);
+          showToast(`Added ${resolved.length} tracks`);
+        } else {
+          setCreatePlTracks(prev => [...prev, resolvedToTrack(resolved)]);
+          showToast(`Added "${resolved.title}"`);
+        }
         setCreatePlLinkInput("");
-        showToast(`Added "${resolved.title}"`);
       } else {
         showToast("Could not resolve the YouTube link");
       }

@@ -231,28 +231,38 @@ export async function GET(request: NextRequest) {
     try {
       const ytmusic = new YTMusic();
       await ytmusic.initialize();
-      const pl = await ytmusic.getPlaylist(playlistId);
-      if (pl) {
-        return NextResponse.json({
-          type: "song",
-          videoId: `https://youtube.com/playlist?list=${playlistId}`,
-          title: pl.name || "YouTube Playlist",
-          artist: "YouTube Playlist",
-          thumbnail: pl.thumbnails?.[0]?.url || `https://img.youtube.com/vi/${playlistId}/hqdefault.jpg`
-        }, {
+      const videos = await ytmusic.getPlaylistVideos(playlistId);
+      
+      if (videos && videos.length > 0) {
+        const tracks = videos.map(vid => {
+          const durationSecs = vid.duration || 0;
+          const mins = Math.floor(durationSecs / 60);
+          const secs = durationSecs % 60;
+          const durationStr = `${mins}:${secs.toString().padStart(2, "0")}`;
+          
+          return {
+            type: "song",
+            videoId: vid.videoId,
+            title: vid.name || "Unknown Track",
+            artist: vid.artist?.name || "Unknown Artist",
+            duration: durationStr,
+            thumbnail: vid.thumbnails?.[0]?.url || `https://img.youtube.com/vi/${vid.videoId}/hqdefault.jpg`
+          };
+        });
+        
+        return NextResponse.json(tracks, {
           headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate=600" },
         });
       }
     } catch {
-      // Fallback if ytmusic-api fails for the playlist
-      return NextResponse.json({
-        type: "song",
-        videoId: `https://youtube.com/playlist?list=${playlistId}`,
-        title: "YouTube Playlist",
-        artist: "YouTube",
-        thumbnail: `https://img.youtube.com/vi/${playlistId}/hqdefault.jpg`
-      });
+      // Fallback if ytmusic-api fails
+      console.error("Failed to fetch playlist tracks");
     }
+    
+    return NextResponse.json(
+      { error: "Could not fetch videos from this playlist. It might be empty or private." },
+      { status: 404 }
+    );
   }
 
   const videoId = extractVideoId(inputUrl);
