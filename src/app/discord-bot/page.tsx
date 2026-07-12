@@ -32,13 +32,15 @@ const softwareAppSchema = {
   },
   featureList: [
     "Automatic WOS gift code detection and redemption",
-    "Alliance activity monitoring (FC tracking, name changes, avatar changes)",
-    "DeepL-powered auto-translation for Discord channels",
-    "Smart event reminders (SvS, Bear Trap, State Transfer)",
-    "AI chat and image generation",
-    "Music playback in voice channels",
-    "Web dashboard for server management",
-    "Admin tools and welcome messages",
+    "Alliance activity monitoring (furnace level-ups, name changes, avatar changes)",
+    "DeepL-powered auto-translation for Discord channels (/autotranslatecreate)",
+    "Event information and server age tracking",
+    "Minister appointment management",
+    "AI web search with source citations (/websearch)",
+    "Text-to-speech in voice channels (/tts)",
+    "Welcome messages and admin tools",
+    "Web dashboard at bot.whiteoutsurvival.dev",
+    "Alliance member management via !Add and !Remove commands",
   ],
 };
 
@@ -52,7 +54,7 @@ const faqSchema = {
       name: "What is the Whiteout Survival Discord bot?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "The Whiteout Survival Discord bot is a free bot built for WOS alliance Discord servers. It provides automated gift code alerts and redemption, alliance activity monitoring, DeepL auto-translation, event reminders, AI chat, image generation, music playback, admin tools, and a web dashboard at bot.whiteoutsurvival.dev — all designed for the Whiteout Survival game community.",
+        text: "The Whiteout Survival Discord bot is a free bot built for WOS alliance Discord servers. It provides automated gift code alerts and redemption, alliance activity monitoring (furnace level-ups, name changes, avatar changes), DeepL auto-translation, event information, AI web search, text-to-speech, admin tools, and a web dashboard at bot.whiteoutsurvival.dev — all designed for the Whiteout Survival game community.",
       },
     },
     {
@@ -60,7 +62,7 @@ const faqSchema = {
       name: "How do I add the Whiteout Survival bot to my Discord server?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Click 'Add to Discord' on whiteoutsurvival.dev/discord-bot and authorize the bot for your server. You need Manage Server permissions. The bot will be immediately active and can be configured via the web dashboard at bot.whiteoutsurvival.dev.",
+        text: "Click 'Add to Discord' on whiteoutsurvival.dev/discord-bot and authorize the bot for your server. You need Manage Server permissions. Once added, run /start in any channel to open the main menu, then /settings for full server configuration.",
       },
     },
     {
@@ -68,7 +70,7 @@ const faqSchema = {
       name: "Does the bot support auto gift code redeem for WOS?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. The bot detects new Whiteout Survival gift codes automatically and redeems them across all registered members in configured servers without any manual action. Players register once using the /register command with their WOS player ID.",
+        text: "Yes. The bot detects new Whiteout Survival gift codes automatically and redeems them for all configured members in your server. Set up auto-redeem through the /settings menu or via the web dashboard at bot.whiteoutsurvival.dev.",
       },
     },
     {
@@ -76,15 +78,15 @@ const faqSchema = {
       name: "Is the Whiteout Survival Discord bot free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes, the bot is completely free to add and use. There are no paywalls — all features including gift code auto-redeem, alliance monitoring, and the web dashboard are available at no cost. Visit whiteoutsurvival.dev/discord-bot to add it.",
+        text: "Yes, the bot is completely free to add and use. There are no paywalls — all features including gift code auto-redeem, alliance monitoring, translation, and the web dashboard are available at no cost.",
       },
     },
     {
       "@type": "Question",
-      name: "What commands does the WOS Discord bot support?",
+      name: "What commands does the WOS Discord bot have?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "The bot supports slash commands including /redeem (gift codes), /register (link player ID), /monitor add/remove/list (alliance tracking), /remind set/list (event reminders), /translate setup (auto-translation), /player (profile lookup), /arena (event info), /ai (AI chat), /imagine (image generation), /play (music), /dice (fun), and /dashboard (web dashboard link). All commands appear automatically after adding the bot.",
+        text: "Key slash commands include /start (main menu), /settings (admin configuration), /manage (management tools), /alliancemonitor (alliance tracking dashboard), /autotranslatecreate (set up DeepL translation), /autotranslatelist, /autotranslatedelete, /autotranslatetoggle, /autotranslateedit (translation management), /welcome (welcome messages), /event (WOS event info), /server_age (state age check), /ministerappointment, /websearch (AI web search), /tts (text-to-speech), and /tictactoe. Alliance members are managed with prefix commands !Add and !Remove by FID.",
       },
     },
     {
@@ -92,15 +94,15 @@ const faqSchema = {
       name: "What does the WOS alliance activity monitor track?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "The alliance monitor tracks: furnace level-ups (FC tracking), player name changes, avatar/profile picture changes, and alliance membership changes. When events are detected, the bot posts notifications in your configured Discord channel.",
+        text: "The alliance monitor (opened with /alliancemonitor) tracks furnace level-ups (FC tracking), player name changes, avatar changes, and alliance membership changes. Add members with the !Add [FID] prefix command, where FID is the player's WOS Furnace ID.",
       },
     },
     {
       "@type": "Question",
-      name: "Does the bot support multiple languages?",
+      name: "How do I set up automatic translation in my Discord server?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. The bot uses DeepL AI to automatically translate messages in any configured channel. You can set source and target languages per channel, making it ideal for international WOS alliance servers.",
+        text: "Use /autotranslatecreate to set up DeepL-powered translation between two channels. Manage existing setups with /autotranslatelist, /autotranslatetoggle to enable/disable, and /autotranslateedit to modify. Ideal for multilingual WOS alliance servers.",
       },
     },
     {
@@ -108,7 +110,7 @@ const faqSchema = {
       name: "What is the WOS bot web dashboard?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "The web dashboard at bot.whiteoutsurvival.dev lets you manage all bot settings from a browser — no Discord commands needed. Configure auto-redeem channels, translation rules, alliance monitors, registered members, and event reminders from a clean web interface.",
+        text: "The web dashboard at bot.whiteoutsurvival.dev lets you manage all bot settings from a browser — no Discord commands needed. Configure auto-redeem, alliance monitors, event reminders, and server settings from a clean web interface.",
       },
     },
   ],

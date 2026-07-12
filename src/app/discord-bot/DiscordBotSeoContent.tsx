@@ -1,11 +1,9 @@
 ﻿/**
  * DiscordBotSeoContent
  *
- * This component is intentionally server-rendered (no "use client").
- * It provides keyword-rich, crawlable HTML content for the /discord-bot page
- * that Googlebot can index even if the main HomeApp section falls back to CSR.
- *
- * The section is visually accessible but styled to complement the main UI.
+ * Server-rendered SEO content for the /discord-bot page.
+ * Provides keyword-rich, crawlable HTML that Googlebot indexes
+ * even if the main HomeApp section falls back to CSR.
  */
 
 export function DiscordBotSeoContent() {
@@ -20,9 +18,9 @@ export function DiscordBotSeoContent() {
         <p>
           The <strong>Whiteout Survival Discord bot</strong> (WOS bot) is a free, feature-rich bot
           designed specifically for <strong>Whiteout Survival alliance Discord servers</strong>. It
-          automates gift code detection and redemption, monitors player activity, provides
-          DeepL-powered auto-translation, sends smart event reminders, and includes a full web
-          dashboard for easy management — all completely free for any WOS server.
+          automates gift code detection and redemption, monitors alliance activity, provides
+          DeepL-powered auto-translation, tracks server age, and includes a full web dashboard for
+          easy management — all completely free for any WOS server.
         </p>
         <ul className="seo-feature-bullets">
           <li>
@@ -31,19 +29,21 @@ export function DiscordBotSeoContent() {
           </li>
           <li>
             <strong>Alliance Activity Monitor</strong> — Tracks furnace level-ups, name changes,
-            avatar changes, and alliance membership changes in real time.
+            avatar changes, and alliance membership changes in real time via{' '}
+            <code>/alliancemonitor</code>.
           </li>
           <li>
             <strong>DeepL Auto-Translation</strong> — Automatically translates messages in
-            configured channels into your server&apos;s chosen language using DeepL AI.
+            configured channels using DeepL AI. Set up with <code>/autotranslatecreate</code>.
           </li>
           <li>
             <strong>Smart Reminders</strong> — Set recurring or one-time event reminders for WOS
-            events like State vs State (SvS), Bear Trap, State Transfer, and more.
+            events directly from the{' '}
+            <code>/settings</code> menu or the web dashboard.
           </li>
           <li>
-            <strong>AI Chat &amp; Image Generation</strong> — Built-in AI assistant and image
-            generation powered by the latest AI models.
+            <strong>AI Chat, Web Search &amp; TTS</strong> — Built-in AI web search with{' '}
+            <code>/websearch</code> and text-to-speech with <code>/tts</code>.
           </li>
           <li>
             <strong>Web Dashboard</strong> — Manage all bot settings from{' '}
@@ -53,11 +53,13 @@ export function DiscordBotSeoContent() {
             — no command line needed.
           </li>
           <li>
-            <strong>Music System</strong> — Play music directly in your Discord voice channels.
+            <strong>Welcome System</strong> — Configure welcome messages for new members with{' '}
+            <code>/welcome</code>.
           </li>
           <li>
-            <strong>Admin Tools</strong> — Welcome messages, moderation tools, dice games, and
-            custom server utilities.
+            <strong>Admin &amp; Management Tools</strong> — Full server management via{' '}
+            <code>/settings</code> and <code>/manage</code>, plus alliance member management with
+            prefix commands.
           </li>
         </ul>
       </div>
@@ -66,9 +68,10 @@ export function DiscordBotSeoContent() {
       <div className="seo-section seo-commands">
         <h2>Bot Commands Quick Reference</h2>
         <p>
-          Below is a quick reference for the most commonly used{' '}
-          <strong>Whiteout Survival Discord bot commands</strong>. All commands are slash commands
-          that appear automatically after adding the bot to your server.
+          Below is a quick reference for the main{' '}
+          <strong>Whiteout Survival Discord bot commands</strong>. Slash commands appear
+          automatically after adding the bot to your server. Type{' '}
+          <code>/</code> in any channel to see the full list.
         </p>
         <div className="seo-table-wrap">
           <table className="seo-commands-table">
@@ -81,89 +84,104 @@ export function DiscordBotSeoContent() {
             </thead>
             <tbody>
               <tr>
-                <td><code>/redeem</code></td>
-                <td>Gift Codes</td>
-                <td>Manually redeem a WOS gift code for your account</td>
+                <td><code>/start</code></td>
+                <td>Core</td>
+                <td>Show the main bot menu — your starting point for all features</td>
               </tr>
               <tr>
-                <td><code>/giftcode</code></td>
-                <td>Gift Codes</td>
-                <td>Check currently active Whiteout Survival gift codes</td>
-              </tr>
-              <tr>
-                <td><code>/register</code></td>
-                <td>Setup</td>
-                <td>Register your WOS player ID with the bot for auto-redeem</td>
-              </tr>
-              <tr>
-                <td><code>/monitor add</code></td>
-                <td>Alliance Monitor</td>
-                <td>Add a WOS player to the alliance activity monitor</td>
-              </tr>
-              <tr>
-                <td><code>/monitor remove</code></td>
-                <td>Alliance Monitor</td>
-                <td>Remove a player from the activity monitor</td>
-              </tr>
-              <tr>
-                <td><code>/monitor list</code></td>
-                <td>Alliance Monitor</td>
-                <td>View all currently monitored alliance members</td>
-              </tr>
-              <tr>
-                <td><code>/remind set</code></td>
-                <td>Reminders</td>
-                <td>Set a recurring or one-time reminder for a WOS event</td>
-              </tr>
-              <tr>
-                <td><code>/remind list</code></td>
-                <td>Reminders</td>
-                <td>Show all active reminders in this server</td>
-              </tr>
-              <tr>
-                <td><code>/translate setup</code></td>
-                <td>Translation</td>
-                <td>Configure DeepL auto-translation for a channel</td>
-              </tr>
-              <tr>
-                <td><code>/arena</code></td>
-                <td>Game Tools</td>
-                <td>Show current Arena event rankings and schedules</td>
-              </tr>
-              <tr>
-                <td><code>/player</code></td>
-                <td>Game Tools</td>
-                <td>Look up a WOS player profile by ID or name</td>
-              </tr>
-              <tr>
-                <td><code>/dashboard</code></td>
+                <td><code>/settings</code></td>
                 <td>Admin</td>
-                <td>Get a link to your server&apos;s web dashboard</td>
+                <td>Open the full admin settings menu for server configuration</td>
+              </tr>
+              <tr>
+                <td><code>/manage</code></td>
+                <td>Admin</td>
+                <td>Quick access to management operations for your server</td>
+              </tr>
+              <tr>
+                <td><code>/alliancemonitor</code></td>
+                <td>Alliance Monitor</td>
+                <td>Alliance monitoring dashboard — track furnace upgrades, name changes, and avatar changes</td>
+              </tr>
+              <tr>
+                <td><code>/autotranslatecreate</code></td>
+                <td>Translation</td>
+                <td>Create automatic DeepL translation between two channels</td>
+              </tr>
+              <tr>
+                <td><code>/autotranslatelist</code></td>
+                <td>Translation</td>
+                <td>View all active auto-translate configurations in your server</td>
+              </tr>
+              <tr>
+                <td><code>/autotranslatedelete</code></td>
+                <td>Translation</td>
+                <td>Delete an auto-translate configuration</td>
+              </tr>
+              <tr>
+                <td><code>/autotranslatetoggle</code></td>
+                <td>Translation</td>
+                <td>Enable or disable an auto-translate configuration</td>
+              </tr>
+              <tr>
+                <td><code>/autotranslateedit</code></td>
+                <td>Translation</td>
+                <td>Edit an existing auto-translate configuration</td>
               </tr>
               <tr>
                 <td><code>/welcome</code></td>
                 <td>Admin</td>
-                <td>Configure welcome messages for new server members</td>
+                <td>Configure welcome message settings for new server members</td>
               </tr>
               <tr>
-                <td><code>/ai</code></td>
-                <td>AI</td>
-                <td>Chat with the built-in AI assistant</td>
+                <td><code>/event</code></td>
+                <td>Game Tools</td>
+                <td>Get information about current and upcoming Whiteout Survival events</td>
               </tr>
               <tr>
-                <td><code>/imagine</code></td>
-                <td>AI</td>
-                <td>Generate an AI image from a text prompt</td>
+                <td><code>/server_age</code></td>
+                <td>Game Tools</td>
+                <td>Check your WOS server age and upcoming state milestones</td>
               </tr>
               <tr>
-                <td><code>/dice</code></td>
+                <td><code>/ministerappointment</code></td>
+                <td>Game Tools</td>
+                <td>Manage minister appointments for your WOS alliance</td>
+              </tr>
+              <tr>
+                <td><code>/websearch</code></td>
+                <td>AI Tools</td>
+                <td>Search the web and get an AI-synthesized answer with source links</td>
+              </tr>
+              <tr>
+                <td><code>/tts</code></td>
+                <td>Voice</td>
+                <td>Speak text in a voice channel using AI text-to-speech</td>
+              </tr>
+              <tr>
+                <td><code>/tts_voice</code></td>
+                <td>Voice</td>
+                <td>List or set the TTS voice for your server</td>
+              </tr>
+              <tr>
+                <td><code>/tts_stop</code></td>
+                <td>Voice</td>
+                <td>Stop TTS playback and clear the voice queue</td>
+              </tr>
+              <tr>
+                <td><code>/tictactoe</code></td>
                 <td>Fun</td>
-                <td>Roll dice for in-server games and events</td>
+                <td>Play Tic-Tac-Toe against other server members</td>
               </tr>
               <tr>
-                <td><code>/play</code></td>
-                <td>Music</td>
-                <td>Play a song or playlist in a voice channel</td>
+                <td><code>!Add [FID, FID, ...]</code></td>
+                <td>Alliance (Prefix)</td>
+                <td>Add alliance members to the monitor by their WOS player ID (FID)</td>
+              </tr>
+              <tr>
+                <td><code>!Remove [FID, FID, ...]</code></td>
+                <td>Alliance (Prefix)</td>
+                <td>Remove alliance members from the monitor by FID</td>
               </tr>
             </tbody>
           </table>
@@ -179,34 +197,36 @@ export function DiscordBotSeoContent() {
         </p>
         <ol className="seo-steps">
           <li>
-            <strong>Click &quot;Add to Discord&quot;</strong> on this page or visit{' '}
-            <a href="/discord-bot">whiteoutsurvival.dev/discord-bot</a> and click the Add to Discord
-            button.
+            <strong>Click &quot;Add to Discord&quot;</strong> on this page. You need &quot;Manage
+            Server&quot; permissions on your Discord server to add the bot.
           </li>
           <li>
-            <strong>Authorize the bot</strong> for your Discord server. You need &quot;Manage
-            Server&quot; permissions to add it.
+            <strong>Authorize the bot</strong> for your Discord server and confirm the permissions.
           </li>
           <li>
-            <strong>Register your players</strong> — Have alliance members use{' '}
-            <code>/register</code> with their WOS player ID to enable auto gift code redeem.
+            <strong>Run <code>/start</code></strong> — This opens the main bot menu. From here you
+            can access all bot features with a simple button interface.
           </li>
           <li>
-            <strong>Configure via dashboard</strong> — Visit{' '}
+            <strong>Run <code>/settings</code></strong> — Opens the full admin configuration panel
+            to set up gift code auto-redeem, alliance monitoring, and all other server features.
+          </li>
+          <li>
+            <strong>Configure auto-translation</strong> — Use <code>/autotranslatecreate</code> to
+            set up DeepL translation between channels for your international alliance members.
+          </li>
+          <li>
+            <strong>Set up alliance monitor</strong> — Use <code>/alliancemonitor</code> to open the
+            monitoring dashboard, then use <code>!Add [FID]</code> in the designated channel to add
+            members to track.
+          </li>
+          <li>
+            <strong>Manage from the web dashboard</strong> — Visit{' '}
             <a href="https://bot.whiteoutsurvival.dev/" target="_blank" rel="noreferrer">
               bot.whiteoutsurvival.dev
             </a>{' '}
-            to set up auto-redeem channels, translation rules, alliance monitors, and reminders
-            from a browser interface.
-          </li>
-          <li>
-            <strong>Set up auto-redeem channel</strong> — In the dashboard, specify which channel
-            receives gift code redeem notifications and which player IDs participate.
-          </li>
-          <li>
-            <strong>Enable alliance monitor</strong> — Use <code>/monitor add</code> for each
-            alliance member you want to track for furnace upgrades, name changes, and avatar
-            changes.
+            to manage all settings from a browser, including reminders and auto-redeem
+            configuration.
           </li>
         </ol>
         <p>
@@ -227,9 +247,9 @@ export function DiscordBotSeoContent() {
           <p>
             The Whiteout Survival Discord bot is a free bot built for WOS alliance Discord servers.
             It provides automated gift code alerts and redemption, alliance activity monitoring,
-            DeepL auto-translation, event reminders, AI chat, image generation, music playback,
-            admin tools, and a web management dashboard — all designed specifically for the
-            Whiteout Survival game community.
+            DeepL auto-translation, event information, AI web search, text-to-speech, admin tools,
+            and a web management dashboard — all designed specifically for the Whiteout Survival
+            game community.
           </p>
         </div>
 
@@ -246,59 +266,65 @@ export function DiscordBotSeoContent() {
           <h3>How does WOS gift code auto-redeem work?</h3>
           <p>
             When a new Whiteout Survival gift code is detected, the bot automatically redeems it for
-            all registered players in your Discord server without any manual action. Players register
-            once using the <code>/register</code> command with their WOS player ID, and the bot
-            handles all future redemptions automatically.
+            all configured members in your Discord server without any manual action. Set up
+            auto-redeem through the <code>/settings</code> menu or via the web dashboard at{' '}
+            <a href="https://bot.whiteoutsurvival.dev/" target="_blank" rel="noreferrer">
+              bot.whiteoutsurvival.dev
+            </a>.
+          </p>
+        </div>
+
+        <div className="seo-faq-item">
+          <h3>How do I start using the bot after adding it?</h3>
+          <p>
+            After adding the bot, run <code>/start</code> in any channel to open the main bot menu.
+            From there you can navigate all features. For initial server setup, run{' '}
+            <code>/settings</code> to configure alliance monitoring, gift code redeem, and other
+            features.
           </p>
         </div>
 
         <div className="seo-faq-item">
           <h3>What does the alliance activity monitor track?</h3>
           <p>
-            The alliance monitor tracks: furnace level-ups (FC tracking), player name changes,
-            avatar / profile picture changes, and alliance membership changes. When any of these
-            events are detected, the bot posts a notification in your configured Discord channel.
+            The alliance monitor (accessible via <code>/alliancemonitor</code>) tracks: furnace
+            level-ups (FC tracking), player name changes, avatar/profile picture changes, and
+            alliance membership changes. Add members to monitor with the{' '}
+            <code>!Add [FID]</code> prefix command. When events are detected, the bot posts
+            notifications in your configured Discord channel.
           </p>
         </div>
 
         <div className="seo-faq-item">
-          <h3>Does the bot support multiple languages?</h3>
+          <h3>How do I set up automatic translation in my Discord server?</h3>
           <p>
-            Yes. The bot integrates with DeepL AI to provide automatic translation of messages in
-            any configured channel. You can set source and target languages per channel, making it
-            ideal for international WOS alliance servers.
+            Use the <code>/autotranslatecreate</code> command to create a DeepL-powered translation
+            link between two channels. You can manage existing setups with{' '}
+            <code>/autotranslatelist</code>, <code>/autotranslatetoggle</code>, and{' '}
+            <code>/autotranslateedit</code>.
           </p>
         </div>
 
         <div className="seo-faq-item">
-          <h3>How many servers is the bot active in?</h3>
-          <p>
-            The Whiteout Survival bot is actively used in hundreds of WOS Discord servers, monitoring
-            thousands of alliance members. Live stats are shown on the{' '}
-            <a href="/discord-bot">discord-bot page</a>.
-          </p>
-        </div>
-
-        <div className="seo-faq-item">
-          <h3>What is the web dashboard for the WOS bot?</h3>
+          <h3>What is the WOS bot web dashboard?</h3>
           <p>
             The web dashboard at{' '}
             <a href="https://bot.whiteoutsurvival.dev/" target="_blank" rel="noreferrer">
               bot.whiteoutsurvival.dev
             </a>{' '}
             lets you manage all bot settings from a browser — no Discord commands needed. Configure
-            server overview, translation rules, auto-redeem channels, registered members, and event
-            reminders from a clean web interface.
+            auto-redeem, alliance monitors, event reminders, and server settings from a clean web
+            interface.
           </p>
         </div>
 
         <div className="seo-faq-item">
-          <h3>How do I set up WOS event reminders?</h3>
+          <h3>How do I add alliance members to the monitor?</h3>
           <p>
-            Use the <code>/remind set</code> command in Discord to configure a reminder. You can
-            specify recurring schedules for events like State vs State (SvS), Bear Trap, State
-            Transfer, and other Whiteout Survival events. Reminders can also be managed via the
-            web dashboard.
+            First open the alliance monitor dashboard with <code>/alliancemonitor</code>, then use
+            the <code>!Add [FID]</code> prefix command in your designated bot channel, where FID is
+            the WOS player ID (Furnace ID). You can add multiple members at once by separating FIDs
+            with commas: <code>!Add 12345678, 87654321</code>.
           </p>
         </div>
       </div>
