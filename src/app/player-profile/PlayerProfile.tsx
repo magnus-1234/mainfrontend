@@ -36,6 +36,7 @@ export default function PlayerProfile() {
   const [error, setError] = useState("");
   const [player, setPlayer] = useState<PlayerProfileData | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
@@ -134,106 +135,193 @@ export default function PlayerProfile() {
     }
   };
 
+  const toggleFaq = (index: number) => {
+    setActiveFaq(activeFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "How do I find my Player ID?",
+      answer: "Open Whiteout Survival, tap your avatar in the top left corner, and look for the 'ID' number located below your Chief name."
+    },
+    {
+      question: "Is this service free?",
+      answer: "Yes, searching profiles and downloading high-quality avatars is completely free of charge."
+    },
+    {
+      question: "Why isn't my avatar updating here?",
+      answer: "Game servers may take some time to propagate avatar changes. If you recently changed it, please wait up to 24 hours."
+    },
+    {
+      question: "How do I download my avatar in HD?",
+      answer: "Search for your Player ID, and once your profile appears, click the vibrant 'Download HD Avatar' button below your details."
+    }
+  ];
+
+  const screenshots = [
+    { src: "/bot-preview-arena.png", alt: "Arena Info" },
+    { src: "/bot-preview-dashboard-reference.png", alt: "Dashboard Interface" },
+    { src: "/showcase-furnace-up.png", alt: "Furnace Upgrades" },
+    { src: "/showcase-avatar-change.png", alt: "Avatar Settings" },
+    { src: "/showcase-gift-alert.png", alt: "Gift Alerts" },
+    { src: "/showcase-state-age.png", alt: "State Age Tracking" }
+  ];
+
   return (
-    <div className="player-profile-container">
-      <div className="player-profile-header">
-        <h1>Player Details</h1>
-        <p>Find player profiles and download high-quality avatars</p>
-      </div>
+    <div className="pp-page">
+      <div className="pp-container">
+        
+        {/* HERO SECTION */}
+        <div className="pp-hero">
+          <div className="pp-hero-glow"></div>
+          <h1>Player Explorer</h1>
+          <p>Uncover complete player details and download high-quality, vibrant avatars instantly.</p>
+        </div>
 
-      <form className="player-profile-search" onSubmit={handleSearch}>
-        <input
-          type="text"
-          placeholder="Enter Player ID (e.g. 12345678)"
-          value={playerId}
-          onChange={(e) => setPlayerId(e.target.value)}
-          disabled={loading}
-        />
-        <button type="submit" disabled={loading || !playerId.trim() || countdown !== null}>
-          {countdown !== null ? (
-            <>
-              <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
-                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-              Retrying in {countdown}s...
-            </>
-          ) : loading ? (
-            <>
-              <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
-                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-              Searching...
-            </>
-          ) : (
-            <>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              Search
-            </>
-          )}
-        </button>
-      </form>
-
-      {error && <div className="player-profile-error">{error}</div>}
-
-      {player && (
-        <div className="player-profile-card">
-          <div className="player-profile-avatar-wrapper">
-            {player.avatarImage ? (
-              <img 
-                src={proxiedWosAvatarUrl(player.avatarImage)} 
-                alt={`${player.nickname}'s avatar`} 
-                className="player-profile-avatar"
-                crossOrigin="anonymous"
-              />
-            ) : (
-              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#374151", color: "#9ca3af" }}>
-                No Avatar
-              </div>
-            )}
+        {/* SEARCH FORM */}
+        <form className="pp-search" onSubmit={handleSearch}>
+          <div className="pp-search-input-wrapper">
+            <svg className="pp-search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              placeholder="Enter Player ID (e.g. 12345678)"
+              value={playerId}
+              onChange={(e) => setPlayerId(e.target.value)}
+              disabled={loading}
+            />
           </div>
-          
-          <div className="player-profile-info">
-            <div className="player-profile-name">{player.nickname}</div>
+          <button type="submit" className="pp-search-btn" disabled={loading || !playerId.trim() || countdown !== null}>
+            {countdown !== null ? (
+              <>
+                <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                </svg>
+                <span>Retry in {countdown}s</span>
+              </>
+            ) : loading ? (
+              <>
+                <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                </svg>
+                <span>Searching</span>
+              </>
+            ) : (
+              <span>Explore</span>
+            )}
+            <div className="pp-btn-glow"></div>
+          </button>
+        </form>
+
+        {error && (
+          <div className="pp-error">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            {error}
+          </div>
+        )}
+
+        {/* RESULTS CARD */}
+        {player && (
+          <div className="pp-result-card">
+            <div className="pp-result-backdrop"></div>
             
-            <div className="player-profile-stats">
-              <div className="player-stat-item">
-                <div className="player-stat-label">Player ID</div>
-                <div className="player-stat-value">{player.playerId}</div>
-              </div>
-              <div className="player-stat-item">
-                <div className="player-stat-label">State</div>
-                <div className="player-stat-value">{player.stateId ? `#${player.stateId}` : "Unknown"}</div>
-              </div>
-              <div className="player-stat-item" style={{ gridColumn: "span 2" }}>
-                <div className="player-stat-label">Furnace Level</div>
-                <div className="player-stat-value">
-                  {player.furnaceLevelFormatted || player.furnaceLevel || "Unknown"}
-                </div>
+            <div className="pp-avatar-section">
+              <div className="pp-avatar-ring">
+                {player.avatarImage ? (
+                  <img 
+                    src={proxiedWosAvatarUrl(player.avatarImage)} 
+                    alt={`${player.nickname}'s avatar`} 
+                    className="pp-avatar"
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <div className="pp-avatar-fallback">No Avatar</div>
+                )}
               </div>
             </div>
+            
+            <div className="pp-info-section">
+              <div className="pp-name-wrapper">
+                <h2 className="pp-name">{player.nickname}</h2>
+                <span className="pp-id-badge">#{player.playerId}</span>
+              </div>
+              
+              <div className="pp-stats-grid">
+                <div className="pp-stat-box">
+                  <span className="pp-stat-label">State</span>
+                  <span className="pp-stat-value">{player.stateId ? `#${player.stateId}` : "Unknown"}</span>
+                </div>
+                <div className="pp-stat-box pp-stat-box-highlight">
+                  <span className="pp-stat-label">Furnace Level</span>
+                  <span className="pp-stat-value">
+                    {player.furnaceLevelFormatted || player.furnaceLevel || "Unknown"}
+                  </span>
+                </div>
+              </div>
 
-            {player.avatarImage && (
-              <button 
-                className="player-profile-download" 
-                onClick={handleDownload}
-                title="Download High Quality Avatar"
+              {player.avatarImage && (
+                <button className="pp-download-btn" onClick={handleDownload}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Download HD Avatar
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* FAQ SECTION */}
+        <div className="pp-section pp-faq">
+          <h3 className="pp-section-title">Frequently Asked Questions</h3>
+          <div className="pp-faq-list">
+            {faqs.map((faq, idx) => (
+              <div 
+                key={idx} 
+                className={`pp-faq-item ${activeFaq === idx ? "active" : ""}`}
+                onClick={() => toggleFaq(idx)}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Download Avatar
-              </button>
-            )}
+                <div className="pp-faq-q">
+                  {faq.question}
+                  <svg className="pp-faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div className="pp-faq-a">
+                  <p>{faq.answer}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* SCREENSHOTS SECTION */}
+        <div className="pp-section pp-screenshots">
+          <h3 className="pp-section-title">Explore Game & Bot Features</h3>
+          <p className="pp-section-subtitle">A glimpse into what we offer</p>
+          <div className="pp-gallery">
+            {screenshots.map((shot, idx) => (
+              <div key={idx} className="pp-gallery-item">
+                <img src={shot.src} alt={shot.alt} loading="lazy" />
+                <div className="pp-gallery-overlay">
+                  <span>{shot.alt}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
