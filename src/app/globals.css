@@ -3771,6 +3771,12 @@ body {
   }
   .music-btn-primary, .music-btn-secondary {
     width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  .music-btn-primary svg {
+    width: 18px;
+    height: 18px;
   }
 }
 @keyframes simple-dot-blink {
