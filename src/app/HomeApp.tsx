@@ -6926,7 +6926,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
               <section className="giftcodes-hero" style={{ flexDirection: "column", alignItems: "stretch", padding: "0" }}>
                 <div className="giftcodes-hero-image-wrapper" style={{ width: "100%", height: "240px", overflow: "hidden", position: "relative" }}>
                   <img 
-                    src="/images/giftcode-banner.png" 
+                    src="/images/giftcode-banner.png?v=1" 
                     alt="Whiteout Survival Giftcodes Banner" 
                     style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }} 
                   />
