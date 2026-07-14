@@ -9353,6 +9353,18 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
             </section>
           )}
 
+          <section className="bottom-video-section" style={{ width: "100%", maxWidth: "1080px", margin: "60px auto 40px", padding: "0 22px" }} aria-label="Official Whiteout Survival Video">
+            <div style={{ position: "relative", width: "100%", paddingBottom: "56.25%", borderRadius: "12px", overflow: "hidden", boxShadow: "0 14px 34px rgba(0, 0, 0, 0.2)", border: "1px solid var(--border)", background: "var(--card)" }}>
+              <iframe
+                src="https://www.youtube.com/embed/xsf42iHhJ-U?autoplay=1&mute=1&loop=1&playlist=xsf42iHhJ-U&controls=0&showinfo=0&rel=0"
+                title="Whiteout Survival Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+              />
+            </div>
+          </section>
+
           <section className="bottom-community-section" aria-label="Whiteout Survival resource links">
             <div className="bottom-community-brand">
               <span className="bottom-community-mark">
