@@ -6923,20 +6923,30 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
             <WosGameMap embedded />
           ) : activeMenu === "gift" ? (
             <section className="home-page giftcodes-page" id="gift-codes" aria-label="Whiteout Survival gift codes">
-              <section className="giftcodes-hero">
-                <div>
-                  <span className="section-kicker">Live Gift Code Tracker</span>
-                  <h1>Whiteout Survival Gift Codes</h1>
-                  <p>Fastest active giftcodes detector on Internet.</p>
+              <section className="giftcodes-hero" style={{ flexDirection: "column", alignItems: "stretch", padding: "0" }}>
+                <div className="giftcodes-hero-image-wrapper" style={{ width: "100%", height: "240px", overflow: "hidden", position: "relative" }}>
+                  <img 
+                    src="/images/giftcode-banner.png" 
+                    alt="Whiteout Survival Giftcodes Banner" 
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }} 
+                  />
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "120px", background: "linear-gradient(to top, var(--card) 0%, transparent 100%)", pointerEvents: "none" }} />
                 </div>
-                <div className="giftcodes-hero-actions">
-                  <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage()}>
-                    Redeem
-                    <Icon name="external" />
-                  </button>
-                  <button className="giftcodes-refresh" type="button" onClick={() => void loadGiftCodes()} disabled={giftCodeLoading}>
-                    {giftCodeLoading ? "Refreshing" : "Refresh"}
-                  </button>
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "18px", padding: "0 22px 22px 22px", marginTop: "-40px", position: "relative", zIndex: 1 }}>
+                  <div>
+                    <span className="section-kicker">Live Gift Code Tracker</span>
+                    <h1>Whiteout Survival Gift Codes</h1>
+                    <p>Fastest active giftcodes detector on Internet.</p>
+                  </div>
+                  <div className="giftcodes-hero-actions">
+                    <button className="giftcodes-redeem-link" type="button" onClick={() => openRedeemPage()}>
+                      Redeem
+                      <Icon name="external" />
+                    </button>
+                    <button className="giftcodes-refresh" type="button" onClick={() => void loadGiftCodes()} disabled={giftCodeLoading}>
+                      {giftCodeLoading ? "Refreshing" : "Refresh"}
+                    </button>
+                  </div>
                 </div>
               </section>
 
