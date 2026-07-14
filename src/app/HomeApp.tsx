@@ -6932,7 +6932,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   />
                   <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "120px", background: "linear-gradient(to top, var(--card) 0%, transparent 100%)", pointerEvents: "none" }} />
                 </div>
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "18px", padding: "0 22px 22px 22px", marginTop: "-40px", position: "relative", zIndex: 1 }}>
+                <div className="giftcodes-hero-content">
                   <div>
                     <span className="section-kicker">Live Gift Code Tracker</span>
                     <h1>Whiteout Survival Gift Codes</h1>

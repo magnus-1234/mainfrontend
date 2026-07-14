@@ -17479,6 +17479,25 @@ body {
   flex-shrink: 0;
 }
 
+.giftcodes-hero-content {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 22px 22px 22px;
+  margin-top: -40px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .giftcodes-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: -30px;
+  }
+}
+
 .giftcodes-live-strip {
   display: flex;
   flex-wrap: wrap;
