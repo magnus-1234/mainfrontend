@@ -62,6 +62,7 @@ const parseEventItems = (chunk: string) => {
     const block = match[1];
     const caption = cleanText(firstMatch(block, /<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i));
     const alt = cleanText(firstMatch(block, /<img[^>]+alt=['"]([^'"]*)['"]/i));
+    const image = firstMatch(block, /<img[^>]+src=['"]([^'"]*)['"]/i);
     const afterBreak = cleanText(firstMatch(block, /<br\s*\/?>\s*([^<]+)/i));
     const title = cleanText(firstMatch(chunk, /<h4>([\s\S]*?)<\/h4>/i));
     const name = caption || afterBreak || alt || (index ? `${title} ${index + 1}` : title);
@@ -75,7 +76,7 @@ const parseEventItems = (chunk: string) => {
       return;
     }
     seen.add(key);
-    items.push({ name });
+    items.push({ name, ...(image && { image }) });
   });
 
   return items.slice(0, 12);
