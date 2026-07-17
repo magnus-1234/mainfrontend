@@ -7114,9 +7114,17 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                     <Icon name="shield" />
                     <span>Secure verification is handled automatically by our auto-redeem system.</span>
                   </div>
-                  <button type="submit" disabled={redeemLoading || !redeemPlayerId || ((redeemCode || "ALL") === "ALL" && !giftCodes.length)}>
+                  <button type="submit" className="redeem-submit-btn" disabled={redeemLoading || !redeemPlayerId || ((redeemCode || "ALL") === "ALL" && !giftCodes.length)}>
                     {redeemLoading ? "Redeeming" : "Redeem"}
                   </button>
+                  {redeemLoading && (
+                    <div className="redeem-progress-container">
+                      <div className="redeem-progress-bar">
+                        <div className="redeem-progress-bar-fill"></div>
+                      </div>
+                      <span className="redeem-progress-text">Processing your codes, please wait...</span>
+                    </div>
+                  )}
                 </form>
               </section>
 
