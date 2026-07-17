@@ -17541,7 +17541,7 @@ body {
   border: 1px solid rgba(var(--primary-rgb), 0.4);
   border-radius: 8px;
   padding: 16px;
-  background: rgba(var(--primary-rgb), 0.12);
+  background: var(--muted);
   box-shadow:
     0 0 0 1px rgba(var(--primary-rgb), 0.08) inset,
     0 16px 38px rgba(0, 0, 0, 0.12),
