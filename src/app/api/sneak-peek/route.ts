@@ -21,19 +21,53 @@ export async function GET() {
     let latestLink = "";
     let latestTitle = "Sneak Peek";
 
+    const parsedItems = [];
     for (const match of items) {
       const linkMatch = match[1].match(/<link>(.*?)<\/link>/);
       const titleMatch = match[1].match(/<title>(.*?)<\/title>/);
       if (linkMatch) {
-        latestLink = linkMatch[1];
-        latestTitle = titleMatch ? titleMatch[1] : "Sneak Peek";
-        break; // Get the first one (latest)
+        const link = linkMatch[1];
+        const title = titleMatch ? titleMatch[1] : "Sneak Peek";
+        
+        let mmdd = 0;
+        const urlMatch = link.match(/\/sneak-peek\/(\d{4})/);
+        if (urlMatch) {
+          mmdd = parseInt(urlMatch[1], 10);
+        } else {
+          // Fallback to pubDate if no MMDD found in URL
+          const pubDateMatch = match[1].match(/<pubDate>(.*?)<\/pubDate>/);
+          if (pubDateMatch) {
+            mmdd = new Date(pubDateMatch[1]).getTime();
+          }
+        }
+        
+        parsedItems.push({ link, title, mmdd });
       }
     }
 
-    if (!latestLink) {
+    if (parsedItems.length === 0) {
       throw new Error("No sneak peek link found in feed.");
     }
+
+    parsedItems.sort((a, b) => {
+      if (a.mmdd > 10000 || b.mmdd > 10000) {
+        return b.mmdd - a.mmdd; // normal descending for timestamps
+      }
+      
+      const aMonth = Math.floor(a.mmdd / 100);
+      const bMonth = Math.floor(b.mmdd / 100);
+      
+      // Wrap around logic: if difference in months is large (e.g. > 6), 
+      // the smaller month (Jan) is newer than the larger (Dec).
+      if (Math.abs(aMonth - bMonth) > 6) {
+        return aMonth < bMonth ? -1 : 1; 
+      }
+      
+      return b.mmdd - a.mmdd; // normal descending
+    });
+
+    latestLink = parsedItems[0].link;
+    latestTitle = parsedItems[0].title;
 
     const articleResponse = await fetch(latestLink, {
       headers: { "user-agent": "WhiteoutSurvival.dev wiki snapshot bot" },
