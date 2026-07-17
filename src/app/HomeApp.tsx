@@ -4645,8 +4645,9 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
         throw new Error("No active codes are loaded yet.");
       }
 
-      const results = await Promise.all(
-        codesToRedeem.map(async (code) => {
+      const results: Array<{ code: string; state: string; message: string; player?: PlayerProfile }> = [];
+      for (const code of codesToRedeem) {
+        try {
           const response = await fetch("/api/gift-codes/redeem", {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -4657,23 +4658,30 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
           });
           const payload = await response.json().catch(() => null);
           if (!response.ok) {
-            return {
+            results.push({
               code,
               state: "error",
               message: payload?.message || payload?.error || "Unable to redeem.",
               player: payload?.player as PlayerProfile | undefined,
-            };
+            });
+            continue;
           }
 
           const result = payload as RedeemResult;
-          return {
+          results.push({
             code,
             state: result.state,
             message: result.message,
             player: result.player,
-          };
-        }),
-      );
+          });
+        } catch (err) {
+          results.push({
+            code,
+            state: "error",
+            message: "The operation was aborted due to timeout",
+          });
+        }
+      }
 
       const firstPlayer = results.find((item) => item.player)?.player;
       if (firstPlayer) {
