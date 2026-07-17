@@ -65,8 +65,8 @@ a {
   --accent-foreground: #3d2a0b;
   --border: #ded8cd;
   --input: #ded8cd;
-  --primary: #f48120;
-  --primary-rgb: 244, 129, 32;
+  --primary: #FFC107;
+  --primary-rgb: 255, 193, 7;
   --gold: var(--primary);
   --gold-soft: rgba(var(--primary-rgb), 0.12);
   --gold-line: rgba(var(--primary-rgb), 0.34);
@@ -92,8 +92,8 @@ a {
   --accent-foreground: #ffd2a1;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.15);
-  --primary: #f48120;
-  --primary-rgb: 244, 129, 32;
+  --primary: #FFC107;
+  --primary-rgb: 255, 193, 7;
   --gold: #f4a259;
   --gold-soft: rgba(var(--primary-rgb), 0.16);
   --gold-line: rgba(var(--primary-rgb), 0.42);
@@ -21475,4 +21475,11 @@ details.faq-item[open] .faq-chevron {
 .redeem-page {
   --primary: #00b4d8;
   --primary-rgb: 0, 180, 216;
+}
+
+/* Header and Sidebar Orange Theme Override */
+.ks-header,
+.sidebar {
+  --primary: #f48120;
+  --primary-rgb: 244, 129, 32;
 }
