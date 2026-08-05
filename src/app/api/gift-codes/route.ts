@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { apiAttribution } from "../attribution";
 
+export const dynamic = "force-dynamic";
+
 type GiftCode = {
   code: string;
   rewards: string;
