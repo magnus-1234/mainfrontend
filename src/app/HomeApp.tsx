@@ -3006,6 +3006,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   const [giftCodeStatus, setGiftCodeStatus] = useState("");
   const [copiedGiftCode, setCopiedGiftCode] = useState("");
   const [redeemPlayerId, setRedeemPlayerId] = useState("");
+  const [redeemStateId, setRedeemStateId] = useState("");
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemPlayer, setRedeemPlayer] = useState<PlayerProfile | null>(null);
   const [redeemLoading, setRedeemLoading] = useState(false);
@@ -4653,6 +4654,7 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
               playerId: redeemPlayerId,
+              stateId: redeemStateId,
               code,
             }),
           });
@@ -7089,6 +7091,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   <label>
                     <span>Player ID</span>
                     <input value={redeemPlayerId} onChange={(event) => setRedeemPlayerId(event.currentTarget.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="Enter your FID" />
+                  </label>
+                  <label>
+                    <span>State Number</span>
+                    <input value={redeemStateId} onChange={(event) => setRedeemStateId(event.currentTarget.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="Enter your State" />
                   </label>
                   <label>
                     <span>Active Code</span>
