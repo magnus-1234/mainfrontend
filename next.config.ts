@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-const backendUrl = process.env.BACKEND_URL || "http://140.245.201.209:3001";
 const isProduction = process.env.NODE_ENV === "production";
+const backendUrl = process.env.BACKEND_URL || (isProduction ? "http://140.245.201.209:3001" : "http://localhost:3001");
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -276,12 +276,12 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/auth/:path*`,
       },
       {
-        source: "/api/profile/:path*",
-        destination: `${backendUrl}/api/profile/:path*`,
+        source: "/api/wos-auth/:path*",
+        destination: `${backendUrl}/api/wos-auth/:path*`,
       },
       {
-        source: "/api/player/:path*",
-        destination: `${backendUrl}/api/player/:path*`,
+        source: "/api/profile/:path*",
+        destination: `${backendUrl}/api/profile/:path*`,
       },
       {
         source: "/api/bot-status",

@@ -37,6 +37,10 @@ export default function PlayerProfile() {
   const [player, setPlayer] = useState<PlayerProfileData | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [verificationMode, setVerificationMode] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
@@ -59,7 +63,12 @@ export default function PlayerProfile() {
         body: JSON.stringify({ playerId: idToSearch }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        throw new Error("Server returned an invalid response. Please try again.");
+      }
 
       if (!response.ok) {
         if (response.status === 429 && data.error?.includes("wait")) {
@@ -103,8 +112,108 @@ export default function PlayerProfile() {
     setLoading(true);
     setError("");
     setPlayer(null);
+    setVerificationMode(false);
+    setVerificationCode("");
+    setVerificationSuccess(false);
 
     await executeSearch(playerId.trim());
+  };
+
+  const handleSendVerification = async () => {
+    if (!playerId.trim()) return;
+    setVerifying(true);
+    setError("");
+    
+    try {
+      const response = await fetch("/api/wos-auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ playerId: playerId.trim() }),
+      });
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        const text = await response.text().catch(() => "");
+        console.error("Failed to parse JSON response:", text.substring(0, 500));
+        throw new Error("Server returned an invalid response (HTML). Please ensure you are logged into the dashboard.");
+      }
+      
+      if (!response.ok) throw new Error(data.error || "Failed to send code");
+      
+      setVerificationMode(true);
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationCode.trim() || verificationCode.length !== 6) {
+      setError("Please enter a valid 6-digit code");
+      return;
+    }
+    
+    setVerifying(true);
+    setError("");
+    
+    try {
+      const response = await fetch("/api/wos-auth/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ 
+          playerId: playerId.trim(),
+          code: verificationCode.trim()
+        }),
+      });
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        const text = await response.text().catch(() => "");
+        console.error("Failed to parse JSON response:", text.substring(0, 500));
+        throw new Error("Server returned an invalid response. Please ensure you are logged in.");
+      }
+      
+      if (!response.ok) throw new Error(data.error || "Failed to verify code");
+      
+      // Verification successful, link the account
+      await linkVerifiedAccount(data.wosToken);
+      
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+      setVerifying(false);
+    }
+  };
+
+  const linkVerifiedAccount = async (wosToken: string) => {
+    try {
+      const response = await fetch("/api/profile/player-accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          playerId: playerId.trim(),
+          wosVerified: true,
+          wosToken
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to link account");
+      }
+      
+      setVerificationSuccess(true);
+      setVerificationMode(false);
+    } catch (err: any) {
+      setError(err.message || "Verification succeeded but linking failed.");
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const handleDownload = async () => {
@@ -267,16 +376,47 @@ export default function PlayerProfile() {
                 </div>
               </div>
 
-              {player.avatarImage && (
-                <button className="pp-download-btn" onClick={handleDownload}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  Download HD Avatar
-                </button>
-              )}
+                {player.avatarImage && (
+                  <button className="pp-download-btn" onClick={handleDownload}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download HD Avatar
+                  </button>
+                )}
+                
+                {verificationSuccess ? (
+                  <div className="pp-verification-success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Account Verified & Linked!
+                  </div>
+                ) : verificationMode ? (
+                  <form className="pp-verify-form" onSubmit={handleVerifyCode}>
+                    <p className="pp-verify-info">Code sent to your in-game mail.</p>
+                    <div className="pp-verify-input-group">
+                      <input 
+                        type="text" 
+                        maxLength={6} 
+                        placeholder="6-digit code" 
+                        value={verificationCode}
+                        onChange={e => setVerificationCode(e.target.value)}
+                        disabled={verifying}
+                      />
+                      <button type="submit" disabled={verifying || verificationCode.length !== 6}>
+                        {verifying ? "Verifying..." : "Verify Code"}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button className="pp-verify-btn" onClick={handleSendVerification} disabled={verifying}>
+                    {verifying ? "Sending..." : "Verify Ownership"}
+                  </button>
+                )}
             </div>
           </div>
         )}

@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { apiAttribution } from "../../attribution";
 
 const backendCandidates = [
-  "https://bot.whiteoutsurvival.dev",
   process.env.BACKEND_URL,
+  "http://localhost:3001",
+  "https://bot.whiteoutsurvival.dev",
   process.env.NEXT_PUBLIC_API_BASE_URL,
-  "http://localhost:8080",
 ].filter(Boolean) as string[];
 
 export async function POST(request: Request) {
@@ -16,14 +16,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Player ID is required" }, { status: 400 });
     }
 
-    // Call the Python backend gift-codes player-info endpoint, since it fetches the player profile
-    // using the bot's internal WOS game API.
     for (const backendUrl of backendCandidates) {
       try {
+        // Try the Node.js backend Daybreak player info endpoint first (fastest locally)
+        try {
+          const daybreakResponse = await fetch(`${backendUrl.replace(/\/$/, "")}/api/daybreak/players/${playerId}`, {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            signal: AbortSignal.timeout(5000)
+          });
+          
+          if (daybreakResponse.ok) {
+            const payload = await daybreakResponse.json().catch(() => null);
+            if (payload?.player) {
+              return NextResponse.json({
+                player: payload.player,
+                attribution: apiAttribution
+              });
+            }
+          }
+        } catch (e) {
+          // Fall back to Python endpoint
+        }
+
+        // Try the Python backend gift-codes player-info endpoint
         const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/giftcodes/player-info`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ id: playerId }),
+          signal: AbortSignal.timeout(5000)
         });
         
         const payload = await response.json().catch(() => null);
@@ -36,7 +57,6 @@ export async function POST(request: Request) {
               furnaceLevel: payload.data.furnace_lv,
               furnaceLevelFormatted: payload.data.furnace_lv_formatted,
               avatarImage: payload.data.avatar_image,
-              // The backend API might not return stateId currently
               stateId: payload.data.stateId,
             },
             attribution: apiAttribution
