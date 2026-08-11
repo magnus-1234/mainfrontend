@@ -246,7 +246,7 @@ type WosWikiPoster = {
 };
 
 type SneakPeekItem = { type: string; content: string; tag?: string };
-type SneakPeekData = { title: string; sourceUrl: string; giftCode?: string; htmlContent: string };
+type SneakPeekData = { title?: string; sourceUrl?: string; giftCode?: string; htmlContent?: string; error?: string };
 
 type WosWikiPostersData = {
   categories: { id: string; label: string }[];
@@ -2962,15 +2962,15 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
   }, [likedIslands]);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(initialMenu);
 
+  const hasFetchedSneakPeek = useRef(false);
   useEffect(() => {
-    if (activeMenu === "sneak" && !sneakPeekData && !loadingSneakPeek) {
+    if (activeMenu === "sneak" && !sneakPeekData && !loadingSneakPeek && !hasFetchedSneakPeek.current) {
       setLoadingSneakPeek(true);
+      hasFetchedSneakPeek.current = true;
       fetch("/api/sneak-peek")
         .then(res => res.json())
         .then(data => {
-          if (!data.error) {
-            setSneakPeekData(data);
-          }
+          setSneakPeekData(data);
         })
         .catch(console.error)
         .finally(() => setLoadingSneakPeek(false));
@@ -9001,10 +9001,10 @@ export function HomeApp({ initialMenu = "home" }: { initialMenu?: ActiveMenu } =
                   `}</style>
                   {loadingSneakPeek ? (
                      <div className="sneak-peek-loading" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>Loading latest sneak peek...</div>
-                  ) : sneakPeekData ? (
+                  ) : sneakPeekData && !sneakPeekData.error && sneakPeekData.htmlContent ? (
                     <div className="sneak-peek-raw-html" dangerouslySetInnerHTML={{ __html: sneakPeekData.htmlContent }} />
                   ) : (
-                    <div className="sneak-peek-error" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>Failed to load sneak peek data.</div>
+                    <div className="sneak-peek-error" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-dim)' }}>{sneakPeekData?.error || "Failed to load sneak peek data."}</div>
                   )}
                 </div>
               </article>

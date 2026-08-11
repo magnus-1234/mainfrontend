@@ -5,48 +5,48 @@ export const revalidate = 3600; // Cache for 1 hour
 
 export async function GET() {
   try {
-    const feedUrl = "https://www.whiteoutsurvival.wiki/sneak-peek/feed/";
+    const feedUrl = "https://www.whiteoutsurvival.wiki/sneak-peek-sitemap.xml";
     const feedResponse = await fetch(feedUrl, {
       headers: { "user-agent": "WhiteoutSurvival.dev wiki snapshot bot" },
       next: { revalidate: 3600 }
     });
 
     if (!feedResponse.ok) {
-      throw new Error(`Failed to fetch feed: ${feedResponse.status}`);
+      throw new Error(`Failed to fetch sitemap: ${feedResponse.status}`);
     }
 
     const xml = await feedResponse.text();
-    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+    const items = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)];
     
     let latestLink = "";
     let latestTitle = "Sneak Peek";
 
     const parsedItems = [];
     for (const match of items) {
-      const linkMatch = match[1].match(/<link>(.*?)<\/link>/);
-      const titleMatch = match[1].match(/<title>(.*?)<\/title>/);
+      const urlBlock = match[1];
+      const linkMatch = urlBlock.match(/<loc><!\[CDATA\[(.*?)\]\]><\/loc>/);
+      const lastmodMatch = urlBlock.match(/<lastmod><!\[CDATA\[(.*?)\]\]><\/lastmod>/);
       if (linkMatch) {
         const link = linkMatch[1];
-        const title = titleMatch ? titleMatch[1] : "Sneak Peek";
+        
+        // Ensure we only process english links or general links (like old ones that didn't have a language suffix)
+        if (link.includes("/ja/") || link.includes("/ko/") || link.includes("jp/") || link.includes("kr/")) continue;
         
         let mmdd = 0;
         const urlMatch = link.match(/\/sneak-peek\/(\d{4})/);
         if (urlMatch) {
           mmdd = parseInt(urlMatch[1], 10);
-        } else {
-          // Fallback to pubDate if no MMDD found in URL
-          const pubDateMatch = match[1].match(/<pubDate>(.*?)<\/pubDate>/);
-          if (pubDateMatch) {
-            mmdd = new Date(pubDateMatch[1]).getTime();
-          }
+        } else if (lastmodMatch) {
+          // Fallback to lastmod
+          mmdd = new Date(lastmodMatch[1]).getTime();
         }
         
-        parsedItems.push({ link, title, mmdd });
+        parsedItems.push({ link, title: "Sneak Peek", mmdd });
       }
     }
 
     if (parsedItems.length === 0) {
-      throw new Error("No sneak peek link found in feed.");
+      return NextResponse.json({ error: "No sneak peek currently available." }, { status: 404 });
     }
 
     parsedItems.sort((a, b) => {
@@ -129,8 +129,9 @@ export async function GET() {
     htmlContent = htmlContent.replace(/<p[^>]*>\s*Source:\s*<a[^>]*>\s*<\/a>\.\s*<\/p>/gi, "");
     htmlContent = htmlContent.replace(/Source:\s*<a[^>]*>\s*<\/a>\./gi, "");
 
+    const actualTitle = root.querySelector("title")?.text.replace(" - Whiteout Survival Wiki", "") || latestTitle;
     return NextResponse.json({
-      title: latestTitle,
+      title: actualTitle,
       sourceUrl: latestLink,
       giftCode,
       htmlContent
