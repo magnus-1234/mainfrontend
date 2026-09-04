@@ -1,9 +1,0 @@
-const sourceUrl = "https://whiteoutsurvival.pl/state-timeline/";
-const ajaxUrl = "https://whiteoutsurvival.pl/wp-admin/admin-ajax.php";
-
-const firstMatch = (value: string, pattern: RegExp) => value.match(pattern)?.[1]?.trim() || "";
-
-const decodeHtml = (value: string) =>
-  value
-    .replace(/\\\//g, "/")
-    .replace(/&nbsp;/g, " ");
