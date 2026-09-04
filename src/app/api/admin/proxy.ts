@@ -12,10 +12,10 @@ export const proxyAdminRequest = async (request: NextRequest, path: string) => {
   const cookie = request.headers.get("cookie");
   const userAgent = request.headers.get("user-agent");
   const forwardedFor = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
-  const country = request.headers.get("x-vercel-ip-country") || request.headers.get("cf-ipcountry");
-  const region = request.headers.get("x-vercel-ip-country-region");
-  const city = request.headers.get("x-vercel-ip-city");
+  const realIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for");
+  const country = request.headers.get("cf-ipcountry") || request.headers.get("x-vercel-ip-country");
+  const region = request.headers.get("cf-region") || request.headers.get("cf-ipcountry-region") || request.headers.get("x-vercel-ip-country-region");
+  const city = request.headers.get("cf-ipcity") || request.headers.get("x-vercel-ip-city");
 
   headers.set("accept", "application/json");
   if (contentType) headers.set("content-type", contentType);
